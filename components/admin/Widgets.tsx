@@ -137,6 +137,21 @@ export function UploadField({ name, initial, kind = "image", shape = "round", fa
   );
 }
 
+/** Copies text (e.g. an email address) and briefly shows "Copied". */
+export function CopyButton({ text, label = "Copy", className = "b-out b-sm" }: { text: string; label?: string; className?: string }) {
+  const [done, setDone] = useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(text); }
+    catch { window.prompt("Copy this:", text); return; }
+    setDone(true); setTimeout(() => setDone(false), 1500);
+  };
+  return (
+    <button type="button" className={className} onClick={copy}>
+      <i className={`ti ${done ? "ti-check" : "ti-copy"}`} />{done ? "Copied" : label}
+    </button>
+  );
+}
+
 async function shrink(file: File, max: number): Promise<Blob> {
   const img = await createImageBitmap(file).catch(() => null);
   if (!img) return file;
