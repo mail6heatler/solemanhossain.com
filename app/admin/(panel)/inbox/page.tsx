@@ -6,20 +6,18 @@ import type { Message } from "@/lib/data";
 
 type P = { searchParams: Promise<{ f?: string }> };
 
-/** Reply links: Gmail in the browser (works without any email app), or the computer's email app. */
 const fmt = (iso: string, timeZone: string) => {
   try { return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone }); }
   catch { return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }); }
 };
 
-function replyLinks(m: Message, timeZone: string) {
+/** Opens a pre-filled reply in Gmail (browser), so no email app is needed. */
+function gmailReply(m: Message, timeZone: string) {
   const subject = "Re: your message on my website";
   const when = fmt(m.created_at, timeZone);
   const quoted = m.body.slice(0, 1500).split(/\r?\n/).map((l) => `> ${l}`).join("\n");
   const body = `Hi ${m.name},\n\n\n\n---\nOn ${when}, you wrote:\n${quoted}`;
-  const gmail = "https://mail.google.com/mail/?" + new URLSearchParams({ view: "cm", fs: "1", to: m.email, su: subject, body });
-  const mailto = `mailto:${encodeURIComponent(m.email).replace("%40", "@")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  return { gmail, mailto };
+  return "https://mail.google.com/mail/?" + new URLSearchParams({ view: "cm", fs: "1", to: m.email, su: subject, body });
 }
 
 export default async function Inbox({ searchParams }: P) {
@@ -56,16 +54,12 @@ export default async function Inbox({ searchParams }: P) {
             </div>
             <p>{m.body}</p>
             <div className="btns" style={{ marginTop: 10 }}>
-              {m.email && (() => {
-                const r = replyLinks(m, tz);
-                return (
-                  <>
-                    <a href={r.gmail} target="_blank" rel="noopener noreferrer" className="b-dark b-sm" title="Opens a reply in Gmail (new tab)"><i className="ti ti-mail-forward" />Reply in Gmail</a>
-                    <a href={r.mailto} className="b-out b-sm" title="Opens your computer's email app"><i className="ti ti-mail" />Email app</a>
-                    <CopyButton text={m.email} label="Copy email" />
-                  </>
-                );
-              })()}
+              {m.email && (
+                <>
+                  <a href={gmailReply(m, tz)} target="_blank" rel="noopener noreferrer" className="b-dark b-sm" title="Opens a reply in Gmail (new tab)"><i className="ti ti-mail-forward" />Reply in Gmail</a>
+                  <CopyButton text={m.email} label="Copy email" />
+                </>
+              )}
               <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="approve" />
                 <button className="b-out b-sm"><i className={`ti ${m.approved ? "ti-eye-off" : "ti-pin"}`} />{m.approved ? "Remove from wall" : "Show on wall"}</button></form>
               <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="read" />
