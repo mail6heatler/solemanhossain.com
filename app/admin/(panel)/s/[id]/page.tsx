@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getSection, getItems } from "@/lib/data";
+import { getSection, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
 import { LAYOUTS, MOODS } from "@/lib/settings";
 import { createItem, deleteSection, moveItem, toggleItem, updateSection } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
@@ -14,6 +14,7 @@ export default async function SectionAdmin({ params }: P) {
   const section = /^\d+$/.test(id) ? await getSection({ id: Number(id) }) : null;
   if (!section) notFound();
   const items = await getItems(section.id);
+  const reactions = await getReactionCountsFor(items.map((i) => i.id));
 
   // group entries by subsection (category), keeping the order you defined
   const names = [...section.categories];
@@ -49,7 +50,7 @@ export default async function SectionAdmin({ params }: P) {
           <div className="cat-h">
             <h3>{g.name || "No subsection"}</h3><span className="n">{g.items.length}</span><span className="line" />
           </div>
-          {g.items.map((it) => <Row key={it.id} it={it} all={g.items} />)}
+          {g.items.map((it) => <Row key={it.id} it={it} all={g.items} reactions={reactions[it.id]} />)}
           <form action={createItem} className="add-row" style={{ marginBottom: 6 }}>
             <input type="hidden" name="section_id" value={section.id} />
             <input type="hidden" name="category" value={g.name} />
@@ -107,11 +108,12 @@ export default async function SectionAdmin({ params }: P) {
   );
 }
 
-function Row({ it, all }: { it: Item; all: Item[] }) {
+function Row({ it, all, reactions }: { it: Item; all: Item[]; reactions?: ReactionCounts }) {
   const idx = all.findIndex((x) => x.id === it.id);
+  const r = Object.entries(reactions ?? {}).filter(([, n]) => n > 0).map(([e, n]) => `${e} ${n}`).join("  ");
   const desc = [
     it.type === "poll" ? `📊 poll · ${it.poll_options.length} options` : "",
-    it.date_label, it.location, it.status, MOODS[it.mood]?.label, it.image_url ? "📷" : "",
+    it.date_label, it.location, it.status, MOODS[it.mood]?.label, it.image_url ? "📷" : "", r,
   ].filter(Boolean).join(" · ");
   return (
     <div className={`c hov ${it.visible ? "" : "off"}`}>

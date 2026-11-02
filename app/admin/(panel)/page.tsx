@@ -1,4 +1,4 @@
-import { getSections, getItemCounts, getRecentItems, getMessages, getStats, countUnread, getLiveCount } from "@/lib/data";
+import { getSections, getItemCounts, getRecentItems, getMessages, getStats, countUnread, getLiveCount, getReactionTotals, getRecentReactions } from "@/lib/data";
 import { LAYOUTS } from "@/lib/settings";
 import { createSection, moveSection, toggleSection } from "@/app/actions";
 import { layoutIcon } from "@/lib/settings";
@@ -6,14 +6,16 @@ import { requireAdmin } from "@/lib/auth";
 
 export default async function Overview() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
-  const [stats, sections, counts, recent, msgs, unread, live] = await Promise.all([
+  const [stats, sections, counts, recent, msgs, unread, live, reactions, recentReactions] = await Promise.all([
     getStats(), getSections(), getItemCounts(), getRecentItems(5), getMessages(), countUnread(), getLiveCount(),
+    getReactionTotals(), getRecentReactions(5),
   ]);
   const max = Math.max(1, ...stats.last14.map((d) => d.visitors));
   const activity = [
     ...recent.map((r) => ({ when: r.created_at, icon: r.type === "poll" ? "chart-bar" : "file-text", text: `${r.title}`, tag: r.section_title, href: `/admin/items/${r.id}`, tone: "" })),
     ...msgs.slice(0, 5).map((m) => ({ when: m.created_at, icon: "message-2", text: `Message from ${m.name}`, tag: m.read ? "inbox" : "new", href: "/admin/inbox", tone: m.read ? "blue" : "red" })),
-  ].sort((a, b) => b.when.localeCompare(a.when)).slice(0, 7);
+    ...recentReactions.map((r) => ({ when: r.created_at, icon: "heart", text: `${r.visitor} reacted ${r.emoji} to “${r.title}”`, tag: r.seen ? "reaction" : "new", href: "/admin/inbox?f=reactions", tone: r.seen ? "" : "red" })),
+  ].sort((a, b) => b.when.localeCompare(a.when)).slice(0, 8);
 
   return (
     <div className="adm-page">
@@ -25,6 +27,7 @@ export default async function Overview() {
         <Stat icon="users" k="visitors today" v={String(stats.visitorsToday)} />
         <Stat icon="flame" k="most viewed (30 days)" v={stats.topSection} small />
         <Stat icon="message-circle" k="unread messages" v={String(unread)} href="/admin/inbox" />
+        <Stat icon="heart" k={reactions.fresh ? `reactions · ${reactions.fresh} new` : "reactions"} v={String(reactions.total)} href="/admin/inbox?f=reactions" />
         <Stat icon="chart-pie" k="active polls" v={String(stats.activePolls)} />
       </div>
 

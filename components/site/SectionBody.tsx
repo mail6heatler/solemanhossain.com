@@ -12,6 +12,9 @@ const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
 /** The same name on a card picture and on the entry page's big picture makes it morph between pages. */
 export const morphName = (on: boolean, id: number) => (on ? ({ viewTransitionName: `entry-${id}` } as React.CSSProperties) : undefined);
 
+/** Makes a whole card clickable while buttons inside it (reactions) stay clickable on their own. */
+const CardLink = ({ to, label }: { to: string; label: string }) => <a href={to} className="card-link" aria-label={label} />;
+
 export function Mood({ mood }: { mood: string }) {
   const m = MOODS[mood];
   if (!m) return null;
@@ -38,6 +41,7 @@ export default function SectionBody({ section, items, settings, wall }:
   const fx = settings.effects;
   const st = fx.stagger ? " stagger" : "";
   const vt = (id: number) => morphName(fx.morph, id);
+  const R = ({ id }: { id: number }) => (fx.reactions ? <Reactions id={id} compact /> : null);
 
   if (L === "connect") {
     return (
@@ -59,6 +63,7 @@ export default function SectionBody({ section, items, settings, wall }:
               <div key={it.id} className="wall-note quote">
                 <p>{it.body || it.title}</p>
                 <div className="by">— {it.subtitle || it.title}</div>
+                <R id={it.id} />
               </div>
             ))}
             {wall?.map((m) => (
@@ -80,7 +85,8 @@ export default function SectionBody({ section, items, settings, wall }:
 
   if (L === "strip") {
     const trips = items.map((it) => (
-      <a key={it.id} href={href(section, it)} className="trip">
+      <div key={it.id} className="trip">
+        <CardLink to={href(section, it)} label={it.title} />
         <div className="ph">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-map-pin" />}</div>
         <div className="tb">
           {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
@@ -88,8 +94,9 @@ export default function SectionBody({ section, items, settings, wall }:
           {(it.location || it.date_label) && (
             <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
           )}
+          <R id={it.id} />
         </div>
-      </a>
+      </div>
     ));
     return fx.sideways
       ? <StripScroller className={`strip reveal r3${st}`}>{trips}</StripScroller>
@@ -101,40 +108,45 @@ export default function SectionBody({ section, items, settings, wall }:
       return (
         <div className={`flips reveal r3${st}`}>
           {items.map((it) => (
-            <a key={it.id} href={href(section, it)} className="flip" aria-label={`${it.title}${it.subtitle ? `, ${it.subtitle}` : ""}`}>
-              <div className="flip-in">
-                <div className="flip-f">
-                  <div className="ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" />}</div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {it.category && <span className="chip">{it.category}</span>}
-                    {it.status && <span className="chip line">{it.status}</span>}
+            <div key={it.id} className="flip-wrap">
+              <a href={href(section, it)} className="flip" aria-label={`${it.title}${it.subtitle ? `, ${it.subtitle}` : ""}`}>
+                <div className="flip-in">
+                  <div className="flip-f">
+                    <div className="ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" />}</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {it.category && <span className="chip">{it.category}</span>}
+                      {it.status && <span className="chip line">{it.status}</span>}
+                    </div>
+                    <h3>{it.title}</h3>
+                    {it.subtitle && <div className="sub">{it.subtitle}</div>}
                   </div>
-                  <h3>{it.title}</h3>
-                  {it.subtitle && <div className="sub">{it.subtitle}</div>}
+                  <div className="flip-b" aria-hidden>
+                    <span>{excerpt(it.body, 170) || "Why this one stuck with me…"}</span>
+                    <span className="more">Read more →</span>
+                  </div>
                 </div>
-                <div className="flip-b" aria-hidden>
-                  <span>{excerpt(it.body, 170) || "Why this one stuck with me…"}</span>
-                  <span className="more">Read more →</span>
-                </div>
-              </div>
-            </a>
+              </a>
+              <R id={it.id} />
+            </div>
           ))}
         </div>
       );
     return (
       <div className={`shelf reveal r3${st}`}>
         {items.map((it) => (
-          <a key={it.id} href={href(section, it)} className="shelf-row">
+          <div key={it.id} className="shelf-row">
+            <CardLink to={href(section, it)} label={it.title} />
             <div className="shelf-ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" style={{ color: "var(--mint-deep)" }} />}</div>
             <div>
               <h3>{it.title}</h3>
               {it.subtitle && <div className="sub">{it.subtitle}</div>}
+              <R id={it.id} />
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
               {it.status && <span className="chip line">{it.status}</span>}
               {it.category && <span className="chip">{it.category}</span>}
             </div>
-          </a>
+          </div>
         ))}
       </div>
     );
@@ -157,9 +169,9 @@ export default function SectionBody({ section, items, settings, wall }:
                   {it.body.length > 420
                     ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)} <a href={href(section, it)}>read more</a></p>
                     : <Markdown>{it.body}</Markdown>}
-                  {fx.reactions && <Reactions id={it.id} />}
                 </>
               )}
+              <R id={it.id} />
             </div>
           </article>
         ))}
@@ -170,30 +182,36 @@ export default function SectionBody({ section, items, settings, wall }:
     return (
       <div className={`tline reveal r3${fx.timeline ? " draw" : ""}`}>
         {items.map((it) => (
-          <a key={it.id} href={href(section, it)} className={`tl-row ${it.mood}`} style={{ ["--dot" as string]: MOODS[it.mood]?.color ?? "var(--mint)" }}>
+          <div key={it.id} className={`tl-row ${it.mood}`} style={{ ["--dot" as string]: MOODS[it.mood]?.color ?? "var(--mint)" }}>
+            <CardLink to={href(section, it)} label={it.title} />
             <Meta it={it} />
             <h3>{it.title}</h3>
             {(it.subtitle || it.body) && <p>{it.subtitle || excerpt(it.body, 180)}</p>}
-          </a>
+            <R id={it.id} />
+          </div>
         ))}
       </div>
     );
 
   if (L === "photos") {
     if (fx.lightbox)
-      return <PhotoGrid className={`photogrid reveal r3${st}`} items={items.map((it) => ({ id: it.id, title: it.title, image_url: it.image_url, href: href(section, it) }))} />;
+      return <PhotoGrid className={`photogrid reveal r3${st}`} reactions={fx.reactions}
+        items={items.map((it) => ({ id: it.id, title: it.title, image_url: it.image_url, href: href(section, it) }))} />;
     return (
       <div className={`photogrid reveal r3${st}`}>
-        {items.map((it) =>
-          it.image_url ? (
-            <a key={it.id} href={href(section, it)} className="ph-tile">
-              <img src={it.image_url} alt={it.title} loading="lazy" style={vt(it.id)} />
-              <span className="cap">{it.title}</span>
-            </a>
-          ) : (
-            <a key={it.id} href={href(section, it)} className="ph-tile txt">{it.title}</a>
-          )
-        )}
+        {items.map((it) => (
+          <div key={it.id} className="ph-cell">
+            {it.image_url ? (
+              <a href={href(section, it)} className="ph-tile">
+                <img src={it.image_url} alt={it.title} loading="lazy" style={vt(it.id)} />
+                <span className="cap">{it.title}</span>
+              </a>
+            ) : (
+              <a href={href(section, it)} className="ph-tile txt">{it.title}</a>
+            )}
+            <R id={it.id} />
+          </div>
+        ))}
       </div>
     );
   }
@@ -207,6 +225,7 @@ export default function SectionBody({ section, items, settings, wall }:
             <h3>{it.title}</h3>
             {it.image_url && <img src={it.image_url} alt="" loading="lazy" />}
             {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
+            <R id={it.id} />
           </div>
         ))}
       </div>
@@ -218,7 +237,8 @@ export default function SectionBody({ section, items, settings, wall }:
   return (
     <div className={`grid3 reveal r3${st}${bento ? " bento" : ""}`}>
       {items.map((it, i) => (
-        <a key={it.id} href={href(section, it)} className={`card${tile(i)}`}>
+        <div key={it.id} className={`card${tile(i)}`}>
+          <CardLink to={href(section, it)} label={it.title} />
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
           {it.image_url && <img className="card-img" src={it.image_url} alt="" loading="lazy" style={vt(it.id)} />}
           <div className="card-body">
@@ -230,8 +250,9 @@ export default function SectionBody({ section, items, settings, wall }:
             {it.subtitle && <p className="sub">{it.subtitle}</p>}
             {it.type === "poll" ? <p className="ex">📊 Poll · tap to vote</p> : it.body && <p className="ex">{excerpt(it.body)}</p>}
             {it.tags.length > 0 && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+            <R id={it.id} />
           </div>
-        </a>
+        </div>
       ))}
     </div>
   );

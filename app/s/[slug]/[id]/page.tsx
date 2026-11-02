@@ -51,7 +51,7 @@ export default async function EntryPage({ params }: P) {
         {item.image_url && <img className="hero-img" src={item.image_url} alt="" style={morphName(settings.effects.morph, item.id)} />}
         {item.type === "poll" ? <div style={{ maxWidth: 520, marginTop: 20 }}><PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} /></div> : null}
         <Markdown>{item.body}</Markdown>
-        {settings.effects.reactions && item.type !== "poll" && <Reactions id={item.id} />}
+        {settings.effects.reactions && <Reactions id={item.id} />}
         {item.tags.length > 0 && <div className="tags" style={{ marginTop: 26 }}>{item.tags.map((t) => <span key={t}>{t}</span>)}</div>}
         {item.links.length > 0 && (
           <div className="btn-row">

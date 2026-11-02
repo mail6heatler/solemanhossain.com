@@ -293,6 +293,7 @@ export async function messageAction(fd: FormData) {
   if (op === "approve") await query("UPDATE messages SET approved = NOT approved, read = TRUE WHERE id=$1", [id]);
   if (op === "delete") await query("DELETE FROM messages WHERE id=$1", [id]);
   if (op === "allread") await query("UPDATE messages SET read = TRUE");
+  if (op === "reactions-seen") await query("UPDATE reactions SET seen = TRUE WHERE NOT seen");
   refresh();
 }
 

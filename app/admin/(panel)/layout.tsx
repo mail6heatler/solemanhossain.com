@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth";
-import { getSections, getSettings, getMessages, countUnread } from "@/lib/data";
+import { getSections, getSettings, getMessages, countUnread, getReactionTotals, getRecentReactions } from "@/lib/data";
 import Shell from "@/components/admin/Shell";
 import { layoutIcon } from "@/lib/settings";
 import { Toast } from "@/components/admin/Widgets";
@@ -19,14 +19,19 @@ function ago(iso: string) {
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
-  const [settings, sections, unread, unreadMsgs] = await Promise.all([
-    getSettings(), getSections(), countUnread(), getMessages("unread"),
+  const [settings, sections, unread, unreadMsgs, reactions, newReactions] = await Promise.all([
+    getSettings(), getSections(), countUnread(), getMessages("unread"), getReactionTotals(), getRecentReactions(5, true),
   ]);
+  // the bell and the inbox badge count new messages and new reactions together, newest first
+  const notifs = [
+    ...unreadMsgs.slice(0, 5).map((m) => ({ key: `m${m.id}`, at: m.created_at, name: m.name, body: m.body, href: "/admin/inbox", icon: "message-2" })),
+    ...newReactions.map((r) => ({ key: `r${r.item_id}${r.emoji}${r.visitor}${r.created_at}`, at: r.created_at, name: `${r.emoji} ${r.visitor}`, body: `reacted to “${r.title}”`, href: "/admin/inbox?f=reactions", icon: "heart" })),
+  ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6).map(({ at, ...n }) => ({ ...n, when: ago(at) }));
   return (
     <Shell
       sections={sections.map((s) => ({ id: s.id, code: s.code, title: s.title, nav_label: s.nav_label, visible: s.visible, icon: layoutIcon(s.layout) }))}
-      unread={unread}
-      notifs={unreadMsgs.slice(0, 5).map((m) => ({ id: m.id, name: m.name, body: m.body, when: ago(m.created_at) }))}
+      unread={unread + reactions.fresh}
+      notifs={notifs}
       owner={{ name: settings.fullName, initials: settings.initials, avatar: settings.avatarUrl }}
     >
       {children}

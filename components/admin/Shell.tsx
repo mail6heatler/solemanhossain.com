@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 type NavSection = { id: number; code: string; title: string; nav_label: string; visible: boolean; icon: string };
-type Notif = { id: number; name: string; body: string; when: string };
+type Notif = { key: string; name: string; body: string; when: string; href: string; icon: string };
 
 
 export default function Shell({ sections, unread, notifs, owner, children }: {
@@ -108,11 +108,11 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
                 </button>
                 {bell && (
                   <div className="adm-drop">
-                    <div className="adm-drop-h"><span>New messages</span><span>{unread}</span></div>
+                    <div className="adm-drop-h"><span>New in your inbox</span><span>{unread}</span></div>
                     {notifs.length === 0 && <div style={{ padding: 14, fontSize: 12, color: "var(--text-faint)" }}>You&apos;re all caught up ✨</div>}
                     {notifs.map((n) => (
-                      <a key={n.id} href="/admin/inbox" className="adm-notif">
-                        <i className="ti ti-message-2" />
+                      <a key={n.key} href={n.href} className="adm-notif">
+                        <i className={`ti ti-${n.icon}`} />
                         <div>{n.name}: {n.body.slice(0, 60)}{n.body.length > 60 ? "…" : ""}<small>{n.when}</small></div>
                       </a>
                     ))}

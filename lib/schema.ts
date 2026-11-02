@@ -92,6 +92,9 @@ export const SCHEMA = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (item_id, voter, emoji)
   )`,
+  // reactions show up in the admin inbox until marked as seen
+  `ALTER TABLE reactions ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT FALSE`,
+  `CREATE INDEX IF NOT EXISTS reactions_recent_idx ON reactions(created_at DESC)`,
   // "people here now": a random id per browser and when it last checked in (no names, no IPs)
   `CREATE TABLE IF NOT EXISTS presence (
     visitor TEXT PRIMARY KEY,

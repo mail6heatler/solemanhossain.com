@@ -1,10 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Reactions from "./Reactions";
 
 type Photo = { id: number; title: string; image_url: string; href: string };
 
 /** Photo grid with a full-screen viewer: arrows, swipe, Esc, and a link to the entry. */
-export default function PhotoGrid({ className, items }: { className: string; items: Photo[] }) {
+export default function PhotoGrid({ className, items, reactions = false }: { className: string; items: Photo[]; reactions?: boolean }) {
   const pics = items.filter((p) => p.image_url);
   const [open, setOpen] = useState(-1);
   const closeBtn = useRef<HTMLButtonElement>(null);
@@ -33,17 +34,20 @@ export default function PhotoGrid({ className, items }: { className: string; ite
   return (
     <>
       <div className={className}>
-        {items.map((it) =>
-          it.image_url ? (
-            <button key={it.id} type="button" className="ph-tile" aria-label={`Open photo: ${it.title}`}
-              onClick={(e) => { lastTile.current = e.currentTarget; setOpen(pics.indexOf(it)); }}>
-              <img src={it.image_url} alt={it.title} loading="lazy" />
-              <span className="cap">{it.title}</span>
-            </button>
-          ) : (
-            <a key={it.id} href={it.href} className="ph-tile txt">{it.title}</a>
-          )
-        )}
+        {items.map((it) => (
+          <div key={it.id} className="ph-cell">
+            {it.image_url ? (
+              <button type="button" className="ph-tile" aria-label={`Open photo: ${it.title}`}
+                onClick={(e) => { lastTile.current = e.currentTarget; setOpen(pics.indexOf(it)); }}>
+                <img src={it.image_url} alt={it.title} loading="lazy" />
+                <span className="cap">{it.title}</span>
+              </button>
+            ) : (
+              <a href={it.href} className="ph-tile txt">{it.title}</a>
+            )}
+            {reactions && <Reactions id={it.id} compact />}
+          </div>
+        ))}
       </div>
       {cur && (
         <div className="lb" role="dialog" aria-modal="true" aria-label={`Photo: ${cur.title}`}
@@ -59,6 +63,7 @@ export default function PhotoGrid({ className, items }: { className: string; ite
             {pics.length > 1 && <button type="button" onClick={() => show(open + 1)} aria-label="Next photo">→</button>}
             <a href={cur.href}>Open entry</a>
             <button ref={closeBtn} type="button" onClick={close}>Close</button>
+            {reactions && <div className="lb-reacts" onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}><Reactions key={cur.id} id={cur.id} compact /></div>}
           </div>
         </div>
       )}

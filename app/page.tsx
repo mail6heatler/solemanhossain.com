@@ -1,4 +1,4 @@
-import { getSettings, getSections, getItems, getItemCounts, getMessages } from "@/lib/data";
+import { getSettings, getSections, getItems, getItemCounts, getMessages, getReactionTotals } from "@/lib/data";
 import { SiteShell, FloatingEmojis } from "@/components/site/Chrome";
 import SectionBody from "@/components/site/SectionBody";
 import { Accent } from "@/components/site/Markdown";
@@ -9,7 +9,7 @@ import { MOODS } from "@/lib/settings";
 export const revalidate = 300;
 
 export default async function Home() {
-  const [settings, sections, counts] = await Promise.all([getSettings(), getSections({ visibleOnly: true }), getItemCounts(true)]);
+  const [settings, sections, counts, reactions] = await Promise.all([getSettings(), getSections({ visibleOnly: true }), getItemCounts(true), getReactionTotals()]);
   const blocks = await Promise.all(
     sections.map(async (s) => ({
       section: s,
@@ -22,11 +22,15 @@ export default async function Home() {
   const skills = s.skills.length ? [...s.skills, ...s.skills] : [];
   const mood = MOODS[s.mood];
   const place = (s.location || "").split(",")[0].trim();
-  // "by the numbers": the biggest sections, with their real entry counts
-  const stats = sections
-    .filter((sec) => sec.layout !== "connect" && (counts.get(sec.id) ?? 0) > 0)
-    .map((sec) => ({ n: counts.get(sec.id) ?? 0, label: sec.nav_label || sec.title }))
-    .slice(0, 4);
+  // "by the numbers": sections with entries (real counts), plus the reactions total; at most 4 tiles so it lays out evenly
+  const showReactions = fx.reactions && reactions.total > 0;
+  const stats = [
+    ...sections
+      .filter((sec) => sec.layout !== "connect" && (counts.get(sec.id) ?? 0) > 0)
+      .map((sec) => ({ key: sec.slug, n: counts.get(sec.id) ?? 0, label: sec.nav_label || sec.title, emoji: sec.nav_emoji, to: `#${sec.slug}` }))
+      .slice(0, showReactions ? 3 : 4),
+    ...(showReactions ? [{ key: "reactions", n: reactions.total, label: "Reactions", emoji: "❤️", to: "" }] : []),
+  ];
   const headline = (text: string, delay: number) => (fx.decode ? <DecodeText text={text} delay={delay} /> : <Accent text={text} />);
   const avatar = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
 
@@ -53,8 +57,11 @@ export default async function Home() {
             {s.timezone && <div className="hero-clock">🕐 Local time: <Clock timezone={s.timezone} label={s.clockLabel} /></div>}
             {fx.greeting && s.timezone && <Greeting timezone={s.timezone} place={place} />}
             {stats.length > 1 && (
-              <div className="hero-stats" aria-label="By the numbers">
-                {stats.map((st) => <div key={st.label}><b data-count={st.n}>{st.n}</b><span>{st.label}</span></div>)}
+              <div className="hero-stats" aria-label="By the numbers" style={{ ["--n" as string]: stats.length }}>
+                {stats.map((st) => {
+                  const inner = <><b data-count={st.n}>{st.n}</b><span><i aria-hidden>{st.emoji}</i>{st.label}</span></>;
+                  return st.to ? <a key={st.key} href={st.to} className="hs">{inner}</a> : <div key={st.key} className="hs">{inner}</div>;
+                })}
               </div>
             )}
           </div>

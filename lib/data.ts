@@ -91,10 +91,63 @@ export async function getPollCounts(itemId: number, optionCount: number) {
 }
 
 // ---------- reactions ----------
+export type ReactionCounts = Record<string, number>;
+
 export async function getReactionCounts(itemId: number) {
   const rows = await query("SELECT emoji, COUNT(*)::int AS n FROM reactions WHERE item_id=$1 GROUP BY emoji", [itemId]);
-  return Object.fromEntries(rows.map((r) => [String(r.emoji), Number(r.n)])) as Record<string, number>;
+  return Object.fromEntries(rows.map((r) => [String(r.emoji), Number(r.n)])) as ReactionCounts;
 }
+
+const placeholders = (n: number, from = 1) => Array.from({ length: n }, (_, i) => `$${i + from}`).join(",");
+
+/** Counts for many entries at once: { itemId: { "❤️": 3, ... } } */
+export async function getReactionCountsFor(ids: number[]) {
+  const out: Record<number, ReactionCounts> = {};
+  if (!ids.length) return out;
+  const rows = await query(
+    `SELECT item_id, emoji, COUNT(*)::int AS n FROM reactions WHERE item_id IN (${placeholders(ids.length)}) GROUP BY item_id, emoji`, ids);
+  for (const r of rows) (out[Number(r.item_id)] ??= {})[String(r.emoji)] = Number(r.n);
+  return out;
+}
+
+/** Which emojis this visitor already gave, for many entries at once. */
+export async function getMyReactionsFor(ids: number[], voter: string) {
+  const out: Record<number, string[]> = {};
+  if (!ids.length || !voter) return out;
+  const rows = await query(
+    `SELECT item_id, emoji FROM reactions WHERE voter=$1 AND item_id IN (${placeholders(ids.length, 2)})`, [voter, ...ids]);
+  for (const r of rows) (out[Number(r.item_id)] ??= []).push(String(r.emoji));
+  return out;
+}
+
+export async function getReactionTotals() {
+  const r = await queryOne(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE NOT seen)::int AS fresh FROM reactions`);
+  return { total: Number(r?.total ?? 0), fresh: Number(r?.fresh ?? 0) };
+}
+
+export async function getReactionTotalsByEmoji() {
+  const rows = await query("SELECT emoji, COUNT(*)::int AS n FROM reactions GROUP BY emoji");
+  return Object.fromEntries(rows.map((r) => [String(r.emoji), Number(r.n)])) as ReactionCounts;
+}
+
+export type ReactionEvent = {
+  item_id: number; emoji: string; visitor: string; seen: boolean; created_at: string;
+  title: string; section_id: number; section_title: string; section_slug: string;
+};
+/** Newest reactions for the inbox. Visitors are anonymous: "visitor" is a short tag derived from their random browser id. */
+export async function getRecentReactions(limit = 200, onlyNew = false): Promise<ReactionEvent[]> {
+  const rows = await query(
+    `SELECT r.item_id, r.emoji, r.voter, r.seen, r.created_at, i.title, i.section_id, s.title AS section_title, s.slug AS section_slug
+     FROM reactions r JOIN items i ON i.id = r.item_id JOIN sections s ON s.id = i.section_id
+     ${onlyNew ? "WHERE NOT r.seen" : ""} ORDER BY r.created_at DESC LIMIT $1`, [limit]);
+  return rows.map((r) => ({
+    item_id: Number(r.item_id), emoji: String(r.emoji), visitor: visitorTag(String(r.voter)), seen: !!r.seen,
+    created_at: new Date(r.created_at).toISOString(), title: String(r.title), section_id: Number(r.section_id),
+    section_title: String(r.section_title), section_slug: String(r.section_slug),
+  }));
+}
+
+export const visitorTag = (voter: string) => `Visitor #${voter.slice(0, 4)}`;
 
 // ---------- people here now ----------
 export const LIVE_WINDOW_SECONDS = 75;
