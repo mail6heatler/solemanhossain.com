@@ -1,0 +1,298 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { query, queryOne } from "@/lib/db";
+import { getSettings } from "@/lib/data";
+import {
+  checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
+} from "@/lib/auth";
+import { isSafeUrl, LAYOUTS, MOODS, parseLinks, type SiteSettings, type Social } from "@/lib/settings";
+
+// ---------- helpers ----------
+const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
+const bool = (fd: FormData, k: string) => fd.get(k) === "on";
+const int = (fd: FormData, k: string, d = 0) => {
+  const n = parseInt(String(fd.get(k) ?? ""), 10);
+  return Number.isFinite(n) ? n : d;
+};
+const lines = (fd: FormData, k: string, max = 40) =>
+  str(fd, k).split("\n").map((l) => l.trim()).filter(Boolean).slice(0, max).map((l) => l.slice(0, 120));
+const safeUrl = (u: string) => (u && isSafeUrl(u) ? u : "");
+const slugify = (s: string) =>
+  s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").replace(/-+/g, "-").slice(0, 50) || "section";
+const LAYOUT_VALUES = LAYOUTS.map((l) => l.value as string);
+const refresh = () => revalidatePath("/", "layout");
+
+async function saveSettingsData(patch: Partial<SiteSettings>) {
+  const current = await getSettings();
+  await query("UPDATE settings SET data=$1 WHERE id=1", [JSON.stringify({ ...current, ...patch })]);
+}
+
+// ---------- auth ----------
+export async function login(_prev: { error?: string; username?: string } | undefined, fd: FormData) {
+  if (!process.env.ADMIN_PASSWORD) return { error: "ADMIN_PASSWORD is not set on the server." };
+  if (process.env.NODE_ENV === "production" && (process.env.AUTH_SECRET ?? "").length < 16)
+    return { error: "AUTH_SECRET is not set on the server (needs 16+ characters)." };
+  const ok = await checkLogin(str(fd, "username", 100), String(fd.get("password") ?? ""));
+  if (!ok) {
+    await new Promise((r) => setTimeout(r, 900)); // slow down guessing
+    return { error: "Wrong username or password.", username: str(fd, "username", 100) };
+  }
+  await createSession();
+  redirect("/admin");
+}
+
+export async function logout() {
+  await destroySession();
+  redirect("/admin/login");
+}
+
+export async function logoutEverywhere() {
+  await requireAdmin();
+  await query("UPDATE settings SET session_version = session_version + 1 WHERE id=1");
+  await destroySession();
+  redirect("/admin/login");
+}
+
+export async function changePassword(_prev: { error?: string; ok?: string } | undefined, fd: FormData) {
+  await requireAdmin();
+  const current = String(fd.get("current") ?? "");
+  const next = String(fd.get("next") ?? "");
+  const confirm = String(fd.get("confirm") ?? "");
+  if (!(await checkCurrentPassword(current))) return { error: "Current password is wrong." };
+  if (next.length < 8) return { error: "New password needs at least 8 characters." };
+  if (next !== confirm) return { error: "The two new passwords don't match." };
+  await query("UPDATE settings SET password_hash=$1, session_version = session_version + 1 WHERE id=1", [hashPassword(next)]);
+  await createSession(); // keep this device logged in, log out every other one
+  return { ok: "Password changed. Other devices were logged out." };
+}
+
+// ---------- hero (G0) ----------
+export async function saveHero(fd: FormData) {
+  await requireAdmin();
+  await saveSettingsData({
+    fullName: str(fd, "fullName", 120),
+    nickname: str(fd, "nickname", 80),
+    initials: str(fd, "initials", 3).toUpperCase(),
+    brandPhrases: lines(fd, "brandPhrases", 8),
+    statusText: str(fd, "statusText", 160),
+    headline1: str(fd, "headline1", 80),
+    headline2: str(fd, "headline2", 80),
+    subtitle: str(fd, "subtitle", 400),
+    roleChips: lines(fd, "roleChips", 8),
+    skills: lines(fd, "skills", 30),
+    location: str(fd, "location", 120),
+    timezone: str(fd, "timezone", 60) || "UTC",
+    clockLabel: str(fd, "clockLabel", 12),
+    avatarUrl: safeUrl(str(fd, "avatarUrl", 500)),
+    resumeUrl: safeUrl(str(fd, "resumeUrl", 500)),
+    ctaPrimaryLabel: str(fd, "ctaPrimaryLabel", 40),
+    ctaSecondaryLabel: str(fd, "ctaSecondaryLabel", 40),
+    ctaSecondaryUrl: safeUrl(str(fd, "ctaSecondaryUrl", 300)) || "#connect",
+    heroEmojis: str(fd, "heroEmojis", 80),
+    scrollCue: str(fd, "scrollCue", 60),
+  });
+  refresh();
+  redirect("/admin/hero?saved=1");
+}
+
+// ---------- site settings ----------
+export async function saveSite(fd: FormData) {
+  await requireAdmin();
+  let socials: Social[] = [];
+  try {
+    const arr = JSON.parse(str(fd, "socials", 20000));
+    socials = (Array.isArray(arr) ? arr : []).flatMap((r) => {
+      const [l] = parseLinks([r]);
+      return l ? [{ ...l, icon: String(r.icon ?? "link").replace(/[^a-z0-9-]/gi, "").slice(0, 40) || "link" }] : [];
+    });
+  } catch {}
+  await saveSettingsData({
+    siteTitle: str(fd, "siteTitle", 120),
+    siteDescription: str(fd, "siteDescription", 300),
+    footerLeft: str(fd, "footerLeft", 200),
+    footerRight: str(fd, "footerRight", 200),
+    connectFormTitle: str(fd, "connectFormTitle", 80),
+    adminUsername: str(fd, "adminUsername", 60) || "admin",
+    socials,
+    effects: { cursor: bool(fd, "fx_cursor"), emojis: bool(fd, "fx_emojis"), typewriter: bool(fd, "fx_typewriter") },
+  });
+  refresh();
+  redirect("/admin/settings?saved=1");
+}
+
+// ---------- sections ----------
+async function uniqueSlug(base: string, exceptId?: number) {
+  const b = slugify(base);
+  let slug = b;
+  for (let i = 2; ; i++) {
+    const hit = await queryOne("SELECT id FROM sections WHERE slug=$1", [slug]);
+    if (!hit || Number(hit.id) === exceptId) return slug;
+    slug = `${b}-${i}`;
+  }
+}
+
+export async function createSection(fd: FormData) {
+  await requireAdmin();
+  const title = str(fd, "title", 120) || "New section";
+  const layout = LAYOUT_VALUES.includes(str(fd, "layout")) ? str(fd, "layout") : "cards";
+  const slug = await uniqueSlug(title);
+  const n = await queryOne("SELECT COUNT(*)::int AS n FROM sections");
+  const row = await queryOne(
+    `INSERT INTO sections (slug, code, nav_label, nav_emoji, eyebrow, eyebrow_emoji, title, layout, sort)
+     VALUES ($1,$2,$3,'✨',$3,'✨',$3,$4,(SELECT COALESCE(MAX(sort),0)+1 FROM sections)) RETURNING id`,
+    [slug, `G${Number(n?.n ?? 0) + 1}`, title, layout]
+  );
+  refresh();
+  redirect(`/admin/s/${row!.id}`);
+}
+
+export async function updateSection(fd: FormData) {
+  await requireAdmin();
+  const id = int(fd, "id");
+  const layout = LAYOUT_VALUES.includes(str(fd, "layout")) ? str(fd, "layout") : "cards";
+  const slug = await uniqueSlug(str(fd, "slug", 60) || str(fd, "title"), id);
+  const cats = str(fd, "categories", 2000).split(/[\n,]/).map((c) => c.trim()).filter(Boolean).join(", ");
+  await query(
+    `UPDATE sections SET title=$1, slug=$2, code=$3, nav_label=$4, nav_emoji=$5, eyebrow=$6, eyebrow_emoji=$7,
+       subtitle=$8, layout=$9, emojis=$10, categories=$11, empty_text=$12, home_limit=$13, visible=$14 WHERE id=$15`,
+    [str(fd, "title", 160), slug, str(fd, "code", 8), str(fd, "nav_label", 40), str(fd, "nav_emoji", 16),
+     str(fd, "eyebrow", 80), str(fd, "eyebrow_emoji", 16), str(fd, "subtitle", 400), layout, str(fd, "emojis", 80),
+     cats, str(fd, "empty_text", 300), Math.max(1, Math.min(60, int(fd, "home_limit", 6))), bool(fd, "visible"), id]
+  );
+  refresh();
+  redirect(`/admin/s/${id}?saved=1#settings`);
+}
+
+export async function deleteSection(fd: FormData) {
+  await requireAdmin();
+  await query("DELETE FROM sections WHERE id=$1", [int(fd, "id")]);
+  refresh();
+  redirect("/admin?deleted=1");
+}
+
+export async function toggleSection(fd: FormData) {
+  await requireAdmin();
+  await query("UPDATE sections SET visible = NOT visible WHERE id=$1", [int(fd, "id")]);
+  refresh();
+}
+
+async function reorder(table: "sections" | "items", id: number, dir: "up" | "down", sectionId?: number) {
+  // items move within their own subsection (category), so groups stay tidy
+  const all = await query(
+    table === "items"
+      ? `SELECT id FROM items WHERE section_id=$1 AND category = (SELECT category FROM items WHERE id=$2)
+         ORDER BY pinned DESC, sort, id`
+      : "SELECT id FROM sections ORDER BY sort, id",
+    table === "items" ? [sectionId, id] : []
+  );
+  const ids = all.map((r) => Number(r.id));
+  const i = ids.indexOf(id);
+  const j = dir === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  for (const [k, rid] of ids.entries()) await query(`UPDATE ${table} SET sort=$1 WHERE id=$2`, [k + 1, rid]);
+}
+
+export async function moveSection(fd: FormData) {
+  await requireAdmin();
+  await reorder("sections", int(fd, "id"), str(fd, "dir") === "up" ? "up" : "down");
+  refresh();
+}
+
+// ---------- items ----------
+export async function createItem(fd: FormData) {
+  await requireAdmin();
+  const sectionId = int(fd, "section_id");
+  const type = str(fd, "type") === "poll" ? "poll" : "post";
+  const row = await queryOne(
+    `INSERT INTO items (section_id, category, type, title, poll_options, sort)
+     VALUES ($1,$2,$3,$4,$5,(SELECT COALESCE(MIN(sort),1)-1 FROM items WHERE section_id=$1)) RETURNING id`,
+    [sectionId, str(fd, "category", 100), type, str(fd, "title", 300) || "Untitled",
+     JSON.stringify(type === "poll" ? ["Option A", "Option B"] : [])]
+  );
+  refresh();
+  redirect(`/admin/items/${row!.id}`);
+}
+
+export async function updateItem(fd: FormData) {
+  await requireAdmin();
+  const id = int(fd, "id");
+  const tags = str(fd, "tags", 500).split(",").map((t) => t.trim()).filter(Boolean).join(", ");
+  const mood = MOODS[str(fd, "mood")] ? str(fd, "mood") : "";
+  const poll = lines(fd, "poll_options", 8);
+  await query(
+    `UPDATE items SET title=$1, subtitle=$2, body=$3, image_url=$4, tags=$5, links=$6, date_label=$7, status=$8,
+       mood=$9, location=$10, category=$11, poll_options=$12, pinned=$13, visible=$14, section_id=$15 WHERE id=$16`,
+    [str(fd, "title", 300), str(fd, "subtitle", 300), str(fd, "body", 100000), safeUrl(str(fd, "image_url", 500)),
+     tags, JSON.stringify(parseLinks(str(fd, "links", 20000))), str(fd, "date_label", 80), str(fd, "status", 60),
+     mood, str(fd, "location", 160), str(fd, "category", 100), JSON.stringify(poll), bool(fd, "pinned"),
+     bool(fd, "visible"), int(fd, "section_id"), id]
+  );
+  refresh();
+  redirect(`/admin/items/${id}?saved=1`);
+}
+
+export async function deleteItem(fd: FormData) {
+  await requireAdmin();
+  const row = await queryOne("DELETE FROM items WHERE id=$1 RETURNING section_id", [int(fd, "id")]);
+  refresh();
+  redirect(row ? `/admin/s/${row.section_id}?deleted=1` : "/admin");
+}
+
+export async function toggleItem(fd: FormData) {
+  await requireAdmin();
+  await query("UPDATE items SET visible = NOT visible WHERE id=$1", [int(fd, "id")]);
+  refresh();
+}
+
+export async function moveItem(fd: FormData) {
+  await requireAdmin();
+  await reorder("items", int(fd, "id"), str(fd, "dir") === "up" ? "up" : "down", int(fd, "section_id"));
+  refresh();
+}
+
+export async function resetPoll(fd: FormData) {
+  await requireAdmin();
+  await query("DELETE FROM votes WHERE item_id=$1", [int(fd, "id")]);
+  redirect(`/admin/items/${int(fd, "id")}?saved=1`);
+}
+
+// ---------- messages (admin) ----------
+export async function messageAction(fd: FormData) {
+  await requireAdmin();
+  const id = int(fd, "id");
+  const op = str(fd, "op");
+  if (op === "read") await query("UPDATE messages SET read = NOT read WHERE id=$1", [id]);
+  if (op === "approve") await query("UPDATE messages SET approved = NOT approved, read = TRUE WHERE id=$1", [id]);
+  if (op === "delete") await query("DELETE FROM messages WHERE id=$1", [id]);
+  if (op === "allread") await query("UPDATE messages SET read = TRUE");
+  refresh();
+}
+
+// ---------- visitor: say hello ----------
+const recent = new Map<string, number>();
+
+type HelloState = { ok?: boolean; error?: string; values?: { name: string; email: string; message: string } };
+
+export async function sendHello(_prev: HelloState | undefined, fd: FormData): Promise<HelloState> {
+  if (str(fd, "website")) return { ok: true }; // honeypot: bots fill hidden fields
+  const name = str(fd, "name", 80);
+  const body = str(fd, "message", 2000);
+  const email = str(fd, "email", 160);
+  const values = { name, email, message: body };
+  if (name.length < 1 || body.length < 2) return { error: "Please add your name and a message.", values };
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "That email doesn't look right.", values };
+
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
+  const now = Date.now();
+  if (now - (recent.get(ip) ?? 0) < 30_000) return { error: "Easy there, try again in a few seconds.", values };
+  recent.set(ip, now);
+
+  await query("INSERT INTO messages (name, email, body, wants_public) VALUES ($1,$2,$3,$4)",
+    [name, email, body, bool(fd, "public")]);
+  return { ok: true };
+}
