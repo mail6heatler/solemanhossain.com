@@ -1,8 +1,9 @@
 import type { Section } from "@/lib/data";
-import type { SiteSettings } from "@/lib/settings";
+import { MOODS, type SiteSettings } from "@/lib/settings";
 import { BrandTypewriter } from "./Typewriters";
 import MobileMenu from "./MobileMenu";
 import Effects from "./Effects";
+import ThemeSwitch from "./ThemeSwitch";
 
 export function Nav({ settings, sections, onHome }: { settings: SiteSettings; sections: Section[]; onHome: boolean }) {
   const href = (s: Section) => (onHome ? `#${s.slug}` : `/#${s.slug}`);
@@ -14,14 +15,20 @@ export function Nav({ settings, sections, onHome }: { settings: SiteSettings; se
           <BrandTypewriter phrases={settings.brandPhrases.length ? settings.brandPhrases : [settings.fullName]} animate={settings.effects.typewriter} />
         </span>
       </a>
-      <ul className="navlinks">
-        {sections.map((s) => (
-          <li key={s.id}>
-            <a href={href(s)} data-link={s.slug}><span className="ne">{s.nav_emoji}</span>{s.nav_label || s.title}</a>
-          </li>
-        ))}
-      </ul>
-      <MobileMenu links={sections.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
+      <div className="nav-right">
+        <ul className="navlinks">
+          {sections.map((s) => (
+            <li key={s.id}>
+              <a href={href(s)} data-link={s.slug}><span className="ne">{s.nav_emoji}</span>{s.nav_label || s.title}</a>
+            </li>
+          ))}
+        </ul>
+        {settings.effects.surprise && (
+          <a className="icon-btn dice-btn" href="/surprise" aria-label="Surprise me: open a random entry" title="Surprise me">🎲</a>
+        )}
+        {settings.themeSwitch && <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} />}
+        <MobileMenu links={sections.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
+      </div>
     </nav>
   );
 }
@@ -36,6 +43,20 @@ export function Rail({ sections }: { sections: Section[] }) {
         </a>
       ))}
     </div>
+  );
+}
+
+/** App-style menu at the bottom of the screen on phones. */
+export function BottomBar({ sections, onHome }: { sections: Section[]; onHome: boolean }) {
+  return (
+    <nav className="bbar" aria-label="Sections">
+      <a href={onHome ? "#hero" : "/"} data-link="hero"><span className="e" aria-hidden>🏠</span>Home</a>
+      {sections.map((s) => (
+        <a key={s.id} href={onHome ? `#${s.slug}` : `/#${s.slug}`} data-link={s.slug}>
+          <span className="e" aria-hidden>{s.nav_emoji || "✦"}</span>{s.nav_label || s.title}
+        </a>
+      ))}
+    </nav>
   );
 }
 
@@ -64,6 +85,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
   return (
     <footer>
       <span>{settings.footerLeft.replace("{year}", year)}</span>
+      {settings.effects.surprise && <a href="/surprise" className="dice-btn-text">🎲 Surprise me</a>}
       <span>{settings.footerRight}</span>
     </footer>
   );
@@ -71,13 +93,24 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 
 export function SiteShell({ settings, sections, onHome, children }:
   { settings: SiteSettings; sections: Section[]; onHome: boolean; children: React.ReactNode }) {
+  const fx = settings.effects;
+  const mood = MOODS[settings.mood];
+  const style = (mood ? { "--m": mood.color, "--m-deep": mood.deep } : {}) as React.CSSProperties;
   return (
-    <div className="site">
-      <Effects cursor={settings.effects.cursor} track />
+    <div className={`site ${fx.bottombar ? "has-bbar" : ""}`} style={style}>
+      {/* photo morph between pages: browsers that support cross-page view transitions animate, others just navigate */}
+      {fx.morph && <style>{"@view-transition{navigation:auto}"}</style>}
+      <Effects
+        cursor={fx.cursor} track
+        fx={{ smooth: fx.smooth, magnetic: fx.magnetic, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
+        partyWord={settings.partyWord}
+        sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
+      />
       <Nav settings={settings} sections={sections} onHome={onHome} />
       {onHome && <Rail sections={sections} />}
       {children}
       <Footer settings={settings} />
+      {fx.bottombar && <BottomBar sections={sections} onHome={onHome} />}
     </div>
   );
 }

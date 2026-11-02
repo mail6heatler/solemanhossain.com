@@ -4,6 +4,48 @@
 export type Link = { label: string; url: string };
 export type Social = { label: string; url: string; icon: string };
 
+export const REACTION_EMOJIS = ["❤️", "🔥", "😂", "🤯", "👏"] as const;
+
+export const SKINS = ["day", "night", "playful", "techy", "auto"] as const;
+export type Skin = (typeof SKINS)[number];
+export const SKIN_LABELS: Record<Skin, string> = {
+  day: "☀️ Day calm", night: "🌙 Night neon", playful: "🎈 Playful", techy: "💻 Techy", auto: "🕕 Auto (night after 6 PM)",
+};
+
+/** Every effect on the public site. Each one can be switched off on the Appearance page. */
+export const EFFECTS = [
+  { key: "decode", group: "Hero", label: "Decoding headline" },
+  { key: "aurora", group: "Hero", label: "Aurora background" },
+  { key: "tilt", group: "Hero", label: "3D photo (tilt, wave, confetti on click)" },
+  { key: "magnetic", group: "Hero", label: "Magnetic buttons" },
+  { key: "greeting", group: "Hero", label: "Time greeting under the clock" },
+  { key: "typewriter", group: "Hero", label: "Typewriter text" },
+  { key: "emojis", group: "Hero", label: "Floating draggable emojis" },
+  { key: "cursor", group: "Hero", label: "Mint cursor + connecting dots" },
+  { key: "smooth", group: "Motion", label: "Smooth scrolling" },
+  { key: "countup", group: "Motion", label: "Count-up numbers" },
+  { key: "stagger", group: "Motion", label: "Cards drop in one by one" },
+  { key: "sideways", group: "Motion", label: "Photo-trail sections slide sideways" },
+  { key: "timeline", group: "Motion", label: "Timeline draws itself" },
+  { key: "morph", group: "Motion", label: "Photo morph into entry pages" },
+  { key: "reactions", group: "Fun", label: "Emoji reactions on entries" },
+  { key: "confetti", group: "Fun", label: "Confetti on poll votes" },
+  { key: "plane", group: "Fun", label: "Paper plane on “Say hello”" },
+  { key: "surprise", group: "Fun", label: "🎲 Surprise me button" },
+  { key: "explorer", group: "Fun", label: "Explorer badge" },
+  { key: "party", group: "Fun", label: "Secret party mode" },
+  { key: "sparkles", group: "Fun", label: "Click sparkles" },
+  { key: "visitors", group: "Fun", label: "“People here now” counter" },
+  { key: "game404", group: "Fun", label: "404 page mini game" },
+  { key: "bento", group: "Layout", label: "Bento grid for card sections" },
+  { key: "flip", group: "Layout", label: "Flip cards for list sections" },
+  { key: "lightbox", group: "Layout", label: "Photo viewer for photo sections" },
+  { key: "bottombar", group: "Layout", label: "App-style menu on phones" },
+] as const;
+export type EffectKey = (typeof EFFECTS)[number]["key"];
+export type Effects = Record<EffectKey, boolean>;
+const ALL_ON = Object.fromEntries(EFFECTS.map((e) => [e.key, true])) as Effects;
+
 export type SiteSettings = {
   siteTitle: string;
   siteDescription: string;
@@ -32,7 +74,13 @@ export type SiteSettings = {
   footerRight: string;
   connectFormTitle: string;
   adminUsername: string;
-  effects: { cursor: boolean; emojis: boolean; typewriter: boolean };
+  defaultTheme: Skin;
+  themeSwitch: boolean;
+  mood: string;
+  showMood: boolean;
+  nowStatus: string;
+  partyWord: string;
+  effects: Effects;
 };
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -67,7 +115,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   footerRight: "Built section by section, from the dashboard up. 🛠️",
   connectFormTitle: "Say hello 👋",
   adminUsername: "admin",
-  effects: { cursor: true, emojis: true, typewriter: true },
+  defaultTheme: "night",
+  themeSwitch: true,
+  mood: "excited",
+  showMood: true,
+  nowStatus: "",
+  partyWord: "shou",
+  effects: ALL_ON,
 };
 
 export function mergeSettings(raw: unknown): SiteSettings {
@@ -75,11 +129,15 @@ export function mergeSettings(raw: unknown): SiteSettings {
   try {
     obj = typeof raw === "string" ? JSON.parse(raw) : (raw as Partial<SiteSettings>) ?? {};
   } catch {}
-  return {
+  const s: SiteSettings = {
     ...DEFAULT_SETTINGS,
     ...obj,
     effects: { ...DEFAULT_SETTINGS.effects, ...(obj.effects ?? {}) },
   };
+  if (!SKINS.includes(s.defaultTheme)) s.defaultTheme = DEFAULT_SETTINGS.defaultTheme;
+  if (s.mood && !MOODS[s.mood]) s.mood = "";
+  s.partyWord = String(s.partyWord ?? "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 12);
+  return s;
 }
 
 export function isSafeUrl(url: string) {
@@ -110,13 +168,23 @@ export const LAYOUTS = [
   { value: "connect", label: "Connect — links, hello form, guest wall" },
 ] as const;
 
-export const MOODS: Record<string, { label: string; emoji: string; color: string }> = {
-  happy: { label: "bright", emoji: "☀️", color: "#f2c14e" },
-  excited: { label: "electric", emoji: "⚡", color: "#7ee8a2" },
-  calm: { label: "calm", emoji: "🌊", color: "#6fc3d4" },
-  reflective: { label: "quiet", emoji: "🌙", color: "#b49be6" },
-  sad: { label: "heavy", emoji: "🌧️", color: "#8a97b8" },
+/** color = the accent itself; deep = a darker shade that stays readable as text on light backgrounds. */
+export const MOODS: Record<string, { label: string; emoji: string; color: string; deep: string }> = {
+  happy: { label: "bright", emoji: "☀️", color: "#f2c14e", deep: "#8a5d00" },
+  excited: { label: "electric", emoji: "⚡", color: "#7ee8a2", deep: "#2f7a52" },
+  calm: { label: "calm", emoji: "🌊", color: "#6fc3d4", deep: "#1d6878" },
+  reflective: { label: "quiet", emoji: "🌙", color: "#b49be6", deep: "#6a4bb0" },
+  sad: { label: "heavy", emoji: "🌧️", color: "#8a97b8", deep: "#4a5878" },
 };
+
+/** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
+export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone">) {
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC" }).replace(/</g, "\\u003c");
+  return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
+    `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&/^(day|night|playful|techy|auto)$/.test(v||""))p=v}catch(e){}` +
+    `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
+    `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p)})();`;
+}
 
 const LAYOUT_ICONS: Record<string, string> = {
   notes: "user", cards: "tool", strip: "map-2", list: "book", stream: "bolt", timeline: "trending-up", photos: "camera", connect: "send",

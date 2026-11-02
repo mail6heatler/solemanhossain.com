@@ -84,6 +84,19 @@ export const SCHEMA = [
     n INT NOT NULL DEFAULT 0,
     PRIMARY KEY (day, slug)
   )`,
+  // emoji reactions: one row per visitor per emoji per entry (anonymous random visitor id, like poll votes)
+  `CREATE TABLE IF NOT EXISTS reactions (
+    item_id INT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    voter TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (item_id, voter, emoji)
+  )`,
+  // "people here now": a random id per browser and when it last checked in (no names, no IPs)
+  `CREATE TABLE IF NOT EXISTS presence (
+    visitor TEXT PRIMARY KEY,
+    last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
 ];
 
 type SeedItem = {

@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
-import { isSafeUrl, LAYOUTS, MOODS, parseLinks, type SiteSettings, type Social } from "@/lib/settings";
+import { EFFECTS, isSafeUrl, LAYOUTS, MOODS, parseLinks, SKINS, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -117,10 +117,28 @@ export async function saveSite(fd: FormData) {
     connectFormTitle: str(fd, "connectFormTitle", 80),
     adminUsername: str(fd, "adminUsername", 60) || "admin",
     socials,
-    effects: { cursor: bool(fd, "fx_cursor"), emojis: bool(fd, "fx_emojis"), typewriter: bool(fd, "fx_typewriter") },
   });
   refresh();
   redirect("/admin/settings?saved=1");
+}
+
+// ---------- appearance: themes, mood, effects ----------
+export async function saveAppearance(fd: FormData) {
+  await requireAdmin();
+  const theme = str(fd, "defaultTheme") as Skin;
+  const mood = str(fd, "mood");
+  const effects = Object.fromEntries(EFFECTS.map((e) => [e.key, bool(fd, `fx_${e.key}`)])) as Effects;
+  await saveSettingsData({
+    defaultTheme: SKINS.includes(theme) ? theme : "night",
+    themeSwitch: bool(fd, "themeSwitch"),
+    mood: MOODS[mood] ? mood : "",
+    showMood: bool(fd, "showMood"),
+    nowStatus: str(fd, "nowStatus", 120),
+    partyWord: str(fd, "partyWord", 12).toLowerCase().replace(/[^a-z]/g, ""),
+    effects,
+  });
+  refresh();
+  redirect("/admin/appearance?saved=1");
 }
 
 // ---------- sections ----------
@@ -257,6 +275,12 @@ export async function moveItem(fd: FormData) {
 export async function resetPoll(fd: FormData) {
   await requireAdmin();
   await query("DELETE FROM votes WHERE item_id=$1", [int(fd, "id")]);
+  redirect(`/admin/items/${int(fd, "id")}?saved=1`);
+}
+
+export async function resetReactions(fd: FormData) {
+  await requireAdmin();
+  await query("DELETE FROM reactions WHERE item_id=$1", [int(fd, "id")]);
   redirect(`/admin/items/${int(fd, "id")}?saved=1`);
 }
 

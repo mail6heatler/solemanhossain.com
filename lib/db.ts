@@ -14,8 +14,14 @@ type Client = { query: (text: string, params?: unknown[]) => Promise<Row[]> };
 
 const g = globalThis as unknown as { __dbReady?: Promise<Client> };
 
+/** Preview deployments use their own database (if one is connected), so testing never touches live data. */
+function databaseUrl() {
+  if (process.env.VERCEL_ENV === "preview") return process.env.PREVIEW_DATABASE_URL || undefined;
+  return process.env.DATABASE_URL;
+}
+
 async function createClient(): Promise<Client> {
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
   if (url) {
     const postgres = (await import("postgres")).default;
     const sql = postgres(url, { max: 5, idle_timeout: 20, prepare: false });

@@ -1,16 +1,23 @@
 "use client";
 import { useEffect } from "react";
+import { accent, burst, confettiCannons, confettiFrom, prefersReducedMotion, rain, toast } from "./fx";
+
+type Fx = { smooth: boolean; magnetic: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
+const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
 
 /**
- * All the motion on the public site: progress bar, scroll reveal, scroll-spy for nav + rail,
- * card glow, draggable floating emojis (with spring snap-back), cursor trail canvas, and
- * a tiny anonymous visit counter.
+ * All the motion on the public site: progress bar, scroll reveal, scroll-spy (nav, rail, phone menu), card glow,
+ * draggable floating emojis, cursor trail, smooth scrolling, magnetic buttons, count-up numbers, the self-drawing
+ * timeline, click sparkles, party mode, the explorer badge, and a tiny anonymous visit counter.
  */
-export default function Effects({ cursor, track }: { cursor: boolean; track: boolean }) {
+export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
+  { cursor: boolean; track: boolean; fx: Fx; partyWord: string; sparkleEmojis: string[] }) {
+  const emojiKey = sparkleEmojis.join(" ");
   useEffect(() => {
     document.documentElement.classList.remove("no-js");
     const cleanups: (() => void)[] = [];
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = prefersReducedMotion();
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
     // progress bar
     const bar = document.getElementById("progress");
@@ -23,7 +30,19 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
     onScroll();
     cleanups.push(() => window.removeEventListener("scroll", onScroll));
 
-    // reveal
+    // smooth scrolling (also makes the #section links glide)
+    if (fx.smooth && !reduced) {
+      let lenis: { destroy(): void } | null = null, dead = false;
+      import("lenis").then(({ default: Lenis }) => {
+        if (dead) return;
+        const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.11 });
+        lenis = l;
+        (window as unknown as { __lenis?: unknown }).__lenis = l;
+      }).catch(() => {});
+      cleanups.push(() => { dead = true; lenis?.destroy(); delete (window as unknown as { __lenis?: unknown }).__lenis; });
+    }
+
+    // reveal (+ cards dropping in one by one, via CSS on .stagger.in)
     const revealObs = new IntersectionObserver(
       (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
       { threshold: 0.12 }
@@ -31,17 +50,61 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
     document.querySelectorAll(".reveal").forEach((el) => revealObs.observe(el));
     cleanups.push(() => revealObs.disconnect());
 
-    // scroll-spy + section view tracking
+    // count-up numbers: the real number is in the HTML; it counts up from 0 once it scrolls into view
+    if (fx.countup && !reduced) {
+      const countObs = new IntersectionObserver((es) => es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        countObs.unobserve(e.target);
+        const el = e.target as HTMLElement;
+        const to = Number(el.dataset.count) || 0;
+        const t0 = performance.now(), dur = 1300;
+        const step = (t: number) => {
+          const p = Math.min(1, (t - t0) / dur);
+          el.textContent = String(Math.round(to * (1 - Math.pow(1 - p, 3))));
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }), { threshold: 0.6 });
+      document.querySelectorAll("[data-count]").forEach((el) => countObs.observe(el));
+      cleanups.push(() => countObs.disconnect());
+    }
+
+    // the timeline line draws itself as you scroll; milestones light up when the line reaches them
+    const lines = Array.from(document.querySelectorAll<HTMLElement>(".tline.draw"));
+    if (fx.timeline && lines.length) {
+      const draw = () => {
+        for (const tl of lines) {
+          const r = tl.getBoundingClientRect();
+          const p = reduced ? 1 : Math.min(1, Math.max(0, (window.innerHeight * 0.72 - r.top) / Math.max(1, r.height - 22)));
+          tl.style.setProperty("--p", String(p));
+          tl.querySelectorAll<HTMLElement>(".tl-row").forEach((row) => row.classList.toggle("lit", (row.offsetTop + 12) / Math.max(1, r.height - 22) <= p + 0.02));
+        }
+      };
+      draw();
+      window.addEventListener("scroll", draw, { passive: true });
+      window.addEventListener("resize", draw);
+      cleanups.push(() => { window.removeEventListener("scroll", draw); window.removeEventListener("resize", draw); });
+    }
+
+    // scroll-spy (nav, rail, phone menu) + section view tracking + explorer badge
     const seen = new Set<string>();
     const sections = Array.from(document.querySelectorAll<HTMLElement>("section[data-spy]"));
     const order = sections.map((s) => s.id);
     const rail = document.getElementById("rail");
+    const chapters = order.filter((id) => id !== "hero");
+    let explored = new Set<string>();
+    let awarded = false;
+    if (fx.explorer) {
+      try { awarded = localStorage.getItem("lc_explorer") === "1"; explored = new Set(JSON.parse(sessionStorage.getItem("lc_explored") || "[]")); } catch {}
+    }
     const spy = new IntersectionObserver(
       (es) => es.forEach((e) => {
         if (!e.isIntersecting) return;
         const id = (e.target as HTMLElement).id;
         const idx = order.indexOf(id);
-        document.querySelectorAll<HTMLAnchorElement>(".navlinks a").forEach((a) => a.classList.toggle("active", a.dataset.link === id));
+        document.querySelectorAll<HTMLAnchorElement>(".navlinks a, .bbar a").forEach((a) => a.classList.toggle("active", a.dataset.link === id));
+        const bb = document.querySelector<HTMLElement>(".bbar"), act = bb?.querySelector<HTMLElement>("a.active");
+        if (bb && act && bb.scrollWidth > bb.clientWidth) bb.scrollTo({ left: act.offsetLeft - bb.clientWidth / 2 + act.offsetWidth / 2, behavior: reduced ? "auto" : "smooth" });
         document.querySelectorAll<HTMLElement>("#rail .stop").forEach((s) => {
           const i = order.indexOf(s.dataset.target || "");
           s.classList.toggle("active", i === idx);
@@ -52,8 +115,19 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
           seen.add(id);
           send({ type: "section", slug: id });
         }
+        if (fx.explorer && !awarded && id !== "hero") {
+          explored.add(id);
+          try { sessionStorage.setItem("lc_explored", JSON.stringify([...explored])); } catch {}
+          if (chapters.length > 1 && chapters.every((c) => explored.has(c))) {
+            awarded = true;
+            try { localStorage.setItem("lc_explorer", "1"); } catch {}
+            toast("🏆 Achievement unlocked: Explorer! You've seen every chapter.", 4200);
+            confettiFrom(null, { count: 120, spread: 90 });
+          }
+        }
       }),
-      { threshold: 0.35 }
+      // a section counts as "current" while it crosses the middle of the screen (works for very tall sections too)
+      { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
     );
     sections.forEach((s) => spy.observe(s));
     cleanups.push(() => spy.disconnect());
@@ -68,6 +142,67 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
     };
     document.addEventListener("mousemove", glow);
     cleanups.push(() => document.removeEventListener("mousemove", glow));
+
+    // magnetic buttons lean toward the mouse
+    if (fx.magnetic && fine && !reduced) {
+      const mags = Array.from(document.querySelectorAll<HTMLElement>(".mag"));
+      const pull = (e: MouseEvent) => {
+        for (const b of mags) {
+          const r = b.getBoundingClientRect();
+          const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+          b.style.transform = Math.hypot(dx, dy) < 110 ? `translate(${dx * 0.25}px, ${dy * 0.3}px)` : "";
+        }
+      };
+      document.addEventListener("mousemove", pull);
+      cleanups.push(() => { document.removeEventListener("mousemove", pull); mags.forEach((b) => (b.style.transform = "")); });
+    }
+
+    // click sparkles: the hero emojis burst out wherever someone clicks
+    if (fx.sparkles && !reduced && sparkleEmojis.length) {
+      const spark = (e: PointerEvent) => {
+        if (e.button !== 0) return;
+        const t = e.target as Element;
+        if (!t.closest?.(".site") || t.closest("input, textarea, select, .lb, .skin-menu, .float-emo")) return;
+        burst(e.clientX, e.clientY, sparkleEmojis, 7, 80);
+      };
+      document.addEventListener("pointerdown", spark);
+      cleanups.push(() => document.removeEventListener("pointerdown", spark));
+    }
+
+    // 🎲 surprise button spins before jumping
+    const dice = (e: MouseEvent) => {
+      const a = (e.target as Element).closest?.("a.dice-btn") as HTMLAnchorElement | null;
+      if (!a || reduced || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      a.classList.remove("roll"); void a.offsetWidth; a.classList.add("roll");
+      setTimeout(() => (window.location.href = a.href), 450);
+    };
+    document.addEventListener("click", dice);
+    cleanups.push(() => document.removeEventListener("click", dice));
+
+    // secret party mode: type the party word (or the Konami code) anywhere on the page
+    if (fx.party) {
+      let keys: string[] = [];
+      let partying = false;
+      const party = () => {
+        if (partying) return;
+        partying = true;
+        document.documentElement.classList.add("party");
+        toast("🕺 Party mode! You found the secret.", 3200);
+        rain(["🎉", "🕺", "💃", "✨", "🪩", "🚀", "⚡", "🎈"]);
+        confettiCannons();
+        setTimeout(() => { document.documentElement.classList.remove("party"); partying = false; }, 6000);
+      };
+      const key = (e: KeyboardEvent) => {
+        if ((e.target as Element).closest?.("input, textarea, select, [contenteditable]")) return;
+        keys.push(e.key.length === 1 ? e.key.toLowerCase() : e.key);
+        keys = keys.slice(-12);
+        const word = partyWord && keys.slice(-partyWord.length).join("") === partyWord;
+        if (word || keys.slice(-10).join(",") === KONAMI.join(",")) { keys = []; party(); }
+      };
+      document.addEventListener("keydown", key);
+      cleanups.push(() => { document.removeEventListener("keydown", key); document.documentElement.classList.remove("party"); });
+    }
 
     // draggable emojis with spring snap-back
     document.querySelectorAll<HTMLElement>(".float-emo").forEach((emo) => {
@@ -106,13 +241,21 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
       cleanups.push(() => { cancelAnimationFrame(raf); emo.removeEventListener("pointerdown", down); emo.removeEventListener("pointermove", move); emo.removeEventListener("pointerup", up); emo.removeEventListener("pointercancel", up); });
     });
 
-    // cursor dot + ring + connecting-dots canvas (mouse devices only)
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    // cursor dot + ring + connecting-dots canvas (mouse devices only), in the current accent colour
     if (cursor && fine && !reduced) {
       const dot = document.getElementById("cursor-dot");
       const ring = document.getElementById("cursor-ring");
       const canvas = document.getElementById("hack-canvas") as HTMLCanvasElement | null;
       const ctx = canvas?.getContext("2d");
+      let rgb = "126,232,162";
+      const readColor = () => {
+        if (!ctx) return;
+        ctx.fillStyle = "#7ee8a2"; ctx.fillStyle = accent();
+        const hex = String(ctx.fillStyle);
+        if (/^#[0-9a-f]{6}$/i.test(hex)) rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
+      };
+      readColor();
+      window.addEventListener("skinchange", readColor);
       let mx = -999, my = -999, rx = -999, ry = -999, raf = 0;
       const dots = Array.from({ length: 60 }, () => ({
         x: Math.random() * innerWidth, y: Math.random() * innerHeight,
@@ -139,15 +282,15 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
             if (dm >= 200) continue;
             const f = 1 - dm / 200;
             ctx.beginPath(); ctx.arc(d.x, d.y, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(126,232,162,${f * 0.9})`; ctx.fill();
+            ctx.fillStyle = `rgba(${rgb},${f * 0.9})`; ctx.fill();
             ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(mx, my);
-            ctx.strokeStyle = `rgba(126,232,162,${f * 0.35})`; ctx.lineWidth = 0.8; ctx.stroke();
+            ctx.strokeStyle = `rgba(${rgb},${f * 0.35})`; ctx.lineWidth = 0.8; ctx.stroke();
             for (let j = i + 1; j < dots.length; j++) {
               const e = dots[j];
               const dd = Math.hypot(d.x - e.x, d.y - e.y);
               if (dd < 130) {
                 ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(e.x, e.y);
-                ctx.strokeStyle = `rgba(126,232,162,${(1 - dd / 130) * 0.3 * f})`; ctx.lineWidth = 0.6; ctx.stroke();
+                ctx.strokeStyle = `rgba(${rgb},${(1 - dd / 130) * 0.3 * f})`; ctx.lineWidth = 0.6; ctx.stroke();
               }
             }
           }
@@ -159,7 +302,7 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
       document.addEventListener("mousemove", mm);
       document.addEventListener("mousedown", md);
       document.addEventListener("mouseup", mu);
-      cleanups.push(() => { cancelAnimationFrame(raf); removeEventListener("resize", resize); document.removeEventListener("mousemove", mm); document.removeEventListener("mousedown", md); document.removeEventListener("mouseup", mu); });
+      cleanups.push(() => { cancelAnimationFrame(raf); removeEventListener("resize", resize); window.removeEventListener("skinchange", readColor); document.removeEventListener("mousemove", mm); document.removeEventListener("mousedown", md); document.removeEventListener("mouseup", mu); });
     }
 
     // anonymous visit counter (once per page load; "new visitor" once per day per browser)
@@ -173,7 +316,8 @@ export default function Effects({ cursor, track }: { cursor: boolean; track: boo
     }
 
     return () => cleanups.forEach((c) => c());
-  }, [cursor, track]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, track, fx.smooth, fx.magnetic, fx.countup, fx.timeline, fx.sparkles, fx.explorer, fx.party, partyWord, emojiKey]);
 
   return (
     <>

@@ -3,8 +3,14 @@ import { MOODS, type SiteSettings } from "@/lib/settings";
 import Markdown, { excerpt } from "./Markdown";
 import PollCard from "./PollCard";
 import HelloForm from "./HelloForm";
+import Reactions from "./Reactions";
+import StripScroller from "./StripScroller";
+import PhotoGrid from "./PhotoGrid";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
+
+/** The same name on a card picture and on the entry page's big picture makes it morph between pages. */
+export const morphName = (on: boolean, id: number) => (on ? ({ viewTransitionName: `entry-${id}` } as React.CSSProperties) : undefined);
 
 export function Mood({ mood }: { mood: string }) {
   const m = MOODS[mood];
@@ -29,6 +35,9 @@ function Empty({ text }: { text: string }) {
 export default function SectionBody({ section, items, settings, wall }:
   { section: Section; items: Item[]; settings: SiteSettings; wall?: Message[] }) {
   const L = section.layout;
+  const fx = settings.effects;
+  const st = fx.stagger ? " stagger" : "";
+  const vt = (id: number) => morphName(fx.morph, id);
 
   if (L === "connect") {
     return (
@@ -43,7 +52,7 @@ export default function SectionBody({ section, items, settings, wall }:
           </div>
         )}
         <div className="connect-grid reveal r3">
-          <HelloForm title={settings.connectFormTitle} />
+          <HelloForm title={settings.connectFormTitle} plane={fx.plane} />
           <div className="wall">
             {(items.length > 0 || (wall && wall.length > 0)) && <h3>From the wall</h3>}
             {items.map((it) => (
@@ -69,30 +78,54 @@ export default function SectionBody({ section, items, settings, wall }:
 
   if (!items.length) return <Empty text={section.empty_text} />;
 
-  if (L === "strip")
-    return (
-      <div className="strip reveal r3">
-        {items.map((it) => (
-          <a key={it.id} href={href(section, it)} className="trip">
-            <div className="ph">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" /> : <i className="ti ti-map-pin" />}</div>
-            <div className="tb">
-              {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
-              <h3>{it.title}</h3>
-              {(it.location || it.date_label) && (
-                <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
-              )}
-            </div>
-          </a>
-        ))}
-      </div>
-    );
+  if (L === "strip") {
+    const trips = items.map((it) => (
+      <a key={it.id} href={href(section, it)} className="trip">
+        <div className="ph">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-map-pin" />}</div>
+        <div className="tb">
+          {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
+          <h3>{it.title}</h3>
+          {(it.location || it.date_label) && (
+            <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
+          )}
+        </div>
+      </a>
+    ));
+    return fx.sideways
+      ? <StripScroller className={`strip reveal r3${st}`}>{trips}</StripScroller>
+      : <div className={`strip reveal r3${st}`}>{trips}</div>;
+  }
 
-  if (L === "list")
+  if (L === "list") {
+    if (fx.flip)
+      return (
+        <div className={`flips reveal r3${st}`}>
+          {items.map((it) => (
+            <a key={it.id} href={href(section, it)} className="flip" aria-label={`${it.title}${it.subtitle ? `, ${it.subtitle}` : ""}`}>
+              <div className="flip-in">
+                <div className="flip-f">
+                  <div className="ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" />}</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {it.category && <span className="chip">{it.category}</span>}
+                    {it.status && <span className="chip line">{it.status}</span>}
+                  </div>
+                  <h3>{it.title}</h3>
+                  {it.subtitle && <div className="sub">{it.subtitle}</div>}
+                </div>
+                <div className="flip-b" aria-hidden>
+                  <span>{excerpt(it.body, 170) || "Why this one stuck with me…"}</span>
+                  <span className="more">Read more →</span>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      );
     return (
-      <div className="shelf reveal r3">
+      <div className={`shelf reveal r3${st}`}>
         {items.map((it) => (
           <a key={it.id} href={href(section, it)} className="shelf-row">
-            <div className="shelf-ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" /> : <i className="ti ti-bookmark" style={{ color: "var(--mint-deep)" }} />}</div>
+            <div className="shelf-ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" style={{ color: "var(--mint-deep)" }} />}</div>
             <div>
               <h3>{it.title}</h3>
               {it.subtitle && <div className="sub">{it.subtitle}</div>}
@@ -105,10 +138,11 @@ export default function SectionBody({ section, items, settings, wall }:
         ))}
       </div>
     );
+  }
 
   if (L === "stream")
     return (
-      <div className="stream reveal r3">
+      <div className={`stream reveal r3${st}`}>
         {items.map((it) => (
           <article key={it.id} className="post">
             <div className="dotline"><div className="d" style={MOODS[it.mood] ? { background: MOODS[it.mood].color } : undefined} /><div className="l" /></div>
@@ -116,13 +150,14 @@ export default function SectionBody({ section, items, settings, wall }:
               <Meta it={it} />
               <h3><a href={href(section, it)}>{it.pinned ? "📌 " : ""}{it.title}</a></h3>
               {it.type === "poll" ? (
-                <PollCard id={it.id} options={it.poll_options} />
+                <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />
               ) : (
                 <>
-                  {it.image_url && <img src={it.image_url} alt="" loading="lazy" style={{ borderRadius: 12, maxHeight: 360, objectFit: "cover" }} />}
+                  {it.image_url && <img src={it.image_url} alt="" loading="lazy" style={{ borderRadius: 12, maxHeight: 360, objectFit: "cover", ...vt(it.id) }} />}
                   {it.body.length > 420
                     ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)} <a href={href(section, it)}>read more</a></p>
                     : <Markdown>{it.body}</Markdown>}
+                  {fx.reactions && <Reactions id={it.id} />}
                 </>
               )}
             </div>
@@ -133,7 +168,7 @@ export default function SectionBody({ section, items, settings, wall }:
 
   if (L === "timeline")
     return (
-      <div className="tline reveal r3">
+      <div className={`tline reveal r3${fx.timeline ? " draw" : ""}`}>
         {items.map((it) => (
           <a key={it.id} href={href(section, it)} className={`tl-row ${it.mood}`} style={{ ["--dot" as string]: MOODS[it.mood]?.color ?? "var(--mint)" }}>
             <Meta it={it} />
@@ -144,13 +179,15 @@ export default function SectionBody({ section, items, settings, wall }:
       </div>
     );
 
-  if (L === "photos")
+  if (L === "photos") {
+    if (fx.lightbox)
+      return <PhotoGrid className={`photogrid reveal r3${st}`} items={items.map((it) => ({ id: it.id, title: it.title, image_url: it.image_url, href: href(section, it) }))} />;
     return (
-      <div className="photogrid reveal r3">
+      <div className={`photogrid reveal r3${st}`}>
         {items.map((it) =>
           it.image_url ? (
             <a key={it.id} href={href(section, it)} className="ph-tile">
-              <img src={it.image_url} alt={it.title} loading="lazy" />
+              <img src={it.image_url} alt={it.title} loading="lazy" style={vt(it.id)} />
               <span className="cap">{it.title}</span>
             </a>
           ) : (
@@ -159,28 +196,31 @@ export default function SectionBody({ section, items, settings, wall }:
         )}
       </div>
     );
+  }
 
   if (L === "notes")
     return (
-      <div className="notes reveal r3">
+      <div className={`notes reveal r3${st}`}>
         {items.map((it, i) => (
           <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}`}>
             {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
             <h3>{it.title}</h3>
             {it.image_url && <img src={it.image_url} alt="" loading="lazy" />}
-            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} /> : <Markdown>{it.body}</Markdown>}
+            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
           </div>
         ))}
       </div>
     );
 
-  // cards (default)
+  // cards (default); as a bento grid the first (featured) card gets the big tile
+  const bento = fx.bento && items.length >= 3;
+  const tile = (i: number) => (!bento ? "" : i === 0 ? " b-big" : i % 4 === 3 ? " b-wide" : "");
   return (
-    <div className="grid3 reveal r3">
-      {items.map((it) => (
-        <a key={it.id} href={href(section, it)} className="card">
+    <div className={`grid3 reveal r3${st}${bento ? " bento" : ""}`}>
+      {items.map((it, i) => (
+        <a key={it.id} href={href(section, it)} className={`card${tile(i)}`}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          {it.image_url && <img className="card-img" src={it.image_url} alt="" loading="lazy" />}
+          {it.image_url && <img className="card-img" src={it.image_url} alt="" loading="lazy" style={vt(it.id)} />}
           <div className="card-body">
             <div className="card-top">
               {it.category ? <span className="chip">{it.category}</span> : <span />}

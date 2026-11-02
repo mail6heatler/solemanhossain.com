@@ -3,6 +3,8 @@ import { SiteShell, FloatingEmojis } from "@/components/site/Chrome";
 import SectionBody from "@/components/site/SectionBody";
 import { Accent } from "@/components/site/Markdown";
 import { Clock, TypeOnce } from "@/components/site/Typewriters";
+import { AvatarTilt, DecodeText, Greeting, LivePill } from "@/components/site/HeroFx";
+import { MOODS } from "@/lib/settings";
 
 export const revalidate = 300;
 
@@ -16,35 +18,56 @@ export default async function Home() {
     }))
   );
   const s = settings;
+  const fx = s.effects;
   const skills = s.skills.length ? [...s.skills, ...s.skills] : [];
+  const mood = MOODS[s.mood];
+  const place = (s.location || "").split(",")[0].trim();
+  // "by the numbers": the biggest sections, with their real entry counts
+  const stats = sections
+    .filter((sec) => sec.layout !== "connect" && (counts.get(sec.id) ?? 0) > 0)
+    .map((sec) => ({ n: counts.get(sec.id) ?? 0, label: sec.nav_label || sec.title }))
+    .slice(0, 4);
+  const headline = (text: string, delay: number) => (fx.decode ? <DecodeText text={text} delay={delay} /> : <Accent text={text} />);
+  const avatar = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
 
   return (
     <SiteShell settings={s} sections={sections} onHome>
       {/* ═══ HERO ═══ */}
       <section id="hero" data-spy>
-        <div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" />
-        <FloatingEmojis emojis={s.heroEmojis} enabled={s.effects.emojis} hero />
+        {fx.aurora ? <div className="aurora" aria-hidden /> : <><div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" /></>}
+        <FloatingEmojis emojis={s.heroEmojis} enabled={fx.emojis} hero />
         <div className="hero-inner">
           <div>
-            {s.statusText && <div className="status"><span className="pulse" />{s.statusText}</div>}
+            <div className="hero-pills">
+              {s.statusText && <div className="status"><span className="pulse" />{s.statusText}</div>}
+              {s.showMood && mood && <span className="mood-pill"><i aria-hidden />Today I&apos;m feeling {mood.emoji} {mood.label}</span>}
+              {fx.visitors && <LivePill />}
+            </div>
             <h1>
-              <span className="name-line"><span><Accent text={s.headline1} /></span></span>
-              {s.headline2 && <span className="name-line"><span><Accent text={s.headline2} /></span></span>}
+              <span className="name-line"><span>{headline(s.headline1, 250)}</span></span>
+              {s.headline2 && <span className="name-line"><span>{headline(s.headline2, 450)}</span></span>}
             </h1>
-            {s.subtitle && <p className="hero-sub"><TypeOnce text={s.subtitle} animate={s.effects.typewriter} /></p>}
+            {s.subtitle && <p className="hero-sub"><TypeOnce text={s.subtitle} animate={fx.typewriter} /></p>}
             {s.roleChips.length > 0 && <div className="roles">{s.roleChips.map((r, i) => <span key={i}>{r}</span>)}</div>}
+            {s.nowStatus && <div className="now-pill">{s.nowStatus}</div>}
             {s.timezone && <div className="hero-clock">🕐 Local time: <Clock timezone={s.timezone} label={s.clockLabel} /></div>}
+            {fx.greeting && s.timezone && <Greeting timezone={s.timezone} place={place} />}
+            {stats.length > 1 && (
+              <div className="hero-stats" aria-label="By the numbers">
+                {stats.map((st) => <div key={st.label}><b data-count={st.n}>{st.n}</b><span>{st.label}</span></div>)}
+              </div>
+            )}
           </div>
           <div className="hero-right">
             <div className="avatar-wrap">
-              {s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>}
+              {fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : avatar}
               <div className="avatar-ring" />
             </div>
             <div className="ctas">
               {s.resumeUrl && s.ctaPrimaryLabel && (
-                <a className="btn-mint" href={s.resumeUrl} target="_blank" rel="noopener"><i className="ti ti-download" />{s.ctaPrimaryLabel}</a>
+                <a className={`btn-mint ${fx.magnetic ? "mag" : ""}`} href={s.resumeUrl} target="_blank" rel="noopener"><i className="ti ti-download" />{s.ctaPrimaryLabel}</a>
               )}
-              {s.ctaSecondaryLabel && <a className="btn-ghost" href={s.ctaSecondaryUrl}><i className="ti ti-send" />{s.ctaSecondaryLabel}</a>}
+              {s.ctaSecondaryLabel && <a className={`btn-ghost ${fx.magnetic ? "mag" : ""}`} href={s.ctaSecondaryUrl}><i className="ti ti-send" />{s.ctaSecondaryLabel}</a>}
             </div>
           </div>
         </div>
@@ -61,7 +84,7 @@ export default async function Home() {
         const total = counts.get(section.id) ?? 0;
         return (
           <section key={section.id} id={section.slug} data-spy className={`chap ${i % 2 === 1 ? "alt" : ""}`}>
-            <FloatingEmojis emojis={section.emojis} enabled={s.effects.emojis} />
+            <FloatingEmojis emojis={section.emojis} enabled={fx.emojis} />
             <div className="chap-inner">
               <div className="eyebrow">
                 {section.code && <span className="tag">{section.code}</span>}

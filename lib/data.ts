@@ -90,6 +90,19 @@ export async function getPollCounts(itemId: number, optionCount: number) {
   return counts;
 }
 
+// ---------- reactions ----------
+export async function getReactionCounts(itemId: number) {
+  const rows = await query("SELECT emoji, COUNT(*)::int AS n FROM reactions WHERE item_id=$1 GROUP BY emoji", [itemId]);
+  return Object.fromEntries(rows.map((r) => [String(r.emoji), Number(r.n)])) as Record<string, number>;
+}
+
+// ---------- people here now ----------
+export const LIVE_WINDOW_SECONDS = 75;
+export async function getLiveCount() {
+  const r = await queryOne(`SELECT COUNT(*)::int AS n FROM presence WHERE last_seen > NOW() - INTERVAL '${LIVE_WINDOW_SECONDS} seconds'`);
+  return Number(r?.n ?? 0);
+}
+
 // ---------- messages ----------
 export async function getMessages(filter: "all" | "unread" | "public" = "all") {
   const where = filter === "unread" ? "WHERE NOT read" : filter === "public" ? "WHERE approved" : "";

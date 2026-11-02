@@ -2,11 +2,12 @@
 import { useActionState } from "react";
 import { sendHello } from "@/app/actions";
 
-export default function HelloForm({ title }: { title: string }) {
+export default function HelloForm({ title, plane = false }: { title: string; plane?: boolean }) {
   const [state, action, pending] = useActionState(sendHello, undefined);
   if (state?.ok)
     return (
-      <div className="hello">
+      <div className="hello" role="status">
+        {plane && <span className="plane" aria-hidden>✈️</span>}
         <h3>Message received ✨</h3>
         <p className="ok">Thanks for saying hello. I read every one of these.</p>
       </div>

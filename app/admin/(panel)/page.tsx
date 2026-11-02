@@ -1,4 +1,4 @@
-import { getSections, getItemCounts, getRecentItems, getMessages, getStats, countUnread } from "@/lib/data";
+import { getSections, getItemCounts, getRecentItems, getMessages, getStats, countUnread, getLiveCount } from "@/lib/data";
 import { LAYOUTS } from "@/lib/settings";
 import { createSection, moveSection, toggleSection } from "@/app/actions";
 import { layoutIcon } from "@/lib/settings";
@@ -6,8 +6,8 @@ import { requireAdmin } from "@/lib/auth";
 
 export default async function Overview() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
-  const [stats, sections, counts, recent, msgs, unread] = await Promise.all([
-    getStats(), getSections(), getItemCounts(), getRecentItems(5), getMessages(), countUnread(),
+  const [stats, sections, counts, recent, msgs, unread, live] = await Promise.all([
+    getStats(), getSections(), getItemCounts(), getRecentItems(5), getMessages(), countUnread(), getLiveCount(),
   ]);
   const max = Math.max(1, ...stats.last14.map((d) => d.visitors));
   const activity = [
@@ -21,6 +21,7 @@ export default async function Overview() {
       <p className="adm-sub">Everything happening across your site, at a glance</p>
 
       <div className="stats">
+        <Stat icon="eye" k="here right now" v={String(live)} />
         <Stat icon="users" k="visitors today" v={String(stats.visitorsToday)} />
         <Stat icon="flame" k="most viewed (30 days)" v={stats.topSection} small />
         <Stat icon="message-circle" k="unread messages" v={String(unread)} href="/admin/inbox" />

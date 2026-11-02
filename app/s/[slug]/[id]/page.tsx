@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { getSettings, getSections, getSection, getItem } from "@/lib/data";
 import { SiteShell } from "@/components/site/Chrome";
 import Markdown, { excerpt } from "@/components/site/Markdown";
-import { Mood } from "@/components/site/SectionBody";
+import { Mood, morphName } from "@/components/site/SectionBody";
 import PollCard from "@/components/site/PollCard";
+import Reactions from "@/components/site/Reactions";
 
 type P = { params: Promise<{ slug: string; id: string }> };
 
@@ -47,9 +48,10 @@ export default async function EntryPage({ params }: P) {
         </div>
         <h1>{item.title}</h1>
         {item.subtitle && <p className="lead">{item.subtitle}</p>}
-        {item.image_url && <img className="hero-img" src={item.image_url} alt="" />}
-        {item.type === "poll" ? <div style={{ maxWidth: 520, marginTop: 20 }}><PollCard id={item.id} options={item.poll_options} /></div> : null}
+        {item.image_url && <img className="hero-img" src={item.image_url} alt="" style={morphName(settings.effects.morph, item.id)} />}
+        {item.type === "poll" ? <div style={{ maxWidth: 520, marginTop: 20 }}><PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} /></div> : null}
         <Markdown>{item.body}</Markdown>
+        {settings.effects.reactions && item.type !== "poll" && <Reactions id={item.id} />}
         {item.tags.length > 0 && <div className="tags" style={{ marginTop: 26 }}>{item.tags.map((t) => <span key={t}>{t}</span>)}</div>}
         {item.links.length > 0 && (
           <div className="btn-row">

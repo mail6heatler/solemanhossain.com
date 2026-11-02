@@ -29,12 +29,8 @@ export default async function SettingsPage() {
             <div className="fl"><label>Footer left</label><input className="inp" name="footerLeft" defaultValue={s.footerLeft} /><div className="hint">{"{year}"} becomes the current year.</div></div>
             <div className="fl"><label>Footer right</label><input className="inp" name="footerRight" defaultValue={s.footerRight} /></div>
           </div>
-          <div className="fl"><span className="lab">Fun effects</span>
-            <div className="switches">
-              <label className="switch"><input type="checkbox" name="fx_cursor" defaultChecked={s.effects.cursor} />Mint cursor + connecting dots</label>
-              <label className="switch"><input type="checkbox" name="fx_emojis" defaultChecked={s.effects.emojis} />Floating draggable emojis</label>
-              <label className="switch"><input type="checkbox" name="fx_typewriter" defaultChecked={s.effects.typewriter} />Typewriter text</label>
-            </div>
+          <div className="fl"><span className="lab">Themes &amp; effects</span>
+            <div className="hint" style={{ fontSize: 12.5 }}>Theme, mood and every effect now live on the <a href="/admin/appearance">Appearance</a> page.</div>
           </div>
         </div>
 

@@ -1,0 +1,111 @@
+"use client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { confettiFrom, prefersReducedMotion } from "./fx";
+
+const GLYPHS = "!<>-_\\/[]{}=+*^?#01ABCDEFXYZ%$";
+const split = (text: string) =>
+  text.split(/(\*[^*]+\*)/g).filter(Boolean).map((p) => (p.length > 2 && p.startsWith("*") && p.endsWith("*") ? { t: p.slice(1, -1), a: true } : { t: p, a: false }));
+
+/** Headline text that scrambles like data, then settles. The real text is in the HTML from the start. */
+export function DecodeText({ text, delay = 250 }: { text: string; delay?: number }) {
+  const parts = useMemo(() => split(text), [text]);
+  const [shown, setShown] = useState(() => parts.map((p) => p.t));
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    let raf = 0;
+    const total = parts.reduce((n, p) => n + p.t.length, 0) || 1;
+    const dur = 700 + Math.min(900, total * 22);
+    const t0 = performance.now() + delay;
+    setBusy(true);
+    const frame = (t: number) => {
+      const p = Math.max(0, Math.min(1, (t - t0) / dur));
+      let k = 0;
+      setShown(parts.map((part) => [...part.t].map((ch) => {
+        const done = ch === " " || (k++ / total) < p;
+        return done ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+      }).join("")));
+      if (p < 1) raf = requestAnimationFrame(frame);
+      else { setShown(parts.map((x) => x.t)); setBusy(false); }
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, [parts, delay]);
+  return (
+    <>
+      <span aria-hidden={busy}>{parts.map((p, i) => (p.a ? <span key={i} className="accent">{shown[i]}</span> : <span key={i}>{shown[i]}</span>))}</span>
+      {busy && <span className="sr-only">{parts.map((p) => p.t).join("")}</span>}
+    </>
+  );
+}
+
+/** The photo tilts toward the mouse, waves on hover and bursts confetti on click. */
+export function AvatarTilt({ label, children }: { label: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const move = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || prefersReducedMotion() || !ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    const dx = (e.clientX - r.left) / r.width - 0.5, dy = (e.clientY - r.top) / r.height - 0.5;
+    ref.current.style.transform = `rotateY(${dx * 28}deg) rotateX(${-dy * 28}deg) scale(1.04)`;
+  };
+  const reset = () => { if (ref.current) ref.current.style.transform = ""; };
+  return (
+    <button ref={ref} type="button" className="avatar-tilt" aria-label={label} onPointerMove={move} onPointerLeave={reset}
+      onClick={() => confettiFrom(ref.current, { count: 90 })}>
+      {children}
+      <span className="avatar-wave" aria-hidden>👋</span>
+    </button>
+  );
+}
+
+/** "Good evening! It's 9:41 PM here in Dhaka 🌙 (3:41 PM where you are)". Filled in on the visitor's device. */
+export function Greeting({ timezone, place }: { timezone: string; place: string }) {
+  const [text, setText] = useState("");
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      let h = now.getHours(), there = "";
+      try {
+        h = parseInt(now.toLocaleString("en-US", { timeZone: timezone, hour: "numeric", hourCycle: "h23" }), 10) % 24;
+        there = now.toLocaleTimeString("en-US", { timeZone: timezone, hour: "numeric", minute: "2-digit" });
+      } catch { there = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
+      const part = h < 5 ? "Hello, night owl" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Hello, night owl";
+      const icon = h >= 6 && h < 18 ? "☀️" : "🌙";
+      const mine = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      setText(`${part}! It's ${there}${place ? ` here in ${place}` : ""} ${icon}${mine !== there ? ` (${mine} where you are)` : ""}`);
+    };
+    update();
+    const id = setInterval(update, 30000);
+    return () => clearInterval(id);
+  }, [timezone, place]);
+  return <div className="greet">{text}</div>;
+}
+
+/** "3 people here right now 👀": this browser checks in every 30 seconds with a random id. */
+export function LivePill() {
+  const [n, setN] = useState<number | null>(null);
+  useEffect(() => {
+    let id = "";
+    try { id = localStorage.getItem("lc_vid") || ""; } catch {}
+    if (!/^[a-f0-9]{24}$/.test(id)) {
+      id = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, "0")).join("");
+      try { localStorage.setItem("lc_vid", id); } catch {}
+    }
+    let stop = false;
+    const ping = async () => {
+      if (document.hidden) return;
+      try {
+        const r = await fetch("/api/presence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+        const d = await r.json();
+        if (!stop && typeof d.n === "number" && !d.off) setN(Math.max(1, d.n));
+      } catch {}
+    };
+    ping();
+    const t = setInterval(ping, 30000);
+    const vis = () => { if (!document.hidden) ping(); };
+    document.addEventListener("visibilitychange", vis);
+    return () => { stop = true; clearInterval(t); document.removeEventListener("visibilitychange", vis); };
+  }, []);
+  if (n === null) return null;
+  return <span className="live-pill"><i aria-hidden />{n <= 1 ? "Just you here right now 👀" : `${n} people here right now 👀`}</span>;
+}

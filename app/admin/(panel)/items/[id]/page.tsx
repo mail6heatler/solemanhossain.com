@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { getItem, getSection, getSections, getPollCounts } from "@/lib/data";
-import { MOODS } from "@/lib/settings";
-import { deleteItem, resetPoll, updateItem } from "@/app/actions";
+import { getItem, getSection, getSections, getPollCounts, getReactionCounts } from "@/lib/data";
+import { MOODS, REACTION_EMOJIS } from "@/lib/settings";
+import { deleteItem, resetPoll, resetReactions, updateItem } from "@/app/actions";
 import { ConfirmSubmit, LinksEditor, UploadField } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
 
@@ -15,6 +15,8 @@ export default async function ItemEditor({ params }: P) {
   const [section, sections] = await Promise.all([getSection({ id: item.section_id }), getSections()]);
   const isPoll = item.type === "poll";
   const counts = isPoll ? await getPollCounts(item.id, item.poll_options.length) : [];
+  const reactions = isPoll ? {} : await getReactionCounts(item.id);
+  const reactionTotal = Object.values(reactions).reduce((a, b) => a + b, 0);
   const total = counts.reduce((a, b) => a + b, 0);
   const cats = Array.from(new Set([...(section?.categories ?? []), item.category].filter(Boolean)));
 
@@ -103,6 +105,21 @@ export default async function ItemEditor({ params }: P) {
           <a href={`/admin/s/${item.section_id}`} className="b-out">Back</a>
         </div>
       </form>
+
+      {!isPoll && (
+        <div className="c c-row" style={{ marginTop: 24 }}>
+          <div className="grow">
+            <div className="c-title">Reactions</div>
+            <div className="c-desc" style={{ whiteSpace: "normal", fontSize: 15 }}>
+              {REACTION_EMOJIS.map((e) => <span key={e} style={{ marginRight: 14 }}>{e} <b>{reactions[e] ?? 0}</b></span>)}
+            </div>
+          </div>
+          {reactionTotal > 0 && (
+            <form action={resetReactions}><input type="hidden" name="id" value={item.id} />
+              <ConfirmSubmit message="Clear all reactions on this entry?" className="b-out b-sm"><i className="ti ti-refresh" />Reset reactions</ConfirmSubmit></form>
+          )}
+        </div>
+      )}
 
       <div className="c c-row" style={{ marginTop: 24 }}>
         <div className="grow"><div className="c-title">Danger zone</div><div className="c-desc">Hiding is reversible. Deleting is not.</div></div>
