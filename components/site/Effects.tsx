@@ -132,6 +132,26 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
     sections.forEach((s) => spy.observe(s));
     cleanups.push(() => spy.disconnect());
 
+    // video covers: silent preview while hovered (mouse) or while mostly on screen (phones)
+    const vids = Array.from(document.querySelectorAll<HTMLVideoElement>("video.hover-play"));
+    if (vids.length && !reduced) {
+      const play = (v: HTMLVideoElement) => { v.play().catch(() => {}); };
+      const stop = (v: HTMLVideoElement) => { v.pause(); };
+      if (fine) {
+        for (const v of vids) {
+          const box = (v.closest(".card, .trip, .ph-tile, .note, .shelf-row, .flip, .post") as HTMLElement | null) ?? v;
+          const on = () => play(v), off = () => stop(v);
+          box.addEventListener("pointerenter", on);
+          box.addEventListener("pointerleave", off);
+          cleanups.push(() => { box.removeEventListener("pointerenter", on); box.removeEventListener("pointerleave", off); });
+        }
+      } else {
+        const vio = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? play : stop)(e.target as HTMLVideoElement)), { threshold: 0.6 });
+        vids.forEach((v) => vio.observe(v));
+        cleanups.push(() => vio.disconnect());
+      }
+    }
+
     // card glow follows the mouse
     const glow = (e: MouseEvent) => {
       const card = (e.target as HTMLElement).closest?.(".card") as HTMLElement | null;

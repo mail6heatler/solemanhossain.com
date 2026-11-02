@@ -13,7 +13,7 @@ export default async function HeroPage() {
 
       <div className="c">
         <div className="c-title" style={{ marginBottom: 10 }}>Avatar / profile photo</div>
-        <UploadField name="avatarUrl" initial={s.avatarUrl} fallback={s.initials} />
+        <UploadField name="avatarUrl" initial={s.avatarUrl} fallback={s.initials} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} />
         <div className="f3" style={{ marginTop: 12 }}>
           <div className="fl"><label>Initials (shown when there&apos;s no photo)</label><input className="inp" name="initials" defaultValue={s.initials} maxLength={3} /></div>
         </div>
@@ -21,7 +21,7 @@ export default async function HeroPage() {
 
       <div className="c">
         <div className="c-title" style={{ marginBottom: 10 }}>Résumé / CV</div>
-        <UploadField name="resumeUrl" initial={s.resumeUrl} kind="pdf" />
+        <UploadField name="resumeUrl" initial={s.resumeUrl} kind="pdf" useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} />
         <div className="fl" style={{ marginTop: 12 }}><label>Résumé button text</label><input className="inp" name="ctaPrimaryLabel" defaultValue={s.ctaPrimaryLabel} /></div>
         <div className="hint" style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 6 }}>The button only appears once a résumé is uploaded.</div>
       </div>

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getItem, getSection, getSections, getPollCounts, getReactionCounts } from "@/lib/data";
 import { MOODS, REACTION_EMOJIS } from "@/lib/settings";
 import { deleteItem, resetPoll, resetReactions, updateItem } from "@/app/actions";
-import { ConfirmSubmit, LinksEditor, UploadField } from "@/components/admin/Widgets";
+import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
 
 type P = { params: Promise<{ id: string }> };
@@ -17,6 +17,7 @@ export default async function ItemEditor({ params }: P) {
   const counts = isPoll ? await getPollCounts(item.id, item.poll_options.length) : [];
   const reactions = isPoll ? {} : await getReactionCounts(item.id);
   const reactionTotal = Object.values(reactions).reduce((a, b) => a + b, 0);
+  const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN; // big videos go to Vercel Blob when it's connected
   const total = counts.reduce((a, b) => a + b, 0);
   const cats = Array.from(new Set([...(section?.categories ?? []), item.category].filter(Boolean)));
 
@@ -69,7 +70,8 @@ export default async function ItemEditor({ params }: P) {
             <label>Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…)</label>
             <textarea name="body" className="tall" defaultValue={item.body} />
           </div>
-          <div className="fl"><span className="lab">Photo / cover image</span><UploadField name="image_url" initial={item.image_url} shape="wide" /></div>
+          <div className="fl"><span className="lab">Photos &amp; videos</span>
+            <MediaField name="media" initial={item.media} useBlob={useBlob} maxVideoMb={useBlob ? 200 : process.env.VERCEL ? 4 : 60} /></div>
         </div>
 
         <div className="adm-label">Details</div>

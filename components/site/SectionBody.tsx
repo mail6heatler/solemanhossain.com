@@ -6,6 +6,7 @@ import HelloForm from "./HelloForm";
 import Reactions from "./Reactions";
 import StripScroller from "./StripScroller";
 import PhotoGrid from "./PhotoGrid";
+import { Cover, MediaBadges } from "./Media";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
 
@@ -87,7 +88,7 @@ export default function SectionBody({ section, items, settings, wall }:
     const trips = items.map((it) => (
       <div key={it.id} className="trip">
         <CardLink to={href(section, it)} label={it.title} />
-        <div className="ph">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-map-pin" />}</div>
+        <div className="ph">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>
         <div className="tb">
           {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
           <h3>{it.title}</h3>
@@ -112,7 +113,7 @@ export default function SectionBody({ section, items, settings, wall }:
               <a href={href(section, it)} className="flip" aria-label={`${it.title}${it.subtitle ? `, ${it.subtitle}` : ""}`}>
                 <div className="flip-in">
                   <div className="flip-f">
-                    <div className="ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" />}</div>
+                    <div className="ico">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-bookmark" />}</div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                       {it.category && <span className="chip">{it.category}</span>}
                       {it.status && <span className="chip line">{it.status}</span>}
@@ -136,7 +137,7 @@ export default function SectionBody({ section, items, settings, wall }:
         {items.map((it) => (
           <div key={it.id} className="shelf-row">
             <CardLink to={href(section, it)} label={it.title} />
-            <div className="shelf-ico">{it.image_url ? <img src={it.image_url} alt="" loading="lazy" style={vt(it.id)} /> : <i className="ti ti-bookmark" style={{ color: "var(--mint-deep)" }} />}</div>
+            <div className="shelf-ico">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-bookmark" style={{ color: "var(--mint-deep)" }} />}</div>
             <div>
               <h3>{it.title}</h3>
               {it.subtitle && <div className="sub">{it.subtitle}</div>}
@@ -165,7 +166,10 @@ export default function SectionBody({ section, items, settings, wall }:
                 <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />
               ) : (
                 <>
-                  {it.image_url && <img src={it.image_url} alt="" loading="lazy" style={{ borderRadius: 12, maxHeight: 360, objectFit: "cover", ...vt(it.id) }} />}
+                  {it.media[0] && (it.media[0].type === "video"
+                    ? <video className="post-media" src={it.media[0].url} controls playsInline preload="metadata" style={vt(it.id)} />
+                    : <img className="post-media" src={it.media[0].url} alt="" loading="lazy" style={vt(it.id)} />)}
+                  {it.media.length > 1 && <a className="more-media" href={href(section, it)}>+{it.media.length - 1} more photo{it.media.length > 2 ? "s" : ""}/video{it.media.length > 2 ? "s" : ""} →</a>}
                   {it.body.length > 420
                     ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)} <a href={href(section, it)}>read more</a></p>
                     : <Markdown>{it.body}</Markdown>}
@@ -196,15 +200,16 @@ export default function SectionBody({ section, items, settings, wall }:
   if (L === "photos") {
     if (fx.lightbox)
       return <PhotoGrid className={`photogrid reveal r3${st}`} reactions={fx.reactions}
-        items={items.map((it) => ({ id: it.id, title: it.title, image_url: it.image_url, href: href(section, it) }))} />;
+        items={items.map((it) => ({ id: it.id, title: it.title, media: it.media, href: href(section, it) }))} />;
     return (
       <div className={`photogrid reveal r3${st}`}>
         {items.map((it) => (
           <div key={it.id} className="ph-cell">
-            {it.image_url ? (
+            {it.media[0] ? (
               <a href={href(section, it)} className="ph-tile">
-                <img src={it.image_url} alt={it.title} loading="lazy" style={vt(it.id)} />
+                <Cover m={it.media[0]} alt={it.title} style={vt(it.id)} />
                 <span className="cap">{it.title}</span>
+                <MediaBadges media={it.media} />
               </a>
             ) : (
               <a href={href(section, it)} className="ph-tile txt">{it.title}</a>
@@ -223,7 +228,7 @@ export default function SectionBody({ section, items, settings, wall }:
           <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}`}>
             {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
             <h3>{it.title}</h3>
-            {it.image_url && <img src={it.image_url} alt="" loading="lazy" />}
+            {it.media[0] && <Cover m={it.media[0]} className="note-media" />}
             {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
             <R id={it.id} />
           </div>
@@ -240,7 +245,7 @@ export default function SectionBody({ section, items, settings, wall }:
         <div key={it.id} className={`card${tile(i)}`}>
           <CardLink to={href(section, it)} label={it.title} />
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          {it.image_url && <img className="card-img" src={it.image_url} alt="" loading="lazy" style={vt(it.id)} />}
+          {it.media[0] && <div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>}
           <div className="card-body">
             <div className="card-top">
               {it.category ? <span className="chip">{it.category}</span> : <span />}

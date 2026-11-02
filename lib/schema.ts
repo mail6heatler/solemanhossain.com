@@ -49,6 +49,8 @@ export const SCHEMA = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS items_section_idx ON items(section_id, sort)`,
+  // photos + videos per entry (JSON list; the first one is the cover). image_url stays as the first photo for link previews.
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS media TEXT NOT NULL DEFAULT '[]'`,
   `CREATE TABLE IF NOT EXISTS files (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,

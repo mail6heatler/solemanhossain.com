@@ -1,71 +1,50 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import type { Media } from "@/lib/settings";
 import Reactions from "./Reactions";
+import { Lightbox, type Slide } from "./MediaView";
 
-type Photo = { id: number; title: string; image_url: string; href: string };
+type Item = { id: number; title: string; href: string; media: Media[] };
 
-/** Photo grid with a full-screen viewer: arrows, swipe, Esc, and a link to the entry. */
-export default function PhotoGrid({ className, items, reactions = false }: { className: string; items: Photo[]; reactions?: boolean }) {
-  const pics = items.filter((p) => p.image_url);
+/** Photo grid (Life): each tile shows the entry's cover; the viewer steps through every photo and video of every entry. */
+export default function PhotoGrid({ className, items, reactions = false }: { className: string; items: Item[]; reactions?: boolean }) {
+  const slides: Slide[] = items.flatMap((it) => it.media.map((m, i) => ({ ...m, caption: `${it.title}${it.media.length > 1 ? ` (${i + 1}/${it.media.length})` : ""}`, href: it.href, itemId: it.id })));
+  const firstSlide = (id: number) => slides.findIndex((s) => s.itemId === id);
   const [open, setOpen] = useState(-1);
-  const closeBtn = useRef<HTMLButtonElement>(null);
   const lastTile = useRef<HTMLElement | null>(null);
-  const startX = useRef<number | null>(null);
 
-  const show = useCallback((i: number) => setOpen((i + pics.length) % pics.length), [pics.length]);
-  const close = useCallback(() => { setOpen(-1); lastTile.current?.focus(); }, []);
-
-  useEffect(() => {
-    if (open < 0) return;
-    const w = window as unknown as { __lenis?: { stop(): void; start(): void } };
-    w.__lenis?.stop();
-    document.documentElement.style.overflow = "hidden";
-    closeBtn.current?.focus();
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowLeft") show(open - 1);
-      if (e.key === "ArrowRight") show(open + 1);
-    };
-    document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("keydown", key); document.documentElement.style.overflow = ""; w.__lenis?.start(); };
-  }, [open, show, close]);
-
-  const cur = open >= 0 ? pics[open] : null;
   return (
     <>
       <div className={className}>
-        {items.map((it) => (
-          <div key={it.id} className="ph-cell">
-            {it.image_url ? (
-              <button type="button" className="ph-tile" aria-label={`Open photo: ${it.title}`}
-                onClick={(e) => { lastTile.current = e.currentTarget; setOpen(pics.indexOf(it)); }}>
-                <img src={it.image_url} alt={it.title} loading="lazy" />
-                <span className="cap">{it.title}</span>
-              </button>
-            ) : (
-              <a href={it.href} className="ph-tile txt">{it.title}</a>
-            )}
-            {reactions && <Reactions id={it.id} compact />}
-          </div>
-        ))}
+        {items.map((it) => {
+          const cover = it.media[0];
+          return (
+            <div key={it.id} className="ph-cell">
+              {cover ? (
+                <button type="button" className="ph-tile" aria-label={`Open: ${it.title}`}
+                  onClick={(e) => { lastTile.current = e.currentTarget; setOpen(firstSlide(it.id)); }}>
+                  {cover.type === "video"
+                    ? <video className="hover-play" src={`${cover.url}#t=0.1`} muted playsInline loop preload="metadata" />
+                    : <img src={cover.url} alt={it.title} loading="lazy" />}
+                  <span className="cap">{it.title}</span>
+                  {(cover.type === "video" || it.media.length > 1) && (
+                    <span className="media-badges" aria-hidden>
+                      {cover.type === "video" && <span className="mb play">▶</span>}
+                      {it.media.length > 1 && <span className="mb">+{it.media.length - 1}</span>}
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <a href={it.href} className="ph-tile txt">{it.title}</a>
+              )}
+              {reactions && <Reactions id={it.id} compact />}
+            </div>
+          );
+        })}
       </div>
-      {cur && (
-        <div className="lb" role="dialog" aria-modal="true" aria-label={`Photo: ${cur.title}`}
-          onPointerDown={(e) => (startX.current = e.clientX)}
-          onPointerUp={(e) => { if (startX.current !== null && Math.abs(e.clientX - startX.current) > 50) show(open + (e.clientX < startX.current ? 1 : -1)); startX.current = null; }}
-          onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
-          <div className="lb-stage" onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
-            <img key={cur.id} src={cur.image_url} alt={cur.title} />
-          </div>
-          <div className="lb-bar">
-            {pics.length > 1 && <button type="button" onClick={() => show(open - 1)} aria-label="Previous photo">←</button>}
-            <span>{cur.title} · {open + 1}/{pics.length}</span>
-            {pics.length > 1 && <button type="button" onClick={() => show(open + 1)} aria-label="Next photo">→</button>}
-            <a href={cur.href}>Open entry</a>
-            <button ref={closeBtn} type="button" onClick={close}>Close</button>
-            {reactions && <div className="lb-reacts" onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}><Reactions key={cur.id} id={cur.id} compact /></div>}
-          </div>
-        </div>
+      {open >= 0 && (
+        <Lightbox slides={slides} index={open} onIndex={setOpen} reactions={reactions}
+          onClose={() => { setOpen(-1); lastTile.current?.focus(); }} />
       )}
     </>
   );

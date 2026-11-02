@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
-import { EFFECTS, isSafeUrl, LAYOUTS, MOODS, parseLinks, SKINS, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
+import { EFFECTS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SKINS, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -241,13 +241,17 @@ export async function updateItem(fd: FormData) {
   const tags = str(fd, "tags", 500).split(",").map((t) => t.trim()).filter(Boolean).join(", ");
   const mood = MOODS[str(fd, "mood")] ? str(fd, "mood") : "";
   const poll = lines(fd, "poll_options", 8);
+  // photos + videos (first = cover); image_url keeps the first photo for link previews (and older code paths)
+  // (a form from before multi-photo support only sends image_url; keep that photo instead of wiping it)
+  const media = fd.has("media") ? parseMedia(str(fd, "media", 40000)) : parseMedia([], safeUrl(str(fd, "image_url", 500)));
+  const firstPhoto = media.find((m) => m.type === "image")?.url ?? "";
   await query(
     `UPDATE items SET title=$1, subtitle=$2, body=$3, image_url=$4, tags=$5, links=$6, date_label=$7, status=$8,
-       mood=$9, location=$10, category=$11, poll_options=$12, pinned=$13, visible=$14, section_id=$15 WHERE id=$16`,
-    [str(fd, "title", 300), str(fd, "subtitle", 300), str(fd, "body", 100000), safeUrl(str(fd, "image_url", 500)),
+       mood=$9, location=$10, category=$11, poll_options=$12, pinned=$13, visible=$14, section_id=$15, media=$16 WHERE id=$17`,
+    [str(fd, "title", 300), str(fd, "subtitle", 300), str(fd, "body", 100000), firstPhoto,
      tags, JSON.stringify(parseLinks(str(fd, "links", 20000))), str(fd, "date_label", 80), str(fd, "status", 60),
      mood, str(fd, "location", 160), str(fd, "category", 100), JSON.stringify(poll), bool(fd, "pinned"),
-     bool(fd, "visible"), int(fd, "section_id"), id]
+     bool(fd, "visible"), int(fd, "section_id"), JSON.stringify(media), id]
   );
   refresh();
   redirect(`/admin/items/${id}?saved=1`);

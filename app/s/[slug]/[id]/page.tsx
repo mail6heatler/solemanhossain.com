@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { getSettings, getSections, getSection, getItem } from "@/lib/data";
 import { SiteShell } from "@/components/site/Chrome";
 import Markdown, { excerpt } from "@/components/site/Markdown";
-import { Mood, morphName } from "@/components/site/SectionBody";
+import { Mood } from "@/components/site/SectionBody";
+import { EntryGallery } from "@/components/site/MediaView";
 import PollCard from "@/components/site/PollCard";
 import Reactions from "@/components/site/Reactions";
 
@@ -48,7 +49,7 @@ export default async function EntryPage({ params }: P) {
         </div>
         <h1>{item.title}</h1>
         {item.subtitle && <p className="lead">{item.subtitle}</p>}
-        {item.image_url && <img className="hero-img" src={item.image_url} alt="" style={morphName(settings.effects.morph, item.id)} />}
+        <EntryGallery media={item.media} title={item.title} morphName={settings.effects.morph ? `entry-${item.id}` : undefined} />
         {item.type === "poll" ? <div style={{ maxWidth: 520, marginTop: 20 }}><PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} /></div> : null}
         <Markdown>{item.body}</Markdown>
         {settings.effects.reactions && <Reactions id={item.id} />}

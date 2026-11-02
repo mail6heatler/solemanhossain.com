@@ -6,6 +6,25 @@ export type Social = { label: string; url: string; icon: string };
 
 export const REACTION_EMOJIS = ["❤️", "🔥", "😂", "🤯", "👏"] as const;
 
+/** One photo or video attached to an entry. The first one is the cover. */
+export type Media = { url: string; type: "image" | "video" };
+export const MAX_MEDIA = 30;
+export const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const looksLikeVideo = (url: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+
+/** Reads the media list stored with an entry; older entries with only a single photo get that photo as their list. */
+export function parseMedia(raw: unknown, fallbackImage = ""): Media[] {
+  let arr: unknown = raw;
+  try { if (typeof raw === "string") arr = JSON.parse(raw); } catch { arr = []; }
+  const list = (Array.isArray(arr) ? arr : [])
+    .filter((m) => m && typeof m.url === "string" && isSafeUrl(m.url))
+    .map((m) => ({ url: String(m.url).trim().slice(0, 600), type: (m.type === "video" || (m.type !== "image" && looksLikeVideo(m.url)) ? "video" : "image") as Media["type"] }))
+    .slice(0, MAX_MEDIA);
+  if (!list.length && fallbackImage && isSafeUrl(fallbackImage)) list.push({ url: fallbackImage, type: looksLikeVideo(fallbackImage) ? "video" : "image" });
+  return list;
+}
+
 export const SKINS = ["day", "night", "playful", "techy", "auto"] as const;
 export type Skin = (typeof SKINS)[number];
 export const SKIN_LABELS: Record<Skin, string> = {

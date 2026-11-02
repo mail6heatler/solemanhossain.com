@@ -1,5 +1,5 @@
 import { query, queryOne, Row } from "./db";
-import { mergeSettings, parseLinks, type Link, type SiteSettings } from "./settings";
+import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
 
 export type Section = {
   id: number; slug: string; code: string; nav_label: string; nav_emoji: string; eyebrow: string;
@@ -12,6 +12,8 @@ export type Item = {
   body: string; image_url: string; tags: string[]; links: Link[]; date_label: string; status: string;
   mood: string; location: string; poll_options: string[]; pinned: boolean; visible: boolean; sort: number;
   created_at: string;
+  /** photos + videos; media[0] is the cover */
+  media: Media[];
 };
 
 export type Message = {
@@ -30,6 +32,7 @@ const toItem = (r: Row): Item => ({
   links: parseLinks(r.links),
   poll_options: (() => { try { const a = JSON.parse(r.poll_options); return Array.isArray(a) ? a.map(String) : []; } catch { return []; } })(),
   created_at: new Date(r.created_at).toISOString(),
+  media: parseMedia(r.media, String(r.image_url ?? "")),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 
