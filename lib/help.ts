@@ -13,13 +13,13 @@ export const HELP: Record<string, Help> = {
   },
   themeSwitch: {
     title: "Theme button for visitors",
-    what: "Shows a theme button in the menu bar. Visitors open it to pick any theme, Auto, or Random. Their choice is remembered in their own browser.",
+    what: "Shows a theme button in the menu bar. Visitors open it to pick any theme, Auto, or Random. Their choice is remembered in their own browser. Switch it off and every visitor sees the theme you picked above (the 🔀 shuffle button is hidden too).",
     how: ["Switch it on and save.", "On the site, click the theme icon at the top right (it shows the current theme's emoji)."],
     preview: "/?demo=themes",
   },
   shuffle: {
     title: "🔀 Shuffle-theme button",
-    what: "A 🔀 button in the menu bar that jumps to a random theme every time it's clicked. Fun for visitors who want to see all the looks.",
+    what: "A 🔀 button in the menu bar that jumps to a random theme every time it's clicked. Fun for visitors who want to see all the looks. Only shows while the Theme button is on.",
     how: ["Switch it on and save.", "On the site, click 🔀 next to the theme button. Each click picks a different theme."],
     preview: "/?demo=shuffle",
   },

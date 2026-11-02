@@ -27,8 +27,8 @@ export function Nav({ settings, sections, onHome }: { settings: SiteSettings; se
         {settings.effects.surprise && (
           <a className="icon-btn dice-btn" href="/surprise" aria-label="Surprise me: open a random entry" title="Surprise me">🎲</a>
         )}
-        {(settings.themeSwitch || settings.effects.shuffle) && (
-          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} menu={settings.themeSwitch} />
+        {settings.themeSwitch && (
+          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} />
         )}
         <MobileMenu links={sections.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
       </div>

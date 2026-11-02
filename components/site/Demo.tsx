@@ -23,7 +23,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
 
     const D: Record<string, Demo> = {
       themes: { on: extras.themeSwitch, target: ".skin-pick", tip: "This is the theme button. Pick any theme from the menu.", run: () => click(".skin-pick .icon-btn") },
-      shuffle: { on: fx.shuffle, target: ".shuffle-btn", tip: "🔀 Each click jumps to a random theme. Watch:", run: async () => { for (let i = 0; i < 3; i++) { await sleep(1300); click(".shuffle-btn"); } } },
+      shuffle: { on: fx.shuffle && extras.themeSwitch, target: ".shuffle-btn", tip: "🔀 Each click jumps to a random theme. Watch:", run: async () => { for (let i = 0; i < 3; i++) { await sleep(1300); click(".shuffle-btn"); } } },
       mood: { on: extras.showMood, target: ".mood-pill", tip: "Your mood pill. The mood also sets the accent colour." },
       now: { target: ".now-pill", tip: "Your “right now” status." },
       party: { on: fx.party, target: "#hero h1", tip: "🕺 Party mode! Visitors start it by typing your secret word.", run: () => window.dispatchEvent(new Event("lc-party")) },
