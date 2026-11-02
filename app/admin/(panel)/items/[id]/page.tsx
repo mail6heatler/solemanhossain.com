@@ -3,10 +3,12 @@ import { getItem, getSection, getSections, getPollCounts } from "@/lib/data";
 import { MOODS } from "@/lib/settings";
 import { deleteItem, resetPoll, updateItem } from "@/app/actions";
 import { ConfirmSubmit, LinksEditor, UploadField } from "@/components/admin/Widgets";
+import { requireAdmin } from "@/lib/auth";
 
 type P = { params: Promise<{ id: string }> };
 
 export default async function ItemEditor({ params }: P) {
+  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { id } = await params;
   const item = /^\d+$/.test(id) ? await getItem(Number(id)) : null;
   if (!item) notFound();

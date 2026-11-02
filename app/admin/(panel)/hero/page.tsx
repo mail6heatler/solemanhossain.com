@@ -1,8 +1,10 @@
 import { getSettings } from "@/lib/data";
 import { saveHero } from "@/app/actions";
 import { ChipsEditor, UploadField } from "@/components/admin/Widgets";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function HeroPage() {
+  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const s = await getSettings();
   return (
     <form action={saveHero} className="adm-page">

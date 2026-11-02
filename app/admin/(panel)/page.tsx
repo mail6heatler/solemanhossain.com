@@ -2,8 +2,10 @@ import { getSections, getItemCounts, getRecentItems, getMessages, getStats, coun
 import { LAYOUTS } from "@/lib/settings";
 import { createSection, moveSection, toggleSection } from "@/app/actions";
 import { layoutIcon } from "@/lib/settings";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function Overview() {
+  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const [stats, sections, counts, recent, msgs, unread] = await Promise.all([
     getStats(), getSections(), getItemCounts(), getRecentItems(5), getMessages(), countUnread(),
   ]);

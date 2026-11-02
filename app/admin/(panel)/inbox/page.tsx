@@ -1,10 +1,12 @@
 import { getMessages } from "@/lib/data";
 import { messageAction } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
+import { requireAdmin } from "@/lib/auth";
 
 type P = { searchParams: Promise<{ f?: string }> };
 
 export default async function Inbox({ searchParams }: P) {
+  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { f } = await searchParams;
   const filter = f === "unread" || f === "public" ? f : "all";
   const msgs = await getMessages(filter);

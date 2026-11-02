@@ -3,8 +3,10 @@ import { query } from "@/lib/db";
 import { logout, logoutEverywhere, saveSite } from "@/app/actions";
 import { PasswordForm } from "@/components/admin/Forms";
 import { ConfirmSubmit, LinksEditor } from "@/components/admin/Widgets";
+import { requireAdmin } from "@/lib/auth";
 
 export default async function SettingsPage() {
+  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const [s, stats, files] = await Promise.all([
     getSettings(), getStats(),
     query("SELECT COUNT(*)::int AS n, COALESCE(SUM(size),0)::bigint AS bytes FROM files"),

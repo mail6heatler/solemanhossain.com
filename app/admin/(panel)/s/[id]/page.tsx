@@ -4,10 +4,12 @@ import { LAYOUTS, MOODS } from "@/lib/settings";
 import { createItem, deleteSection, moveItem, toggleItem, updateSection } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
 import type { Item } from "@/lib/data";
+import { requireAdmin } from "@/lib/auth";
 
 type P = { params: Promise<{ id: string }> };
 
 export default async function SectionAdmin({ params }: P) {
+  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { id } = await params;
   const section = /^\d+$/.test(id) ? await getSection({ id: Number(id) }) : null;
   if (!section) notFound();
