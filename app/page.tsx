@@ -90,7 +90,7 @@ export default async function Home() {
       {blocks.map(({ section, items, wall }, i) => {
         const total = counts.get(section.id) ?? 0;
         return (
-          <section key={section.id} id={section.slug} data-spy className={`chap ${i % 2 === 1 ? "alt" : ""}`}>
+          <section key={section.id} id={section.slug} data-spy data-layout={section.layout} className={`chap ${i % 2 === 1 ? "alt" : ""}`}>
             <FloatingEmojis emojis={section.emojis} enabled={fx.emojis} />
             <div className="chap-inner">
               <div className="eyebrow">

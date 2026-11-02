@@ -25,14 +25,35 @@ export function parseMedia(raw: unknown, fallbackImage = ""): Media[] {
   return list;
 }
 
-export const SKINS = ["day", "night", "playful", "techy", "auto"] as const;
+/** Real themes (each has its own look in site.css). */
+export const THEMES = ["day", "night", "playful", "techy", "sunset", "ocean", "forest", "paper", "retro", "candy"] as const;
+/** Everything that can be chosen: the themes plus Auto (day/night by clock) and Random (a different one every visit). */
+export const SKINS = [...THEMES, "auto", "random"] as const;
 export type Skin = (typeof SKINS)[number];
 export const SKIN_LABELS: Record<Skin, string> = {
-  day: "☀️ Day calm", night: "🌙 Night neon", playful: "🎈 Playful", techy: "💻 Techy", auto: "🕕 Auto (night after 6 PM)",
+  day: "☀️ Day calm", night: "🌙 Night neon", playful: "🎈 Playful", techy: "💻 Techy",
+  sunset: "🌅 Sunset", ocean: "🌊 Ocean", forest: "🌲 Forest", paper: "📰 Paper", retro: "🕹️ Retro", candy: "🍬 Candy",
+  auto: "🕕 Auto (night after 6 PM)", random: "🔀 Random (different every visit)",
+};
+/** Short description + two swatch colours for the theme menu. */
+export const SKIN_INFO: Record<Skin, { d: string; c: [string, string] }> = {
+  day: { d: "Cream and mint", c: ["#f5f2ee", "#7ee8a2"] },
+  night: { d: "Dark, with a glow", c: ["#0b100d", "#7ee8a2"] },
+  playful: { d: "Bright and bouncy", c: ["#fff6e6", "#ff5ca8"] },
+  techy: { d: "Terminal style", c: ["#07090c", "#7ee8a2"] },
+  sunset: { d: "Warm dusk colours", c: ["#1b1020", "#ff8a5b"] },
+  ocean: { d: "Deep blue and teal", c: ["#06141f", "#3fd8d0"] },
+  forest: { d: "Moss, wood and paper", c: ["#f1efe4", "#5f8f3a"] },
+  paper: { d: "Black ink on newsprint", c: ["#f6f3ea", "#c8341f"] },
+  retro: { d: "80s synthwave neon", c: ["#12002a", "#ff3cac"] },
+  candy: { d: "Soft pastels", c: ["#fff5fb", "#ff8fc7"] },
+  auto: { d: "Night after 6 PM", c: ["#f5f2ee", "#0b100d"] },
+  random: { d: "A surprise every visit", c: ["#ff8a5b", "#3fd8d0"] },
 };
 
 /** Every effect on the public site. Each one can be switched off on the Appearance page. */
 export const EFFECTS = [
+  { key: "shuffle", group: "Themes", label: "🔀 Shuffle-theme button in the menu bar" },
   { key: "decode", group: "Hero", label: "Decoding headline" },
   { key: "aurora", group: "Hero", label: "Aurora background" },
   { key: "tilt", group: "Hero", label: "3D photo (tilt, wave, confetti on click)" },
@@ -198,10 +219,13 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
 export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone">) {
-  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC" }).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES }).replace(/</g, "\\u003c");
+  // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
-    `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&/^(day|night|playful|techy|auto)$/.test(v||""))p=v}catch(e){}` +
+    `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
+    `try{var q=new URLSearchParams(location.search).get("theme");if(q&&c.all.indexOf(q)>=0){p=q;h.setAttribute("data-skin-preview","1")}}catch(e){}` +
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
+    `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
     `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p)})();`;
 }
 

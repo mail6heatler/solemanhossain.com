@@ -256,6 +256,37 @@ export function UploadField({ name, initial, kind = "image", shape = "round", fa
   );
 }
 
+/** ⓘ button: a pop-up explaining a feature (what it does, how to use it) with a Preview link to the live site. */
+export function InfoTip({ help, on }: { help: { title: string; what: string; how: string[]; preview?: string }; on?: boolean }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const close = () => ref.current?.close();
+  return (
+    <>
+      <button type="button" className="info-btn" aria-label={`About: ${help.title}`} title="What is this?" onClick={() => ref.current?.showModal()}>i</button>
+      <dialog ref={ref} className="info-dlg" aria-label={help.title} onClick={(e) => { if (e.target === ref.current) close(); }}>
+        <div className="info-in">
+          <div className="info-h">
+            <b>{help.title}</b>
+            {on !== undefined && <span className={`tagx ${on ? "" : "amber"}`}>{on ? "on" : "off"}</span>}
+            <button type="button" className="adm-iconbtn" aria-label="Close" onClick={close}><i className="ti ti-x" /></button>
+          </div>
+          <h4>What it does</h4>
+          <p>{help.what}</p>
+          <h4>How to use it</h4>
+          <ol>{help.how.map((s, i) => <li key={i}>{s}</li>)}</ol>
+          {on === false && <p className="info-warn"><i className="ti ti-alert-circle" /> It&apos;s switched off right now. Switch it on and press Save appearance, then preview.</p>}
+          <div className="btns">
+            {help.preview && (
+              <a className="b-mint b-sm" href={help.preview} target="_blank" rel="noopener"><i className="ti ti-player-play" />Preview on your site</a>
+            )}
+            <button type="button" className="b-out b-sm" onClick={close}>Close</button>
+          </div>
+        </div>
+      </dialog>
+    </>
+  );
+}
+
 /** Copies text (e.g. an email address) and briefly shows "Copied". */
 export function CopyButton({ text, label = "Copy", className = "b-out b-sm" }: { text: string; label?: string; className?: string }) {
   const [done, setDone] = useState(false);

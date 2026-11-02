@@ -52,10 +52,7 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
 
     // count-up numbers: the real number is in the HTML; it counts up from 0 once it scrolls into view
     if (fx.countup && !reduced) {
-      const countObs = new IntersectionObserver((es) => es.forEach((e) => {
-        if (!e.isIntersecting) return;
-        countObs.unobserve(e.target);
-        const el = e.target as HTMLElement;
+      const count = (el: HTMLElement) => {
         const to = Number(el.dataset.count) || 0;
         const t0 = performance.now(), dur = 1300;
         const step = (t: number) => {
@@ -64,9 +61,16 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
           if (p < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
+      };
+      const countObs = new IntersectionObserver((es) => es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        countObs.unobserve(e.target);
+        count(e.target as HTMLElement);
       }), { threshold: 0.6 });
       document.querySelectorAll("[data-count]").forEach((el) => countObs.observe(el));
-      cleanups.push(() => countObs.disconnect());
+      const replay = () => document.querySelectorAll<HTMLElement>("[data-count]").forEach(count); // dashboard "Preview"
+      window.addEventListener("lc-countup", replay);
+      cleanups.push(() => { countObs.disconnect(); window.removeEventListener("lc-countup", replay); });
     }
 
     // the timeline line draws itself as you scroll; milestones light up when the line reaches them
@@ -221,7 +225,8 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
         if (word || keys.slice(-10).join(",") === KONAMI.join(",")) { keys = []; party(); }
       };
       document.addEventListener("keydown", key);
-      cleanups.push(() => { document.removeEventListener("keydown", key); document.documentElement.classList.remove("party"); });
+      window.addEventListener("lc-party", party); // dashboard "Preview"
+      cleanups.push(() => { document.removeEventListener("keydown", key); window.removeEventListener("lc-party", party); document.documentElement.classList.remove("party"); });
     }
 
     // draggable emojis with spring snap-back

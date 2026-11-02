@@ -16,20 +16,26 @@ export function DecodeText({ text, delay = 250 }: { text: string; delay?: number
     let raf = 0;
     const total = parts.reduce((n, p) => n + p.t.length, 0) || 1;
     const dur = 700 + Math.min(900, total * 22);
-    const t0 = performance.now() + delay;
-    setBusy(true);
-    const frame = (t: number) => {
-      const p = Math.max(0, Math.min(1, (t - t0) / dur));
-      let k = 0;
-      setShown(parts.map((part) => [...part.t].map((ch) => {
-        const done = ch === " " || (k++ / total) < p;
-        return done ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0];
-      }).join("")));
-      if (p < 1) raf = requestAnimationFrame(frame);
-      else { setShown(parts.map((x) => x.t)); setBusy(false); }
+    const play = (wait: number) => {
+      cancelAnimationFrame(raf);
+      const t0 = performance.now() + wait;
+      setBusy(true);
+      const frame = (t: number) => {
+        const p = Math.max(0, Math.min(1, (t - t0) / dur));
+        let k = 0;
+        setShown(parts.map((part) => [...part.t].map((ch) => {
+          const done = ch === " " || (k++ / total) < p;
+          return done ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        }).join("")));
+        if (p < 1) raf = requestAnimationFrame(frame);
+        else { setShown(parts.map((x) => x.t)); setBusy(false); }
+      };
+      raf = requestAnimationFrame(frame);
     };
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    play(delay);
+    const again = () => play(delay); // dashboard "Preview"
+    window.addEventListener("lc-decode", again);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("lc-decode", again); };
   }, [parts, delay]);
   return (
     <>

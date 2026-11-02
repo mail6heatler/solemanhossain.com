@@ -4,6 +4,7 @@ import { BrandTypewriter } from "./Typewriters";
 import MobileMenu from "./MobileMenu";
 import Effects from "./Effects";
 import ThemeSwitch from "./ThemeSwitch";
+import DemoMode from "./Demo";
 
 export function Nav({ settings, sections, onHome }: { settings: SiteSettings; sections: Section[]; onHome: boolean }) {
   const href = (s: Section) => (onHome ? `#${s.slug}` : `/#${s.slug}`);
@@ -26,7 +27,9 @@ export function Nav({ settings, sections, onHome }: { settings: SiteSettings; se
         {settings.effects.surprise && (
           <a className="icon-btn dice-btn" href="/surprise" aria-label="Surprise me: open a random entry" title="Surprise me">🎲</a>
         )}
-        {settings.themeSwitch && <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} />}
+        {(settings.themeSwitch || settings.effects.shuffle) && (
+          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} menu={settings.themeSwitch} />
+        )}
         <MobileMenu links={sections.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
       </div>
     </nav>
@@ -106,6 +109,7 @@ export function SiteShell({ settings, sections, onHome, children }:
         partyWord={settings.partyWord}
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
       />
+      {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       <Nav settings={settings} sections={sections} onHome={onHome} />
       {onHome && <Rail sections={sections} />}
       {children}

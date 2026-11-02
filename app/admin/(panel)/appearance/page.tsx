@@ -2,8 +2,11 @@ import { getSettings } from "@/lib/data";
 import { saveAppearance } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { EFFECTS, MOODS, SKINS, SKIN_LABELS } from "@/lib/settings";
+import { HELP } from "@/lib/help";
+import { InfoTip } from "@/components/admin/Widgets";
 
 const GROUP_INTRO: Record<string, string> = {
+  Themes: "Extra theme fun for visitors.",
   Hero: "The first screen visitors see.",
   Motion: "What happens while people scroll and click between pages.",
   Fun: "Little surprises that make the site feel alive.",
@@ -18,21 +21,21 @@ export default async function AppearancePage() {
   return (
     <form action={saveAppearance} className="adm-page">
       <h1 className="adm-h">Appearance</h1>
-      <p className="adm-sub">Theme, mood, status and every effect on your site, in one place</p>
+      <p className="adm-sub">Theme, mood, status and every effect on your site, in one place. Press <b>i</b> next to anything to see what it does and preview it.</p>
 
       <div className="adm-label">Theme</div>
       <div className="c f">
         <div className="f2">
           <div className="fl">
-            <label htmlFor="defaultTheme">Theme visitors see first</label>
+            <div className="lab-row"><label htmlFor="defaultTheme">Theme visitors see first</label><InfoTip help={HELP.defaultTheme} /></div>
             <select id="defaultTheme" name="defaultTheme" defaultValue={s.defaultTheme}>
               {SKINS.map((k) => <option key={k} value={k}>{SKIN_LABELS[k]}</option>)}
             </select>
-            <div className="hint">Auto shows Day calm until 6 PM in your clock&apos;s time zone ({s.timezone}), then Night neon.</div>
+            <div className="hint">Auto shows Day calm until 6 PM in your clock&apos;s time zone ({s.timezone}), then Night neon. Random picks a new theme on every visit.</div>
           </div>
           <div className="fl">
             <span className="lab">Theme button</span>
-            <label className="switch"><input type="checkbox" name="themeSwitch" defaultChecked={s.themeSwitch} />Let visitors switch themes (button in the menu bar)</label>
+            <div className="sw-row"><label className="switch"><input type="checkbox" name="themeSwitch" defaultChecked={s.themeSwitch} />Let visitors switch themes (button in the menu bar)</label><InfoTip help={HELP.themeSwitch} on={s.themeSwitch} /></div>
           </div>
         </div>
       </div>
@@ -41,7 +44,7 @@ export default async function AppearancePage() {
       <div className="c f">
         <div className="f2">
           <div className="fl">
-            <label htmlFor="mood">Mood of the day (changes the accent colour)</label>
+            <div className="lab-row"><label htmlFor="mood">Mood of the day (changes the accent colour)</label><InfoTip help={HELP.mood} /></div>
             <select id="mood" name="mood" defaultValue={s.mood}>
               <option value="">— no mood, keep mint —</option>
               {Object.entries(MOODS).map(([k, m]) => <option key={k} value={k}>{m.emoji} {m.label}</option>)}
@@ -49,16 +52,16 @@ export default async function AppearancePage() {
           </div>
           <div className="fl">
             <span className="lab">Mood pill</span>
-            <label className="switch"><input type="checkbox" name="showMood" defaultChecked={s.showMood} />Show “Today I&apos;m feeling …” on the homepage</label>
+            <div className="sw-row"><label className="switch"><input type="checkbox" name="showMood" defaultChecked={s.showMood} />Show “Today I&apos;m feeling …” on the homepage</label><InfoTip help={HELP.showMood} on={s.showMood} /></div>
           </div>
         </div>
         <div className="f2">
           <div className="fl">
-            <label htmlFor="nowStatus">“Right now” status (leave empty to hide)</label>
+            <div className="lab-row"><label htmlFor="nowStatus">“Right now” status (leave empty to hide)</label><InfoTip help={HELP.nowStatus} /></div>
             <input className="inp" id="nowStatus" name="nowStatus" defaultValue={s.nowStatus} maxLength={120} placeholder="📖 Reading: Atomic Habits · 🎧 Lo-fi beats" />
           </div>
           <div className="fl">
-            <label htmlFor="partyWord">Secret party word (letters only)</label>
+            <div className="lab-row"><label htmlFor="partyWord">Secret party word (letters only)</label><InfoTip help={HELP.partyWord} /></div>
             <input className="inp" id="partyWord" name="partyWord" defaultValue={s.partyWord} maxLength={12} pattern="[A-Za-z]*" placeholder="shou" />
             <div className="hint">Visitors who type this anywhere on the site start party mode. The Konami code works too.</div>
           </div>
@@ -69,9 +72,12 @@ export default async function AppearancePage() {
         <div key={g}>
           <div className="adm-label">{g} effects <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>{GROUP_INTRO[g]}</span></div>
           <div className="c">
-            <div className="switches" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: 10 }}>
+            <div className="fx-grid">
               {EFFECTS.filter((e) => e.group === g).map((e) => (
-                <label key={e.key} className="switch"><input type="checkbox" name={`fx_${e.key}`} defaultChecked={s.effects[e.key]} />{e.label}</label>
+                <div key={e.key} className="sw-row">
+                  <label className="switch"><input type="checkbox" name={`fx_${e.key}`} defaultChecked={s.effects[e.key]} />{e.label}</label>
+                  {HELP[e.key] && <InfoTip help={HELP[e.key]} on={s.effects[e.key]} />}
+                </div>
               ))}
             </div>
           </div>
