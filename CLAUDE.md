@@ -14,7 +14,9 @@ npm run build    # also type-checks; run before every push
 npx tsc --noEmit # type-check only
 ```
 
-There is no test suite. Verify visually: drive the site with `playwright-core` from a scratch folder (never add it to this project) using the installed Chrome (`C:/Program Files/Google/Chrome/Application/chrome.exe`) with `--enable-unsafe-swiftshader`. Stub `/api/track` and `/api/presence` when testing the live site so tests don't count as visitors.
+There is no test suite. Verify visually: drive the site with `playwright-core` from a scratch folder (never add it to this project) using the installed Chrome (`C:/Program Files/Google/Chrome/Application/chrome.exe`). Launch with `--use-angle=d3d11 --enable-gpu --ignore-gpu-blocklist --enable-gpu-rasterization` to use this PC's real graphics card; never judge smoothness in software mode. Stub `/api/track` and `/api/presence` when testing the live site so tests don't count as visitors.
+
+**To measure scrolling:** record `requestAnimationFrame` gaps and CDP `Performance.getMetrics` during `page.mouse.wheel` steps, and turn effects off one at a time to attribute cost. Add `Emulation.setCPUThrottlingRate` (4x) for a weaker device. Re-measure after any change to motion; `PROGRESS.md` has the numbers to beat.
 
 ## Deploying
 
@@ -52,6 +54,7 @@ components/site/
   ThemeFx.tsx              one canvas behind the content: starts/sleeps it, follows the theme
   themeScenes.ts           each theme's living background and click burst (separate download)
   HangingBanner.tsx        the pull-down announcement and its spring physics
+  bannerFall.ts            what falls from the banner in each theme; its canvas exists only while something falls
   askName.ts               the "who's reacting?" box; the name is remembered in localStorage (lc_name)
   HeroScene.tsx            decides if/when the 3D runs, wires events and theme colours
   heroEngine.ts            three.js particle sculpture (separate download)
@@ -87,6 +90,18 @@ Every visual effect has a switch on the Appearance page. To add one:
 2. Add its pop-up text to `lib/help.ts` with `preview: "/?demo=<key>"`.
 3. Add its preview to `components/site/Demo.tsx`.
 4. Implement it. For CSS-only effects, add the key to `LOOKS` in `Chrome.tsx` and scope the CSS under `.site.fx-<key>`. For JS, pass the flag through `Living` in `Chrome.tsx` into `hoverFx.ts` or `scrollFx.ts`.
+
+## Keeping scrolling smooth
+
+Scrolling was once 29 frames per second (6 on a weak device), from many small costs rather than one big one. Before adding motion:
+
+- **Animate only `transform`, `translate`, `rotate`, `scale` and `opacity`.** Anything else (box-shadow, background-position, mask-position, text-shadow, filter, custom properties) runs on the main thread every frame.
+- **Never write an inherited custom property or a style on many elements per frame.** One `--skew` on a band recalculated over a hundred text pieces. Transform the one parent instead.
+- **Off-screen work must stop.** `Effects.tsx` puts `.sleep` on off-screen sections and ribbons, which pauses every animation inside and hides decorations. Scroll handlers should skip off-screen targets and read cached positions instead of measuring per frame.
+- **No `backdrop-filter` or `mix-blend-mode` on anything large or fixed.** Both force the browser to redraw what's behind on every scrolled frame.
+- **Scaling an element without `will-change: transform` re-draws its text at each size.** Set it only while moving, and clear it at rest (see chapter motion in `scrollFx.ts`).
+- **Set `playbackRate` only when the value changes**, and only on what's on screen. Each write resynchronises the animation.
+- **Anything that spawns things must have a cap.** `bannerFall.ts` once had splashes that made more splashes, and it froze the page.
 
 ## Rules learned the hard way
 

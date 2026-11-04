@@ -297,6 +297,12 @@ export const HELP: Record<string, Help> = {
   },
 
   // ----- fun -----
+  bannerfall: {
+    title: "Things fall from the banner",
+    what: "When the hanging banner is pulled down, things pour out from under it in the style of your theme. Ocean: water drops that splash. Paper: sheets of paper fluttering down. Techy: falling code. Retro: neon pixels. Sunset: embers. Forest: leaves. Candy: sweets and sprinkles. Playful: bouncing shapes. Night: stars. Day: petals.",
+    how: ["Switch on and save.", "Write a banner under Dashboard → Hanging banner, or use Preview to see a sample.", "To see another theme, add it to the address: /?demo=banner&theme=ocean"],
+    preview: "/?demo=banner",
+  },
   reactions: {
     title: "Emoji reactions",
     what: "Every entry gets ❤️ 🔥 😂 🤯 👏 buttons. The first time someone reacts, they have to type their name (it's remembered in their browser after that). New reactions show up in your bell and Inbox → Reactions with that name. Only you can see names; visitors only see the counts.",

@@ -20,7 +20,7 @@ export default function ThemeFx() {
       if (dead) return;
       const h = document.documentElement;
       let skin = "", palette: Palette = { a: "#7ee8a2", b: "#9fd8e6", c: "#f2a5c0", deep: "#2f7a52", fg: "#ffffff" }, scene: Scene | null = null;
-      let w = 0, ht = 0, raf = 0, last = 0, drawn = 0, t = 0, lastY = window.scrollY, speed = 0, gap = 1000 / 30, slow = 0, frames = 0;
+      let w = 0, ht = 0, raf = 0, last = 0, t = 0, lastY = window.scrollY, speed = 0, gap = 1000 / 30, slow = 0, frames = 0;
 
       const load = () => {
         skin = h.dataset.skin || "night";
@@ -37,7 +37,7 @@ export default function ThemeFx() {
       };
       const frame = (now: number) => {
         raf = requestAnimationFrame(frame);
-        if (now - last < gap) return;
+        if (now - last < (Math.abs(speed) > 0.6 ? Math.max(gap, 50) : gap)) return; // the page gets priority while it's moving
         const dt = Math.min(0.1, last ? (now - last) / 1000 : 0.03);
         const cost = performance.now();
         last = now; t += dt;
@@ -57,7 +57,6 @@ export default function ThemeFx() {
         // a machine that can't keep up gets fewer frames rather than a stuttering page
         slow += performance.now() - cost > 14 ? 1 : 0;
         if (++frames >= 60) { if (slow > 24) gap = 1000 / 20; slow = 0; frames = 0; }
-        drawn++;
       };
       const play = () => { cancelAnimationFrame(raf); last = 0; if (!document.hidden) raf = requestAnimationFrame(frame); };
       const click = (e: PointerEvent) => {
@@ -80,7 +79,6 @@ export default function ThemeFx() {
         document.removeEventListener("visibilitychange", play);
         document.removeEventListener("pointerdown", click);
       };
-      void drawn;
     }).catch(() => {});
     return () => { dead = true; stop(); };
   }, []);

@@ -27,7 +27,7 @@ Working on the code? Start with [CLAUDE.md](CLAUDE.md) (how it all fits together
   | G8 Connect | connect | Social links, a **Say hello form**, and a **guest wall** |
 
 - Every entry has its own page; every section has a "See all" page with subsection filters.
-- Effects: 53 of them, from a 3D particle sculpture and an opening curtain to letters that react to the mouse, cards
+- Effects: 54 of them, from a 3D particle sculpture and an opening curtain to letters that react to the mouse, cards
   that tilt in 3D, ribbons that react to scroll speed and pages that glide into each other. Each one can be switched
   off under Appearance, where an (i) button explains and previews it. Visitors who ask for reduced motion get a calm site.
 

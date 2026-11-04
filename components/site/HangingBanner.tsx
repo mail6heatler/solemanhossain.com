@@ -34,7 +34,7 @@ function Countdown({ iso }: { iso: string }) {
   );
 }
 
-function Banner({ data, demo }: { data: BannerView; demo: boolean }) {
+function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: boolean }) {
   const kind = BANNER_KINDS[data.kind];
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLElement>(null);
@@ -48,6 +48,10 @@ function Banner({ data, demo }: { data: BannerView; demo: boolean }) {
     const nav = document.querySelector<HTMLElement>(".site .nav");
     const still = prefersReducedMotion();
     let C = 0, H = 0, pos = 0, v = 0, T = 0, a = 0, va = 0, raf = 0, shut = true;
+    // what falls from the banner in this theme (loaded only where a banner exists)
+    let falls: typeof import("./bannerFall") | null = null, pulled = 0;
+    if (fall && !still) import("./bannerFall").then((m) => { falls = m; }).catch(() => {});
+    const hem = () => { const r = cl.getBoundingClientRect(); return { x: r.left + 8, y: r.bottom + 10, w: r.width - 16 }; };
     let dragging = false, startY = 0, startPos = 0, moved = false, lastX = 0, onTab = false, openedAt = 0, lastScroll = window.scrollY;
 
     const place = () => {
@@ -89,6 +93,7 @@ function Banner({ data, demo }: { data: BannerView; demo: boolean }) {
         va += (Math.random() < 0.5 ? -1 : 1) * 0.42;
         if (!demo) try { localStorage.setItem("lc_banner_seen", signature(data)); } catch {}
         if (data.kind === "party") setTimeout(() => confettiFrom(tb, { count: 90, spread: 100 }), 340);
+        falls?.pour(hem, 1.5);
       }
       if (still) { pos = T; paint(); } else kick();
     };
@@ -110,6 +115,7 @@ function Banner({ data, demo }: { data: BannerView; demo: boolean }) {
       const d = e.clientY - startY;
       if (Math.abs(d) > 4) moved = true;
       const p = startPos + d, next = p > H ? H + (p - H) * 0.28 : Math.max(0, p);
+      if (next > pos) { pulled += next - pos; if (falls && pulled > 12) { falls.sprinkle(hem(), Math.min(4, Math.floor(pulled / 12))); pulled = 0; } }
       v = next - pos; pos = next;
       va += clamp((e.clientX - lastX) * 0.012, -0.5, 0.5);
       lastX = e.clientX;
@@ -178,7 +184,7 @@ function Banner({ data, demo }: { data: BannerView; demo: boolean }) {
       window.removeEventListener("scroll", scroll);
       document.removeEventListener("keydown", key);
     };
-  }, [data, demo]);
+  }, [data, demo, fall]);
 
   return (
     <aside ref={root} className={`hb k-${data.kind} ${open ? "open" : ""}`} aria-label="Announcement">
@@ -217,7 +223,7 @@ function Banner({ data, demo }: { data: BannerView; demo: boolean }) {
 }
 
 /** The announcement that hangs from the top of the site: pull the tab, and it drops down and swings. */
-export default function HangingBanner({ banner }: { banner: BannerView | null }) {
+export default function HangingBanner({ banner, fall = true }: { banner: BannerView | null; fall?: boolean }) {
   const [view, setView] = useState<{ data: BannerView; demo: boolean } | null>(null);
   useEffect(() => {
     let live = true;
@@ -231,5 +237,5 @@ export default function HangingBanner({ banner }: { banner: BannerView | null })
     return () => { live = false; };
   }, [banner]);
   if (!view) return null;
-  return <Banner data={view.data} demo={view.demo} />;
+  return <Banner data={view.data} demo={view.demo} fall={fall} />;
 }

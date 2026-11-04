@@ -5,20 +5,43 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tag `before-update-2` (commit `0d20e6a`, before Update 2) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings (from the database, as of 2026-11-05):** the site shows the Paper theme with the visitors' theme button off, so the theme wipe has no button to trigger it and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners). The owner changes the theme themselves, so check before relying on this.
 
 ## Decision waiting on the owner
 
-Keep or undo Update 2 (below), after they've seen it live.
+Keep or undo Update 3 (below), after they've seen it live.
 
 - **Keep:** nothing to do. Record it here.
-- **Undo:** run `git revert --no-edit` on Update 2's commits on `main` and push; that redeploys by itself. Content and settings stay. The two new database columns (`reactions.name`, `sections.ribbon`) and the `banner` setting stay too; the old code ignores them, so they do no harm. Names already collected stay in the database, and would show again if the update is restored.
+- **Undo:** run `git revert --no-edit` on Update 3's commits on `main` and push; that redeploys by itself. No database or content changes were made, so nothing else is affected. Scrolling would go back to being slow.
 
 ## Log
 
-### 2026-11-05: Update 2
+### 2026-11-05: Update 3
+
+The owner kept Update 2 and asked for two things.
+
+**Smooth scrolling.** Measured with the real graphics card on the live site, Paper theme, wheel-scrolling the whole page. See the table for results. No single effect caused it: with nearly everything off the page reached 90 fps, and each effect cost a little. What changed, keeping the same look:
+
+- Ribbon lean: was writing a custom property read by 160+ text pieces, per frame, on all bands. Now skews one track, only on screen, only when the value changes. Marquee motion moved to the `translate` property so the two can't conflict.
+- Off-screen sections and ribbons rest (`.sleep`): animations paused, decorations hidden.
+- Paper grain: no more full-screen `mix-blend-mode`. Techy and Retro sweeps: one strip moving instead of repainting the screen.
+- Menu bars, back-to-top button, tape, badges: `backdrop-filter` removed; the bars are slightly more opaque instead.
+- Chapter motion: only chapters near the screen are measured, nothing runs when settled, and `will-change` is set only while moving.
+- Progress bar scales rather than changing width. Timeline and sideways strip cache positions and skip when off screen.
+- Theme canvas drops to 20 fps while scrolling. Retro's canvas shadows replaced with a cheap two-line glow.
+- Floating emojis lost their drop shadow (barely visible at their opacity). The menu's pulsing dot is now a scaling ring.
+- Lenis `lerp` 0.11 to 0.14, so the page responds to the wheel a little sooner.
+
+**Things fall from the banner** (`bannerfall`, `bannerFall.ts`): when it's pulled, and while dragging. Ocean: water with splashes. Paper: sheets. Techy: code. Retro: pixels. Sunset: embers. Forest: leaves. Candy: sweets. Playful: shapes. Night: stars. Day: petals. Off for reduced motion.
+
+An earlier note said the test machine had no graphics card. That was wrong: earlier tests ran in software mode, and this PC has one.
+
+Limits: measured in Chrome on this PC only. Real phones, Safari and Firefox are unchecked, and the "weak device" figure is a simulated 4x CPU slowdown on this PC.
+
+
+### 2026-11-05: Update 2 (kept by the owner)
 
 What the owner asked for, and what was built:
 

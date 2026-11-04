@@ -180,16 +180,18 @@ function retro(p: Palette, w: number, h: number): Scene {
         c.globalAlpha = 0.34 * away; c.fillStyle = g;
         c.beginPath(); c.arc(x, hz, r, Math.PI, 0); c.fill();
       }
-      c.strokeStyle = p.a; c.lineWidth = 1.2; c.shadowColor = p.a; c.shadowBlur = 6;
+      // a wide faint line under a thin bright one gives the neon glow at a fraction of the cost of a canvas shadow
+      c.strokeStyle = p.a;
       for (let i = 0; i < 11; i++) {
         const z = (i + off) / 11, y = hz + floor * z * z;
-        c.globalAlpha = 0.5 * z; c.beginPath(); c.moveTo(0, y); c.lineTo(f.w, y); c.stroke();
+        c.lineWidth = 5; c.globalAlpha = 0.11 * z; c.beginPath(); c.moveTo(0, y); c.lineTo(f.w, y); c.stroke();
+        c.lineWidth = 1.2; c.globalAlpha = 0.5 * z; c.stroke();
       }
-      c.strokeStyle = p.b; c.shadowColor = p.b;
+      c.strokeStyle = p.b; c.lineWidth = 1.2;
       for (let i = -14; i <= 14; i++) {
         c.globalAlpha = 0.24; c.beginPath(); c.moveTo(cx + i * 22, hz); c.lineTo(cx + i * (f.w / 7), f.h); c.stroke();
       }
-      c.shadowBlur = 0; c.globalAlpha = 1;
+      c.globalAlpha = 1;
     },
   };
 }

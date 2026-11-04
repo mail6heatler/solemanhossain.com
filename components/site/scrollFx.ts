@@ -77,19 +77,37 @@ export function startScrollFx(fx: ScrollFxFlags) {
     });
     const small = window.matchMedia("(max-width: 760px)");
     const ease = (p: number) => p * p * (3 - 2 * p);
+    let vh = window.innerHeight, lastY = -1, busy = true;
+    const onResize = () => { vh = window.innerHeight; busy = true; };
+    window.addEventListener("resize", onResize);
+    const clear = (o: (typeof secs)[number]) => {
+      if (!o.inner.style.transform) return;
+      o.inner.style.transform = ""; o.inner.style.opacity = ""; o.inner.style.transformOrigin = ""; o.inner.style.willChange = "";
+    };
+    const wantEnter = (r: DOMRect) => clamp((vh - r.top) / (vh * 0.62), 0, 1);
+    const wantExit = (r: DOMRect) => clamp((vh * 0.4 - r.bottom) / (vh * 0.4), 0, 1);
+    // only chapters near the screen are measured; one coming back starts where it should be
+    const near = new Set<(typeof secs)[number]>();
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      const o = secs.find((x) => x.s === e.target);
+      if (!o) return;
+      if (e.isIntersecting) { const r = o.s.getBoundingClientRect(); o.en = wantEnter(r); o.ex = wantExit(r); near.add(o); busy = true; }
+      else { near.delete(o); clear(o); }
+    }), { rootMargin: "25% 0px" });
+    secs.forEach((o) => io.observe(o.s));
     const tick = (_t: number, ms: number) => {
-      const vh = window.innerHeight, k = small.matches ? 0.55 : 1, blend = 1 - Math.pow(0.8, Math.min(ms, 200) / 16.7);
-      for (const o of secs) {
+      const scrollNow = window.scrollY;
+      if (scrollNow === lastY && !busy) return; // nothing moved and everything has settled: no work at all
+      lastY = scrollNow; busy = false;
+      const k = small.matches ? 0.55 : 1, blend = 1 - Math.pow(0.8, Math.min(ms, 200) / 16.7);
+      for (const o of near) {
         const r = o.s.getBoundingClientRect();
-        const wantEn = clamp((vh - r.top) / (vh * 0.62), 0, 1), wantEx = clamp((vh * 0.4 - r.bottom) / (vh * 0.4), 0, 1);
+        const wantEn = wantEnter(r), wantEx = wantExit(r);
         o.en += (wantEn - o.en) * blend; o.ex += (wantEx - o.ex) * blend;
-        if (Math.abs(wantEn - o.en) < 0.012) o.en = wantEn;
-        if (Math.abs(wantEx - o.ex) < 0.012) o.ex = wantEx;
+        if (Math.abs(wantEn - o.en) < 0.012) o.en = wantEn; else busy = true;
+        if (Math.abs(wantEx - o.ex) < 0.012) o.ex = wantEx; else busy = true;
         const inn = 1 - ease(o.en), out = ease(o.ex);
-        if ((inn === 0 && out === 0) || r.bottom < -80 || r.top > vh + 80) {
-          if (o.inner.style.transform) { o.inner.style.transform = ""; o.inner.style.opacity = ""; o.inner.style.transformOrigin = ""; }
-          continue;
-        }
+        if (inn === 0 && out === 0) { clear(o); continue; }
         let x = 0, y = 90 * inn * k, sc = 1 - 0.06 * inn, rx = 12 * inn * k, ry = 0, rz = 0, origin = "50% 0%";
         if (out > 0) {
           if (o.kind === 0) { sc -= 0.17 * out; y -= 44 * out; origin = "50% 100%"; } // shrink, like the hero
@@ -97,6 +115,8 @@ export function startScrollFx(fx: ScrollFxFlags) {
           else if (o.kind === 2) { x -= window.innerWidth * 0.11 * out * k; rz -= 2.6 * out * k; sc -= 0.05 * out; } // slides away
           else { ry += 20 * out * k; x += window.innerWidth * 0.05 * out * k; sc -= 0.07 * out; origin = "100% 60%"; } // swings like a door
         }
+        // while moving it's kept as one ready-made picture, so the text isn't redrawn at every size
+        o.inner.style.willChange = "transform, opacity";
         o.inner.style.transformOrigin = origin;
         o.inner.style.transform = `perspective(1400px) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) rotate(${rz.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
         o.inner.style.opacity = (1 - 0.72 * inn - 0.82 * out).toFixed(3);
@@ -105,31 +125,49 @@ export function startScrollFx(fx: ScrollFxFlags) {
     gsap.ticker.add(tick);
     cleanups.push(() => {
       gsap.ticker.remove(tick);
-      for (const o of secs) { o.inner.style.transform = ""; o.inner.style.opacity = ""; o.inner.style.transformOrigin = ""; }
+      io.disconnect();
+      window.removeEventListener("resize", onResize);
+      secs.forEach(clear);
     });
   }
 
   // scroll speed drives the marquee + ribbons: faster and leaning when scrolling fast, backwards when scrolling up
+  // Only bands on screen are touched, and only when the value really changes.
   if (fx.velocity) {
-    const bands = qsa(".marquee, .ribbon");
-    const tracks = bands.flatMap((b) => qsa(".marquee-track, .ribbon-track", b)).flatMap((t) => t.getAnimations());
+    const bands = qsa(".marquee, .ribbon").flatMap((b) => {
+      const track = b.querySelector<HTMLElement>(".marquee-track, .ribbon-track");
+      return track ? [{ b, track, anims: track.getAnimations(), seen: false }] : [];
+    });
     if (bands.length) {
-      let last = window.scrollY, v = 0, shown = 0;
+      let last = window.scrollY, v = 0, rate = 1, skew = 0;
+      const apply = (o: (typeof bands)[number]) => {
+        for (const a of o.anims) if (a.playbackRate !== rate) a.playbackRate = rate;
+        o.track.style.transform = skew ? `skewX(${skew}deg)` : "";
+      };
+      const io = new IntersectionObserver((es) => es.forEach((e) => {
+        const o = bands.find((x) => x.b === e.target);
+        if (!o) return;
+        o.seen = e.isIntersecting;
+        if (o.seen) apply(o);
+      }));
+      bands.forEach((o) => io.observe(o.b));
       const tick = () => {
         const y = window.scrollY, d = y - last;
         last = y;
+        if (d === 0 && v === 0) return;
         v += (d - v) * 0.1;
+        if (Math.abs(v) < 0.05) v = 0;
         const k = clamp(v / 42, -1, 1);
-        if (Math.abs(k - shown) < 0.004) return;
-        shown = k;
-        for (const a of tracks) a.playbackRate = 1 + k * 7;
-        for (const b of bands) b.style.setProperty("--skew", `${(-k * 14).toFixed(2)}deg`);
+        const nextRate = 1 + Math.round(k * 7), nextSkew = Math.round(-k * 14 * 2) / 2;
+        if (nextRate === rate && nextSkew === skew) return;
+        rate = nextRate; skew = nextSkew;
+        for (const o of bands) if (o.seen) apply(o);
       };
       gsap.ticker.add(tick);
       cleanups.push(() => {
         gsap.ticker.remove(tick);
-        for (const a of tracks) a.playbackRate = 1;
-        for (const b of bands) b.style.removeProperty("--skew");
+        io.disconnect();
+        for (const o of bands) { for (const a of o.anims) a.playbackRate = 1; o.track.style.transform = ""; }
       });
     }
   }

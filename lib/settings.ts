@@ -93,6 +93,7 @@ export const EFFECTS = [
   { key: "ambient", group: "Hover", label: "Chapter background glows under the mouse" },
   { key: "liquid", group: "Hover", label: "Colour pours into buttons" },
   { key: "navpill", group: "Hover", label: "Sliding menu highlight + rolling labels" },
+  { key: "bannerfall", group: "Fun", label: "Things fall from the banner when it's pulled" },
   { key: "reactions", group: "Fun", label: "Emoji reactions on entries" },
   { key: "confetti", group: "Fun", label: "Confetti on poll votes" },
   { key: "plane", group: "Fun", label: "Paper plane on “Say hello”" },

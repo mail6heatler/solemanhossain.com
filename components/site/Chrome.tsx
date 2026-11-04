@@ -125,7 +125,7 @@ export function SiteShell({ settings, sections, onHome, children }:
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
       />
       {fx.themefx && <ThemeFx />}
-      <HangingBanner banner={settings.banner.on && settings.banner.title ? bannerView(settings.banner, settings.timezone) : null} />
+      <HangingBanner banner={settings.banner.on && settings.banner.title ? bannerView(settings.banner, settings.timezone) : null} fall={fx.bannerfall} />
       <Living fx={{ sectionfx: fx.sectionfx, cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       <Nav settings={settings} sections={sections} onHome={onHome} />

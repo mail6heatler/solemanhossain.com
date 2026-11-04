@@ -23,13 +23,15 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     const bar = document.getElementById("progress");
     const up = document.querySelector<HTMLElement>(".totop");
     const ring100 = up?.querySelector<SVGCircleElement>(".val");
+    let ringShown = -1;
     const onScroll = () => {
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight;
       const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
-      if (bar) bar.style.width = pct + "%";
+      if (bar) bar.style.transform = `scaleX(${(pct / 100).toFixed(4)})`; // scaling needs no page layout, unlike width
       if (up) up.classList.toggle("on", h.scrollTop > window.innerHeight * 0.5);
-      if (ring100) ring100.style.strokeDashoffset = String(100 - pct);
+      const whole = Math.round(pct);
+      if (ring100 && whole !== ringShown) { ringShown = whole; ring100.style.strokeDashoffset = String(100 - whole); }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -40,12 +42,20 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       let lenis: { destroy(): void } | null = null, dead = false;
       import("lenis").then(({ default: Lenis }) => {
         if (dead) return;
-        const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.11 });
+        const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.14 });
         lenis = l;
         (window as unknown as { __lenis?: unknown }).__lenis = l;
       }).catch(() => {});
       cleanups.push(() => { dead = true; lenis?.destroy(); delete (window as unknown as { __lenis?: unknown }).__lenis; });
     }
+
+    // everything decorative rests while its section is off screen, so the browser only works on what can be seen
+    const sleepObs = new IntersectionObserver(
+      (es) => es.forEach((e) => e.target.classList.toggle("sleep", !e.isIntersecting)),
+      { rootMargin: "20% 0px" }
+    );
+    document.querySelectorAll("section.chap, section[data-spy], .ribbon").forEach((el) => sleepObs.observe(el));
+    cleanups.push(() => sleepObs.disconnect());
 
     // reveal (+ cards dropping in one by one, via CSS on .stagger.in)
     const revealObs = new IntersectionObserver(
@@ -112,12 +122,19 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     // the timeline line draws itself as you scroll; milestones light up when the line reaches them
     const lines = Array.from(document.querySelectorAll<HTMLElement>(".tline.draw"));
     if (fx.timeline && lines.length) {
+      // row positions are read once and reused, and an off-screen timeline does nothing
+      const state = lines.map((tl) => ({ tl, h: -1, p: -1, rows: [] as { el: HTMLElement; top: number }[] }));
       const draw = () => {
-        for (const tl of lines) {
-          const r = tl.getBoundingClientRect();
-          const p = reduced ? 1 : Math.min(1, Math.max(0, (window.innerHeight * 0.72 - r.top) / Math.max(1, r.height - 22)));
-          tl.style.setProperty("--p", String(p));
-          tl.querySelectorAll<HTMLElement>(".tl-row").forEach((row) => row.classList.toggle("lit", (row.offsetTop + 12) / Math.max(1, r.height - 22) <= p + 0.02));
+        const vh = window.innerHeight;
+        for (const s of state) {
+          const r = s.tl.getBoundingClientRect();
+          if (s.p >= 0 && (r.bottom < -vh * 0.3 || r.top > vh * 1.3)) continue;
+          if (r.height !== s.h) { s.h = r.height; s.rows = Array.from(s.tl.querySelectorAll<HTMLElement>(".tl-row")).map((el) => ({ el, top: el.offsetTop })); }
+          const p = reduced ? 1 : Math.min(1, Math.max(0, (vh * 0.72 - r.top) / Math.max(1, r.height - 22)));
+          if (Math.abs(p - s.p) < 0.002) continue;
+          s.p = p;
+          s.tl.style.setProperty("--p", p.toFixed(3));
+          for (const row of s.rows) row.el.classList.toggle("lit", (row.top + 12) / Math.max(1, r.height - 22) <= p + 0.02);
         }
       };
       draw();
