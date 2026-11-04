@@ -7,7 +7,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
 - **Restore points:** git tag `before-update-2` (commit `0d20e6a`, before Update 2) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
-- **Live settings (from the database, as of this update):** the site shows the Techy theme with the visitors' theme button off. So the theme wipe has no button to trigger it, and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners).
+- **Live settings (from the database, as of 2026-11-05):** the site shows the Paper theme with the visitors' theme button off, so the theme wipe has no button to trigger it and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners). The owner changes the theme themselves, so check before relying on this.
 
 ## Decision waiting on the owner
 
