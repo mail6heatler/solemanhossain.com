@@ -4,17 +4,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 ## Current state
 
-- **Live:** https://solemanhossain.vercel.app, with the Lively Update (below) waiting on the owner's decision.
+- **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
 - **Restore point:** git tag `before-lively-update` (commit `1c9f3c7`). The last production deployment before the update is `solemanhossain-n4e486bkd-muzan-vercel.vercel.app`.
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings (from the database, as of this update):** the site shows the Techy theme with the visitors' theme button off. So the theme wipe has no button to trigger it, and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners).
-
-## Decision waiting on the owner
-
-Keep or undo the Lively Update, after they've seen it live.
-
-- **Keep:** nothing to do. Individual effects can be turned off in `/admin/appearance`.
-- **Undo:** run `git revert --no-edit <the update's commits>` on `main` and push; that redeploys by itself. Settings and content are untouched either way, because the update only added effect switches.
 
 ## Log
 
