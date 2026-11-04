@@ -57,7 +57,7 @@ export const EFFECTS = [
   { key: "decode", group: "Hero", label: "Decoding headline" },
   { key: "aurora", group: "Hero", label: "Aurora background" },
   { key: "tilt", group: "Hero", label: "3D photo (tilt, wave, confetti on click)" },
-  { key: "magnetic", group: "Hero", label: "Magnetic buttons" },
+  { key: "magnetic", group: "Hero", label: "Magnetic buttons (all over the site)" },
   { key: "greeting", group: "Hero", label: "Time greeting under the clock" },
   { key: "typewriter", group: "Hero", label: "Typewriter text" },
   { key: "emojis", group: "Hero", label: "Floating draggable emojis" },
@@ -68,6 +68,28 @@ export const EFFECTS = [
   { key: "sideways", group: "Motion", label: "Photo-trail sections slide sideways" },
   { key: "timeline", group: "Motion", label: "Timeline draws itself" },
   { key: "morph", group: "Motion", label: "Photo morph into entry pages" },
+  { key: "intro", group: "Transitions", label: "Opening curtain on the first visit" },
+  { key: "pagefx", group: "Transitions", label: "Pages glide into each other" },
+  { key: "themewipe", group: "Transitions", label: "New theme spreads out from the click" },
+  { key: "hero3d", group: "3D", label: "3D particle sculpture in the hero" },
+  { key: "cardtilt", group: "3D", label: "Cards tilt in 3D with a light glare" },
+  { key: "coverflow", group: "3D", label: "Photo trail curves in 3D" },
+  { key: "kinetic", group: "Text", label: "Headline letters react to the mouse" },
+  { key: "splittext", group: "Text", label: "Titles rise letter by letter, labels decode" },
+  { key: "wordscrub", group: "Text", label: "Subtitles light up word by word" },
+  { key: "footername", group: "Text", label: "Giant name rises at the end of the page" },
+  { key: "heroexit", group: "Scrolling", label: "Hero sinks away as you scroll" },
+  { key: "sheets", group: "Scrolling", label: "Chapters slide up like stacked sheets" },
+  { key: "ghost", group: "Scrolling", label: "Giant chapter marks drift in the background" },
+  { key: "ribbons", group: "Scrolling", label: "Moving ribbons between chapters" },
+  { key: "velocity", group: "Scrolling", label: "Ribbons react to scroll speed" },
+  { key: "imgreveal", group: "Scrolling", label: "Photos wipe in, grids drift" },
+  { key: "totop", group: "Scrolling", label: "Progress ring + back-to-top button" },
+  { key: "smartcursor", group: "Hover", label: "Cursor ring grows and labels what you can do" },
+  { key: "spotlight", group: "Hover", label: "Card borders light up near the mouse" },
+  { key: "ambient", group: "Hover", label: "Chapter background glows under the mouse" },
+  { key: "liquid", group: "Hover", label: "Colour pours into buttons" },
+  { key: "navpill", group: "Hover", label: "Sliding menu highlight + rolling labels" },
   { key: "reactions", group: "Fun", label: "Emoji reactions on entries" },
   { key: "confetti", group: "Fun", label: "Confetti on poll votes" },
   { key: "plane", group: "Fun", label: "Paper plane on “Say hello”" },
@@ -218,15 +240,20 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 };
 
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
-export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone">) {
-  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES }).replace(/</g, "\\u003c");
+export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects">) {
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx }).replace(/</g, "\\u003c");
   // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
     `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
     `try{var q=new URLSearchParams(location.search).get("theme");if(q&&c.all.indexOf(q)>=0){p=q;h.setAttribute("data-skin-preview","1")}}catch(e){}` +
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
     `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
-    `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p)})();`;
+    `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p);` +
+    // photo morph + page glide: browsers that support cross-page view transitions animate, others just navigate
+    `if(c.vt){var st=document.createElement("style");st.textContent="@view-transition{navigation:auto}";document.head.appendChild(st)}if(c.gl)h.classList.add("vt-glide");` +
+    // the opening curtain plays once per session, and never over a preview link or a jump to a section
+    `try{var u=new URLSearchParams(location.search),dm=u.get("demo");if(sessionStorage.getItem("lc_intro")||location.hash||u.get("theme")||(dm&&dm!=="intro"))h.classList.add("intro-skip");else if(location.pathname==="/")sessionStorage.setItem("lc_intro","1")}catch(e){h.classList.add("intro-skip")}` +
+    `})();`;
 }
 
 const LAYOUT_ICONS: Record<string, string> = {

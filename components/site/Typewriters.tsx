@@ -36,7 +36,8 @@ export function TypeOnce({ text, animate }: { text: string; animate: boolean }) 
     let i = 0;
     let t: ReturnType<typeof setTimeout>;
     const step = () => { i++; setN(i); if (i < text.length) t = setTimeout(step, 26); };
-    t = setTimeout(step, 900);
+    const curtain = document.querySelector(".intro");
+    t = setTimeout(step, 900 + (curtain && getComputedStyle(curtain).display !== "none" ? 1150 : 0));
     return () => clearTimeout(t);
   }, [text, animate]);
   return (

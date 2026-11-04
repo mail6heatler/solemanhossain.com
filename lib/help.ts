@@ -69,7 +69,7 @@ export const HELP: Record<string, Help> = {
   },
   magnetic: {
     title: "Magnetic buttons",
-    what: "The Résumé and Say hello buttons in the hero gently lean toward the mouse when it gets close (mouse only, not phones).",
+    what: "Buttons all over the site (Résumé, Say hello, See all, your social links) lean toward the mouse when it gets close and spring back when it leaves (mouse only, not phones).",
     how: ["Switch on and save.", "On the site, slowly move your mouse toward the buttons next to your photo."],
     preview: "/?demo=magnetic",
   },
@@ -134,6 +134,148 @@ export const HELP: Record<string, Help> = {
     what: "Clicking a card with a photo makes that photo smoothly grow into the big photo on the entry page (in Chrome and Edge; other browsers simply open the page).",
     how: ["Switch on and save.", "On the site, click any card that has a photo."],
     preview: "/?demo=morph",
+  },
+
+  // ----- transitions -----
+  intro: {
+    title: "Opening curtain",
+    what: "The first time someone opens your homepage in a visit, your name rises on a curtain that then sweeps up in columns to reveal the site. It takes under 2 seconds, plays once per visit, and never blocks clicks.",
+    how: ["Switch on and save.", "To see it again, open your site in a new private window."],
+    preview: "/?demo=intro",
+  },
+  pagefx: {
+    title: "Pages glide into each other",
+    what: "When someone opens another page on your site, the old page sinks back while the new one rises over it, instead of flashing white. Works in Chrome, Edge and Safari; other browsers simply open the page.",
+    how: ["Switch on and save.", "On the site, click any entry or a “See all” link."],
+    preview: "/?demo=pagefx",
+  },
+  themewipe: {
+    title: "New theme spreads from the click",
+    what: "Changing the theme spreads the new look out in a growing circle from the button that was pressed.",
+    how: ["Switch on and save.", "On the site, press 🔀 or pick a theme from the menu."],
+    preview: "/?demo=themewipe",
+  },
+
+  // ----- 3D -----
+  hero3d: {
+    title: "3D particle sculpture",
+    what: "Thousands of glowing particles behind your hero form a sphere, a knot, a DNA helix, a galaxy, a cube and a wave, melting from one to the next. They part around the mouse, explode outward as visitors scroll away, and take the colours of the theme. Clicking an empty spot sends a shock wave and changes the shape.",
+    how: ["Switch on and save.", "On the site, move your mouse over the hero and click an empty spot.", "It turns itself off for data-saver mode, reduced-motion settings and very old devices (the aurora stays). Slow computers automatically get a lighter version."],
+    preview: "/?demo=hero3d",
+  },
+  cardtilt: {
+    title: "Cards tilt in 3D",
+    what: "Cards, trips, notes and photos lean toward the mouse in 3D and catch a soft glare of light, then spring back when the mouse leaves. Mouse only.",
+    how: ["Switch on and save.", "On the site, move your mouse slowly across a card."],
+    preview: "/?demo=cardtilt",
+  },
+  coverflow: {
+    title: "Photo trail curves in 3D",
+    what: "While the Photo trail slides sideways, the trips turn and shrink as they move away from the middle of the screen, like a curved film strip. On phones they only shrink.",
+    how: ["Switch on and save (“Photo-trail sections slide sideways” must be on too).", "On the site, scroll through a photo-trail section."],
+    preview: "/?demo=coverflow",
+  },
+
+  // ----- text -----
+  kinetic: {
+    title: "Headline letters react",
+    what: "Each letter of the big headline rises, grows and leans away as the mouse passes near it. Letters also catch a slow wave of light from time to time.",
+    how: ["Switch on and save.", "Edit the headline itself on the G0 · Hero page. Headlines in scripts with joined letters (like Bangla) keep their shape and skip this effect."],
+    preview: "/?demo=kinetic",
+  },
+  splittext: {
+    title: "Titles rise letter by letter",
+    what: "Chapter titles rise out of a mask letter by letter as they scroll into view, and ripple when hovered. The small label above each title decodes like data. The first screen's pieces also arrive one after another.",
+    how: ["Switch on and save.", "On the site, scroll to any chapter, then hover its title."],
+    preview: "/?demo=splittext",
+  },
+  wordscrub: {
+    title: "Subtitles light up word by word",
+    what: "The sentence under each chapter title starts faint and fills in word by word as you scroll, as if it's being read to you.",
+    how: ["Switch on and save.", "On the site, scroll slowly past a chapter title."],
+    preview: "/?demo=wordscrub",
+  },
+  footername: {
+    title: "Giant name at the end",
+    what: "At the very end of every page, your nickname rises from the floor in huge letters that light up under the mouse.",
+    how: ["Switch on and save.", "It uses your nickname (or your full name if there's no nickname)."],
+    preview: "/?demo=footername",
+  },
+
+  // ----- scrolling -----
+  heroexit: {
+    title: "Hero sinks away",
+    what: "As visitors scroll, your hero's contents sink, shrink and fade while the next chapter rises over them.",
+    how: ["Switch on and save.", "On the site, scroll down slowly from the top."],
+    preview: "/?demo=heroexit",
+  },
+  sheets: {
+    title: "Chapters as stacked sheets",
+    what: "Each chapter gets rounded top corners and a soft shadow, and slides over the previous one like a stack of sheets. Techy and Paper keep their straight edges.",
+    how: ["Switch on and save.", "On the site, scroll between any two chapters."],
+    preview: "/?demo=sheets",
+  },
+  ghost: {
+    title: "Giant chapter marks",
+    what: "A huge outlined chapter code (like G3) sits behind each chapter and drifts sideways as you scroll.",
+    how: ["Switch on and save.", "It shows each section's code, set in its Section settings. Without a code it shows the chapter's number."],
+    preview: "/?demo=ghost",
+  },
+  ribbons: {
+    title: "Moving ribbons",
+    what: "A slanted ribbon in your accent colour runs across the page before every other chapter, repeating that chapter's name.",
+    how: ["Switch on and save.", "The text comes from each section's emoji and title."],
+    preview: "/?demo=ribbons",
+  },
+  velocity: {
+    title: "Ribbons react to scroll speed",
+    what: "The skills strip and the ribbons speed up and lean while visitors scroll fast, and run backwards when they scroll up.",
+    how: ["Switch on and save.", "On the site, scroll quickly past the bottom of the hero or a ribbon, then back up."],
+    preview: "/?demo=velocity",
+  },
+  imgreveal: {
+    title: "Photos wipe in, grids drift",
+    what: "Photos further down the page wipe into view with a slow zoom the first time they appear, and photo-grid columns move at slightly different speeds on computers.",
+    how: ["Switch on and save.", "On the site, scroll down to any section with photos."],
+    preview: "/?demo=imgreveal",
+  },
+  totop: {
+    title: "Progress ring",
+    what: "A small round button at the bottom right fills up as visitors move down the page. Clicking it flies back to the top.",
+    how: ["Switch on and save.", "It appears after scrolling down a little."],
+    preview: "/?demo=totop",
+  },
+
+  // ----- hover -----
+  smartcursor: {
+    title: "Smart cursor",
+    what: "The ring that follows the mouse grows over links and says what a click will do over cards and photos (Open, View, Read, Drag). It stretches along its path when moving fast. Needs “Mint cursor + connecting dots” on.",
+    how: ["Switch on and save.", "On the site, move your mouse over cards, photos and floating emojis."],
+    preview: "/?demo=smartcursor",
+  },
+  spotlight: {
+    title: "Lit-up borders",
+    what: "The borders of cards near the mouse light up in your accent colour, including the neighbouring cards. The Say hello box also gets a slowly turning edge of light.",
+    how: ["Switch on and save.", "On the site, move your mouse across a group of cards."],
+    preview: "/?demo=spotlight",
+  },
+  ambient: {
+    title: "Chapter background glow",
+    what: "A soft glow follows the mouse over each chapter's background, and a dim patch of colour drifts behind it on every device.",
+    how: ["Switch on and save.", "On the site, move your mouse over the empty space in a chapter."],
+    preview: "/?demo=ambient",
+  },
+  liquid: {
+    title: "Colour pours into buttons",
+    what: "When the mouse enters a button, its colour spreads out from exactly where the mouse came in, and drains away when it leaves.",
+    how: ["Switch on and save.", "On the site, hover “See all”, your social links or the role chips."],
+    preview: "/?demo=liquid",
+  },
+  navpill: {
+    title: "Sliding menu highlight",
+    what: "A highlight slides between menu links as the mouse moves and rests on the current section; labels roll over on hover. The menu bar also gets slimmer once visitors scroll.",
+    how: ["Switch on and save.", "On the site, move your mouse along the top menu."],
+    preview: "/?demo=navpill",
   },
 
   // ----- fun -----

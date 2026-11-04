@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getSettings, getSections, getSection, getItems, getMessages } from "@/lib/data";
 import { SiteShell } from "@/components/site/Chrome";
 import SectionBody from "@/components/site/SectionBody";
+import { Split, Words } from "@/components/site/Split";
 
 type P = { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string }> };
 
@@ -30,8 +31,8 @@ export default async function SectionPage({ params, searchParams }: P) {
             {section.code && <span className="tag">{section.code}</span>}
             {section.eyebrow_emoji && <span className="emo">{section.eyebrow_emoji}</span>} {section.eyebrow}
           </div>
-          <h1 className="stitle">{section.title}</h1>
-          {section.subtitle && <p className="ssub">{section.subtitle}</p>}
+          <h1 className={`stitle ${settings.effects.splittext ? "reveal split-host" : ""}`}><Split text={section.title} on={settings.effects.splittext} /></h1>
+          {section.subtitle && <p className="ssub"><Words text={section.subtitle} on={settings.effects.wordscrub} /></p>}
           {cats.length > 1 && (
             <div className="filters">
               <a href={`/s/${section.slug}`} className={!c ? "on" : ""}>All · {all.length}</a>

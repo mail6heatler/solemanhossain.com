@@ -2,16 +2,16 @@
 import { useEffect } from "react";
 import { accent, burst, confettiCannons, confettiFrom, prefersReducedMotion, rain, toast } from "./fx";
 
-type Fx = { smooth: boolean; magnetic: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
+type Fx = { smooth: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
 const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
 
 /**
- * All the motion on the public site: progress bar, scroll reveal, scroll-spy (nav, rail, phone menu), card glow,
- * draggable floating emojis, cursor trail, smooth scrolling, magnetic buttons, count-up numbers, the self-drawing
+ * The core motion on the public site: progress bar + ring, scroll reveal, scroll-spy (nav, rail, phone menu), card glow,
+ * draggable floating emojis, cursor trail, smooth scrolling, count-up numbers, the self-drawing
  * timeline, click sparkles, party mode, the explorer badge, and a tiny anonymous visit counter.
  */
-export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
-  { cursor: boolean; track: boolean; fx: Fx; partyWord: string; sparkleEmojis: string[] }) {
+export default function Effects({ cursor, track, totop = false, fx, partyWord, sparkleEmojis }:
+  { cursor: boolean; track: boolean; totop?: boolean; fx: Fx; partyWord: string; sparkleEmojis: string[] }) {
   const emojiKey = sparkleEmojis.join(" ");
   useEffect(() => {
     document.documentElement.classList.remove("no-js");
@@ -21,10 +21,15 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
 
     // progress bar
     const bar = document.getElementById("progress");
+    const up = document.querySelector<HTMLElement>(".totop");
+    const ring100 = up?.querySelector<SVGCircleElement>(".val");
     const onScroll = () => {
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight;
-      if (bar) bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+      const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+      if (bar) bar.style.width = pct + "%";
+      if (up) up.classList.toggle("on", h.scrollTop > window.innerHeight * 0.5);
+      if (ring100) ring100.style.strokeDashoffset = String(100 - pct);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -44,11 +49,42 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
 
     // reveal (+ cards dropping in one by one, via CSS on .stagger.in)
     const revealObs = new IntersectionObserver(
-      (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
+      (es) => es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("in");
+        // letter-by-letter titles: once they've risen, take away the mask so they can react to the mouse
+        if (e.target.classList.contains("split-host")) setTimeout(() => e.target.classList.add("done"), 1500);
+      }),
       { threshold: 0.12 }
     );
     document.querySelectorAll(".reveal").forEach((el) => revealObs.observe(el));
     cleanups.push(() => revealObs.disconnect());
+
+    // cards arrive one by one as each scrolls into view; a row that appears together still ripples left to right
+    if (!reduced) {
+      const hosts = Array.from(document.querySelectorAll<HTMLElement>(".stagger"));
+      const cardObs = new IntersectionObserver((es) => {
+        es.filter((e) => e.isIntersecting).forEach((e, i) => {
+          cardObs.unobserve(e.target);
+          (e.target as HTMLElement).style.setProperty("--si", String(i));
+          e.target.classList.add("seen");
+        });
+      }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
+      hosts.forEach((h) => { h.classList.add("live"); Array.from(h.children).forEach((c) => cardObs.observe(c)); });
+      cleanups.push(() => { cardObs.disconnect(); hosts.forEach((h) => h.classList.remove("live")); });
+    }
+
+    // "Home" and the back-to-top ring: straight to the very top, smoothly
+    const goUp = (e: MouseEvent) => {
+      const a = (e.target as Element).closest?.('a[href="#hero"], button.totop');
+      if (!a) return;
+      e.preventDefault();
+      const l = (window as unknown as { __lenis?: { scrollTo(t: number, o?: object): void } }).__lenis;
+      if (l) l.scrollTo(0, { duration: 1.4 });
+      else window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+    };
+    document.addEventListener("click", goUp);
+    cleanups.push(() => document.removeEventListener("click", goUp));
 
     // count-up numbers: the real number is in the HTML; it counts up from 0 once it scrolls into view
     if (fx.countup && !reduced) {
@@ -115,6 +151,7 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
           s.classList.toggle("passed", i < idx);
         });
         rail?.classList.toggle("on-dark", id === "hero");
+        window.dispatchEvent(new Event("lc-spy"));
         if (track && id !== "hero" && !seen.has(id)) {
           seen.add(id);
           send({ type: "section", slug: id });
@@ -166,20 +203,6 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
     };
     document.addEventListener("mousemove", glow);
     cleanups.push(() => document.removeEventListener("mousemove", glow));
-
-    // magnetic buttons lean toward the mouse
-    if (fx.magnetic && fine && !reduced) {
-      const mags = Array.from(document.querySelectorAll<HTMLElement>(".mag"));
-      const pull = (e: MouseEvent) => {
-        for (const b of mags) {
-          const r = b.getBoundingClientRect();
-          const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-          b.style.transform = Math.hypot(dx, dy) < 110 ? `translate(${dx * 0.25}px, ${dy * 0.3}px)` : "";
-        }
-      };
-      document.addEventListener("mousemove", pull);
-      cleanups.push(() => { document.removeEventListener("mousemove", pull); mags.forEach((b) => (b.style.transform = "")); });
-    }
 
     // click sparkles: the hero emojis burst out wherever someone clicks
     if (fx.sparkles && !reduced && sparkleEmojis.length) {
@@ -292,8 +315,15 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
       const md = () => dot && (dot.style.transform = "translate(-50%,-50%) scale(1.8)");
       const mu = () => dot && (dot.style.transform = "translate(-50%,-50%) scale(1)");
       const loop = () => {
-        rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
-        if (ring) { ring.style.left = rx + "px"; ring.style.top = ry + "px"; }
+        const gapX = mx - rx, gapY = my - ry;
+        rx += gapX * 0.14; ry += gapY * 0.14;
+        if (ring) {
+          ring.style.left = rx + "px"; ring.style.top = ry + "px";
+          // the plain ring stretches along its path when moving fast; a labelled one stays round so its text reads
+          const speed = Math.min(1, Math.hypot(gapX, gapY) / 160);
+          ring.style.transform = ring.className || speed < 0.02 ? "translate(-50%,-50%)"
+            : `translate(-50%,-50%) rotate(${Math.atan2(gapY, gapX)}rad) scale(${1 + speed * 0.55},${1 - speed * 0.3})`;
+        }
         if (ctx && canvas) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           for (const d of dots) {
@@ -342,12 +372,18 @@ export default function Effects({ cursor, track, fx, partyWord, sparkleEmojis }:
 
     return () => cleanups.forEach((c) => c());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, track, fx.smooth, fx.magnetic, fx.countup, fx.timeline, fx.sparkles, fx.explorer, fx.party, partyWord, emojiKey]);
+  }, [cursor, track, fx.smooth, fx.countup, fx.timeline, fx.sparkles, fx.explorer, fx.party, partyWord, emojiKey]);
 
   return (
     <>
       <div id="progress" />
-      {cursor && (<><canvas id="hack-canvas" /><div id="cursor-dot" /><div id="cursor-ring" /></>)}
+      {cursor && (<><canvas id="hack-canvas" /><div id="cursor-dot" /><div id="cursor-ring"><span id="cursor-label" /></div></>)}
+      {totop && (
+        <button type="button" className="totop" aria-label="Back to top">
+          <svg viewBox="0 0 36 36" aria-hidden><circle className="track" cx="18" cy="18" r="16" pathLength={100} /><circle className="val" cx="18" cy="18" r="16" pathLength={100} /></svg>
+          <i className="ti ti-arrow-up" aria-hidden />
+        </button>
+      )}
     </>
   );
 }

@@ -3,7 +3,9 @@
 A personal site that's more than a résumé: what you're building, reading, exploring and feeling, the bright days
 and the heavy ones. Everything on it is editable from a private dashboard that only you can sign into.
 
-**Stack:** Next.js 16 · PostgreSQL · plain CSS · Syne + Space Grotesk · Tabler icons
+**Stack:** Next.js 16 · PostgreSQL · plain CSS · GSAP + three.js (loaded on demand) · Syne + Space Grotesk · Tabler icons
+
+Working on the code? Start with [CLAUDE.md](CLAUDE.md) (how it all fits together) and [PROGRESS.md](PROGRESS.md) (what's been done).
 
 ---
 
@@ -25,8 +27,9 @@ and the heavy ones. Everything on it is editable from a private dashboard that o
   | G8 Connect | connect | Social links, a **Say hello form**, and a **guest wall** |
 
 - Every entry has its own page; every section has a "See all" page with subsection filters.
-- Effects: progress bar, chapter rail, scroll-spy nav, reveal animations, card glow, draggable floating emojis,
-  mint cursor with connecting dots (desktop only). Each effect can be switched off in Settings.
+- Effects: 50 of them, from a 3D particle sculpture and an opening curtain to letters that react to the mouse, cards
+  that tilt in 3D, ribbons that react to scroll speed and pages that glide into each other. Each one can be switched
+  off under Appearance, where an (i) button explains and previews it. Visitors who ask for reduced motion get a calm site.
 
 ## The dashboard (`/admin`)
 
@@ -86,14 +89,15 @@ Files up to 4 MB: JPG, PNG, WebP, GIF, PDF. Neon's free plan has 0.5 GB, enough 
 ```
 app/
   page.tsx                  homepage (hero + all sections)
+  site.css                  the public design (themes, components, then the lively layer)
   s/[slug]/                 section page and entry pages
   admin/login/              sign-in screen
   admin/(panel)/            overview, hero, sections, entry editor, inbox, settings
   api/                      upload, vote, track, export
   media/[id]/               serves uploaded files
   actions.ts                every change (all check your login)
-  site.css / admin.css      the whole design
-components/site/            hero pieces, effects, section layouts, poll, hello form
+  admin.css                 the dashboard design
+components/site/            hero pieces, effects (3D, scroll, hover), section layouts, poll, hello form
 components/admin/           sidebar shell, upload field, chips and link editors
 lib/                        database, schema + starter content, settings, auth
 ```

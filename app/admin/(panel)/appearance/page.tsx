@@ -9,6 +9,11 @@ const GROUP_INTRO: Record<string, string> = {
   Themes: "Extra theme fun for visitors.",
   Hero: "The first screen visitors see.",
   Motion: "What happens while people scroll and click between pages.",
+  Transitions: "How one view turns into the next.",
+  "3D": "Depth you can feel. All of it is off automatically for visitors who ask for less motion.",
+  Text: "How your words arrive and react.",
+  Scrolling: "What moves while people scroll.",
+  Hover: "What answers the mouse (computers only).",
   Fun: "Little surprises that make the site feel alive.",
   Layout: "How some sections are laid out.",
 };

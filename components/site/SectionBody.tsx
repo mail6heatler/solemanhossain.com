@@ -100,7 +100,7 @@ export default function SectionBody({ section, items, settings, wall }:
       </div>
     ));
     return fx.sideways
-      ? <StripScroller className={`strip reveal r3${st}`}>{trips}</StripScroller>
+      ? <StripScroller className={`strip reveal r3${st}`} depth={fx.coverflow}>{trips}</StripScroller>
       : <div className={`strip reveal r3${st}`}>{trips}</div>;
   }
 
@@ -185,6 +185,7 @@ export default function SectionBody({ section, items, settings, wall }:
   if (L === "timeline")
     return (
       <div className={`tline reveal r3${fx.timeline ? " draw" : ""}`}>
+        {fx.timeline && <i className="tl-head" aria-hidden />}
         {items.map((it) => (
           <div key={it.id} className={`tl-row ${it.mood}`} style={{ ["--dot" as string]: MOODS[it.mood]?.color ?? "var(--mint)" }}>
             <CardLink to={href(section, it)} label={it.title} />

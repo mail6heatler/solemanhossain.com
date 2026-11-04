@@ -5,6 +5,8 @@ import MobileMenu from "./MobileMenu";
 import Effects from "./Effects";
 import ThemeSwitch from "./ThemeSwitch";
 import DemoMode from "./Demo";
+import Living from "./Living";
+import { Split } from "./Split";
 
 export function Nav({ settings, sections, onHome }: { settings: SiteSettings; sections: Section[]; onHome: boolean }) {
   const href = (s: Section) => (onHome ? `#${s.slug}` : `/#${s.slug}`);
@@ -18,17 +20,23 @@ export function Nav({ settings, sections, onHome }: { settings: SiteSettings; se
       </a>
       <div className="nav-right">
         <ul className="navlinks">
-          {sections.map((s) => (
-            <li key={s.id}>
-              <a href={href(s)} data-link={s.slug}><span className="ne">{s.nav_emoji}</span>{s.nav_label || s.title}</a>
-            </li>
-          ))}
+          {settings.effects.navpill && <li className="nav-pill" aria-hidden />}
+          {sections.map((s) => {
+            const label = s.nav_label || s.title;
+            return (
+              <li key={s.id}>
+                <a href={href(s)} data-link={s.slug}><span className="ne">{s.nav_emoji}</span>
+                  {settings.effects.navpill ? <span className="roll"><span>{label}</span><span aria-hidden>{label}</span></span> : label}
+                </a>
+              </li>
+            );
+          })}
         </ul>
         {settings.effects.surprise && (
           <a className="icon-btn dice-btn" href="/surprise" aria-label="Surprise me: open a random entry" title="Surprise me">🎲</a>
         )}
         {settings.themeSwitch && (
-          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} />
+          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} wipe={settings.effects.themewipe} />
         )}
         <MobileMenu links={sections.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
       </div>
@@ -85,8 +93,12 @@ export function FloatingEmojis({ emojis, enabled, hero }: { emojis: string; enab
 
 export function Footer({ settings }: { settings: SiteSettings }) {
   const year = String(new Date().getFullYear());
+  const giant = settings.nickname || settings.fullName;
   return (
     <footer>
+      {settings.effects.footername && giant && (
+        <div className="foot-giant" aria-hidden style={{ ["--n" as string]: Array.from(giant).length }}><Split text={giant} /></div>
+      )}
       <span>{settings.footerLeft.replace("{year}", year)}</span>
       {settings.effects.surprise && <a href="/surprise" className="dice-btn-text">🎲 Surprise me</a>}
       <span>{settings.footerRight}</span>
@@ -94,21 +106,23 @@ export function Footer({ settings }: { settings: SiteSettings }) {
   );
 }
 
+/** Effects that are purely CSS: they switch on through a fx-<key> class on the page wrapper. */
+const LOOKS = ["intro", "cardtilt", "spotlight", "ambient", "liquid", "navpill", "sheets", "splittext"] as const;
+
 export function SiteShell({ settings, sections, onHome, children }:
   { settings: SiteSettings; sections: Section[]; onHome: boolean; children: React.ReactNode }) {
   const fx = settings.effects;
   const mood = MOODS[settings.mood];
   const style = (mood ? { "--m": mood.color, "--m-deep": mood.deep } : {}) as React.CSSProperties;
   return (
-    <div className={`site ${fx.bottombar ? "has-bbar" : ""}`} style={style}>
-      {/* photo morph between pages: browsers that support cross-page view transitions animate, others just navigate */}
-      {fx.morph && <style>{"@view-transition{navigation:auto}"}</style>}
+    <div className={`site ${fx.bottombar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
       <Effects
-        cursor={fx.cursor} track
-        fx={{ smooth: fx.smooth, magnetic: fx.magnetic, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
+        cursor={fx.cursor} track totop={fx.totop}
+        fx={{ smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
         partyWord={settings.partyWord}
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
       />
+      <Living fx={{ cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       <Nav settings={settings} sections={sections} onHome={onHome} />
       {onHome && <Rail sections={sections} />}

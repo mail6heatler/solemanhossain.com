@@ -1,18 +1,20 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { confettiFrom, prefersReducedMotion } from "./fx";
+import { isSplittable } from "./Split";
 
 const GLYPHS = "!<>-_\\/[]{}=+*^?#01ABCDEFXYZ%$";
 const split = (text: string) =>
   text.split(/(\*[^*]+\*)/g).filter(Boolean).map((p) => (p.length > 2 && p.startsWith("*") && p.endsWith("*") ? { t: p.slice(1, -1), a: true } : { t: p, a: false }));
 
 /** Headline text that scrambles like data, then settles. The real text is in the HTML from the start. */
-export function DecodeText({ text, delay = 250 }: { text: string; delay?: number }) {
+export function DecodeText({ text, delay = 250, animate = true, letters = false }: { text: string; delay?: number; animate?: boolean; letters?: boolean }) {
   const parts = useMemo(() => split(text), [text]);
+  const perLetter = letters && isSplittable(text);
   const [shown, setShown] = useState(() => parts.map((p) => p.t));
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (!animate || prefersReducedMotion()) return;
     let raf = 0;
     const total = parts.reduce((n, p) => n + p.t.length, 0) || 1;
     const dur = 700 + Math.min(900, total * 22);
@@ -32,15 +34,37 @@ export function DecodeText({ text, delay = 250 }: { text: string; delay?: number
       };
       raf = requestAnimationFrame(frame);
     };
-    play(delay);
+    // wait for the opening curtain, when there is one
+    const curtain = document.querySelector(".intro");
+    play(delay + (curtain && getComputedStyle(curtain).display !== "none" ? 1150 : 0));
     const again = () => play(delay); // dashboard "Preview"
     window.addEventListener("lc-decode", again);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("lc-decode", again); };
-  }, [parts, delay]);
+  }, [parts, delay, animate]);
+  const body = (s: string, on: boolean) => (perLetter ? <Letters text={s} accent={on} /> : s);
   return (
     <>
-      <span aria-hidden={busy}>{parts.map((p, i) => (p.a ? <span key={i} className="accent">{shown[i]}</span> : <span key={i}>{shown[i]}</span>))}</span>
+      <span aria-hidden={busy}>{parts.map((p, i) => (p.a ? <span key={i} className="accent">{body(shown[i], true)}</span> : <span key={i}>{body(shown[i], false)}</span>))}</span>
       {busy && <span className="sr-only">{parts.map((p) => p.t).join("")}</span>}
+    </>
+  );
+}
+
+/** One span per letter, kept together in whole words so lines still wrap between words. */
+function Letters({ text, accent }: { text: string; accent: boolean }) {
+  const all = Array.from(text).length;
+  let i = 0;
+  return (
+    <>
+      {text.split(/( +)/).filter(Boolean).map((w, k) => (w.trim() === "" ? w : (
+        <span className="kw" key={k}>
+          {Array.from(w).map((ch, c) => {
+            const t = all > 1 ? i / (all - 1) : 0;
+            i++;
+            return <span className="kc" key={c} style={accent ? { ["--t" as string]: t.toFixed(3) } : undefined}>{ch}</span>;
+          })}
+        </span>
+      )))}
     </>
   );
 }

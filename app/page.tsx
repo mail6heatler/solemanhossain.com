@@ -1,9 +1,13 @@
+import { Fragment } from "react";
 import { getSettings, getSections, getItems, getItemCounts, getMessages, getReactionTotals } from "@/lib/data";
 import { SiteShell, FloatingEmojis } from "@/components/site/Chrome";
 import SectionBody from "@/components/site/SectionBody";
 import { Accent } from "@/components/site/Markdown";
 import { Clock, TypeOnce } from "@/components/site/Typewriters";
 import { AvatarTilt, DecodeText, Greeting, LivePill } from "@/components/site/HeroFx";
+import HeroScene from "@/components/site/HeroScene";
+import Intro from "@/components/site/Intro";
+import { Split, Words } from "@/components/site/Split";
 import { MOODS } from "@/lib/settings";
 
 export const revalidate = 300;
@@ -31,14 +35,16 @@ export default async function Home() {
       .slice(0, showReactions ? 3 : 4),
     ...(showReactions ? [{ key: "reactions", n: reactions.total, label: "Reactions", emoji: "❤️", to: "" }] : []),
   ];
-  const headline = (text: string, delay: number) => (fx.decode ? <DecodeText text={text} delay={delay} /> : <Accent text={text} />);
+  const headline = (text: string, delay: number) => (fx.decode || fx.kinetic ? <DecodeText text={text} delay={delay} animate={fx.decode} letters={fx.kinetic} /> : <Accent text={text} />);
   const avatar = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
 
   return (
     <SiteShell settings={s} sections={sections} onHome>
+      {fx.intro && <Intro name={s.nickname || s.fullName} />}
       {/* ═══ HERO ═══ */}
       <section id="hero" data-spy>
         {fx.aurora ? <div className="aurora" aria-hidden /> : <><div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" /></>}
+        {fx.hero3d && <HeroScene />}
         <FloatingEmojis emojis={s.heroEmojis} enabled={fx.emojis} hero />
         <div className="hero-inner">
           <div>
@@ -69,6 +75,7 @@ export default async function Home() {
             <div className="avatar-wrap">
               {fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : avatar}
               <div className="avatar-ring" />
+              {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
             </div>
             <div className="ctas">
               {s.resumeUrl && s.ctaPrimaryLabel && (
@@ -89,18 +96,27 @@ export default async function Home() {
       {/* ═══ SECTIONS ═══ */}
       {blocks.map(({ section, items, wall }, i) => {
         const total = counts.get(section.id) ?? 0;
+        const ribbonText = `${section.nav_emoji ? `${section.nav_emoji} ` : ""}${section.title}`;
+        const ribbon = fx.ribbons && i > 0 && i % 2 === 0 && (
+          <div className={`ribbon ${i % 4 === 0 ? "rev" : ""}`} aria-hidden>
+            <div className="ribbon-track">{Array.from({ length: 20 }, (_, k) => <span key={k}>{ribbonText}</span>)}</div>
+          </div>
+        );
         return (
-          <section key={section.id} id={section.slug} data-spy data-layout={section.layout} className={`chap ${i % 2 === 1 ? "alt" : ""}`}>
+          <Fragment key={section.id}>
+          {ribbon}
+          <section id={section.slug} data-spy data-layout={section.layout} className={`chap ${i % 2 === 1 ? "alt" : ""}`}>
+            {fx.ghost && <span className="ghost" aria-hidden>{section.code || String(i + 1).padStart(2, "0")}</span>}
             <FloatingEmojis emojis={section.emojis} enabled={fx.emojis} />
             <div className="chap-inner">
               <div className="eyebrow">
                 {section.code && <span className="tag">{section.code}</span>}
-                {section.eyebrow_emoji && <span className="emo">{section.eyebrow_emoji}</span>} {section.eyebrow}
+                {section.eyebrow_emoji && <span className="emo">{section.eyebrow_emoji}</span>} <span className="eb-t">{section.eyebrow}</span>
               </div>
               <div className="chap-head">
                 <div>
-                  <h2 className="stitle reveal">{section.title}</h2>
-                  {section.subtitle && <p className="ssub reveal r2">{section.subtitle}</p>}
+                  <h2 className={`stitle reveal ${fx.splittext ? "split-host" : ""}`}><Split text={section.title} on={fx.splittext} /></h2>
+                  {section.subtitle && <p className="ssub reveal r2"><Words text={section.subtitle} on={fx.wordscrub} /></p>}
                 </div>
                 {section.layout !== "connect" && total > items.length && (
                   <a className="see-all reveal r2" href={`/s/${section.slug}`}>See all {total} <i className="ti ti-arrow-right" /></a>
@@ -109,6 +125,7 @@ export default async function Home() {
               <SectionBody section={section} items={items} settings={s} wall={wall} />
             </div>
           </section>
+          </Fragment>
         );
       })}
     </SiteShell>
