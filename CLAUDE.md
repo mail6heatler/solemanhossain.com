@@ -20,8 +20,8 @@ There is no test suite. Verify visually: drive the site with `playwright-core` f
 
 - Live site: https://solemanhossain.vercel.app (Vercel project `solemanhossain`, team `muzan-vercel`).
 - GitHub: `mail6heatler/solemanhossain.com`, branch `main`.
-- `npx vercel@latest --prod --yes` deploys what's on disk, using the owner's Vercel CLI login. Check `PROGRESS.md` for whether a push also deploys.
-- Undo a release: `git revert` and redeploy (keeps history), or `npx vercel@latest rollback <deployment-url> --yes` for an instant switch back.
+- Pushing to `main` deploys to production automatically, in about 30 seconds. Check with `npx vercel@latest ls solemanhossain --yes`, which uses the owner's Vercel CLI login.
+- Undo a release: `git revert` and push (keeps history), or `npx vercel@latest rollback <deployment-url> --yes` for an instant switch back.
 - Production reads the real database through `DATABASE_URL` (Neon). Locally `DATABASE_URL` is empty, so local testing never touches live content. Local data is starter content, so check real photos and text on the live site.
 
 ## Stack

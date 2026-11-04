@@ -6,13 +6,15 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - **Live:** https://solemanhossain.vercel.app, with the Lively Update (below) waiting on the owner's decision.
 - **Restore point:** git tag `before-lively-update` (commit `1c9f3c7`). The last production deployment before the update is `solemanhossain-n4e486bkd-muzan-vercel.vercel.app`.
+- **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
+- **Live settings (from the database, as of this update):** the site shows the Techy theme with the visitors' theme button off. So the theme wipe has no button to trigger it, and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners).
 
 ## Decision waiting on the owner
 
 Keep or undo the Lively Update, after they've seen it live.
 
 - **Keep:** nothing to do. Individual effects can be turned off in `/admin/appearance`.
-- **Undo:** revert the update's commits on `main`, push, and redeploy. See "Deploying" in `CLAUDE.md`. Settings and content are untouched either way, because the update only added effect switches.
+- **Undo:** run `git revert --no-edit <the update's commits>` on `main` and push; that redeploys by itself. Settings and content are untouched either way, because the update only added effect switches.
 
 ## Log
 
@@ -41,12 +43,14 @@ Checked in a real browser (Chrome, desktop and phone sizes) on the local build:
 
 - All 10 themes, hover and click behaviour, menu links, back to top, page transition and theme wipe (filmed frame by frame, no white flash).
 - Reduced motion, no JavaScript, and the 3D and scroll libraries failing to download.
-- No console errors and no sideways scrolling.
+- The dashboard: all 50 switches, help pop-ups, previews, and switching effects off and back on (local copy only).
+- The live site with real content: desktop and phone walk-through, no console errors and no sideways scrolling.
 
 Limits of that testing:
 
 - The test machine has no GPU, so 3D smoothness on real hardware is untested. The sculpture lowers its own detail on slow machines.
-- Local data has only 2 trips and no real photos, so the sideways strip was tested with temporary copies in the browser.
+- Tested in Chrome only, so Safari and Firefox are unchecked.
+- Local data has only 2 trips, and so far does the live site's Adventures section (3), so the pinned sideways strip was tested with temporary copies in the browser.
 
 ## Ideas not done yet
 
