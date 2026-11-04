@@ -117,6 +117,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "On the site, scroll with your mouse wheel or click a menu link."],
     preview: "/?demo=smooth",
   },
+  autolite: {
+    title: "Lighter version on slow devices",
+    what: "If someone's phone or computer stays under about 25 frames per second while scrolling, for several seconds, the site quietly switches off its heaviest effects for that visit: the 3D sculpture, theme backgrounds, chapter motion, giant marks, floating emojis and things falling from the banner. It also switches to the browser's own scrolling. Your content, themes, ribbons, hover effects and everything else stay. Fast devices never see this.",
+    how: ["Leave it on so nobody gets a laggy site.", "Switched off, every visitor gets every effect, however slow their device.", "It resets on the next visit, so a device gets another chance."],
+    preview: "/?demo=autolite",
+  },
   countup: {
     title: "Count-up numbers",
     what: "The “by the numbers” tiles in the hero count up from 0 to the real numbers when they appear.",

@@ -50,7 +50,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     let C = 0, H = 0, pos = 0, v = 0, T = 0, a = 0, va = 0, raf = 0, shut = true;
     // what falls from the banner in this theme (loaded only where a banner exists)
     let falls: typeof import("./bannerFall") | null = null, pulled = 0;
-    if (fall && !still) import("./bannerFall").then((m) => { falls = m; }).catch(() => {});
+    if (fall && !still && !document.documentElement.classList.contains("lite")) import("./bannerFall").then((m) => { falls = m; }).catch(() => {});
     const hem = () => { const r = cl.getBoundingClientRect(); return { x: r.left + 8, y: r.bottom + 10, w: r.width - 16 }; };
     let dragging = false, startY = 0, startPos = 0, moved = false, lastX = 0, onTab = false, openedAt = 0, lastScroll = window.scrollY;
 
@@ -93,7 +93,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
         va += (Math.random() < 0.5 ? -1 : 1) * 0.42;
         if (!demo) try { localStorage.setItem("lc_banner_seen", signature(data)); } catch {}
         if (data.kind === "party") setTimeout(() => confettiFrom(tb, { count: 90, spread: 100 }), 340);
-        falls?.pour(hem, 1.5);
+        if (!document.documentElement.classList.contains("lite")) falls?.pour(hem, 1.5);
       }
       if (still) { pos = T; paint(); } else kick();
     };

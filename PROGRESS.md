@@ -7,7 +7,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
 - **Restore points:** git tags `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
-- **Live settings (from the database, as of 2026-11-05):** the site shows the Paper theme with the visitors' theme button off, so the theme wipe has no button to trigger it and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners). The owner changes the theme themselves, so check before relying on this.
+- **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
 ## Decision waiting on the owner
 
@@ -22,7 +22,16 @@ Keep or undo Update 3 (below), after they've seen it live.
 
 The owner kept Update 2 and asked for two things.
 
-**Smooth scrolling.** Measured with the real graphics card on the live site, Paper theme, wheel-scrolling the whole page. See the table for results. No single effect caused it: with nearly everything off the page reached 90 fps, and each effect cost a little. What changed, keeping the same look:
+**Smooth scrolling.** Measured with the real graphics card on the live site, Paper theme, wheel-scrolling the whole page:
+
+| | Before | After |
+|---|---|---|
+| Frames per second | 29.5 | 64.9 |
+| Frames slower than 50ms (big stutters) | 57 | 3 |
+| Worst single frame | 118ms | 83ms |
+| Simulated weak device (4x CPU slowdown), frames per second | 6.2 | 12.8 full version, 19.2 lighter version |
+
+On the weak device those are page frames; the lighter version uses native scrolling, which keeps moving even when page frames lag. No single effect caused it: with nearly everything off the page reached 90 fps, and each effect cost a little. What changed, keeping the same look:
 
 - Ribbon lean: was writing a custom property read by 160+ text pieces, per frame, on all bands. Now skews one track, only on screen, only when the value changes. Marquee motion moved to the `translate` property so the two can't conflict.
 - Off-screen sections and ribbons rest (`.sleep`): animations paused, decorations hidden.
@@ -33,6 +42,8 @@ The owner kept Update 2 and asked for two things.
 - Theme canvas drops to 20 fps while scrolling. Retro's canvas shadows replaced with a cheap two-line glow.
 - Floating emojis lost their drop shadow (barely visible at their opacity). The menu's pulsing dot is now a scaling ring.
 - Lenis `lerp` 0.11 to 0.14, so the page responds to the wheel a little sooner.
+
+**Lighter version** (`autolite`, `html.lite`): a device under about 25 fps for several seconds of scrolling loses the heaviest effects for that visit and gets native scrolling. Content, themes, ribbons and hover effects stay. Tested: a normal device never triggers it; at 6x slowdown it triggers and leaves nothing half-hidden.
 
 **Things fall from the banner** (`bannerfall`, `bannerFall.ts`): when it's pulled, and while dragging. Ocean: water with splashes. Paper: sheets. Techy: code. Retro: pixels. Sunset: embers. Forest: leaves. Candy: sweets. Playful: shapes. Night: stars. Day: petals. Off for reduced motion.
 

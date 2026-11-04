@@ -101,6 +101,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **No `backdrop-filter` or `mix-blend-mode` on anything large or fixed.** Both force the browser to redraw what's behind on every scrolled frame.
 - **Scaling an element without `will-change: transform` re-draws its text at each size.** Set it only while moving, and clear it at rest (see chapter motion in `scrollFx.ts`).
 - **Set `playbackRate` only when the value changes**, and only on what's on screen. Each write resynchronises the animation.
+- **Slow devices get `html.lite`.** `Effects.tsx` watches frame times while scrolling; under about 25 fps for several seconds it sets the class, stores `lc_lite` in sessionStorage and fires `lc-lite`. Anything heavy must check the class at start and stop on that event. To add to it, see `ThemeFx`, `HeroScene`, `Living` and the `html.lite` CSS.
 - **Anything that spawns things must have a cap.** `bannerFall.ts` once had splashes that made more splashes, and it froze the page.
 
 ## Rules learned the hard way

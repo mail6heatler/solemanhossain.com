@@ -15,9 +15,12 @@ export default function Living({ fx }: { fx: HoverFxFlags & ScrollFxFlags }) {
     if (prefersReducedMotion()) return;
     const flags = JSON.parse(key) as HoverFxFlags & ScrollFxFlags;
     const stopHover = startHoverFx(flags);
-    let dead = false, stopScroll: (() => void) | undefined;
-    import("./scrollFx").then(({ startScrollFx }) => { if (!dead) stopScroll = startScrollFx(flags); }).catch(() => {});
-    return () => { dead = true; stopHover(); stopScroll?.(); };
+    let dead = document.documentElement.classList.contains("lite"), stopScroll: (() => void) | undefined;
+    // the lighter version drops the scroll-linked effects; everything they animate is visible by default
+    const toLite = () => { dead = true; stopScroll?.(); stopScroll = undefined; };
+    window.addEventListener("lc-lite", toLite);
+    if (!dead) import("./scrollFx").then(({ startScrollFx }) => { if (!dead) stopScroll = startScrollFx(flags); }).catch(() => {});
+    return () => { dead = true; window.removeEventListener("lc-lite", toLite); stopHover(); stopScroll?.(); };
   }, [key]);
   return null;
 }

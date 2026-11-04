@@ -11,11 +11,13 @@ export default function ThemeFx() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current, ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx || prefersReducedMotion()) return;
+    if (!canvas || !ctx || prefersReducedMotion() || document.documentElement.classList.contains("lite")) return;
     const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
     if (conn?.saveData || (navigator.hardwareConcurrency || 4) < 3) return;
 
     let dead = false, stop = () => {};
+    const toLite = () => { dead = true; stop(); canvas.classList.remove("on"); };
+    window.addEventListener("lc-lite", toLite);
     import("./themeScenes").then(({ makeScene, drawBursts, clickBurst }) => {
       if (dead) return;
       const h = document.documentElement;
@@ -80,7 +82,7 @@ export default function ThemeFx() {
         document.removeEventListener("pointerdown", click);
       };
     }).catch(() => {});
-    return () => { dead = true; stop(); };
+    return () => { dead = true; stop(); window.removeEventListener("lc-lite", toLite); };
   }, []);
   return <canvas ref={ref} className="theme-canvas" aria-hidden />;
 }

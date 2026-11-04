@@ -19,7 +19,7 @@ export default function HeroScene() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current, hero = canvas?.closest("#hero") as HTMLElement | null;
-    if (!canvas || !hero || prefersReducedMotion()) return;
+    if (!canvas || !hero || prefersReducedMotion() || document.documentElement.classList.contains("lite")) return;
     const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
     if (conn?.saveData || (navigator.hardwareConcurrency || 4) < 3) return;
 
@@ -30,6 +30,16 @@ export default function HeroScene() {
       const r = hero.getBoundingClientRect();
       return { x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -(((e.clientY - r.top) / r.height) * 2 - 1) };
     };
+
+    const toLite = () => {
+      dead = true;
+      off.forEach((f) => f());
+      off.length = 0;
+      scene?.destroy();
+      scene = null;
+      canvas.classList.remove("on");
+    };
+    window.addEventListener("lc-lite", toLite);
 
     const start = async () => {
       if (dead) return;
@@ -93,6 +103,7 @@ export default function HeroScene() {
     const id = w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 1200 }) : window.setTimeout(start, 300);
     return () => {
       dead = true;
+      window.removeEventListener("lc-lite", toLite);
       if (w.cancelIdleCallback) w.cancelIdleCallback(id); else clearTimeout(id);
       off.forEach((f) => f());
       scene?.destroy();

@@ -1168,6 +1168,14 @@ html[data-skin="retro"] .site.fx-themefx::before { content: ""; position: fixed;
 @keyframes light-sweep { from { translate: 0 -230px; } to { translate: 0 100vh; } }
 html[data-skin="techy"] .site .ribbon span::after { animation: none; }
 
+/* the lighter version, for devices that can't keep up (see Effects.tsx): content and themes stay, the heaviest effects go */
+html.lite :is(.float-emo, .ghost, #hack-canvas, .theme-canvas, .hero-3d, .avatar-orbit, .hb-fall) { display: none; }
+html.lite section.chap::before, html.lite section.chap::after, html.lite .site.fx-themefx::before, html.lite .site.fx-themefx::after { content: none; }
+html.lite .aurora { animation: none; mix-blend-mode: normal; }
+html.lite[data-skin] .site.fx-themefx :is(.stitle, #hero h1, .note, .card, .wall-note, .hs) { animation: none; }
+html.lite[data-skin] .site.fx-themefx .stagger.live > .seen { animation: drop-in .6s cubic-bezier(.16,1,.3,1) backwards; }
+html.lite .ribbon { -webkit-mask: none; mask: none; animation: none; }
+
 /* what falls from the banner */
 .hb-fall { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 88; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .hb-fall { display: none; } }

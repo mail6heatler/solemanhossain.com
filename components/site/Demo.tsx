@@ -65,6 +65,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       ambient: { on: fx.ambient, target: "section.chap", tip: "Move your mouse over the empty space in a chapter: a soft glow follows it." },
       liquid: { on: fx.liquid, target: ".connectrow, .see-all", tip: "Hover a button: the colour pours in from where your mouse came in." },
       navpill: { on: fx.navpill, target: ".navlinks", tip: "Move your mouse along the menu: the highlight slides and the labels roll." },
+      autolite: { on: fx.autolite, tip: "This is the lighter version that devices too slow for the full effects get. Open your site normally to go back.", run: () => { document.documentElement.classList.add("lite"); window.dispatchEvent(new Event("lc-lite")); } },
       banner: { tip: "Pull the tab under the menu bar, let go, then drag the banner back up." },
       themefx: { on: fx.themefx, tip: "Every theme has its own living effects. Watch them change, and click anywhere for that theme's burst.", run: async () => {
         const h = document.documentElement;

@@ -120,7 +120,7 @@ export function SiteShell({ settings, sections, onHome, children }:
     <div className={`site ${fx.bottombar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
       <Effects
         cursor={fx.cursor} track totop={fx.totop}
-        fx={{ smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
+        fx={{ autolite: fx.autolite, smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
         partyWord={settings.partyWord}
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
       />

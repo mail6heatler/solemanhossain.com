@@ -65,6 +65,7 @@ export const EFFECTS = [
   { key: "emojis", group: "Hero", label: "Floating draggable emojis" },
   { key: "cursor", group: "Hero", label: "Mint cursor + connecting dots" },
   { key: "smooth", group: "Motion", label: "Smooth scrolling" },
+  { key: "autolite", group: "Motion", label: "Lighter version on devices that can't keep up" },
   { key: "countup", group: "Motion", label: "Count-up numbers" },
   { key: "stagger", group: "Motion", label: "Cards drop in one by one" },
   { key: "sideways", group: "Motion", label: "Photo-trail sections slide sideways" },
@@ -282,7 +283,8 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
 export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects">) {
-  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx }).replace(/</g, "\\u003c");
+  // lt: a device already found to be too slow stays on the lighter version for this visit (see Effects.tsx)
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, lt: s.effects.autolite }).replace(/</g, "\\u003c");
   // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
     `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
@@ -290,6 +292,7 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
     `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
     `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p);` +
+    `try{if(c.lt&&sessionStorage.getItem("lc_lite"))h.classList.add("lite")}catch(e){}` +
     // photo morph + page glide: browsers that support cross-page view transitions animate, others just navigate
     `if(c.vt){var st=document.createElement("style");st.textContent="@view-transition{navigation:auto}";document.head.appendChild(st)}if(c.gl)h.classList.add("vt-glide");` +
     // the opening curtain plays once per session, and never over a preview link or a jump to a section

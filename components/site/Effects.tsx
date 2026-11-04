@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { accent, burst, confettiCannons, confettiFrom, prefersReducedMotion, rain, toast } from "./fx";
 
-type Fx = { smooth: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
+type Fx = { autolite: boolean; smooth: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
 const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
 
 /**
@@ -38,15 +38,48 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     cleanups.push(() => window.removeEventListener("scroll", onScroll));
 
     // smooth scrolling (also makes the #section links glide)
-    if (fx.smooth && !reduced) {
+    const html = document.documentElement;
+    if (fx.smooth && !reduced && !html.classList.contains("lite")) {
       let lenis: { destroy(): void } | null = null, dead = false;
+      // the lighter version uses the browser's own scrolling, which keeps moving even when the page is busy
+      const toNative = () => { dead = true; lenis?.destroy(); lenis = null; delete (window as unknown as { __lenis?: unknown }).__lenis; };
+      window.addEventListener("lc-lite", toNative);
+      cleanups.push(() => window.removeEventListener("lc-lite", toNative));
       import("lenis").then(({ default: Lenis }) => {
         if (dead) return;
         const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.14 });
         lenis = l;
         (window as unknown as { __lenis?: unknown }).__lenis = l;
       }).catch(() => {});
-      cleanups.push(() => { dead = true; lenis?.destroy(); delete (window as unknown as { __lenis?: unknown }).__lenis; });
+      cleanups.push(toNative);
+    }
+
+    // A device that stays under about 25 frames per second while scrolling gets the lighter version for this visit.
+    // Needs several seconds of slow scrolling to trigger, so one busy moment or a fast device never sets it off.
+    if (fx.autolite && !reduced && !html.classList.contains("lite")) {
+      let prev = 0, sum = 0, n = 0, strikes = 0, raf = 0, until = 0;
+      const goLite = () => {
+        html.classList.add("lite");
+        try { sessionStorage.setItem("lc_lite", "1"); } catch {}
+        window.dispatchEvent(new Event("lc-lite"));
+        window.removeEventListener("scroll", wake);
+      };
+      const watch = (t: number) => {
+        raf = 0;
+        if (prev && t - prev < 300) { sum += t - prev; n++; }
+        prev = t;
+        if (n >= 40) {
+          const slow = sum / n > 40;
+          sum = 0; n = 0;
+          strikes = slow ? strikes + 1 : 0;
+          if (strikes >= 2) { goLite(); return; }
+        }
+        if (performance.now() < until) raf = requestAnimationFrame(watch);
+        else prev = 0;
+      };
+      const wake = () => { until = performance.now() + 200; if (!raf) raf = requestAnimationFrame(watch); };
+      window.addEventListener("scroll", wake, { passive: true });
+      cleanups.push(() => { cancelAnimationFrame(raf); window.removeEventListener("scroll", wake); });
     }
 
     // everything decorative rests while its section is off screen, so the browser only works on what can be seen
@@ -341,7 +374,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
           ring.style.transform = ring.className || speed < 0.02 ? "translate(-50%,-50%)"
             : `translate(-50%,-50%) rotate(${Math.atan2(gapY, gapX)}rad) scale(${1 + speed * 0.55},${1 - speed * 0.3})`;
         }
-        if (ctx && canvas) {
+        if (ctx && canvas && !document.documentElement.classList.contains("lite")) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           for (const d of dots) {
             d.x += d.vx; d.y += d.vy;
@@ -389,7 +422,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
 
     return () => cleanups.forEach((c) => c());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, track, fx.smooth, fx.countup, fx.timeline, fx.sparkles, fx.explorer, fx.party, partyWord, emojiKey]);
+  }, [cursor, track, fx.autolite, fx.smooth, fx.countup, fx.timeline, fx.sparkles, fx.explorer, fx.party, partyWord, emojiKey]);
 
   return (
     <>
