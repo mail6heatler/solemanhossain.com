@@ -50,7 +50,7 @@ Limits of that testing:
 
 - The test machine has no GPU, so 3D smoothness on real hardware is untested. The sculpture lowers its own detail on slow machines.
 - Tested in Chrome only, so Safari and Firefox are unchecked.
-- Local data has only 2 trips, and so far does the live site's Adventures section (3), so the pinned sideways strip was tested with temporary copies in the browser.
+- The pinned sideways strip needs about 4 or more trips. The local copy has 2 and the live site has 3, so it was tested with temporary copies in the browser.
 
 ## Ideas not done yet
 
