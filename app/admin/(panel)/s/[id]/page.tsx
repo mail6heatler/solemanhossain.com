@@ -94,6 +94,7 @@ export default async function SectionAdmin({ params }: P) {
               <div className="fl"><label>Message when empty</label><input className="inp" name="empty_text" defaultValue={section.empty_text} /></div>
             </div>
             <label className="switch"><input type="checkbox" name="visible" defaultChecked={section.visible} />Visible on the site</label>
+            <label className="switch"><input type="checkbox" name="ribbon" defaultChecked={section.ribbon} />Show the sliding headline before this section</label>
             <div><button className="b-mint"><i className="ti ti-device-floppy" />Save section</button></div>
           </div>
         </details>

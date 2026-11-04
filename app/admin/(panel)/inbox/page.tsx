@@ -89,14 +89,14 @@ export default async function Inbox({ searchParams }: P) {
   );
 }
 
-/** Newest reactions. Visitors are anonymous: the tag (Visitor #3f9a) is the same for the same browser, so you can spot regulars. */
+/** Newest reactions, with the name each person typed. Older ones from before names show a tag like Visitor #3f9a. */
 async function ReactionList({ tz, total, fresh }: { tz: string; total: number; fresh: number }) {
   const [list, byEmoji] = await Promise.all([getRecentReactions(200), getReactionTotalsByEmoji()]);
   return (
     <>
       <div className="c c-row" style={{ flexWrap: "wrap", gap: 14 }}>
         <div className="grow"><div className="c-title">{total} reaction{total === 1 ? "" : "s"} in total{fresh ? ` · ${fresh} new` : ""}</div>
-          <div className="c-desc" style={{ whiteSpace: "normal" }}>Reactions are anonymous. Each browser gets its own tag, so the same visitor always shows the same number.</div></div>
+          <div className="c-desc" style={{ whiteSpace: "normal" }}>People type their name the first time they react, so you can see who each one is from. It&apos;s whatever they typed, so it isn&apos;t proof of identity. Reactions from before names show a tag like Visitor #3f9a.</div></div>
         <div style={{ display: "flex", gap: 14, fontSize: 15 }}>{REACTION_EMOJIS.map((e) => <span key={e}>{e} <b>{byEmoji[e] ?? 0}</b></span>)}</div>
       </div>
       {list.length === 0 && <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>No reactions yet. They show up here the moment someone taps an emoji on your site.</div>}

@@ -69,6 +69,34 @@ function Letters({ text, accent }: { text: string; accent: boolean }) {
   );
 }
 
+/** The floating sticker around the hero photo. A picture with a transparent background becomes a true cut-out. */
+export function Sticker({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const box = ref.current, img = box?.querySelector("img");
+    if (!box || !img) return;
+    const check = () => {
+      try {
+        const c = document.createElement("canvas");
+        c.width = c.height = 24;
+        const x = c.getContext("2d", { willReadFrequently: true })!;
+        x.drawImage(img, 0, 0, 24, 24);
+        const d = x.getImageData(0, 0, 24, 24).data;
+        const corner = (cx: number, cy: number) => d[(cy * 24 + cx) * 4 + 3];
+        box.classList.toggle("cutout", corner(0, 0) < 200 || corner(23, 0) < 200 || corner(0, 23) < 200 || corner(23, 23) < 200);
+      } catch {} // a picture from another site can't be inspected: it keeps the taped-print look
+    };
+    if (img.complete && img.naturalWidth) check(); else img.addEventListener("load", check, { once: true });
+    return () => img.removeEventListener("load", check);
+  }, []);
+  return (
+    <div ref={ref} className="stk">
+      <div className="stk-float">{children}</div>
+      <i className="stk-shadow" aria-hidden />
+    </div>
+  );
+}
+
 /** The photo tilts toward the mouse, waves on hover and bursts confetti on click. */
 export function AvatarTilt({ label, children }: { label: string; children: React.ReactNode }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -77,6 +105,8 @@ export function AvatarTilt({ label, children }: { label: string; children: React
     const r = ref.current.getBoundingClientRect();
     const dx = (e.clientX - r.left) / r.width - 0.5, dy = (e.clientY - r.top) / r.height - 0.5;
     ref.current.style.transform = `rotateY(${dx * 28}deg) rotateX(${-dy * 28}deg) scale(1.04)`;
+    ref.current.style.setProperty("--gx", `${(dx + 0.5) * 100}%`);
+    ref.current.style.setProperty("--gy", `${(dy + 0.5) * 100}%`);
   };
   const reset = () => { if (ref.current) ref.current.style.transform = ""; };
   return (

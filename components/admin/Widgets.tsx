@@ -95,7 +95,10 @@ const SOCIAL_ICONS = ["mail", "brand-github", "brand-linkedin", "brand-x", "bran
 export async function uploadFile(f: File, useBlob: boolean, onProgress?: (pct: number) => void): Promise<string> {
   let body: Blob = f;
   let name = f.name || "file";
-  if (f.type.startsWith("image/") && f.type !== "image/gif") { body = await shrink(f, 1800); name = name.replace(/\.\w+$/, "") + ".jpg"; }
+  if (f.type.startsWith("image/") && f.type !== "image/gif") {
+    body = await shrink(f, 1800);
+    name = name.replace(/\.\w+$/, "") + (body.type === "image/webp" ? ".webp" : body.type === "image/png" ? ".png" : ".jpg");
+  }
   if (useBlob) {
     const { upload } = await import("@vercel/blob/client");
     const safe = name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+/, "").slice(-80) || "file";
@@ -308,6 +311,13 @@ async function shrink(file: File, max: number): Promise<Blob> {
   const scale = Math.min(1, max / Math.max(img.width, img.height));
   const c = document.createElement("canvas");
   c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
-  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
-  return new Promise((res) => c.toBlob((b) => res(b ?? file), "image/jpeg", 0.85));
+  const ctx = c.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  // cut-out pictures keep their transparency (JPEG can't); everything else becomes a small JPEG
+  let clear = false;
+  if (file.type !== "image/jpeg") {
+    const px = ctx.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 3; i < px.length; i += 16) if (px[i] < 250) { clear = true; break; }
+  }
+  return new Promise((res) => (clear ? c.toBlob((b) => res(b ?? file), "image/webp", 0.92) : c.toBlob((b) => res(b ?? file), "image/jpeg", 0.85)));
 }

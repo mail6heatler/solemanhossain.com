@@ -209,7 +209,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       const spark = (e: PointerEvent) => {
         if (e.button !== 0) return;
         const t = e.target as Element;
-        if (!t.closest?.(".site") || t.closest("input, textarea, select, .lb, .skin-menu, .float-emo")) return;
+        if (!t.closest?.(".site") || t.closest("input, textarea, select, dialog, .lb, .skin-menu, .float-emo, .hb")) return;
         burst(e.clientX, e.clientY, sparkleEmojis, 7, 80);
       };
       document.addEventListener("pointerdown", spark);

@@ -86,7 +86,7 @@ export const SCHEMA = [
     n INT NOT NULL DEFAULT 0,
     PRIMARY KEY (day, slug)
   )`,
-  // emoji reactions: one row per visitor per emoji per entry (anonymous random visitor id, like poll votes)
+  // emoji reactions: one row per visitor per emoji per entry (random visitor id, like poll votes)
   `CREATE TABLE IF NOT EXISTS reactions (
     item_id INT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
     voter TEXT NOT NULL,
@@ -97,6 +97,10 @@ export const SCHEMA = [
   // reactions show up in the admin inbox until marked as seen
   `ALTER TABLE reactions ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT FALSE`,
   `CREATE INDEX IF NOT EXISTS reactions_recent_idx ON reactions(created_at DESC)`,
+  // who reacted, as they typed it (older reactions have no name)
+  `ALTER TABLE reactions ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT ''`,
+  // the sliding headline before a section can be hidden per section
+  `ALTER TABLE sections ADD COLUMN IF NOT EXISTS ribbon BOOLEAN NOT NULL DEFAULT TRUE`,
   // "people here now": a random id per browser and when it last checked in (no names, no IPs)
   `CREATE TABLE IF NOT EXISTS presence (
     visitor TEXT PRIMARY KEY,

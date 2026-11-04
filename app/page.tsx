@@ -4,7 +4,7 @@ import { SiteShell, FloatingEmojis } from "@/components/site/Chrome";
 import SectionBody from "@/components/site/SectionBody";
 import { Accent } from "@/components/site/Markdown";
 import { Clock, TypeOnce } from "@/components/site/Typewriters";
-import { AvatarTilt, DecodeText, Greeting, LivePill } from "@/components/site/HeroFx";
+import { AvatarTilt, DecodeText, Greeting, LivePill, Sticker } from "@/components/site/HeroFx";
 import HeroScene from "@/components/site/HeroScene";
 import Intro from "@/components/site/Intro";
 import { Split, Words } from "@/components/site/Split";
@@ -36,7 +36,9 @@ export default async function Home() {
     ...(showReactions ? [{ key: "reactions", n: reactions.total, label: "Reactions", emoji: "❤️", to: "" }] : []),
   ];
   const headline = (text: string, delay: number) => (fx.decode || fx.kinetic ? <DecodeText text={text} delay={delay} animate={fx.decode} letters={fx.kinetic} /> : <Accent text={text} />);
-  const avatar = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
+  const photo = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
+  const avatar = fx.sticker ? <>{photo}<i className="stk-tape a" aria-hidden /><i className="stk-tape b" aria-hidden /></> : photo;
+  const framed = fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : <div className="avatar-tilt">{avatar}</div>;
 
   return (
     <SiteShell settings={s} sections={sections} onHome>
@@ -72,11 +74,15 @@ export default async function Home() {
             )}
           </div>
           <div className="hero-right">
-            <div className="avatar-wrap">
-              {fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : avatar}
-              <div className="avatar-ring" />
-              {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
-            </div>
+            {fx.sticker ? (
+              <div className="avatar-wrap sticker"><Sticker>{framed}</Sticker></div>
+            ) : (
+              <div className="avatar-wrap">
+                {fx.tilt ? framed : photo}
+                <div className="avatar-ring" />
+                {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
+              </div>
+            )}
             <div className="ctas">
               {s.resumeUrl && s.ctaPrimaryLabel && (
                 <a className={`btn-mint ${fx.magnetic ? "mag" : ""}`} href={s.resumeUrl} target="_blank" rel="noopener"><i className="ti ti-download" />{s.ctaPrimaryLabel}</a>
@@ -97,8 +103,8 @@ export default async function Home() {
       {blocks.map(({ section, items, wall }, i) => {
         const total = counts.get(section.id) ?? 0;
         const ribbonText = `${section.nav_emoji ? `${section.nav_emoji} ` : ""}${section.title}`;
-        const ribbon = fx.ribbons && i > 0 && i % 2 === 0 && (
-          <div className={`ribbon ${i % 4 === 0 ? "rev" : ""}`} aria-hidden>
+        const ribbon = fx.ribbons && section.ribbon && (
+          <div className={`ribbon ${i % 2 === 1 ? "rev" : ""} ${i === 0 ? "first" : ""}`} aria-hidden>
             <div className="ribbon-track">{Array.from({ length: 20 }, (_, k) => <span key={k}>{ribbonText}</span>)}</div>
           </div>
         );

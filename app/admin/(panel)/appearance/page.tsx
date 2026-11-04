@@ -1,4 +1,4 @@
-import { getSettings } from "@/lib/data";
+import { getSections, getSettings } from "@/lib/data";
 import { saveAppearance } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { EFFECTS, MOODS, SKINS, SKIN_LABELS } from "@/lib/settings";
@@ -20,7 +20,7 @@ const GROUP_INTRO: Record<string, string> = {
 
 export default async function AppearancePage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
-  const s = await getSettings();
+  const [s, sections] = await Promise.all([getSettings(), getSections()]);
   const groups = Array.from(new Set(EFFECTS.map((e) => e.group)));
 
   return (
@@ -88,6 +88,18 @@ export default async function AppearancePage() {
           </div>
         </div>
       ))}
+
+      <div className="adm-label">Sliding headlines <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>Choose which sections get the sliding band above them. &ldquo;Sliding headlines before chapters&rdquo; above turns them all off at once.</span></div>
+      <div className="c">
+        <input type="hidden" name="ribbon_ids" value={sections.map((x) => x.id).join(",")} />
+        <div className="fx-grid">
+          {sections.map((x) => (
+            <div key={x.id} className="sw-row">
+              <label className="switch"><input type="checkbox" name={`ribbon_${x.id}`} defaultChecked={x.ribbon} />{x.nav_emoji} {x.title}{x.visible ? "" : " (hidden section)"}</label>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="save-bar">
         <button className="b-mint"><i className="ti ti-device-floppy" />Save appearance</button>

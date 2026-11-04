@@ -54,9 +54,11 @@ export const SKIN_INFO: Record<Skin, { d: string; c: [string, string] }> = {
 /** Every effect on the public site. Each one can be switched off on the Appearance page. */
 export const EFFECTS = [
   { key: "shuffle", group: "Themes", label: "🔀 Shuffle-theme button in the menu bar" },
+  { key: "themefx", group: "Themes", label: "Each theme's own living effects (waves, hacking, neon, paper…)" },
   { key: "decode", group: "Hero", label: "Decoding headline" },
   { key: "aurora", group: "Hero", label: "Aurora background" },
   { key: "tilt", group: "Hero", label: "3D photo (tilt, wave, confetti on click)" },
+  { key: "sticker", group: "Hero", label: "Photo as a floating sticker with a border" },
   { key: "magnetic", group: "Hero", label: "Magnetic buttons (all over the site)" },
   { key: "greeting", group: "Hero", label: "Time greeting under the clock" },
   { key: "typewriter", group: "Hero", label: "Typewriter text" },
@@ -80,8 +82,9 @@ export const EFFECTS = [
   { key: "footername", group: "Text", label: "Giant name rises at the end of the page" },
   { key: "heroexit", group: "Scrolling", label: "Hero sinks away as you scroll" },
   { key: "sheets", group: "Scrolling", label: "Chapters slide up like stacked sheets" },
+  { key: "sectionfx", group: "Scrolling", label: "Every chapter moves as you scroll (shrink, tilt, slide, swing)" },
   { key: "ghost", group: "Scrolling", label: "Giant chapter marks drift in the background" },
-  { key: "ribbons", group: "Scrolling", label: "Moving ribbons between chapters" },
+  { key: "ribbons", group: "Scrolling", label: "Sliding headlines before chapters" },
   { key: "velocity", group: "Scrolling", label: "Ribbons react to scroll speed" },
   { key: "imgreveal", group: "Scrolling", label: "Photos wipe in, grids drift" },
   { key: "totop", group: "Scrolling", label: "Progress ring + back-to-top button" },
@@ -107,6 +110,39 @@ export const EFFECTS = [
 export type EffectKey = (typeof EFFECTS)[number]["key"];
 export type Effects = Record<EffectKey, boolean>;
 const ALL_ON = Object.fromEntries(EFFECTS.map((e) => [e.key, true])) as Effects;
+
+/** The announcement that hangs from the top of the site. Dates are as typed, in the site's clock time zone. */
+export const BANNER_KINDS = {
+  urgent: { emoji: "🚨", label: "Emergency", tab: "Important", desc: "red, with flashing hazard stripes" },
+  upcoming: { emoji: "📅", label: "Coming up", tab: "Coming up", desc: "your accent colour" },
+  news: { emoji: "📣", label: "News", tab: "News", desc: "dark and calm" },
+  party: { emoji: "🎉", label: "Celebrate", tab: "Pull me!", desc: "bright, with confetti" },
+} as const;
+export type BannerKind = keyof typeof BANNER_KINDS;
+export type Banner = {
+  on: boolean; kind: BannerKind; title: string; text: string; tab: string; linkLabel: string; linkUrl: string;
+  countdownTo: string; hideAfter: string; autoDrop: boolean;
+};
+export const DEFAULT_BANNER: Banner = { on: false, kind: "urgent", title: "", text: "", tab: "", linkLabel: "", linkUrl: "", countdownTo: "", hideAfter: "", autoDrop: true };
+/** What the site needs to draw the banner: dates as exact moments. */
+export type BannerView = Pick<Banner, "kind" | "title" | "text" | "tab" | "linkLabel" | "linkUrl" | "autoDrop"> & { countdownIso: string; hideIso: string };
+
+/** "2026-12-31T20:00" typed in a time zone → the exact moment, as an ISO date. */
+export function zonedIso(naive: string, timeZone: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(naive || "");
+  if (!m) return "";
+  const guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  try {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" })
+      .formatToParts(new Date(guess)).map((x) => [x.type, x.value]));
+    const shown = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+    return new Date(guess - (shown - guess)).toISOString();
+  } catch { return new Date(guess).toISOString(); }
+}
+export function bannerView(b: Banner, timeZone: string): BannerView {
+  const { kind, title, text, tab, linkLabel, linkUrl, autoDrop } = b;
+  return { kind, title, text, tab, linkLabel, linkUrl, autoDrop, countdownIso: zonedIso(b.countdownTo, timeZone), hideIso: zonedIso(b.hideAfter, timeZone) };
+}
 
 export type SiteSettings = {
   siteTitle: string;
@@ -142,6 +178,7 @@ export type SiteSettings = {
   showMood: boolean;
   nowStatus: string;
   partyWord: string;
+  banner: Banner;
   effects: Effects;
 };
 
@@ -183,6 +220,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   showMood: true,
   nowStatus: "",
   partyWord: "shou",
+  banner: DEFAULT_BANNER,
   effects: ALL_ON,
 };
 
@@ -195,7 +233,9 @@ export function mergeSettings(raw: unknown): SiteSettings {
     ...DEFAULT_SETTINGS,
     ...obj,
     effects: { ...DEFAULT_SETTINGS.effects, ...(obj.effects ?? {}) },
+    banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
   };
+  if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;
   if (!SKINS.includes(s.defaultTheme)) s.defaultTheme = DEFAULT_SETTINGS.defaultTheme;
   if (s.mood && !MOODS[s.mood]) s.mood = "";
   s.partyWord = String(s.partyWord ?? "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 12);

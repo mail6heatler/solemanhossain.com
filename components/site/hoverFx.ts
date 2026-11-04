@@ -330,19 +330,46 @@ export function startHoverFx(fx: HoverFxFlags) {
     if (ring && label) {
       const kinds: [string, string, string][] = [
         ["input, textarea, select", "c-text", ""],
+        [".hb-close", "c-link", "Close"],
+        [".hb-tab", "c-link", "Pull"],
+        [".hb-cta", "c-link", "Go"],
+        [".hb-cloth", "c-link", "Drag up"],
         [".float-emo", "c-big", "Drag"],
-        [".strip-pin .trip", "c-big", "Open"],
-        [".ph-tile", "c-big", "View"],
-        [".g-tile, .hero-img-btn", "c-big", "View"],
+        [".reacts button", "c-link", "React"],
+        [".poll-opt", "c-link", "Vote"],
+        [".avatar-tilt", "c-big", "Click me"],
+        ["button.ph-tile, .g-tile, .hero-img-btn", "c-big", "View"],
         [".flip", "c-big", "Read"],
-        [".card, .trip, .shelf-row, .tl-row", "c-big", "Open"],
-        ["a, button, [role=button], .avatar-tilt", "c-link", ""],
+        [".trip", "c-big", "Explore"],
+        [".shelf-row, .tl-row", "c-big", "Read"],
+        [".card", "c-big", "Open"],
+        ["a.ph-tile", "c-big", "Open"],
+        [".post h3 a, .more-media, .md a", "c-link", "Read"],
+        [".ctas .btn-mint", "c-link", "Download"],
+        [".ctas .btn-ghost", "c-link", "Say hi"],
+        [".hello button", "c-link", "Send"],
+        [".see-all", "c-link", "See all"],
+        ['a[href^="mailto:"]', "c-link", "Email"],
+        [".connectrow a, .btn-ink, .btn-line", "c-link", "Visit"],
+        [".navlinks a, .hero-stats a, #rail .stop", "c-link", "Jump"],
+        [".brand", "c-link", "Home"],
+        [".dice-btn, .dice-btn-text", "c-link", "Surprise"],
+        [".shuffle-btn", "c-link", "Shuffle"],
+        [".skin-menu button", "c-link", "Pick"],
+        [".skin-pick .icon-btn", "c-link", "Themes"],
+        [".totop", "c-link", "Top"],
+        [".back", "c-link", "Back"],
+        [".filters a", "c-link", "Filter"],
+        [".marquee", "c-link", "Paused"],
+        ['a[target="_blank"]', "c-link", "Visit"],
+        ["a", "c-link", "Open"],
+        ["button", "c-link", "Click"],
       ];
       let shown = "";
       on("pointerover", (e) => {
         const t = e.target as Element;
-        // the reaction buttons sit inside cards: they are not "Open"
-        const hit = t.closest?.(".reacts button") ? kinds[kinds.length - 1] : kinds.find(([sel]) => t.closest?.(sel));
+        // first match wins, so small buttons inside a card (reactions) come before the card itself
+        const hit = kinds.find(([sel]) => t.closest?.(sel));
         const cls = hit?.[1] ?? "", text = hit?.[2] ?? "";
         const sig = cls + text;
         if (sig === shown) return;

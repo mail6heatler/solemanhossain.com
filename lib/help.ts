@@ -23,6 +23,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch it on and save.", "On the site, click 🔀 next to the theme button. Each click picks a different theme."],
     preview: "/?demo=shuffle",
   },
+  themefx: {
+    title: "Each theme's own effects",
+    what: "Every theme gets its own living background and touches. Ocean: rolling waves, bubbles, light shafts. Techy: falling code, a fake break-in typing in the corner, glitching titles. Retro: neon grid, scanlines, flickering titles. Paper: paper grain, drifting scraps, a paper plane, ink splats. Sunset: a sun that climbs as you scroll, embers, birds. Forest: falling leaves, fireflies. Candy: bubbles, sprinkles. Playful: tumbling shapes. Night: stars, shooting stars. Day: warm light, dust. Clicking anywhere makes a burst in that theme's style.",
+    how: ["Switch on and save.", "Preview shows all ten without saving anything.", "To see one theme, add ?theme=ocean to your site's address (or retro, paper, techy…)."],
+    preview: "/?demo=themefx",
+  },
   mood: {
     title: "Mood of the day",
     what: "Changes the accent colour (buttons, highlights, glows) on the Day calm, Night neon, Playful and Techy themes: bright = yellow, electric = mint, calm = blue, quiet = purple, heavy = grey-blue. The other themes keep their own colours.",
@@ -66,6 +72,12 @@ export const HELP: Record<string, Help> = {
     what: "Your profile photo tilts in 3D toward the mouse, a 👋 waves when hovered, and clicking it bursts confetti.",
     how: ["Switch on and save.", "Upload your photo on the G0 · Hero page.", "On the site, move your mouse over the photo, then click it."],
     preview: "/?demo=tilt",
+  },
+  sticker: {
+    title: "Photo as a floating sticker",
+    what: "Your hero photo stops being a circle and becomes a sticker: a white border, strips of tape, a slight tilt, floating above its own shadow. It slaps onto the page when it arrives. With a transparent PNG, the border follows your outline like a real die-cut sticker. Off, you get the round photo with the spinning ring.",
+    how: ["Switch on and save.", "For the cut-out look, upload a PNG with a transparent background on the G0 · Hero page (remove.bg makes one for free)."],
+    preview: "/?demo=sticker",
   },
   magnetic: {
     title: "Magnetic buttons",
@@ -215,6 +227,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "On the site, scroll between any two chapters."],
     preview: "/?demo=sheets",
   },
+  sectionfx: {
+    title: "Every chapter moves as you scroll",
+    what: "Each chapter rises in tipped back, then leaves in its own way as you scroll past: the first shrinks, the next tips backward, the next slides away, the next swings like a door, and the pattern repeats. Gentler on phones.",
+    how: ["Switch on and save.", "On the site, scroll slowly down the homepage."],
+    preview: "/?demo=sectionfx",
+  },
   ghost: {
     title: "Giant chapter marks",
     what: "A huge outlined chapter code (like G3) sits behind each chapter and drifts sideways as you scroll.",
@@ -222,9 +240,9 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=ghost",
   },
   ribbons: {
-    title: "Moving ribbons",
-    what: "A slanted ribbon in your accent colour runs across the page before every other chapter, repeating that chapter's name.",
-    how: ["Switch on and save.", "The text comes from each section's emoji and title."],
+    title: "Sliding headlines",
+    what: "A slanted band runs across the page before each chapter, repeating that chapter's name. It takes on the look of your theme: wavy on Ocean, a terminal on Techy, neon on Retro, torn newsprint on Paper.",
+    how: ["Switch on and save. This switch turns them all on or off.", "To hide one, untick that section under “Sliding headlines” lower on this page, or in that section's own settings.", "The text comes from each section's emoji and title."],
     preview: "/?demo=ribbons",
   },
   velocity: {
@@ -249,7 +267,7 @@ export const HELP: Record<string, Help> = {
   // ----- hover -----
   smartcursor: {
     title: "Smart cursor",
-    what: "The ring that follows the mouse grows over links and says what a click will do over cards and photos (Open, View, Read, Drag). It stretches along its path when moving fast. Needs “Mint cursor + connecting dots” on.",
+    what: "The ring that follows the mouse grows and says what a click will do on everything: Open on a project, Explore on a trip, View on a photo, Read on a post, React on an emoji, Vote on a poll, Drag on a floating emoji, Jump in the menu, Visit on your links, Send, Download, and more. It stretches along its path when moving fast. Needs “Mint cursor + connecting dots” on.",
     how: ["Switch on and save.", "On the site, move your mouse over cards, photos and floating emojis."],
     preview: "/?demo=smartcursor",
   },
@@ -281,7 +299,7 @@ export const HELP: Record<string, Help> = {
   // ----- fun -----
   reactions: {
     title: "Emoji reactions",
-    what: "Every entry gets ❤️ 🔥 😂 🤯 👏 buttons. Visitors tap to react (and tap again to take it back). New reactions show up in your Inbox → Reactions.",
+    what: "Every entry gets ❤️ 🔥 😂 🤯 👏 buttons. The first time someone reacts, they have to type their name (it's remembered in their browser after that). New reactions show up in your bell and Inbox → Reactions with that name. Only you can see names; visitors only see the counts.",
     how: ["Switch on and save.", "On the site, tap an emoji under any card or entry.", "See who reacted to what in Inbox → Reactions."],
     preview: "/?demo=reactions",
   },

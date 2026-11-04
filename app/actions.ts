@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
-import { EFFECTS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SKINS, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
+import { BANNER_KINDS, EFFECTS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SKINS, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -137,8 +137,36 @@ export async function saveAppearance(fd: FormData) {
     partyWord: str(fd, "partyWord", 12).toLowerCase().replace(/[^a-z]/g, ""),
     effects,
   });
+  // the sliding headline can be hidden for each section
+  for (const raw of str(fd, "ribbon_ids", 2000).split(",")) {
+    const id = Number(raw);
+    if (Number.isInteger(id) && id > 0) await query("UPDATE sections SET ribbon=$1 WHERE id=$2", [bool(fd, `ribbon_${id}`), id]);
+  }
   refresh();
   redirect("/admin/appearance?saved=1");
+}
+
+// ---------- the hanging banner ----------
+export async function saveBanner(fd: FormData) {
+  await requireAdmin();
+  const kind = str(fd, "kind") as BannerKind;
+  const when = (k: string) => (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str(fd, k, 30)) ? str(fd, k, 16) : "");
+  await saveSettingsData({
+    banner: {
+      on: bool(fd, "on") && !!str(fd, "title"), // nothing to show without a headline
+      autoDrop: bool(fd, "autoDrop"),
+      kind: kind in BANNER_KINDS ? kind : "urgent",
+      title: str(fd, "title", 90),
+      text: str(fd, "text", 320),
+      tab: str(fd, "tab", 24),
+      linkLabel: str(fd, "linkLabel", 40),
+      linkUrl: safeUrl(str(fd, "linkUrl", 500)),
+      countdownTo: when("countdownTo"),
+      hideAfter: when("hideAfter"),
+    },
+  });
+  refresh();
+  redirect("/admin/banner?saved=1");
 }
 
 // ---------- sections ----------
@@ -175,10 +203,10 @@ export async function updateSection(fd: FormData) {
   const cats = str(fd, "categories", 2000).split(/[\n,]/).map((c) => c.trim()).filter(Boolean).join(", ");
   await query(
     `UPDATE sections SET title=$1, slug=$2, code=$3, nav_label=$4, nav_emoji=$5, eyebrow=$6, eyebrow_emoji=$7,
-       subtitle=$8, layout=$9, emojis=$10, categories=$11, empty_text=$12, home_limit=$13, visible=$14 WHERE id=$15`,
+       subtitle=$8, layout=$9, emojis=$10, categories=$11, empty_text=$12, home_limit=$13, visible=$14, ribbon=$15 WHERE id=$16`,
     [str(fd, "title", 160), slug, str(fd, "code", 8), str(fd, "nav_label", 40), str(fd, "nav_emoji", 16),
      str(fd, "eyebrow", 80), str(fd, "eyebrow_emoji", 16), str(fd, "subtitle", 400), layout, str(fd, "emojis", 80),
-     cats, str(fd, "empty_text", 300), Math.max(1, Math.min(60, int(fd, "home_limit", 6))), bool(fd, "visible"), id]
+     cats, str(fd, "empty_text", 300), Math.max(1, Math.min(60, int(fd, "home_limit", 6))), bool(fd, "visible"), bool(fd, "ribbon"), id]
   );
   refresh();
   redirect(`/admin/s/${id}?saved=1#settings`);

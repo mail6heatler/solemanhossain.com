@@ -14,6 +14,7 @@ export default async function HeroPage() {
       <div className="c">
         <div className="c-title" style={{ marginBottom: 10 }}>Avatar / profile photo</div>
         <UploadField name="avatarUrl" initial={s.avatarUrl} fallback={s.initials} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} />
+        <div className="hint" style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 8 }}>For a true cut-out sticker, upload a PNG with a transparent background: the white border follows your outline. A free site like remove.bg can make one from any photo. A normal photo becomes a taped-up print.</div>
         <div className="f3" style={{ marginTop: 12 }}>
           <div className="fl"><label>Initials (shown when there&apos;s no photo)</label><input className="inp" name="initials" defaultValue={s.initials} maxLength={3} /></div>
         </div>

@@ -4,6 +4,16 @@
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** Turns any CSS colour into #rrggbb, for canvas and WebGL drawing. */
+export function toHex(css: string, fallback: string) {
+  const c = document.createElement("canvas").getContext("2d");
+  if (!c || !css) return fallback;
+  c.fillStyle = fallback;
+  c.fillStyle = css;
+  const v = String(c.fillStyle);
+  return /^#[0-9a-f]{6}$/i.test(v) ? v : fallback;
+}
+
 /** The current accent colour (follows the mood + theme). */
 export function accent() {
   const el = document.querySelector(".site");

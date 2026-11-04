@@ -27,7 +27,7 @@ Working on the code? Start with [CLAUDE.md](CLAUDE.md) (how it all fits together
   | G8 Connect | connect | Social links, a **Say hello form**, and a **guest wall** |
 
 - Every entry has its own page; every section has a "See all" page with subsection filters.
-- Effects: 50 of them, from a 3D particle sculpture and an opening curtain to letters that react to the mouse, cards
+- Effects: 53 of them, from a 3D particle sculpture and an opening curtain to letters that react to the mouse, cards
   that tilt in 3D, ribbons that react to scroll speed and pages that glide into each other. Each one can be switched
   off under Appearance, where an (i) button explains and previews it. Visitors who ask for reduced motion get a calm site.
 
@@ -39,7 +39,8 @@ Working on the code? Start with [CLAUDE.md](CLAUDE.md) (how it all fits together
 | **G0 · Hero** | Upload photo and résumé PDF, edit every line of hero text, add / remove / drag chips |
 | **G1–G8** | Entries grouped by subsection (Feed → Poems, Hot takes, Polls…). Add, edit, hide, pin, reorder, delete. Change titles, layout, subsections and emojis in "Section settings" |
 | **Entry editor** | Title, subtitle, story (Markdown), photo upload, date, place, status, mood, tags, buttons, poll options and live results |
-| **Inbox** | Messages from the Say hello form; reply by email, put a note on the public wall, delete |
+| **Inbox** | Messages from the Say hello form (reply by email, put a note on the public wall, delete), and reactions with the name of whoever left them |
+| **Hanging banner** | An emergency notice or upcoming event that drops from the top of the site, with a countdown and a button |
 | **Settings** | Social links, footer, effects, login username, change password, log out everywhere, export everything as JSON |
 
 Also: search with **⌘K / Ctrl+K**, dark mode toggle, notification bell for new messages.
@@ -77,11 +78,12 @@ Locally, data is stored in the `.data/` folder automatically. Delete that folder
 - Passwords set in the dashboard are stored hashed (scrypt). `ADMIN_PASSWORD` always works as a recovery key.
 - Login cookie: signed, http-only, 30 days. "Log out everywhere" and changing your password sign out all other devices.
 - Wrong logins are slowed down. The hello form has a spam trap and a rate limit. Notes only appear on the wall after you approve them.
-- Visitor stats are anonymous daily counts: no IP addresses, no cookies for tracking (polls use one random cookie so each browser votes once).
+- Visitor stats are anonymous daily counts: no IP addresses, no cookies for tracking (polls and reactions use one random cookie so each browser counts once).
+- Reacting asks for a name, which only you can see in the dashboard. It's whatever the visitor typed, not a verified identity.
 
 ## Uploads
 
-Photos are resized in your browser before upload (max 1800px) and stored in the database, served from `/media/…`.
+Photos are resized in your browser before upload (max 1800px) and stored in the database, served from `/media/…`. Pictures with a transparent background keep it.
 Files up to 4 MB: JPG, PNG, WebP, GIF, PDF. Neon's free plan has 0.5 GB, enough for a few hundred photos.
 
 ## Project map

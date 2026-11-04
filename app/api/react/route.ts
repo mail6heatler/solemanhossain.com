@@ -4,7 +4,8 @@ import { query, queryOne } from "@/lib/db";
 import { getMyReactionsFor, getReactionCountsFor, getSettings } from "@/lib/data";
 import { REACTION_EMOJIS } from "@/lib/settings";
 
-// Emoji reactions on entries. Each browser (random cookie id, like poll votes) can add each emoji once.
+// Emoji reactions on entries. Each browser (random cookie id, like poll votes) can add each emoji once, and has to
+// give a name to do it so the owner knows who it's from. Names are never sent back to visitors, only counts.
 const ALLOWED = new Set<string>(REACTION_EMOJIS);
 
 async function visibleIds(ids: number[]) {
@@ -34,7 +35,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (!(await getSettings()).effects.reactions) return Response.json({ error: "Reactions are switched off" }, { status: 403 });
-  const { id, emoji } = await req.json().catch(() => ({}));
+  const { id, emoji, name: rawName } = await req.json().catch(() => ({}));
+  const name = String(rawName ?? "").replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
   const itemId = Number(id);
   if (!ALLOWED.has(String(emoji)) || !(await visibleIds([itemId])).length) return Response.json({ error: "Bad reaction" }, { status: 400 });
   const jar = await cookies();
@@ -45,8 +47,12 @@ export async function POST(req: Request) {
   }
   // tap once to add (it shows up in the admin inbox), tap again to take it back
   const removed = await queryOne("DELETE FROM reactions WHERE item_id=$1 AND voter=$2 AND emoji=$3 RETURNING emoji", [itemId, voter, emoji]);
-  if (!removed)
-    await query("INSERT INTO reactions (item_id, voter, emoji) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [itemId, voter, emoji]);
+  if (!removed) {
+    if (!name) return Response.json({ error: "Your name is needed to react", needName: true }, { status: 400 });
+    await query("INSERT INTO reactions (item_id, voter, emoji, name) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING", [itemId, voter, emoji, name]);
+  }
+  // the same browser is the same person: their earlier reactions pick up the name too
+  if (name) await query("UPDATE reactions SET name=$1 WHERE voter=$2 AND name <> $1", [name, voter]);
   const [counts, mine] = await Promise.all([getReactionCountsFor([itemId]), getMyReactionsFor([itemId], voter)]);
   return Response.json({ counts: counts[itemId] ?? {}, mine: mine[itemId] ?? [] });
 }

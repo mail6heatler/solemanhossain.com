@@ -47,8 +47,12 @@ components/site/
   SectionBody.tsx          the 8 section layouts
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
-  hoverFx.ts               mouse effects, photo wipes, label decoding, footer-name fit (no libraries)
-  scrollFx.ts              GSAP scroll effects (separate download)
+  hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
+  scrollFx.ts              GSAP scroll effects + every chapter's in/out motion (separate download)
+  ThemeFx.tsx              one canvas behind the content: starts/sleeps it, follows the theme
+  themeScenes.ts           each theme's living background and click burst (separate download)
+  HangingBanner.tsx        the pull-down announcement and its spring physics
+  askName.ts               the "who's reacting?" box; the name is remembered in localStorage (lc_name)
   HeroScene.tsx            decides if/when the 3D runs, wires events and theme colours
   heroEngine.ts            three.js particle sculpture (separate download)
   Split.tsx                server-rendered split text: <Split> for letters, <Words> for words
@@ -62,7 +66,10 @@ lib/
   help.ts                  text for the dashboard's (i) pop-ups
   data.ts, db.ts, schema.ts   queries, connection, tables + starter content
   auth.ts                  login
+app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in settings.banner)
 ```
+
+A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN IF NOT EXISTS`; it runs by itself on the first request after a deploy. `sections.ribbon` controls the sliding headline per section; `reactions.name` is who reacted.
 
 Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`, `votes`, `reactions`, `stats_daily`, `section_views`, `presence`. Created automatically on first use. New settings fields need no migration because `mergeSettings` fills in defaults.
 
@@ -82,6 +89,13 @@ Every visual effect has a switch on the Appearance page. To add one:
 4. Implement it. For CSS-only effects, add the key to `LOOKS` in `Chrome.tsx` and scope the CSS under `.site.fx-<key>`. For JS, pass the flag through `Living` in `Chrome.tsx` into `hoverFx.ts` or `scrollFx.ts`.
 
 ## Rules learned the hard way
+
+- **Nothing `position: fixed` may live inside a chapter.** `.chap-inner` gets a transform while scrolling, which would pin fixed children to it instead of the screen. Portal into `.site` (see `Lightbox`) or use a native `<dialog>`.
+- **Page-wide key handlers must stand down while a `<dialog>` is open** (`document.querySelector("dialog[open]")`), or typing and Esc also reach what's underneath.
+- **Physics and smoothing must run on real time, not per frame.** Slow devices otherwise get slow motion. See the sub-steps in `HangingBanner` and the `blend` in `scrollFx`.
+- **Don't let pointer capture and `click` both handle a tap.** A captured pointer's click goes to the capturing element. `HangingBanner` handles taps in `pointerup` and keeps `click` for the keyboard (`e.detail === 0`).
+- **Reactions, banners and other writes are tested on the local copy only.** Never post test reactions or change settings on the live site.
+- **Things that always sway (the banner) never count as "stable" to Playwright.** Use `click({ force: true })`.
 
 - **Nothing may depend on JavaScript to become visible unless it has a way back.** Animate from a visible default, or add the hidden state from JS. CSS-hidden content needs entries in the `<noscript>` rule in `app/layout.tsx` and the reduced-motion block at the end of `site.css`.
 - **`IntersectionObserver` treats a fully `clip-path`-clipped element as off screen.** It never fires, so the element stays invisible. Watch the parent (see the photo wipe in `hoverFx.ts`).

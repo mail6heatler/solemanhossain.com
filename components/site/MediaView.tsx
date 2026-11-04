@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Media } from "@/lib/settings";
 import Reactions from "./Reactions";
 
@@ -22,6 +23,7 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
     document.documentElement.style.overflow = "hidden";
     closeBtn.current?.focus();
     const key = (e: KeyboardEvent) => {
+      if (document.querySelector("dialog[open]")) return; // the name box is on top: keys belong to it
       if (e.key === "Escape") latest.current.onClose();
       if (e.key === "ArrowLeft") latest.current.go(-1);
       if (e.key === "ArrowRight") latest.current.go(1);
@@ -32,7 +34,8 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
 
   const cur = slides[index];
   if (!cur) return null;
-  return (
+  // rendered at the top of the page, so a moving chapter can't shift this full-screen layer
+  return createPortal(
     <div className="lb" role="dialog" aria-modal="true" aria-label={cur.caption}
       onPointerDown={(e) => { if ((e.target as Element).closest("video, .lb-bar")) return; startX.current = e.clientX; }}
       onPointerUp={(e) => { if (startX.current !== null && Math.abs(e.clientX - startX.current) > 50) go(e.clientX < startX.current ? 1 : -1); startX.current = null; }}
@@ -50,7 +53,8 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
         <button ref={closeBtn} type="button" onClick={onClose}>Close</button>
         {reactions && cur.itemId && <div className="lb-reacts"><Reactions key={cur.itemId} id={cur.itemId} compact /></div>}
       </div>
-    </div>
+    </div>,
+    document.querySelector(".site") ?? document.body
   );
 }
 

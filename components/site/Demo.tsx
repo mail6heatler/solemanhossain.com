@@ -65,6 +65,17 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       ambient: { on: fx.ambient, target: "section.chap", tip: "Move your mouse over the empty space in a chapter: a soft glow follows it." },
       liquid: { on: fx.liquid, target: ".connectrow, .see-all", tip: "Hover a button: the colour pours in from where your mouse came in." },
       navpill: { on: fx.navpill, target: ".navlinks", tip: "Move your mouse along the menu: the highlight slides and the labels roll." },
+      banner: { tip: "Pull the tab under the menu bar, let go, then drag the banner back up." },
+      themefx: { on: fx.themefx, tip: "Every theme has its own living effects. Watch them change, and click anywhere for that theme's burst.", run: async () => {
+        const h = document.documentElement;
+        for (const t of ["ocean", "techy", "retro", "paper", "sunset", "forest", "candy", "playful", "night", "day"]) {
+          h.dataset.skin = t; window.dispatchEvent(new Event("skinchange"));
+          toast(`${SKIN_LABELS[t as Skin]} (preview, not saved)`, 4800);
+          await sleep(5000);
+        }
+      } },
+      sticker: { on: fx.sticker, target: ".avatar-wrap", tip: "Your photo floats like a sticker someone just stuck on. Move your mouse over it: it tilts in 3D." },
+      sectionfx: { on: fx.sectionfx, tip: "Scroll down slowly: each chapter rises in, then leaves its own way (shrink, tilt, slide, swing)." },
       reactions: { on: fx.reactions, target: ".reacts", tip: "Tap an emoji to react (tap again to take it back). Reactions arrive in your Inbox." },
       confetti: { on: fx.confetti, target: ".poll", tip: "Vote in this poll for a burst of confetti." },
       plane: { on: fx.plane, target: ".hello", tip: "Send a message here and it flies away as a paper plane." },

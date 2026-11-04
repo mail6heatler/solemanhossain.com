@@ -1,11 +1,13 @@
 import type { Section } from "@/lib/data";
-import { MOODS, type SiteSettings } from "@/lib/settings";
+import { bannerView, MOODS, type SiteSettings } from "@/lib/settings";
 import { BrandTypewriter } from "./Typewriters";
 import MobileMenu from "./MobileMenu";
 import Effects from "./Effects";
 import ThemeSwitch from "./ThemeSwitch";
 import DemoMode from "./Demo";
 import Living from "./Living";
+import ThemeFx from "./ThemeFx";
+import HangingBanner from "./HangingBanner";
 import { Split } from "./Split";
 
 export function Nav({ settings, sections, onHome }: { settings: SiteSettings; sections: Section[]; onHome: boolean }) {
@@ -107,7 +109,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 }
 
 /** Effects that are purely CSS: they switch on through a fx-<key> class on the page wrapper. */
-const LOOKS = ["intro", "cardtilt", "spotlight", "ambient", "liquid", "navpill", "sheets", "splittext"] as const;
+const LOOKS = ["intro", "cardtilt", "spotlight", "ambient", "liquid", "navpill", "sheets", "splittext", "themefx"] as const;
 
 export function SiteShell({ settings, sections, onHome, children }:
   { settings: SiteSettings; sections: Section[]; onHome: boolean; children: React.ReactNode }) {
@@ -122,7 +124,9 @@ export function SiteShell({ settings, sections, onHome, children }:
         partyWord={settings.partyWord}
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
       />
-      <Living fx={{ cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
+      {fx.themefx && <ThemeFx />}
+      <HangingBanner banner={settings.banner.on && settings.banner.title ? bannerView(settings.banner, settings.timezone) : null} />
+      <Living fx={{ sectionfx: fx.sectionfx, cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       <Nav settings={settings} sections={sections} onHome={onHome} />
       {onHome && <Rail sections={sections} />}

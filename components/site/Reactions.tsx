@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { REACTION_EMOJIS } from "@/lib/settings";
 import { burst } from "./fx";
+import { askName, savedName } from "./askName";
 
 type State = { counts: Record<string, number>; mine: string[] };
 
@@ -33,6 +34,7 @@ export default function Reactions({ id, compact = false }: { id: number; compact
   const [mine, setMine] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [popped, setPopped] = useState("");
+  const [who, setWho] = useState("");
 
   useEffect(() => {
     let live = true;
@@ -42,22 +44,32 @@ export default function Reactions({ id, compact = false }: { id: number; compact
       const d = (e as CustomEvent<State & { id: number }>).detail;
       if (d.id === id) { setCounts(d.counts); setMine(d.mine); }
     };
+    const named = () => setWho(savedName());
+    named();
     window.addEventListener("lc-react", sync);
-    return () => { live = false; window.removeEventListener("lc-react", sync); };
+    window.addEventListener("lc-name", named);
+    return () => { live = false; window.removeEventListener("lc-react", sync); window.removeEventListener("lc-name", named); };
   }, [id]);
 
   const react = async (emoji: string, el: HTMLButtonElement) => {
     if (busy) return;
-    setBusy(true);
     const adding = !mine.includes(emoji);
+    let name = savedName();
+    if (adding && !name) {
+      name = await askName(emoji);
+      if (!name) return; // they closed the box: no reaction
+    }
+    setBusy(true);
+    const before = { counts, mine };
     // update right away; the server answer replaces it a moment later
     setMine((m) => (adding ? [...m, emoji] : m.filter((x) => x !== emoji)));
     setCounts((c) => ({ ...c, [emoji]: Math.max(0, (c[emoji] ?? 0) + (adding ? 1 : -1)) }));
     setPopped(emoji);
     if (adding) { const r = el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, [emoji], 5, 50); }
     try {
-      const r = await fetch("/api/react", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, emoji }) });
+      const r = await fetch("/api/react", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, emoji, name }) });
       const d = await r.json();
+      if (!r.ok) { setCounts(before.counts); setMine(before.mine); }
       if (d.counts) window.dispatchEvent(new CustomEvent("lc-react", { detail: { id, counts: d.counts, mine: d.mine ?? [] } }));
     } catch {} finally { setBusy(false); }
   };
@@ -75,6 +87,11 @@ export default function Reactions({ id, compact = false }: { id: number; compact
           </button>
         );
       })}
+      {!compact && who && (
+        <button type="button" className="reacts-as" onClick={(ev) => { ev.preventDefault(); askName(); }} title="Change your name">
+          as {who} <i className="ti ti-pencil" aria-hidden />
+        </button>
+      )}
     </div>
   );
 }

@@ -1,17 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { prefersReducedMotion } from "./fx";
+import { prefersReducedMotion, toHex } from "./fx";
 import type { HeroSceneHandle, SceneColors } from "./heroEngine";
-
-/** Turns any CSS colour into #rrggbb, so three.js can read it. */
-function toHex(css: string, fallback: string) {
-  const c = document.createElement("canvas").getContext("2d");
-  if (!c || !css) return fallback;
-  c.fillStyle = fallback;
-  c.fillStyle = css;
-  const v = String(c.fillStyle);
-  return /^#[0-9a-f]{6}$/i.test(v) ? v : fallback;
-}
 
 function readColors(): SceneColors {
   const cs = getComputedStyle(document.querySelector(".site") ?? document.documentElement);

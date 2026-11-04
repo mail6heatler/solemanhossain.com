@@ -5,11 +5,35 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore point:** git tag `before-lively-update` (commit `1c9f3c7`). The last production deployment before the update is `solemanhossain-n4e486bkd-muzan-vercel.vercel.app`.
+- **Restore points:** git tag `before-update-2` (commit `0d20e6a`, before Update 2) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings (from the database, as of this update):** the site shows the Techy theme with the visitors' theme button off. So the theme wipe has no button to trigger it, and stacked-sheet chapters look straight-edged (Techy and Paper have no rounded corners).
 
+## Decision waiting on the owner
+
+Keep or undo Update 2 (below), after they've seen it live.
+
+- **Keep:** nothing to do. Record it here.
+- **Undo:** run `git revert --no-edit` on Update 2's commits on `main` and push; that redeploys by itself. Content and settings stay. The two new database columns (`reactions.name`, `sections.ribbon`) and the `banner` setting stay too; the old code ignores them, so they do no harm. Names already collected stay in the database, and would show again if the update is restored.
+
 ## Log
+
+### 2026-11-05: Update 2
+
+What the owner asked for, and what was built:
+
+- **Cursor only ever said "Open".** It now has 25+ labels (Explore, View, Read, React, Vote, Drag, Jump, Visit, Email, Send, Download, Surprise, Shuffle, Pull…). Small targets show a chip beside the ring. Floating emojis now sit above page text on computers, so they can actually be grabbed; before they were mostly unreachable.
+- **Hero photo floating with a border** (`sticker`): white border, tape, tilt, floats over its own shadow, slaps on at arrival. A transparent PNG gets a border that follows its outline.
+- **Uploads used to turn every photo into JPEG**, which wiped out transparency. Pictures with real transparency now stay transparent (WebP).
+- **Sliding headline on every section**, hideable per section (Appearance page or Section settings). New column `sections.ribbon`. Each theme styles it differently.
+- **Theme effects** (`themefx`): a canvas behind the content plus CSS touches. Ocean: waves, bubbles, light. Techy: falling code, a fake break-in, glitching titles. Retro: neon grid, scanlines, flicker. Paper: grain, scraps, plane, ink. Sunset: climbing sun, embers, birds. Forest: leaves, fireflies. Candy: bubbles, sprinkles. Playful: shapes. Night: stars. Day: warm light, dust. Clicking makes a burst in that theme's style.
+- **Every chapter moves while scrolling** (`sectionfx`): rises in, then leaves by shrinking, tipping, sliding or swinging. Chapters at rest have no transform at all. The photo viewer moved out of the chapter (portal) because of this.
+- **Hanging banner** (`/admin/banner`, `settings.banner`): pull-down tab, spring physics, swings with scrolling and the mouse. Types: emergency, coming up, news, celebrate. Optional countdown, button, auto take-down. Drops by itself once per announcement if set. **It's off until the owner writes one.** `/?demo=banner` previews it: the owner sees their saved text, anyone else a sample.
+- **Reactions need a name** (`askName.ts`, `reactions.name`): asked once, remembered in the browser, enforced on the server, shown in the bell, inbox and overview. Only the owner sees names. Older reactions keep their Visitor tag. **Polls don't ask for a name:** they send no notification and weren't part of the request, so the owner may want to decide.
+
+Checked on the local copy in Chrome (desktop and phone sizes): cursor labels, all 10 themes, section motion, name box, banner (drag, tap, keyboard, auto-drop, scroll-away), hiding one headline, transparent upload, photo viewer mid-move, reduced motion, no JavaScript. The live site was checked read-only.
+
+Limits: the test machine has no GPU, so smoothness on real hardware is unchecked; the theme canvas and 3D lower their own load on slow machines. Safari and Firefox are untested. A name is only what the visitor typed.
 
 ### 2026-11-04: Lively Update
 
@@ -47,6 +71,8 @@ Limits of that testing:
 
 ## Ideas not done yet
 
+- A one-click "remove background" button in the dashboard, so any photo becomes a cut-out.
+- A name on poll votes, if the owner wants it.
 - Sound toggle (soft hover and click sounds).
 - Using a section's own photos inside the 3D scene.
 - A curved or wavy chapter edge instead of rounded corners.
