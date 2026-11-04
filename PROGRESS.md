@@ -9,16 +9,9 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
-## Decision waiting on the owner
-
-Keep or undo Update 3 (below), after they've seen it live.
-
-- **Keep:** nothing to do. Record it here.
-- **Undo:** run `git revert --no-edit` on Update 3's commits on `main` and push; that redeploys by itself. No database or content changes were made, so nothing else is affected. Scrolling would go back to being slow.
-
 ## Log
 
-### 2026-11-05: Update 3
+### 2026-11-05: Update 3 (kept by the owner)
 
 The owner kept Update 2 and asked for two things.
 
