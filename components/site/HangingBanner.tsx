@@ -4,6 +4,8 @@ import { BANNER_KINDS, type BannerView } from "@/lib/settings";
 import { confettiFrom, prefersReducedMotion } from "./fx";
 import { Split } from "./Split";
 
+// How long it stays down before rolling itself up: longer when someone asked for it, and longer for more words.
+const STAY_AUTO = 6000, STAY_PULLED = 10000, STAY_AFTER_HOVER = 3000;
 const GAP = 22; // rope showing between the menu bar and the top of the banner
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const signature = (b: BannerView) => [b.kind, b.title, b.text, b.countdownIso].join("|");
@@ -83,8 +85,20 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     };
     const kick = () => { if (!raf && !still) raf = requestAnimationFrame(loop); };
 
-    const setDrop = (on: boolean) => {
+    // rolls itself up after a while, but never while someone is reading it with the mouse on it, dragging it or using it from the keyboard
+    let upTimer = 0, upAt = 0, hovering = false, focused = false;
+    const readTime = Math.min(8000, (data.title.length + data.text.length) * 30);
+    const arm = (ms: number) => {
+      clearTimeout(upTimer);
+      upAt = Date.now() + ms;
+      upTimer = window.setTimeout(() => {
+        if (dragging || hovering || focused || document.hidden) { arm(1500); return; }
+        setDrop(false);
+      }, ms);
+    };
+    const setDrop = (on: boolean, byItself = false) => {
       if (on === !shut) return;
+      if (on) arm((byItself ? STAY_AUTO : STAY_PULLED) + readTime); else clearTimeout(upTimer);
       shut = !on;
       T = on ? H : 0;
       setOpen(on);
@@ -128,7 +142,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
       if (moved) {
         const want = shut ? pos > 40 || v > 6 : pos > H * 0.62 && v > -6;
-        if (want === !shut) T = want ? H : 0;
+        if (want === !shut) { T = want ? H : 0; if (want) arm(STAY_PULLED + readTime); }
         else setDrop(want);
       } else if (onTab) setDrop(shut); // a plain tap
       kick();
@@ -146,11 +160,19 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       if (nav) el.style.top = `${Math.round(nav.getBoundingClientRect().bottom)}px`;
       if (shut || dragging) return;
       va += clamp(d * 0.006, -0.3, 0.3);
-      if (Math.abs(y - openedAt) > 700) setDrop(false); // it rolls itself up once they've moved on; the tab stays
+      if (Math.abs(y - openedAt) > 700) setDrop(false); // it also rolls up once they've moved on; the tab stays
       kick();
     };
+    const enter = (e: PointerEvent) => { if (e.pointerType === "mouse") hovering = true; };
+    const leave = (e: PointerEvent) => { if (e.pointerType === "mouse") { hovering = false; if (!shut) arm(Math.max(upAt - Date.now(), STAY_AFTER_HOVER)); } };
+    const focusIn = () => { focused = true; };
+    const focusOut = (e: FocusEvent) => { if (!el.contains(e.relatedTarget as Node | null)) { focused = false; if (!shut) arm(Math.max(upAt - Date.now(), STAY_AFTER_HOVER)); } };
     const key = (e: KeyboardEvent) => { if (e.key === "Escape" && !shut && !document.querySelector("dialog[open]")) setDrop(false); };
 
+    el.addEventListener("pointerenter", enter);
+    el.addEventListener("pointerleave", leave);
+    el.addEventListener("focusin", focusIn);
+    el.addEventListener("focusout", focusOut);
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
@@ -169,11 +191,16 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     try { seen = localStorage.getItem("lc_banner_seen") || ""; } catch {}
     const intro = document.querySelector(".intro");
     const wait = intro && getComputedStyle(intro).display !== "none" ? 2500 : 1000;
-    const timer = (data.autoDrop && seen !== signature(data)) || demo ? window.setTimeout(() => setDrop(true), wait) : 0;
+    const timer = (data.autoDrop && seen !== signature(data)) || demo ? window.setTimeout(() => setDrop(true, true), wait) : 0;
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(upTimer);
       cancelAnimationFrame(raf);
+      el.removeEventListener("pointerenter", enter);
+      el.removeEventListener("pointerleave", leave);
+      el.removeEventListener("focusin", focusIn);
+      el.removeEventListener("focusout", focusOut);
       ro.disconnect();
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);

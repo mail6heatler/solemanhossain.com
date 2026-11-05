@@ -15,6 +15,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-06: Banner rolls itself up
+
+On a first visit the banner dropped but never went up unless the visitor scrolled far. Now it stays about 6 seconds plus reading time when it dropped by itself, and about 10 seconds plus reading time when pulled by hand, then rolls up. It waits while the mouse or keyboard focus is on it, or during a drag. The first-visit drop is once per announcement in each browser, so a changed announcement drops again.
+
 ### 2026-11-06: Hanging photo; 20 fan themes under maintenance (kept by the owner)
 
 The owner wants the 20 fan themes improved one by one later, so visitors can't pick them for now: they show greyed out in the menu, aren't in Random or shuffle, can't be the default, and a visitor who had chosen one falls back to the site default. `?theme=<key>` still previews them.
