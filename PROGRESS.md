@@ -17,7 +17,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ### 2026-11-06: Banner rolls itself up
 
-On a first visit the banner dropped but never went up unless the visitor scrolled far. Now it stays about 6 seconds plus reading time when it dropped by itself, and about 10 seconds plus reading time when pulled by hand, then rolls up. It waits while the mouse or keyboard focus is on it, or during a drag. The first-visit drop is once per announcement in each browser, so a changed announcement drops again.
+On a first visit the banner dropped but never went up unless the visitor scrolled far. Now it stays about 6 seconds plus reading time when it dropped by itself, and about 10 seconds plus reading time when pulled by hand, then rolls up. It waits during a drag, while keyboard focus is inside it, or while the mouse is moving over it (a parked mouse doesn't hold it open). The first-visit drop is once per announcement in each browser, so a changed announcement drops again.
 
 ### 2026-11-06: Hanging photo; 20 fan themes under maintenance (kept by the owner)
 

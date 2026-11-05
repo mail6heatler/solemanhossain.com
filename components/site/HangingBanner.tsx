@@ -85,14 +85,15 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     };
     const kick = () => { if (!raf && !still) raf = requestAnimationFrame(loop); };
 
-    // rolls itself up after a while, but never while someone is reading it with the mouse on it, dragging it or using it from the keyboard
-    let upTimer = 0, upAt = 0, hovering = false, focused = false;
+    // rolls itself up after a while, but not while someone is using it: dragging it, using it from the keyboard, or moving
+    // the mouse over it. A mouse just parked there doesn't count, or it would never go up after a pull.
+    let upTimer = 0, upAt = 0, hovering = false, focused = false, movedAt = 0;
     const readTime = Math.min(8000, (data.title.length + data.text.length) * 30);
     const arm = (ms: number) => {
       clearTimeout(upTimer);
       upAt = Date.now() + ms;
       upTimer = window.setTimeout(() => {
-        if (dragging || hovering || focused || document.hidden) { arm(1500); return; }
+        if (dragging || focused || document.hidden || (hovering && Date.now() - movedAt < 5000)) { arm(1000); return; }
         setDrop(false);
       }, ms);
     };
@@ -163,13 +164,15 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       if (Math.abs(y - openedAt) > 700) setDrop(false); // it also rolls up once they've moved on; the tab stays
       kick();
     };
-    const enter = (e: PointerEvent) => { if (e.pointerType === "mouse") hovering = true; };
+    const enter = (e: PointerEvent) => { if (e.pointerType === "mouse") { hovering = true; movedAt = Date.now(); } };
+    const mouseMoved = (e: PointerEvent) => { if (e.pointerType === "mouse") movedAt = Date.now(); };
     const leave = (e: PointerEvent) => { if (e.pointerType === "mouse") { hovering = false; if (!shut) arm(Math.max(upAt - Date.now(), STAY_AFTER_HOVER)); } };
     const focusIn = () => { focused = true; };
     const focusOut = (e: FocusEvent) => { if (!el.contains(e.relatedTarget as Node | null)) { focused = false; if (!shut) arm(Math.max(upAt - Date.now(), STAY_AFTER_HOVER)); } };
     const key = (e: KeyboardEvent) => { if (e.key === "Escape" && !shut && !document.querySelector("dialog[open]")) setDrop(false); };
 
     el.addEventListener("pointerenter", enter);
+    cl.addEventListener("pointermove", mouseMoved);
     el.addEventListener("pointerleave", leave);
     el.addEventListener("focusin", focusIn);
     el.addEventListener("focusout", focusOut);
@@ -198,6 +201,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       clearTimeout(upTimer);
       cancelAnimationFrame(raf);
       el.removeEventListener("pointerenter", enter);
+      cl.removeEventListener("pointermove", mouseMoved);
       el.removeEventListener("pointerleave", leave);
       el.removeEventListener("focusin", focusIn);
       el.removeEventListener("focusout", focusOut);

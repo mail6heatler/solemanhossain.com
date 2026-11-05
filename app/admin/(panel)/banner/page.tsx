@@ -15,7 +15,7 @@ export default async function BannerPage() {
       <div className="c f">
         <label className="switch"><input type="checkbox" name="on" defaultChecked={b.on} />Show the banner on the site</label>
         <label className="switch"><input type="checkbox" name="autoDrop" defaultChecked={b.autoDrop} />Drop down by itself the first time someone sees this announcement</label>
-        <div className="hint">Good for emergencies, because nobody has to find the tab. Turn it off and visitors have to pull the tab themselves. It stays down for a few seconds, then rolls itself back up, and the tab stays. Pulled down by hand, it stays a little longer. It waits while the mouse is on it.</div>
+        <div className="hint">Good for emergencies, because nobody has to find the tab. Turn it off and visitors have to pull the tab themselves. It stays down for a few seconds, then rolls itself back up, and the tab stays. Pulled down by hand, it stays a little longer. It waits while the mouse is moving over it.</div>
       </div>
 
       <div className="adm-label">What it says</div>
