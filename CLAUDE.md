@@ -55,7 +55,7 @@ components/site/
   themeScenes.ts           the 10 classic themes' living backgrounds and click bursts (separate download)
   themeScenes2.ts          the 20 fan themes: one data table of what floats, bursts and falls, plus drawn "pieces"
   themeArt.ts              small drawn sprites shared by scenes, bursts and banner drops; each is stamped from a cache
-  HangingBanner.tsx        the pull-down announcement and its spring physics
+  HangingBanner.tsx        the pull-down announcement and its physics (falls, jolts, swings, breeze); opens on every visit
   bannerFall.ts            what falls from the banner in each theme; its canvas exists only while something falls
   askName.ts               the "who's reacting?" box; the name is remembered in localStorage (lc_name)
   HeroScene.tsx            decides if/when the 3D runs, wires events and theme colours
@@ -85,6 +85,8 @@ Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`
 - Public pages navigate with plain `<a>` (full page loads), so page transitions are cross-document view transitions. Every effect starts fresh on each page.
 
 ## Adding a theme
+
+Each classic theme also has its own hanging banner in `app/banner.css`. A theme without a block there gets the plain cloth.
 
 **The 20 fan themes are under maintenance:** not selectable by visitors (`LIVE_THEMES` and `SELECTABLE` in `lib/settings.ts`), still reachable with `?theme=<key>`. To bring one back, add it to `LIVE_THEMES`. Plan: improve them one at a time when the owner asks, starting by asking them for that theme's pictures, GIFs, cut-outs and logos.
 

@@ -1224,15 +1224,16 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 /* wider screens: the words keep the left, and the sculpture shows below the photo */
 @media (max-width: 1000px) {
   .site:has(.hang) #hero { padding-top: 322px; }
+  .hang .paper-ctas { margin-top: 152px; }
   .hang { right: 16px; }
 }
 @media (max-width: 760px) {
-  .site:has(.hang) #hero { padding-top: 248px; }
+  .site:has(.hang) #hero { padding-top: 282px; }
   .hang { gap: 12px; left: 16px; right: 16px; justify-content: flex-end; }
   .hang .avatar-wrap.sticker { width: 118px; margin: 44px 0 0; }
   .hang .avatar-wrap.sticker img, .hang .avatar-wrap.sticker .avatar-ph, html[data-skin="techy"] .site .hang .avatar-wrap.sticker img, html[data-skin="techy"] .site .hang .avatar-wrap.sticker .avatar-ph { max-height: 160px; filter: drop-shadow(4px 0 0 var(--stk-b)) drop-shadow(-4px 0 0 var(--stk-b)) drop-shadow(0 4px 0 var(--stk-b)) drop-shadow(0 -4px 0 var(--stk-b)) drop-shadow(0 10px 8px rgba(0,0,0,.42)); }
   .hang .stk-tape { top: -38px; height: 58px; width: 26px; }
-  .hang .paper-ctas { margin-top: 74px; gap: 13px; }
+  .hang .paper-ctas { margin-top: 148px; gap: 13px; }
   .paper-face { padding: 11px 14px 12px; font-size: 11.5px; }
 }
 
@@ -1256,3 +1257,19 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 
 /* a solid menu bar, so what's tucked behind it doesn't show through */
 .site .nav { background: var(--bg); }
+
+/* the photo hangs from one strip of tape, in the middle, which is also the point it swings from */
+.hang .stk-tape.a { left: 50%; margin-left: -26px; width: 52px; --tr: -4deg; }
+.hang .stk-tape.b, .hang .cutout .stk-tape.b { display: none; }
+.hang .stk-tape { top: -30px; height: 64px; }
+@media (max-width: 760px) {
+  .hang .stk-tape.a { margin-left: -18px; width: 36px; }
+  .hang .stk-tape { top: -24px; height: 46px; }
+}
+/* touch screens have no hover. A hover change that reveals something (the wave) makes an iPhone spend the first tap on it, so the confetti took two */
+.avatar-tilt { touch-action: manipulation; }
+@media (hover: none) {
+  .avatar-tilt:hover .avatar-wave, .sticker .avatar-tilt:hover .avatar-wave { opacity: 0; animation: none; }
+  .sticker .avatar-tilt:hover::after { opacity: 0; }
+  .avatar-tilt:active .avatar-wave, .sticker .avatar-tilt:active .avatar-wave { opacity: 1; }
+}

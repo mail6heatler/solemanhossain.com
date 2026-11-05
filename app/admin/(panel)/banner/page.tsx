@@ -10,12 +10,12 @@ export default async function BannerPage() {
   return (
     <form action={saveBanner} className="adm-page">
       <h1 className="adm-h">Hanging banner</h1>
-      <p className="adm-sub">For an emergency notice or anything coming up. A tab hangs under the menu bar on every page. Visitors pull it down, and your banner drops and swings on its ropes.</p>
+      <p className="adm-sub">For an emergency notice or anything coming up. A tab hangs under the menu bar on every page. Your banner drops and swings, and it looks different in each theme: a terminal screen on Techy, a neon sign on Retro, a front page on Paper, and so on.</p>
 
       <div className="c f">
         <label className="switch"><input type="checkbox" name="on" defaultChecked={b.on} />Show the banner on the site</label>
-        <label className="switch"><input type="checkbox" name="autoDrop" defaultChecked={b.autoDrop} />Drop down by itself the first time someone sees this announcement</label>
-        <div className="hint">Good for emergencies, because nobody has to find the tab. Turn it off and visitors have to pull the tab themselves. It stays down for a few seconds, then rolls itself back up, and the tab stays. Pulled down by hand, it stays a little longer. It waits while the mouse is moving over it.</div>
+        <label className="switch"><input type="checkbox" name="autoDrop" defaultChecked={b.autoDrop} />Drop down by itself each time someone opens the site</label>
+        <div className="hint">Every visit gets it, including people who have seen it before, so nobody has to find the tab. It does not drop again as they move between pages of the site. Turn it off and visitors have to pull the tab themselves. It stays down for a few seconds, then rolls itself back up, and the tab stays. Pulled down by hand, it stays a little longer. It waits while the mouse is moving over it.</div>
       </div>
 
       <div className="adm-label">What it says</div>

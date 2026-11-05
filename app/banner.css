@@ -1,0 +1,434 @@
+/* ================= THE HANGING BANNER, THEME BY THEME =================
+   site.css draws the banner's parts and its default cloth, which the fan themes still use. Here each classic theme turns it
+   into a real hanging thing: its own material, what it hangs from, what dangles below it, and what you pull.
+   These are materials (wood, steel, neon, gold), so their colours are fixed per theme; the accent still comes from --mint.
+   Only transform, rotate, translate and opacity animate, and nothing runs while the banner is rolled up. */
+
+/* ----- parts every theme can use ----- */
+.hb { --hb-hem: 13px; --hk: var(--mint); --hkf: var(--on-mint); }
+.hb.k-urgent { --hk: #df2b27; --hkf: #fff; }
+.hb.k-news { --hk: var(--pop3); --hkf: #101010; }
+.hb.k-party { --hk: var(--pop2); --hkf: #1a1020; }
+.hb-swing { transform-origin: 50% 0; }
+.hb-rope { transform-origin: 50% 100%; will-change: transform; }
+.hb.open .hb-tab { margin-top: var(--hb-hem); }
+.hb-body { position: relative; z-index: 1; }
+.hb-close { z-index: 2; }
+/* the letters rise and fade in without the usual word masks, which would cut a glowing title into boxes */
+.hb-title .split .w { overflow: visible; }
+@keyframes hb-letter { from { transform: translateY(70%) rotate(9deg); opacity: 0; } }
+.hb-top, .hb-light, .hb-dangles { display: none; pointer-events: none; }
+.hb-light { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+.hb-dangles { position: absolute; left: 0; right: 0; top: 100%; height: 0; }
+/* each one hangs from a thread (::before) with a charm on the end (::after) */
+.hb-dangles i { position: absolute; top: 0; left: var(--x); width: 0; height: var(--len); transform-origin: 50% 0; animation: hb-dangle var(--dur) ease-in-out var(--wait) infinite; }
+.hb-dangles i::before { content: ""; position: absolute; left: -.5px; top: 0; width: 1px; height: 100%; background: var(--thread, currentColor); }
+.hb-dangles i::after { position: absolute; left: 0; top: 100%; translate: -50% -3px; font-style: normal; font-size: var(--charm, 19px); line-height: 1; }
+.hb-dangles i:nth-child(1) { --x: 5.5%; --len: 20px; --dur: 2.7s; --wait: -.3s; }
+.hb-dangles i:nth-child(2) { --x: 16.5%; --len: 40px; --dur: 3.3s; --wait: -1.4s; }
+.hb-dangles i:nth-child(3) { --x: 27.5%; --len: 14px; --dur: 2.3s; --wait: -.7s; }
+.hb-dangles i:nth-child(4) { --x: 38.5%; --len: 32px; --dur: 3s; --wait: -2s; }
+.hb-dangles i:nth-child(5) { --x: 60.5%; --len: 24px; --dur: 2.5s; --wait: -1s; }
+.hb-dangles i:nth-child(6) { --x: 71.5%; --len: 44px; --dur: 3.5s; --wait: -.2s; }
+.hb-dangles i:nth-child(7) { --x: 82.5%; --len: 16px; --dur: 2.4s; --wait: -1.7s; }
+.hb-dangles i:nth-child(8) { --x: 93.5%; --len: 34px; --dur: 3.1s; --wait: -.9s; }
+.hb-dangles i:nth-child(9) { --x: 49.5%; --len: 20px; --dur: 2.8s; --wait: -2.3s; display: none; }
+@keyframes hb-dangle { 0%, 100% { rotate: -11deg; } 50% { rotate: 11deg; } }
+/* a little charm under the pull tab */
+.hb-tab { padding-bottom: 0; }
+.hb-tab::after { font-size: 17px; line-height: 1; margin-top: -1px; }
+/* the tab always sways on its string, with a shake every few seconds to catch the eye */
+.hb-tab { animation: hb-tab-swing 5.4s ease-in-out 2s infinite; }
+@keyframes hb-tab-swing { 0%, 100% { rotate: -2.5deg; } 25%, 50% { rotate: 2.5deg; } 62% { rotate: -2.5deg; } 68% { rotate: 11deg; } 74% { rotate: -9deg; } 80% { rotate: 6deg; } 86% { rotate: -4deg; } 92% { rotate: 2deg; } }
+.hb.open .hb-tab { animation: hb-tab-open 3.2s ease-in-out infinite; }
+@keyframes hb-tab-open { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
+/* cloth ripples, rigid signs don't. Fixed values: a var() in these frames would keep the browser recalculating every frame */
+@keyframes hb-flex-m { 0%, 100% { transform: skewX(-.7deg); } 50% { transform: skewX(.7deg); } }
+@keyframes hb-flex-l { 0%, 100% { transform: skewX(-1.3deg); } 50% { transform: skewX(1.3deg); } }
+/* nothing moves while it's rolled up */
+.hb:not(.open) .hb-cloth * { animation-play-state: paused; }
+
+/* shared by the classic themes: the badge and button use the announcement type's colour, on any material */
+html:is([data-skin="day"], [data-skin="night"], [data-skin="playful"], [data-skin="techy"], [data-skin="sunset"], [data-skin="ocean"], [data-skin="forest"], [data-skin="paper"], [data-skin="retro"], [data-skin="candy"]) .site {
+  & .hb-badge { background: var(--hk); color: var(--hkf); }
+  & .hb-cta { background: var(--hk); color: var(--hkf); }
+  & .hb-hem { display: none; }
+  & .hb-stripe { display: none; }
+  & .k-urgent .hb-stripe { display: block; height: 12px; border-radius: 0; }
+  & .hb-sway { --hb-unit: rgba(0,0,0,.24); }
+  & .hb-unit { background: var(--hb-unit); }
+  & .hb-unit b, & .hb-unit small { color: inherit; }
+}
+
+/* ----- 💻 Techy: a terminal screen hanging on steel cables, with patch cables dangling and a USB stick to pull ----- */
+html[data-skin="techy"] .site {
+  & .hb { --hb-hem: 2px; --hk: var(--mint); --hkf: #04100a; --hc: #05080b; --hf: var(--mint); }
+  & .hb.k-urgent { --hk: #ff4a45; --hkf: #fff; }
+  & .hb.k-news { --hk: var(--pop3); --hkf: #06121a; }
+  & .hb.k-party { --hk: var(--pop2); --hkf: #1c0a14; }
+  & .hb-rope { width: 3px; background: linear-gradient(90deg, #4a5462, #cfd6df 45%, #39424e); box-shadow: 0 0 5px rgba(0,0,0,.6); }
+  & .hb-sway { animation: none; background: #05080b; color: #dcffe9; border: 1.5px solid color-mix(in srgb, var(--hk) 70%, #05080b); border-radius: 9px; box-shadow: 0 0 0 4px #141b24, 0 0 36px -4px color-mix(in srgb, var(--hk) 55%, transparent), 0 26px 50px -12px rgba(0,0,0,.85); }
+  /* the clamps the cables bolt onto */
+  & .hb-sway::before, & .hb-sway::after { top: -11px; width: 24px; height: 11px; margin-left: -12px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #6b7686, #343c48); box-shadow: none; }
+  & .hb-top { display: flex; align-items: center; gap: 44px; height: 30px; padding: 0 14px; font: 500 11px/1 var(--body); color: var(--muted); background: #121922; border-bottom: 1px solid #222c38; border-radius: 7px 7px 0 0; }
+  & .hb-top::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #ff5f56; box-shadow: 16px 0 0 #ffbd2e, 32px 0 0 #27c93f; flex: none; }
+  & .hb-top::after { content: "~/announcement.sh"; white-space: nowrap; }
+  /* scan lines, and one bright band rolling down the screen */
+  & .hb-light { display: block; background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px); }
+  & .hb-light::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 70px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--hk) 16%, transparent), transparent); animation: hb-scan 3.4s linear infinite; }
+  & .hb-badge { border-radius: 3px; }
+  & .hb-title { color: #f2fff7; text-shadow: 0 0 14px color-mix(in srgb, var(--hk) 65%, transparent); font-size: clamp(20px, 3.5vw, 30px); }
+  & .hb-title::after { content: ""; display: inline-block; width: .55em; height: .95em; margin-left: .15em; vertical-align: -.12em; background: var(--hk); animation: hb-blink 1s steps(2) infinite; }
+  & .hb-text { color: #a8bdb1; }
+  & .hb-text::before { content: "> "; color: var(--hk); }
+  & .hb-cta { border-radius: 3px; }
+  & .hb-close { top: 3px; right: 6px; width: 24px; height: 24px; border-radius: 4px; background: transparent; color: var(--muted); font-size: 14px; }
+  & .hb-close:hover { background: #ff5f56; color: #fff; rotate: none; }
+  & .hb-unit { background: #0f1720; border: 1px solid #222c38; border-radius: 3px; }
+  & .hb-dangles { display: block; }
+  & .hb-dangles i:is(:nth-child(2), :nth-child(4), :nth-child(5), :nth-child(7)) { display: none; }
+  & .hb-dangles i { --thread: #2c3540; }
+  & .hb-dangles i::before { width: 2.5px; left: -1px; }
+  & .hb-dangles i::after { content: ""; width: 9px; height: 13px; border-radius: 1px 1px 3px 3px; background: var(--plug, var(--mint)); box-shadow: inset 0 -5px 0 rgba(0,0,0,.3); }
+  & .hb-dangles i:nth-child(3) { --len: 26px; --plug: var(--pop2); }
+  & .hb-dangles i:nth-child(6) { --plug: #ffbd2e; }
+  & .hb-dangles i:nth-child(8) { --plug: var(--pop3); }
+  & .hb-string { width: 3px; height: 16px; background: #39424e; }
+  & .hb-tag { position: relative; border: 1.5px solid var(--hk); border-radius: 3px; background: #05080b; color: var(--hk); box-shadow: 0 0 16px -3px var(--hk); }
+  & .hb-tag::before { content: ""; position: absolute; left: 50%; top: -9px; width: 24px; height: 8px; margin-left: -12px; background: linear-gradient(180deg, #e3e8ee, #8c97a5); border-radius: 1px 1px 0 0; }
+  & .hb-lab::before { content: "$ "; opacity: .7; }
+  & .hb-ping { background: var(--hk); opacity: .4; }
+}
+@keyframes hb-scan { from { transform: translateY(-80px); } to { transform: translateY(260px); } }
+@keyframes hb-blink { 50% { opacity: 0; } }
+
+/* ----- 🎈 Playful: a loud comic sign with balloons tied to it and party flags along the bottom ----- */
+html[data-skin="playful"] .site {
+  & .hb { --hb-hem: 34px; --hk: #ff5ca8; --hkf: #fff; --hc: #ff5ca8; --hf: #fff; }
+  & .hb.k-urgent { --hk: #df2b27; --hkf: #fff; }
+  & .hb.k-news { --hk: #2a1840; --hkf: #ffd84d; }
+  & .hb.k-party { --hk: var(--mint); --hkf: #2a1840; }
+  & .hb-rope { width: 6px; border-radius: 3px; background: repeating-linear-gradient(0deg, #ff5ca8 0 7px, #fff6e6 7px 14px); box-shadow: 0 2px 5px rgba(0,0,0,.35); }
+  & .hb-sway { animation: hb-flex-m 3.6s ease-in-out infinite; color: #2a1840; border: 3.5px solid #2a1840; border-radius: 26px; background: radial-gradient(circle at 12px 12px, rgba(255,255,255,.42) 3.5px, transparent 4px) 0 0 / 28px 28px, #ffd84d; box-shadow: 8px 9px 0 #2a1840; }
+  /* balloons tied to the top corners, bobbing */
+  & .hb-sway::before, & .hb-sway::after { content: "🎈"; top: -16px; width: auto; height: auto; margin: 0; background: none; box-shadow: none; border-radius: 0; font-size: 42px; line-height: 1; animation: hb-bob 2.4s ease-in-out infinite; z-index: 0; }
+  & .hb-sway::before { left: -22px; }
+  & .hb-sway::after { left: auto; right: -22px; animation-delay: -1.1s; animation-duration: 2.9s; }
+  & .hb-title { color: #2a1840; font-weight: 700; }
+  & .hb-close { background: #2a1840; color: #ffd84d; }
+  & .hb-body { padding-top: 20px; }
+  /* flags on a string */
+  & .hb-dangles { display: block; }
+  & .hb-dangles::before { content: ""; position: absolute; left: 3%; right: 3%; top: -7px; height: 3px; border-radius: 2px; background: #2a1840; }
+  & .hb-dangles i { top: -6px; --len: 0px; --thread: transparent; animation: hb-flag var(--dur) ease-in-out var(--wait) infinite; }
+  & .hb-dangles i:nth-child(9) { display: block; }
+  & .hb-dangles i::after { content: ""; top: 0; translate: -50% 0; width: 30px; height: 34px; background: var(--flag, #ff5ca8); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  & .hb-dangles i:nth-child(3n + 2) { --flag: var(--pop3); }
+  & .hb-dangles i:nth-child(3n) { --flag: var(--mint); }
+  & .hb-string { width: 5px; height: 12px; border-radius: 3px; background: repeating-linear-gradient(0deg, #ff5ca8 0 5px, #fff6e6 5px 10px); }
+  & .hb-tag { border: 3px solid #2a1840; border-radius: 99px; background: #ff5ca8; color: #fff; box-shadow: 3px 4px 0 #2a1840; }
+  & .hb-tab::after { content: "⭐"; }
+  & .hb-unit { background: #2a1840; color: #ffd84d; }
+}
+@keyframes hb-flag { 0%, 100% { rotate: -9deg; } 50% { rotate: 9deg; } }
+@keyframes hb-bob { 0%, 100% { translate: 0 0; rotate: -6deg; } 50% { translate: 0 -8px; rotate: 6deg; } }
+@media (max-width: 760px) {
+  html[data-skin="playful"] .site .hb-sway { box-shadow: 5px 6px 0 #2a1840; border-width: 3px; border-radius: 20px; }
+  html[data-skin="playful"] .site .hb-sway::before, html[data-skin="playful"] .site .hb-sway::after { font-size: 30px; top: -12px; }
+  html[data-skin="playful"] .site .hb-sway::before { left: -6px; }
+  html[data-skin="playful"] .site .hb-sway::after { right: -6px; }
+  html[data-skin="playful"] .site .hb-dangles i::after { width: 22px; height: 26px; }
+  html[data-skin="playful"] .site .hb { --hb-hem: 26px; }
+}
+
+/* ----- 📰 Paper: tomorrow's front page, clipped up with wooden pegs, torn along the bottom ----- */
+html[data-skin="paper"] .site {
+  & .hb { --hb-hem: 12px; --hk: #c8341f; --hkf: #fff; --hc: #f1e6cc; --hf: #141414; }
+  & .hb.k-urgent { --hk: #c8341f; --hkf: #fff; }
+  & .hb.k-news { --hk: #141414; --hkf: #fffdf6; }
+  & .hb.k-party { --hk: #1f4e8c; --hkf: #fff; }
+  & .hb-rope { width: 2px; background: repeating-linear-gradient(170deg, #a07f4c 0 3px, #5e4823 3px 6px); box-shadow: none; }
+  & .hb-sway { animation: hb-flex-m 3.6s ease-in-out infinite; rotate: -.7deg; color: #141414; border-radius: 0; background: radial-gradient(rgba(0,0,0,.05) .7px, transparent .9px) 0 0 / 5px 5px, #fffdf6; box-shadow: 0 0 0 1px #141414, 0 20px 28px -12px rgba(20,20,20,.55); }
+  /* wooden pegs */
+  & .hb-sway::before, & .hb-sway::after { top: -30px; width: 15px; height: 40px; margin-left: -7px; border-radius: 3px 3px 5px 5px; background: linear-gradient(90deg, #d8b888 0 44%, #7b5a2c 44% 56%, #c9a56b 56%); box-shadow: inset 0 15px 0 -11px #6f6f6f, 1px 2px 3px rgba(0,0,0,.4); z-index: 3; }
+  & .hb-sway::before { rotate: -4deg; }
+  & .hb-sway::after { rotate: 5deg; }
+  & .hb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 22px 22px 0; padding-bottom: 7px; border-bottom: 4px double #141414; color: #141414; }
+  & .hb-top::before { content: "The Daily Chronicle"; font: 800 clamp(19px, 3.4vw, 28px)/1 var(--display); letter-spacing: -.02em; white-space: nowrap; }
+  & .hb-top::after { content: "Extra! Extra!"; font: italic 600 13px/1 var(--body); color: #c8341f; white-space: nowrap; padding-right: 22px; }
+  & .hb-close { top: 18px; right: 12px; border-radius: 2px; width: 28px; height: 28px; background: #141414; color: #fffdf6; }
+  & .hb-body { padding: 12px 24px 12px 22px; }
+  & .hb-badge { border-radius: 0; }
+  & .hb-title { color: #141414; font-weight: 800; }
+  & .hb-text { font-size: 16px; }
+  & .hb-text::first-letter { float: left; font: 800 2.6em/.82 var(--display); margin: 4px 6px 0 0; color: #c8341f; }
+  & .hb-cta { border-radius: 0; box-shadow: 3px 3px 0 #141414; }
+  & .hb-unit { border-radius: 0; background: #141414; color: #fffdf6; }
+  /* the torn edge */
+  & .hb-hem { display: block; top: calc(100% - 1px); height: 13px; background: #fffdf6; filter: none; clip-path: polygon(0 0, 100% 0, 100% 34%, 96% 78%, 91% 38%, 86% 92%, 80% 30%, 74% 70%, 69% 26%, 63% 100%, 57% 42%, 51% 74%, 45% 24%, 39% 86%, 34% 36%, 27% 96%, 22% 30%, 16% 72%, 10% 34%, 5% 88%, 0 40%); }
+  /* a luggage tag on a bit of twine */
+  & .hb-string { width: 2px; height: 16px; background: repeating-linear-gradient(170deg, #a07f4c 0 3px, #5e4823 3px 6px); }
+  & .hb-tag { padding-top: 10px; padding-bottom: 8px; border-radius: 4px 4px 2px 2px; border: 1px solid #141414; background: #f1e6cc; color: #141414; box-shadow: 2px 3px 0 #141414; font-family: var(--body); font-weight: 700; }
+  & .hb-tag::before { content: ""; position: absolute; left: 50%; top: 2px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; border: 1px solid #5e4823; background: #141414; }
+  & .hb-ping { display: none; }
+}
+@media (max-width: 760px) {
+  html[data-skin="paper"] .site .hb-top::after { display: none; }
+  html[data-skin="paper"] .site .hb-top { margin: 22px 16px 0; padding-right: 30px; }
+  html[data-skin="paper"] .site .hb-body { padding: 10px 16px 10px; }
+}
+
+/* ----- 🕹️ Retro: a neon sign on chains that flickers, with a ball chain to pull like an old lamp ----- */
+html[data-skin="retro"] .site {
+  & .hb { --hb-hem: 2px; --hk: #2de2e6; --hkf: #12002a; --hc: #12002a; --hf: #ff3cac; }
+  & .hb.k-urgent { --hk: #ff4a45; --hkf: #fff; }
+  & .hb.k-news { --hk: #ffd23c; --hkf: #12002a; }
+  & .hb.k-party { --hk: #ff3cac; --hkf: #12002a; }
+  & .hb-rope { width: 9px; margin-left: -4px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='20'%3E%3Crect x='1.2' y='.8' width='6.6' height='11' rx='3.3' fill='none' stroke='%23a9a9c4' stroke-width='1.7'/%3E%3Crect x='3.6' y='10' width='1.8' height='10' rx='.9' fill='%236d6d8c'/%3E%3C/svg%3E") 0 100% / 9px 20px repeat-y; box-shadow: none; }
+  & .hb-sway { animation: none; color: #fff; border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 40%), #160432; box-shadow: 0 0 0 4px #2a1450, 0 0 50px -4px rgba(255,60,172,.75), 0 28px 50px -12px rgba(0,0,0,.8); }
+  /* bolts */
+  & .hb-sway::before, & .hb-sway::after { top: -5px; width: 14px; height: 14px; margin-left: -7px; background: radial-gradient(circle, #1c1c2c 0 2.5px, #a9a9c4 3px 100%); }
+  /* the tube around the edge */
+  & .hb-light { display: block; inset: 9px; border-radius: 11px; border: 3px solid #fff; box-shadow: 0 0 6px #2de2e6, 0 0 18px #2de2e6, inset 0 0 6px #2de2e6, inset 0 0 18px #2de2e6; animation: hb-neon 7s linear infinite; }
+  & .hb-body { padding: 26px 46px 24px 30px; }
+  & .hb-badge { background: transparent; color: var(--hk); box-shadow: inset 0 0 0 1.5px var(--hk); text-shadow: 0 0 8px var(--hk); }
+  & .hb-title { color: #fff; font-size: clamp(19px, 3.4vw, 30px); text-shadow: 0 0 6px #ff3cac, 0 0 18px #ff3cac, 0 0 40px rgba(255,60,172,.6); animation: hb-neon 5.3s linear -2s infinite; }
+  & .hb-text { color: #f0defc; }
+  & .hb-cta { box-shadow: 0 0 16px -2px var(--hk); }
+  & .hb-close { top: 18px; right: 18px; background: transparent; color: #2de2e6; }
+  & .hb-unit { background: rgba(45,226,230,.12); box-shadow: inset 0 0 0 1px #2de2e6; }
+  /* the ball chain */
+  & .hb-string { width: 7px; height: 22px; background: radial-gradient(circle, #dcdcec 0 2.3px, transparent 2.7px) 50% 0 / 7px 6px repeat-y; }
+  & .hb-tag { border: 2px solid #fff; border-radius: 99px; background: #12002a; color: #fff; box-shadow: 0 0 8px #ff3cac, 0 0 20px #ff3cac, inset 0 0 8px #ff3cac; text-shadow: 0 0 8px #ff3cac; }
+  & .hb-ping { background: #ff3cac; opacity: .4; }
+}
+@keyframes hb-neon { 0%, 90%, 92.5%, 95.5%, 100% { opacity: 1; } 91%, 94% { opacity: .35; } }
+@media (max-width: 760px) { html[data-skin="retro"] .site .hb-body { padding: 24px 42px 22px 24px; } }
+
+/* ----- 🌊 Ocean: a ship's sail on thick rope, with sea charms on lines and an anchor to pull ----- */
+html[data-skin="ocean"] .site {
+  & .hb { --hb-hem: 13px; --hk: #0c5a7a; --hkf: #eefbff; --hc: #0c3550; --hf: #f4efe0; }
+  & .hb.k-urgent { --hk: #d42f2a; --hkf: #fff; }
+  & .hb.k-news { --hk: #082a40; --hkf: #eefbff; }
+  & .hb.k-party { --hk: #e0663c; --hkf: #fff; }
+  & .hb-rope { width: 6px; margin-left: -2px; background: repeating-linear-gradient(155deg, #e6d3a8 0 3px, #9c7e48 3px 6px); border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,.5); }
+  & .hb-sway { animation: hb-flex-l 2.8s ease-in-out infinite; color: #0b2a3a; border-radius: 4px 4px 2px 2px; background: repeating-linear-gradient(90deg, transparent 0 58px, rgba(11,42,58,.11) 58px 60px), linear-gradient(180deg, #fbf7ea, #ece3cc); box-shadow: 0 26px 50px -14px rgba(0,0,0,.7); }
+  /* brass rings */
+  & .hb-sway::before, & .hb-sway::after { top: 2px; width: 16px; height: 16px; margin-left: -8px; background: radial-gradient(circle, transparent 0 3.5px, #caa24c 4px 6.6px, #7d5e22 7px 8px, transparent 8.2px); box-shadow: none; }
+  & .hb-top { display: block; height: 11px; background: repeating-linear-gradient(115deg, #e6d3a8 0 5px, #9c7e48 5px 9px); border-radius: 4px; box-shadow: 0 2px 3px rgba(0,0,0,.3); }
+  /* light moving across the canvas as it fills with wind */
+  & .hb-light { display: block; }
+  & .hb-light::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.65), transparent); animation: hb-sheen 4.4s ease-in-out infinite; }
+  & .hb-title { color: #0a3148; }
+  & .hb-close { top: 20px; background: #0c3550; color: #f4efe0; }
+  & .hb-unit { background: #0c3550; color: #f4efe0; }
+  & .hb-hem { display: block; top: calc(100% - 1px); height: 13px; filter: drop-shadow(0 4px 3px rgba(0,0,0,.28)); background: radial-gradient(circle at 15px -3px, #ece3cc 15px, transparent 15.5px) 0 0 / 30px 13px repeat-x; }
+  & .hb-dangles { display: block; color: #e6d3a8; }
+  & .hb-dangles i { top: 8px; }
+  & .hb-dangles i:nth-child(1)::after { content: "🐚"; }
+  & .hb-dangles i:nth-child(2)::after { content: "⚓"; }
+  & .hb-dangles i:nth-child(3)::after { content: "⭐"; }
+  & .hb-dangles i:nth-child(4)::after { content: "🐠"; }
+  & .hb-dangles i:nth-child(5)::after { content: "🦀"; }
+  & .hb-dangles i:nth-child(6)::after { content: "🐟"; }
+  & .hb-dangles i:nth-child(7)::after { content: "🐚"; }
+  & .hb-dangles i:nth-child(8)::after { content: "⛵"; }
+  & .hb-string { width: 5px; height: 14px; background: repeating-linear-gradient(155deg, #e6d3a8 0 3px, #9c7e48 3px 6px); border-radius: 2px; }
+  & .hb-tag { border: 2px solid #caa24c; border-radius: 8px; background: #0c3550; color: #f4efe0; }
+  & .hb-tab::after { content: "⚓"; }
+  & .hb-ping { background: #3fd8d0; opacity: .35; }
+}
+@keyframes hb-sheen { from { transform: translateX(-120%); } to { transform: translateX(300%); } }
+
+/* ----- 🌲 Forest: a wooden trail sign on vines, with moss on top, leaves dangling, and a little arrow sign to pull ----- */
+html[data-skin="forest"] .site {
+  & .hb { --hb-hem: 8px; --hk: #e8b93a; --hkf: #2a1a08; --hc: #7a5229; --hf: #fbf2dc; }
+  & .hb.k-urgent { --hk: #d42f2a; --hkf: #fff; }
+  & .hb.k-news { --hk: #f1efe4; --hkf: #2a1a08; }
+  & .hb.k-party { --hk: #8fce57; --hkf: #1a2a0e; }
+  & .hb-rope { width: 15px; margin-left: -6px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='30'%3E%3Cpath d='M7.5 0v30' stroke='%233f6e22' stroke-width='3'/%3E%3Cpath d='M7.5 9C2 8 .4 4 1 1c4 0 6.300 3 6.500 8z' fill='%236fa645'/%3E%3Cpath d='M7.500 24c5.500-1 7-5 6.500-8-4 0-6.300 3-6.500 8z' fill='%238dbf5e'/%3E%3C/svg%3E") 0 100% / 15px 30px repeat-y; box-shadow: none; }
+  & .hb-sway { animation: none; color: #fbf2dc; border-radius: 12px 16px 10px 14px / 14px 10px 16px 12px; background: repeating-linear-gradient(0deg, rgba(0,0,0,.34) 0 2px, transparent 2px 44px), repeating-linear-gradient(91deg, rgba(0,0,0,.09) 0 2px, rgba(255,226,170,.05) 2px 7px, rgba(0,0,0,.05) 7px 19px), linear-gradient(180deg, #8a5d30, #6c4623); box-shadow: inset 0 0 0 2px rgba(0,0,0,.26), inset 0 0 24px rgba(0,0,0,.28), 0 26px 44px -14px rgba(0,0,0,.65); }
+  /* nails */
+  & .hb-sway::before, & .hb-sway::after { top: 12px; width: 10px; height: 10px; margin-left: -5px; background: radial-gradient(circle at 35% 35%, #c3c3b8, #4a4a42 70%); box-shadow: 0 1px 1px rgba(0,0,0,.6); }
+  /* moss growing along the top */
+  & .hb-top { display: block; position: absolute; left: -3px; right: -3px; top: -7px; height: 15px; z-index: 2; background: radial-gradient(circle at 11px 6px, #5d8f36 8px, transparent 8.5px) 0 0 / 22px 15px repeat-x, radial-gradient(circle at 3px 9px, #7cae4d 6px, transparent 6.500px) 0 0 / 17px 15px repeat-x; }
+  & .hb-body { padding-top: 26px; }
+  & .hb-title { color: #fff7e3; text-shadow: 0 2px 0 rgba(0,0,0,.5), 0 -1px 0 rgba(255,255,255,.1); }
+  & .hb-close { top: 24px; background: rgba(0,0,0,.35); color: #fbf2dc; }
+  & .hb-dangles { display: block; }
+  & .hb-dangles i { --thread: #3f6e22; }
+  & .hb-dangles i::before { width: 2px; left: -1px; }
+  & .hb-dangles i:nth-child(1)::after { content: "🍃"; }
+  & .hb-dangles i:nth-child(2)::after { content: "🍂"; }
+  & .hb-dangles i:nth-child(3)::after { content: "🌿"; }
+  & .hb-dangles i:nth-child(4)::after { content: "🍄"; }
+  & .hb-dangles i:nth-child(5)::after { content: "🌰"; }
+  & .hb-dangles i:nth-child(6)::after { content: "🍁"; }
+  & .hb-dangles i:nth-child(7)::after { content: "🍃"; }
+  & .hb-dangles i:nth-child(8)::after { content: "🐿️"; }
+  & .hb-string { width: 3px; height: 14px; background: #3f6e22; }
+  & .hb-tag { padding: 7px 14px 15px; border-radius: 0; background: linear-gradient(180deg, #8a5d30, #6c4623); color: #fbf2dc; box-shadow: none; clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%); }
+  & .hb-tab::after { content: "🍃"; margin-top: -5px; }
+  & .hb-ping { display: none; }
+}
+
+/* ----- 🌅 Sunset: a silk tapestry on a gold rod, rippling, with a gold fringe and tassels ----- */
+html[data-skin="sunset"] .site {
+  & .hb { --hb-hem: 12px; --hk: #ffc15e; --hkf: #2a1020; --hc: #ffc15e; --hf: #2a1020; }
+  & .hb.k-urgent { --hk: #ffffff; --hkf: #b3121d; }
+  & .hb.k-news { --hk: #fdeee4; --hkf: #2a1020; }
+  & .hb.k-party { --hk: #ff8a5b; --hkf: #1b1020; }
+  & .hb-rope { width: 3px; background: repeating-linear-gradient(170deg, #ffd98e 0 3px, #b47f28 3px 6px); box-shadow: none; }
+  & .hb-rope.l { rotate: 9deg; }
+  & .hb-rope.r { rotate: -9deg; }
+  & .hb-sway { animation: hb-flex-l 3.2s ease-in-out infinite; color: #fff5ea; border-radius: 0; background: radial-gradient(90% 120% at 10% 0, rgba(255,160,90,.75), transparent 62%), linear-gradient(170deg, #b5304f, #8a2467 58%, #4c1a60); box-shadow: inset 0 0 0 2px rgba(255,193,94,.75), inset 0 0 0 5px rgba(0,0,0,.14), 0 26px 50px -14px rgba(0,0,0,.75); }
+  & .hb-sway::before, & .hb-sway::after { display: none; }
+  /* the rod and its finials */
+  & .hb-top { display: block; position: absolute; left: -18px; right: -18px; top: -7px; height: 12px; z-index: 2; border-radius: 6px; background: linear-gradient(180deg, #ffe5ad, #d39a3a 55%, #8f6118); box-shadow: 0 3px 5px rgba(0,0,0,.45); }
+  & .hb-top::before, & .hb-top::after { content: ""; position: absolute; top: -3px; width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff0c9, #d39a3a 60%, #8f6118); }
+  & .hb-top::before { left: -6px; }
+  & .hb-top::after { right: -6px; }
+  /* silk sheen */
+  & .hb-light { display: block; }
+  & .hb-light::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,235,200,.34), transparent); animation: hb-sheen 3.8s ease-in-out infinite; }
+  & .hb-body { padding-top: 24px; }
+  & .hb-title { color: #fff5ea; text-shadow: 0 2px 10px rgba(60,10,50,.6); }
+  & .hb-close { top: 20px; background: rgba(0,0,0,.28); }
+  /* gold fringe */
+  & .hb-hem { display: block; top: 100%; height: 12px; filter: none; background: repeating-linear-gradient(90deg, #ffc15e 0 2px, transparent 2px 5px); }
+  & .hb-dangles { display: block; }
+  & .hb-dangles i:is(:nth-child(2), :nth-child(4), :nth-child(5), :nth-child(7)) { display: block; }
+  & .hb-dangles i:is(:nth-child(1), :nth-child(3), :nth-child(6), :nth-child(8)) { display: none; }
+  & .hb-dangles i { top: 8px; --thread: #ffc15e; }
+  & .hb-dangles i:nth-child(2) { --x: 8%; --len: 26px; }
+  & .hb-dangles i:nth-child(4) { --x: 30%; --len: 16px; }
+  & .hb-dangles i:nth-child(5) { --x: 70%; --len: 18px; }
+  & .hb-dangles i:nth-child(7) { --x: 92%; --len: 28px; }
+  /* a tassel: a knot and a bundle of threads */
+  & .hb-dangles i::after { content: ""; width: 15px; height: 30px; translate: -50% -2px; border-radius: 50% 50% 0 0 / 22% 22% 0 0; background: radial-gradient(circle at 50% 12%, #fff0c9 0 3px, #d39a3a 3.5px 7px, transparent 7.5px), repeating-linear-gradient(90deg, #ffc15e 0 1.5px, #c98a2c 1.5px 3px); clip-path: polygon(30% 0, 70% 0, 72% 28%, 100% 100%, 0 100%, 28% 28%); }
+  & .hb-string { width: 3px; height: 13px; background: repeating-linear-gradient(170deg, #ffd98e 0 3px, #b47f28 3px 6px); }
+  & .hb-tag { border-radius: 3px; background: linear-gradient(180deg, #ffe5ad, #e0a447); color: #2a1020; box-shadow: 0 6px 14px -3px rgba(0,0,0,.6); }
+  & .hb-tab::after { content: ""; width: 12px; height: 18px; margin-top: 0; background: repeating-linear-gradient(90deg, #ffc15e 0 1.5px, #b47f28 1.5px 3px); clip-path: polygon(32% 0, 68% 0, 100% 100%, 0 100%); }
+  & .hb-ping { background: #ffc15e; opacity: .35; }
+}
+@media (max-width: 760px) {
+  html[data-skin="sunset"] .site .hb-top { left: -6px; right: -6px; }
+  html[data-skin="sunset"] .site .hb-top::before { left: -3px; }
+  html[data-skin="sunset"] .site .hb-top::after { right: -3px; }
+}
+
+/* ----- 🌙 Night: a velvet night sky you could hang over a crib, with stars on silver threads ----- */
+html[data-skin="night"] .site {
+  & .hb { --hb-hem: 2px; --hk: var(--mint); --hkf: #06120c; --hc: #0d1a30; --hf: #eef6ff; }
+  & .hb.k-urgent { --hk: #ff4a45; --hkf: #fff; }
+  & .hb.k-news { --hk: #bcd2ff; --hkf: #0d1a30; }
+  & .hb.k-party { --hk: #ffd97a; --hkf: #1a1408; }
+  & .hb-rope { width: 1.5px; background: linear-gradient(90deg, #8fa0b8, #eef6ff); box-shadow: 0 0 4px rgba(200,220,255,.8); }
+  & .hb-sway { animation: hb-flex-m 3.6s ease-in-out infinite; color: #eaf1ff; border-radius: 16px; background: radial-gradient(1px 1px at 12% 22%, #fff, transparent), radial-gradient(1.4px 1.4px at 30% 70%, #fff, transparent), radial-gradient(1px 1px at 47% 18%, #fff, transparent), radial-gradient(1.2px 1.2px at 62% 62%, #dfe9ff, transparent), radial-gradient(1px 1px at 78% 30%, #fff, transparent), radial-gradient(1.4px 1.4px at 90% 80%, #fff, transparent), radial-gradient(120% 140% at 80% 0, #1d2f5c, transparent 60%), #0a1224; box-shadow: inset 0 0 0 1px rgba(255,217,122,.5), 0 0 44px -8px rgba(160,190,255,.55), 0 26px 50px -14px rgba(0,0,0,.8); }
+  & .hb-sway::before, & .hb-sway::after { top: 5px; width: 9px; height: 9px; margin-left: -4.5px; background: radial-gradient(circle, #fff, #9fb3d6 70%); box-shadow: 0 0 6px #dfe9ff; }
+  /* a moon in the corner, and a second layer of stars that twinkles */
+  & .hb-top { display: block; position: absolute; right: 54px; top: 8px; font-size: 40px; line-height: 1; z-index: 0; font-style: normal; animation: hb-rock 5s ease-in-out infinite; }
+  & .hb-top::before { content: "🌙"; }
+  & .hb-light { display: block; background: radial-gradient(1.6px 1.6px at 20% 40%, #fff, transparent), radial-gradient(1.6px 1.6px at 40% 82%, #fff, transparent), radial-gradient(2px 2px at 55% 32%, #fff, transparent), radial-gradient(1.6px 1.6px at 70% 78%, #fff, transparent), radial-gradient(2px 2px at 86% 48%, #fff, transparent), radial-gradient(1.6px 1.6px at 8% 76%, #fff, transparent); animation: hb-twinkle 2.6s ease-in-out infinite; }
+  & .hb-title { color: #fff; text-shadow: 0 0 18px rgba(190,210,255,.6); }
+  & .hb-close { background: rgba(255,255,255,.12); }
+  & .hb-unit { background: rgba(255,255,255,.1); }
+  & .hb-dangles { display: block; }
+  & .hb-dangles i { --thread: rgba(225,235,255,.75); --charm: 17px; }
+  & .hb-dangles i:nth-child(1) { --len: 30px; }
+  & .hb-dangles i:nth-child(2) { --len: 58px; }
+  & .hb-dangles i:nth-child(3) { --len: 20px; }
+  & .hb-dangles i:nth-child(4) { --len: 44px; }
+  & .hb-dangles i:nth-child(5) { --len: 34px; }
+  & .hb-dangles i:nth-child(6) { --len: 62px; }
+  & .hb-dangles i:nth-child(7) { --len: 22px; }
+  & .hb-dangles i:nth-child(8) { --len: 46px; }
+  & .hb-dangles i:nth-child(odd)::after { content: "⭐"; }
+  & .hb-dangles i:nth-child(even)::after { content: "✨"; }
+  & .hb-dangles i:nth-child(4)::after { content: "🌟"; }
+  & .hb-dangles i:nth-child(6)::after { content: "🌟"; font-size: 22px; }
+  & .hb-string { width: 1.5px; height: 18px; background: #dfe9ff; box-shadow: 0 0 4px #dfe9ff; }
+  & .hb-tag { border-radius: 99px; border: 1px solid rgba(255,217,122,.65); background: #0d1a30; color: #eef6ff; box-shadow: 0 0 18px -3px rgba(180,205,255,.8); }
+  & .hb-tab::after { content: "⭐"; }
+  & .hb-ping { background: #9fb9ff; opacity: .4; }
+}
+@keyframes hb-rock { 0%, 100% { rotate: -7deg; } 50% { rotate: 7deg; } }
+@keyframes hb-twinkle { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+
+/* ----- ☀️ Day: a striped café awning over a shop sign, on ribbons, with flowers dangling ----- */
+html[data-skin="day"] .site {
+  & .hb { --hb-hem: 2px; --hk: var(--mint); --hkf: #1a1a1a; --hc: #fffaf0; --hf: #1a1a1a; }
+  & .hb.k-urgent { --hk: #df2b27; --hkf: #fff; }
+  & .hb.k-news { --hk: #1a1a1a; --hkf: #fffaf0; }
+  & .hb.k-party { --hk: var(--pop2); --hkf: #1a1020; }
+  & .hb-rope { width: 7px; background: #fffaf0; border-left: 1px dashed rgba(0,0,0,.18); border-right: 1px dashed rgba(0,0,0,.18); box-shadow: 0 2px 5px rgba(0,0,0,.3); }
+  & .hb-sway { color: #1a1a1a; border-radius: 0 0 18px 18px; background: #fffaf0; box-shadow: 0 26px 50px -14px rgba(0,0,0,.6); }
+  & .hb-sway::before, & .hb-sway::after { display: none; }
+  /* the awning: stripes, with a scalloped edge that hangs over the sign */
+  & .hb-top { display: block; position: relative; height: 30px; margin: 0 -9px 13px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, rgba(0,0,0,.08), transparent 60%), repeating-linear-gradient(90deg, var(--mint) 0 34px, #fffdf8 34px 68px); }
+  & .hb-top::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 13px; background: radial-gradient(circle at 17px 0, var(--mint) 16.5px, transparent 17px) 0 0 / 68px 13px repeat-x, radial-gradient(circle at 51px 0, #fffdf8 16.5px, transparent 17px) 0 0 / 68px 13px repeat-x; filter: drop-shadow(0 3px 2px rgba(0,0,0,.2)); }
+  & .hb-body { padding-top: 10px; }
+  & .hb-title { color: #1a1a1a; }
+  & .hb-close { top: 44px; }
+  & .hb-unit { background: #1a1a1a; color: #fffaf0; }
+  & .hb-dangles { display: block; }
+  & .hb-dangles i { --thread: rgba(255,250,240,.8); }
+  & .hb-dangles i:nth-child(1)::after { content: "🌼"; }
+  & .hb-dangles i:nth-child(2)::after { content: "🌻"; }
+  & .hb-dangles i:nth-child(3)::after { content: "🌸"; }
+  & .hb-dangles i:nth-child(4)::after { content: "🦋"; }
+  & .hb-dangles i:nth-child(5)::after { content: "🌷"; }
+  & .hb-dangles i:nth-child(6)::after { content: "☀️"; }
+  & .hb-dangles i:nth-child(7)::after { content: "🌸"; }
+  & .hb-dangles i:nth-child(8)::after { content: "🌼"; }
+  & .hb-string { width: 6px; height: 12px; background: #fffaf0; }
+  & .hb-tag { border-radius: 4px 4px 14px 14px; background: repeating-linear-gradient(90deg, var(--mint) 0 12px, #fffdf8 12px 24px); color: #1a1a1a; box-shadow: 0 8px 18px -4px rgba(0,0,0,.5); text-shadow: 0 0 5px #fff, 0 0 2px #fff; }
+  & .hb-tab::after { content: "🌼"; }
+  & .hb-ping { background: var(--mint); opacity: .4; }
+}
+@media (max-width: 760px) {
+  html[data-skin="day"] .site .hb-top { margin: 0 -5px 13px; }
+}
+
+/* ----- 🍬 Candy: a frosted sign on candy-cane ropes, dripping icing, with sweets dangling and a lollipop to pull ----- */
+html[data-skin="candy"] .site {
+  & .hb { --hb-hem: 16px; --hk: #fff; --hkf: #c2448a; --hc: #fff; --hf: #c2448a; }
+  & .hb.k-urgent { --hk: #df2b27; --hkf: #fff; }
+  & .hb.k-news { --hk: #6b4c8a; --hkf: #fff; }
+  & .hb.k-party { --hk: #ffd36e; --hkf: #3b2a4a; }
+  & .hb-rope { width: 8px; margin-left: -3px; border-radius: 4px; background: repeating-linear-gradient(135deg, #ff4f8b 0 6px, #fff 6px 12px); box-shadow: 0 2px 5px rgba(160,40,110,.45); }
+  & .hb-sway { animation: hb-flex-m 3.6s ease-in-out infinite; color: #3b2a4a; border-radius: 24px 24px 6px 6px; background: radial-gradient(circle at 18px 20px, #fff 2.5px, transparent 3px) 0 0 / 74px 62px, radial-gradient(circle at 52px 44px, #8fd3ff 2.5px, transparent 3px) 0 0 / 74px 62px, radial-gradient(circle at 36px 8px, #ffd36e 2.5px, transparent 3px) 0 0 / 74px 62px, linear-gradient(180deg, #ffb3d9, #ff8fc7); box-shadow: inset 0 3px 0 rgba(255,255,255,.55), 0 26px 40px -14px rgba(160,40,110,.65); }
+  & .hb-sway::before, & .hb-sway::after { top: 5px; width: 14px; height: 14px; margin-left: -7px; background: radial-gradient(circle at 35% 30%, #fff, #ff4f8b 55%, #c2246b); box-shadow: 0 2px 3px rgba(160,40,110,.5); }
+  & .hb-title { color: #3b2a4a; text-shadow: 0 2px 0 rgba(255,255,255,.55); }
+  & .hb-close { background: #fff; color: #c2448a; }
+  & .hb-unit { background: #fff; color: #3b2a4a; }
+  /* icing running down */
+  & .hb-hem { display: block; top: calc(100% - 1px); height: 26px; filter: drop-shadow(0 4px 2px rgba(160,40,110,.3)); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='26'%3E%3Cpath d='M0 0h150c0 5-5 7-9 7s-5 3-5 8-3 8-7 8-7-3-7-8-2-8-6-8-5 2-5 4-3 5-6 5-6-3-6-6-3-3-7-3-5 5-5 11-3 8-7 8-7-3-7-8-2-11-6-11-4 2-4 4-3 4-6 4-5-3-5-5-3-3-6-3-6 3-6 8-3 7-6 7-6-2-6-7-3-8-8-8c-8 0-10-3-10-7z' fill='%23ff8fc7'/%3E%3C/svg%3E") 0 0 / 150px 26px repeat-x; }
+  & .hb-dangles { display: block; }
+  & .hb-dangles i { top: 20px; --thread: #ff4f8b; }
+  & .hb-dangles i:nth-child(1)::after { content: "🍭"; }
+  & .hb-dangles i:nth-child(2)::after { content: "🍬"; }
+  & .hb-dangles i:nth-child(3)::after { content: "🍩"; }
+  & .hb-dangles i:nth-child(4)::after { content: "🧁"; }
+  & .hb-dangles i:nth-child(5)::after { content: "🍓"; }
+  & .hb-dangles i:nth-child(6)::after { content: "🍭"; }
+  & .hb-dangles i:nth-child(7)::after { content: "🍬"; }
+  & .hb-dangles i:nth-child(8)::after { content: "🍪"; }
+  & .hb-string { width: 5px; height: 12px; border-radius: 3px; background: repeating-linear-gradient(135deg, #ff4f8b 0 4px, #fff 4px 8px); }
+  & .hb-tag { border-radius: 99px; border: 2.5px solid #ff4f8b; background: #fff; color: #c2448a; box-shadow: 0 6px 14px -3px rgba(160,40,110,.55); }
+  & .hb-tab::after { content: "🍭"; }
+  & .hb-ping { background: #ff8fc7; opacity: .4; }
+}
+
+/* phones have less room and less power: two fewer charms */
+@media (max-width: 760px) {
+  html:is([data-skin="ocean"], [data-skin="forest"], [data-skin="night"], [data-skin="day"], [data-skin="candy"]) .site .hb-dangles i:is(:nth-child(2), :nth-child(7)) { display: none; }
+}
+
+/* the things that move all the time are left out for slow devices and for people who asked for less motion */
+html.lite .hb :is(.hb-tab, .hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-title), html.lite .hb :is(.hb-sway, .hb-light)::before, html.lite .hb :is(.hb-sway, .hb-light)::after { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .hb :is(.hb-tab, .hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-title), .hb :is(.hb-sway, .hb-light)::before, .hb :is(.hb-sway, .hb-light)::after { animation: none !important; }
+}
+/* the banner noticed it's on a device that can't keep up (see the loop in HangingBanner) */
+.hb.hb-calm :is(.hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-title), .hb.hb-calm :is(.hb-sway, .hb-light)::before, .hb.hb-calm :is(.hb-sway, .hb-light)::after { animation: none !important; }

@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -14,6 +14,30 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-07: A real hanging thing for each theme (waiting for the owner: keep or undo)
+
+**Each classic theme has its own banner** (`app/banner.css`): Techy a terminal on steel cables with patch cables and a USB stick to pull; Playful a comic sign with balloons and flags; Paper a front page on wooden pegs, torn at the bottom; Retro a flickering neon sign on chains with a ball-chain pull; Ocean a sail on rope with sea charms and an anchor; Forest a plank sign on vines with moss and leaves; Sunset silk on a gold rod with fringe and tassels; Night a velvet sky with stars on threads; Day a striped awning with flowers; Candy frosting with icing drips and sweets. Everything is chosen by `html[data-skin]` in CSS, so switching theme needs no reload; `.hb-top`, `.hb-light` and `.hb-dangles` are the empty parts each theme fills in. The 20 fan themes still use the plain cloth; give them their own when each is improved.
+
+**It moves like a hanging thing** (`HangingBanner.tsx`): it falls freely, the ropes go taut, it bounces and starts swinging. The ropes lean because their tops stay at the menu bar. While down, a breeze and the odd gust keep it moving. A tap on it makes it jump. The physics now runs at a fixed rate, which also fixes double speed on 120Hz screens.
+
+**Opens on every visit, not once per announcement.** `justArrived()` is true for a link, a typed address or a reload, and false when moving between the site's own pages or using Back. `lc_banner_seen` is no longer used.
+
+**Other fixes:** on phones and tablets Résumé and Say Hello moved below the pull tab (checked at 11 widths on all 10 themes). The photo hangs from one strip of tape in the middle, the point it swings from. The owner wrote "one tap not two", read as one tape. In case it meant tapping too, the hover wave is now off on touch screens, because an iPhone can spend the first tap on a hover that reveals something. That part has not been tried on a real iPhone.
+
+**Smoothness**, on a production build with the same content, banner present versus removed. This PC varies a lot between runs, so compare within a row:
+
+| | Banner removed | With banner |
+|---|---|---|
+| Scrolling, rolled up (Playful) | 48.6 fps | 49.7 fps |
+| Scrolling, rolled up (Techy) | 34.5 fps | 34.0 fps |
+| Idle, banner down (Playful) | 57.4 fps | 52.9 fps |
+| Idle, banner down (Techy) | 57.2 fps | 56.8 fps |
+| Idle, banner down, 4x slower CPU (Playful, 3 runs) | 16-26 fps | 12-21 fps |
+
+Those were measured before calm mode. Every visitor now gets the banner while the page is still busy, so a device that shows 15 slow frames while it's down gets `.hb-calm`: no breeze, nothing dangling. The drop and swing still play. Freezes of several seconds on the 4x test also happened with the banner removed, so they aren't from the banner.
+
+**Testing trap:** `npm run build` while `next start` is still running leaves pages pointing at a deleted stylesheet, and the numbers look plausible while the page is unstyled. Stop the server first, delete `.next`, and check the new CSS is really served before measuring. Stopping a background `npm run` can leave the node process alive on its port.
 
 ### 2026-11-06: Banner rolls itself up
 
