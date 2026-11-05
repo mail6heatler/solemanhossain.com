@@ -88,7 +88,7 @@ export default function ThemeSwitch({ defaultTheme, timezone, shuffle, menu = tr
           {emoji(cur)}
         </button>
         {open && (
-          <div className="skin-menu" role="menu" aria-label="Themes">
+          <div className="skin-menu" role="menu" aria-label="Themes" data-lenis-prevent>
             {SKIN_GROUPS.map((g) => (
               <div key={g.label} role="group" aria-label={g.label}>
                 <div className="skin-group">{g.label}</div>

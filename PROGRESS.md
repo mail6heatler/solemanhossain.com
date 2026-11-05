@@ -9,16 +9,17 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
-## Decision waiting on the owner
+## Agreed for later
 
-Keep or undo the 20 fan themes (below), after they've seen them live.
-
-- **Keep:** nothing to do. Record it here.
-- **Undo:** run `git revert --no-edit` on the theme commits on `main` and push; that redeploys by itself. No database change was made. If they saved a fan theme as the default or added theme pictures, the leftover values are ignored: an unknown default falls back to Night.
+Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
 
-### 2026-11-05: 20 fan themes
+### 2026-11-06: Theme menu scrolling
+
+The mouse wheel over the theme menu scrolled the page instead of the list, because Lenis took the wheel. Fixed with `data-lenis-prevent`, plus `overscroll-behavior: contain` so reaching the end of the list doesn't move the page.
+
+### 2026-11-05: 20 fan themes (kept by the owner)
 
 Messi, Batman, Spider-Man, Max Verstappen, Khabib, Arthur Morgan, Naruto, Jack Sparrow, Dabbe, Salman Khan, Palestine, Islamic, Travel, Power Rangers, Tom and Jerry, Ben 10, Bangladesh, Game of Thrones, Harry Potter, Interstellar. The owner gave a blanket go-ahead before going to sleep, so all 20 shipped as one release instead of the 4 batches first proposed.
 
