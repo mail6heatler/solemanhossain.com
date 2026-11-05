@@ -26,7 +26,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 The owner wants the 20 fan themes improved one by one later, so visitors can't pick them for now: they show greyed out in the menu, aren't in Random or shuffle, can't be the default, and a visitor who had chosen one falls back to the site default. `?theme=<key>` still previews them.
 
-The hero photo now hangs from the menu bar (`.hang` in `app/page.tsx`, under the `sticker` switch): taped, sways, swings on scroll, scrolls away with the page. Résumé and Say Hello sit beside it as paper cut-outs. The sculpture moved to the open space below. The Résumé button still needs a résumé uploaded, and the live photo is still a normal photo, not a transparent cut-out.
+The hero photo now hangs from the menu bar (`.hang` in `app/page.tsx`, under the `sticker` switch): taped, sways, swings on scroll, scrolls away with the page. Résumé and Say Hello sit beside it as paper cut-outs. The sculpture moved to the open space below. The owner has uploaded a transparent cut-out photo. The Résumé button still needs a résumé uploaded.
 
 ### 2026-11-06: Theme menu scrolling
 
