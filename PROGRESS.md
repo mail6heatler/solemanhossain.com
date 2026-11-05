@@ -15,7 +15,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-07: A real hanging thing for each theme (waiting for the owner: keep or undo)
+### 2026-11-07: A real hanging thing for each theme (kept by the owner)
 
 **Each classic theme has its own banner** (`app/banner.css`): Techy a terminal on steel cables with patch cables and a USB stick to pull; Playful a comic sign with balloons and flags; Paper a front page on wooden pegs, torn at the bottom; Retro a flickering neon sign on chains with a ball-chain pull; Ocean a sail on rope with sea charms and an anchor; Forest a plank sign on vines with moss and leaves; Sunset silk on a gold rod with fringe and tassels; Night a velvet sky with stars on threads; Day a striped awning with flowers; Candy frosting with icing drips and sweets. Everything is chosen by `html[data-skin]` in CSS, so switching theme needs no reload; `.hb-top`, `.hb-light` and `.hb-dangles` are the empty parts each theme fills in. The 20 fan themes still use the plain cloth; give them their own when each is improved.
 
