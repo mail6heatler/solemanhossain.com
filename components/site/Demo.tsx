@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { SKIN_LABELS, type Skin } from "@/lib/settings";
+import { SKIN_LABELS, THEMES, type Skin } from "@/lib/settings";
 import { burst, confettiFrom, toast } from "./fx";
 
 type Demo = { tip: string; target?: string; run?: () => void; on?: boolean };
@@ -69,7 +69,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       banner: { tip: "Pull the tab under the menu bar, let go, then drag the banner back up." },
       themefx: { on: fx.themefx, tip: "Every theme has its own living effects. Watch them change, and click anywhere for that theme's burst.", run: async () => {
         const h = document.documentElement;
-        for (const t of ["ocean", "techy", "retro", "paper", "sunset", "forest", "candy", "playful", "night", "day"]) {
+        for (const t of THEMES) {
           h.dataset.skin = t; window.dispatchEvent(new Event("skinchange"));
           toast(`${SKIN_LABELS[t as Skin]} (preview, not saved)`, 4800);
           await sleep(5000);

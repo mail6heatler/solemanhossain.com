@@ -1,11 +1,14 @@
 // Each theme's living background, drawn on one quiet canvas behind the content (see ThemeFx.tsx).
 // No libraries. Every scene is a few dozen particles, so this stays light next to the 3D hero.
 
+import { fanBurst, hasFanScene, makeFanScene } from "./themeScenes2";
+import { sprite } from "./themeArt";
+
 export type Palette = { a: string; b: string; c: string; deep: string; fg: string };
 type C = CanvasRenderingContext2D;
 export type Frame = { w: number; h: number; t: number; dt: number; speed: number; scrollY: number };
 export type Scene = { trails?: boolean; draw(c: C, f: Frame): void };
-type Bit = { x: number; y: number; vx: number; vy: number; life: number; max: number; r: number; rot: number; col: string; kind: string };
+type Bit = { x: number; y: number; vx: number; vy: number; life: number; max: number; r: number; rot: number; col: string; kind: string; sp?: string };
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const TAU = Math.PI * 2;
@@ -25,7 +28,8 @@ function drawBits(c: C, dt: number) {
     if (b.kind !== "ring" && b.kind !== "ink") b.vy += 120 * dt;
     c.globalAlpha = 1 - p;
     c.fillStyle = c.strokeStyle = b.col;
-    if (b.kind === "ring") { c.lineWidth = 2 * (1 - p); c.beginPath(); c.ellipse(b.x, b.y, b.r + p * 110, (b.r + p * 110) * 0.42, 0, 0, TAU); c.stroke(); }
+    if (b.sp) { c.save(); c.translate(b.x, b.y); c.rotate(b.rot); sprite(c, b.sp, b.r, b.col); c.restore(); }
+    else if (b.kind === "ring") { c.lineWidth = 2 * (1 - p); c.beginPath(); c.ellipse(b.x, b.y, b.r + p * 110, (b.r + p * 110) * 0.42, 0, 0, TAU); c.stroke(); }
     else if (b.kind === "glyph") { c.font = "13px ui-monospace, Consolas, monospace"; c.fillText(b.r > 3 ? "1" : "0", b.x, b.y); }
     else if (b.kind === "pixel") c.fillRect(b.x, b.y, b.r + 1, b.r + 1);
     else if (b.kind === "ink") { c.globalAlpha = (1 - p) * 0.8; c.beginPath(); c.arc(b.x, b.y, b.r * Math.min(1, p * 8), 0, TAU); c.fill(); }
@@ -359,11 +363,19 @@ function candy(p: Palette, w: number, h: number): Scene {
 }
 
 const SCENES: Record<string, (p: Palette, w: number, h: number) => Scene> = { night, day, playful, techy, retro, ocean, sunset, forest, paper, candy };
-export const makeScene = (skin: string, p: Palette, w: number, h: number) => (SCENES[skin] ?? night)(p, w, h);
+export const makeScene = (skin: string, p: Palette, w: number, h: number) => (hasFanScene(skin) ? makeFanScene(skin, p, w, h) : (SCENES[skin] ?? night)(p, w, h));
 export const drawBursts = drawBits;
 
 /** What a click does on each theme. */
 export function clickBurst(skin: string, p: Palette, x: number, y: number) {
+  const fan = fanBurst(skin, p);
+  if (fan) {
+    for (let i = 0; i < fan.n && bits.length < 120; i++) {
+      const a = rnd(0, TAU), s = rnd(fan.speed * 0.3, fan.speed);
+      bits.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, life: 0, max: rnd(0.7, 1.3), r: rnd(fan.size * 0.7, fan.size * 1.2), rot: rnd(0, TAU), col: pick(fan.cols), kind: "fan", sp: pick(fan.kinds) });
+    }
+    return;
+  }
   const cols = [p.a, p.b, p.c];
   if (skin === "ocean") { for (let i = 0; i < 3; i++) bits.push({ x, y, vx: 0, vy: 0, life: -i * 0.16, max: 1.1, r: 6, rot: 0, col: "#dffcff", kind: "ring" }); spray(x, y, "dot", ["#dffcff"], 5, 70); }
   else if (skin === "techy") spray(x, y, "glyph", [p.a, "#d9ffe9"], 18, 190);

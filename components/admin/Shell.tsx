@@ -32,6 +32,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     { href: "/admin/inbox", label: "Inbox", icon: "inbox", badge: unread },
     { href: "/admin/banner", label: "Hanging banner", icon: "speakerphone" },
     { href: "/admin/appearance", label: "Appearance", icon: "palette" },
+    { href: "/admin/themes", label: "Theme pictures", icon: "photo" },
     { href: "/admin/settings", label: "Settings", icon: "settings" },
   ], [sections, unread]);
 
@@ -60,9 +61,9 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
           <nav className="adm-nav">
             {links.slice(0, 1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
             <div className="adm-divider" />
-            {links.slice(1, -4).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
+            {links.slice(1, -5).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
             <div className="adm-divider" />
-            {links.slice(-4, -1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
+            {links.slice(-5, -1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
             <span className="mobile-only-settings">{links.slice(-1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}</span>
           </nav>
           <div className="adm-owner">

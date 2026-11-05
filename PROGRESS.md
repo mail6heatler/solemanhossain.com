@@ -5,11 +5,31 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
+## Decision waiting on the owner
+
+Keep or undo the 20 fan themes (below), after they've seen them live.
+
+- **Keep:** nothing to do. Record it here.
+- **Undo:** run `git revert --no-edit` on the theme commits on `main` and push; that redeploys by itself. No database change was made. If they saved a fan theme as the default or added theme pictures, the leftover values are ignored: an unknown default falls back to Night.
+
 ## Log
+
+### 2026-11-05: 20 fan themes
+
+Messi, Batman, Spider-Man, Max Verstappen, Khabib, Arthur Morgan, Naruto, Jack Sparrow, Dabbe, Salman Khan, Palestine, Islamic, Travel, Power Rangers, Tom and Jerry, Ben 10, Bangladesh, Game of Thrones, Harry Potter, Interstellar. The owner gave a blanket go-ahead before going to sleep, so all 20 shipped as one release instead of the 4 batches first proposed.
+
+Each theme has its own colours, fonts, drawn scenery and moving figure on the first screen, chapter pattern where it suits, sliding-headline style, living background, click burst and banner drop. All existing effects work with them. 30 themes in total; the menu is grouped.
+
+**Pictures, as agreed with the owner:** official character art was not used, even though they offered blanket permission, because that permission isn't theirs to give. All scenery and figures are original drawings (`public/themes/art/`), so they suggest the subject rather than copy it. 7 themes use free pictures from Wikimedia Commons, licences read from each file's record and credited in the footer (`lib/themeCredits.ts`): Messi, Verstappen, Interstellar, Bangladesh, Palestine, Islamic, Travel. Salman Khan and Khabib have no photo: the free-labelled candidates looked like professional shots with doubtful licences, or included bystanders or a head of state. Dashboard → Theme pictures lets the owner add their own picture to any fan theme (`settings.themePics`), and that's their decision. Fan themes show an "unofficial fan theme" line in the footer.
+
+**Scrolling:** all 20 measured about the same as Paper in the same session (39 to 52 fps, 0 to 5 frames over 50ms, with this PC capped near 48 fps at the time), so they didn't bring the lag back. Photos and fonts download only for the active theme.
+
+**Sensitive themes:** Islamic has no figures and no scripture used as decoration. Palestine is kept dignified, with slow olive leaves only. Dabbe has no jump scares or harsh flashing.
+
 
 ### 2026-11-05: Update 3 (kept by the owner)
 

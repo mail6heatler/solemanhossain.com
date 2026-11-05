@@ -1179,3 +1179,6 @@ html.lite .ribbon { -webkit-mask: none; mask: none; animation: none; }
 /* what falls from the banner */
 .hb-fall { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 88; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .hb-fall { display: none; } }
+
+/* theme menu: groups, now that there are 30 themes */
+.skin-group { font: 700 10.5px var(--body); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); padding: 9px 9px 4px; }

@@ -26,13 +26,16 @@ export function parseMedia(raw: unknown, fallbackImage = ""): Media[] {
 }
 
 /** Real themes (each has its own look in site.css). */
-export const THEMES = ["day", "night", "playful", "techy", "sunset", "ocean", "forest", "paper", "retro", "candy"] as const;
+export const FAN_THEME_KEYS = ["messi", "batman", "spiderman", "verstappen", "khabib", "arthur", "naruto", "sparrow", "dabbe", "salman", "palestine", "islamic", "travel", "rangers", "tomjerry", "ben10", "bangladesh", "got", "potter", "interstellar"] as const;
+export const THEMES = ["day", "night", "playful", "techy", "sunset", "ocean", "forest", "paper", "retro", "candy", ...FAN_THEME_KEYS] as const;
 /** Everything that can be chosen: the themes plus Auto (day/night by clock) and Random (a different one every visit). */
 export const SKINS = [...THEMES, "auto", "random"] as const;
 export type Skin = (typeof SKINS)[number];
 export const SKIN_LABELS: Record<Skin, string> = {
   day: "☀️ Day calm", night: "🌙 Night neon", playful: "🎈 Playful", techy: "💻 Techy",
   sunset: "🌅 Sunset", ocean: "🌊 Ocean", forest: "🌲 Forest", paper: "📰 Paper", retro: "🕹️ Retro", candy: "🍬 Candy",
+  messi: "⚽ Lionel Messi", batman: "🦇 Batman", spiderman: "🕷️ Spider-Man", verstappen: "🏎️ Max Verstappen", khabib: "🥊 Khabib", arthur: "🤠 Arthur Morgan", naruto: "🍥 Naruto", sparrow: "🏴‍☠️ Jack Sparrow", dabbe: "🕯️ Dabbe", salman: "🎬 Salman Khan",
+  palestine: "🕊️ Palestine", islamic: "☪️ Islamic", travel: "✈️ Travel", rangers: "⚡ Power Rangers", tomjerry: "🐭 Tom and Jerry", ben10: "⌚ Ben 10", bangladesh: "🌾 Bangladesh", got: "⚔️ Game of Thrones", potter: "🧙 Harry Potter", interstellar: "🌌 Interstellar",
   auto: "🕕 Auto (night after 6 PM)", random: "🔀 Random (different every visit)",
 };
 /** Short description + two swatch colours for the theme menu. */
@@ -47,8 +50,44 @@ export const SKIN_INFO: Record<Skin, { d: string; c: [string, string] }> = {
   paper: { d: "Black ink on newsprint", c: ["#f6f3ea", "#c8341f"] },
   retro: { d: "80s synthwave neon", c: ["#12002a", "#ff3cac"] },
   candy: { d: "Soft pastels", c: ["#fff5fb", "#ff8fc7"] },
+  messi: { d: "Sky blue, the pitch, the number 10", c: ["#75c3f0", "#ffffff"] },
+  batman: { d: "Night city, rain, a yellow signal", c: ["#0b0d12", "#f5c518"] },
+  spiderman: { d: "Red, blue and webs", c: ["#ea2e33", "#2f77ff"] },
+  verstappen: { d: "Race car and checkered flags", c: ["#0a1128", "#ff1e3c"] },
+  khabib: { d: "The cage, peaks and an eagle", c: ["#141210", "#c9a24a"] },
+  arthur: { d: "The frontier at dusk", c: ["#1e140c", "#c8893d"] },
+  naruto: { d: "Village, orange, ninja dash", c: ["#2a160a", "#f7821b"] },
+  sparrow: { d: "Pirate ship on a moonlit sea", c: ["#0b1a22", "#d4a742"] },
+  dabbe: { d: "Fog, candles, a creepy house", c: ["#0a0808", "#a32222"] },
+  salman: { d: "Bollywood stage and gold", c: ["#160a14", "#f2b01e"] },
+  palestine: { d: "Flag colours and olive branches", c: ["#141414", "#007a3d"] },
+  islamic: { d: "Geometry, gold and lanterns", c: ["#06231f", "#d8b15a"] },
+  travel: { d: "Skies, landmarks, a plane", c: ["#16a6b6", "#ff7a45"] },
+  rangers: { d: "Five colours and energy bolts", c: ["#ff2a3c", "#1e7bff"] },
+  tomjerry: { d: "A cartoon cat-and-mouse chase", c: ["#f8dd96", "#6d8fb3"] },
+  ben10: { d: "Alien green and circuits", c: ["#07130a", "#39ff14"] },
+  bangladesh: { d: "Red sun, green fields, rickshaw", c: ["#006a4e", "#f42a41"] },
+  got: { d: "Ice, fire and a dragon", c: ["#122538", "#d9481c"] },
+  potter: { d: "Castle, candles and owls", c: ["#0e0b1e", "#e3b341"] },
+  interstellar: { d: "A black hole and deep space", c: ["#05070d", "#ff9d42"] },
   auto: { d: "Night after 6 PM", c: ["#f5f2ee", "#0b100d"] },
   random: { d: "A surprise every visit", c: ["#ff8a5b", "#3fd8d0"] },
+};
+
+/** How the theme menu is grouped. */
+export const SKIN_GROUPS: { label: string; keys: Skin[] }[] = [
+  { label: "Classic", keys: ["day", "night", "playful", "techy", "sunset", "ocean", "forest", "paper", "retro", "candy"] },
+  { label: "Heroes and legends", keys: ["messi", "verstappen", "khabib", "salman", "batman", "spiderman", "naruto", "ben10", "rangers"] },
+  { label: "Stories and worlds", keys: ["got", "potter", "interstellar", "sparrow", "arthur", "tomjerry", "dabbe"] },
+  { label: "Places and faith", keys: ["bangladesh", "palestine", "islamic", "travel"] },
+  { label: "Let the site choose", keys: ["auto", "random"] },
+];
+/** Fonts for the fan themes. Only the active theme's are downloaded (see skinScript). */
+export const THEME_FONTS: Partial<Record<Skin, string>> = {
+  messi: "Anton&family=Barlow:wght@400;500;700", batman: "Bebas+Neue&family=Barlow:wght@400;500;700", spiderman: "Bangers", verstappen: "Russo+One&family=Titillium+Web:wght@400;600;700", khabib: "Teko:wght@500;700",
+  arthur: "Rye&family=Bitter:wght@400;500;700", naruto: "Potta+One&family=Nunito:wght@400;600;700", sparrow: "Pirata+One&family=Alegreya:wght@400;500;700", dabbe: "Creepster&family=Special+Elite", salman: "Yatra+One&family=Poppins:wght@400;500;600",
+  palestine: "Cairo:wght@400;600;800", islamic: "Aref+Ruqaa:wght@700&family=Lato:wght@400;700", travel: "Pacifico&family=Nunito:wght@400;600;700", rangers: "Bungee", tomjerry: "Luckiest+Guy&family=Baloo+2:wght@400;500;700",
+  ben10: "Audiowide", bangladesh: "Baloo+Da+2:wght@500;800&family=Hind+Siliguri:wght@400;500;600", got: "Cinzel:wght@700;800&family=Crimson+Text:wght@400;600", potter: "Almendra:wght@400;700&family=Crimson+Text:wght@400;600", interstellar: "Exo+2:wght@400;500;700;800",
 };
 
 /** Every effect on the public site. Each one can be switched off on the Appearance page. */
@@ -181,6 +220,8 @@ export type SiteSettings = {
   nowStatus: string;
   partyWord: string;
   banner: Banner;
+  /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
+  themePics: Record<string, string>;
   effects: Effects;
 };
 
@@ -223,6 +264,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   nowStatus: "",
   partyWord: "shou",
   banner: DEFAULT_BANNER,
+  themePics: {},
   effects: ALL_ON,
 };
 
@@ -284,7 +326,7 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
 export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects">) {
   // lt: a device already found to be too slow stays on the lighter version for this visit (see Effects.tsx)
-  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, lt: s.effects.autolite }).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, lt: s.effects.autolite, f: THEME_FONTS }).replace(/</g, "\\u003c");
   // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
     `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
@@ -293,6 +335,8 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
     `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
     `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p);` +
     `try{if(c.lt&&sessionStorage.getItem("lc_lite"))h.classList.add("lite")}catch(e){}` +
+    // a fan theme's fonts download only when that theme is showing, now or after switching
+    `var ff=function(){var k=h.getAttribute("data-skin"),u=c.f[k];if(!u||document.getElementById("lf-"+k))return;var l=document.createElement("link");l.id="lf-"+k;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+u+"&display=swap";document.head.appendChild(l)};ff();try{new MutationObserver(ff).observe(h,{attributes:true,attributeFilter:["data-skin"]})}catch(e){}` +
     // photo morph + page glide: browsers that support cross-page view transitions animate, others just navigate
     `if(c.vt){var st=document.createElement("style");st.textContent="@view-transition{navigation:auto}";document.head.appendChild(st)}if(c.gl)h.classList.add("vt-glide");` +
     // the opening curtain plays once per session, and never over a preview link or a jump to a section

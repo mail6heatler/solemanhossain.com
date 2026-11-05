@@ -1,0 +1,276 @@
+/* ================= THE 20 FAN THEMES =================
+   Each theme sets a few colours, fonts and pictures; everything else is worked out from them in the shared block below.
+   Pictures load only for the active theme, because a url() in an unused rule is never fetched.
+   --theme-pic is the photo layer: Chrome.tsx overrides it with a picture uploaded in the dashboard. */
+
+/* ----- shared: derived tokens ----- */
+html:is([data-skin="messi"], [data-skin="batman"], [data-skin="spiderman"], [data-skin="verstappen"], [data-skin="khabib"], [data-skin="arthur"], [data-skin="naruto"], [data-skin="sparrow"], [data-skin="dabbe"], [data-skin="salman"], [data-skin="palestine"], [data-skin="islamic"], [data-skin="travel"], [data-skin="rangers"], [data-skin="tomjerry"], [data-skin="ben10"], [data-skin="bangladesh"], [data-skin="got"], [data-skin="potter"], [data-skin="interstellar"]) .site {
+  --bg-2: color-mix(in srgb, var(--bg) 95%, var(--fg));
+  --card: color-mix(in srgb, var(--bg) 90%, var(--fg));
+  --line: color-mix(in srgb, var(--bg) 80%, var(--fg));
+  --muted: color-mix(in srgb, var(--fg) 66%, var(--bg));
+  --muted-2: color-mix(in srgb, var(--fg) 44%, var(--bg));
+  --text-2: color-mix(in srgb, var(--fg) 84%, var(--bg));
+  --text-3: color-mix(in srgb, var(--fg) 93%, var(--bg));
+  --nav-bg: color-mix(in srgb, var(--bg) 96%, transparent);
+  --soft: color-mix(in srgb, var(--fg) 3%, transparent);
+  --ph-a: color-mix(in srgb, var(--mint) 18%, var(--bg));
+  --ph-b: color-mix(in srgb, var(--pop3) 12%, var(--bg));
+  --mint-deep: color-mix(in srgb, var(--mint) 62%, var(--fg));
+  --inv-bg: color-mix(in srgb, var(--bg) 84%, var(--fg));
+  --inv-fg: var(--fg);
+  --inv-muted: color-mix(in srgb, var(--fg) 66%, var(--bg));
+  --inv-line: color-mix(in srgb, var(--bg) 66%, var(--fg));
+  --inv-field: color-mix(in srgb, var(--bg) 94%, var(--fg));
+  --hero-muted: color-mix(in srgb, var(--hero-fg) 66%, var(--hero-bg));
+  --hero-sub: color-mix(in srgb, var(--hero-fg) 84%, var(--hero-bg));
+  --hero-line: color-mix(in srgb, var(--hero-fg) 26%, var(--hero-bg));
+  --hero-line-2: color-mix(in srgb, var(--hero-fg) 16%, var(--hero-bg));
+  --avatar-bg: color-mix(in srgb, var(--hero-bg) 80%, var(--hero-fg));
+  --glow: 0 0 20px color-mix(in srgb, var(--mint) 40%, transparent);
+  --glow-text: 0 0 16px color-mix(in srgb, var(--mint) 45%, transparent);
+  /* the picture sits to the right and fades into the theme's colour under the words */
+  --hero-fade: linear-gradient(90deg, var(--hero-bg) 24%, color-mix(in srgb, var(--hero-bg) 72%, transparent) 54%, color-mix(in srgb, var(--hero-bg) 34%, transparent) 100%);
+  --hero-art: var(--hero-fade), var(--theme-pic, var(--hero-sky, none));
+  --r-card: 14px;
+}
+html:is([data-skin="messi"], [data-skin="batman"], [data-skin="spiderman"], [data-skin="verstappen"], [data-skin="khabib"], [data-skin="arthur"], [data-skin="naruto"], [data-skin="sparrow"], [data-skin="dabbe"], [data-skin="salman"], [data-skin="palestine"], [data-skin="islamic"], [data-skin="travel"], [data-skin="rangers"], [data-skin="tomjerry"], [data-skin="ben10"], [data-skin="bangladesh"], [data-skin="got"], [data-skin="potter"], [data-skin="interstellar"]) #hero { background-size: 100% 100%, var(--pic-size, cover); background-position: center, var(--pic-pos, center); background-repeat: no-repeat; }
+/* light themes: cards stand out in white, the hello box goes dark */
+html:is([data-skin="messi"], [data-skin="naruto"], [data-skin="palestine"], [data-skin="travel"], [data-skin="tomjerry"], [data-skin="bangladesh"]) .site { --card: #fff; --inv-bg: var(--fg); --inv-fg: var(--bg); --inv-muted: color-mix(in srgb, var(--bg) 70%, var(--fg)); --inv-line: color-mix(in srgb, var(--fg) 70%, var(--bg)); --inv-field: color-mix(in srgb, var(--fg) 88%, var(--bg)); }
+html:is([data-skin="batman"], [data-skin="spiderman"], [data-skin="verstappen"], [data-skin="khabib"], [data-skin="arthur"], [data-skin="sparrow"], [data-skin="dabbe"], [data-skin="salman"], [data-skin="islamic"], [data-skin="rangers"], [data-skin="ben10"], [data-skin="got"], [data-skin="potter"], [data-skin="interstellar"]) { background: #07090c; color-scheme: dark; }
+html:is([data-skin="messi"], [data-skin="naruto"], [data-skin="palestine"], [data-skin="travel"], [data-skin="tomjerry"], [data-skin="bangladesh"]) { background: #f6f2e9; }
+
+/* ----- shared: the drawn scenery and the moving figure in the hero ----- */
+.tf-band, .tf-a { display: none; }
+.site.fx-themefx .tf-band { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: min(38vh, 340px); z-index: 0; pointer-events: none; background: var(--tf-band, none) center bottom / cover no-repeat; }
+.site.fx-sheets.fx-themefx .tf-band { bottom: var(--sheet); }
+.site.fx-themefx .tf-a { display: block; position: absolute; z-index: 1; pointer-events: none; left: var(--tf-x, 0); top: var(--tf-t, auto); bottom: var(--tf-b, auto); width: var(--tf-w, 200px); height: var(--tf-h, 120px); background: var(--tf-a, none) center / contain no-repeat; animation: var(--tf-anim, none); }
+.sleep .tf-a, .sleep .tf-band, html.lite .tf-a { visibility: hidden; animation: none; }
+html.lite .tf-a { display: none; }
+@keyframes tf-cross { from { translate: -30vw 0; } to { translate: 112vw 0; } }
+@keyframes tf-cross-back { from { translate: 112vw 0; scale: -1 1; } to { translate: -30vw 0; scale: -1 1; } }
+@keyframes tf-gallop { from { translate: -30vw 0; rotate: -1deg; } 25% { rotate: 1.5deg; } 50% { rotate: -1.5deg; } 75% { rotate: 1.5deg; } to { translate: 112vw 0; rotate: -1deg; } }
+@keyframes tf-bob { 0%, 100% { translate: 0 0; rotate: -2.4deg; } 50% { translate: 0 -12px; rotate: 2.4deg; } }
+@keyframes tf-swing { 0%, 100% { rotate: -18deg; } 50% { rotate: 18deg; } }
+@keyframes tf-lantern { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
+@keyframes tf-spin { to { rotate: 360deg; } }
+@keyframes tf-pulse { 0%, 100% { scale: 1; rotate: -5deg; } 50% { scale: 1.08; rotate: 5deg; } }
+@keyframes tf-roll { from { translate: -20vw 0; rotate: 0deg; } to { translate: 112vw 0; rotate: 1080deg; } }
+@keyframes tf-pop { 0%, 100% { translate: 0 18px; } 50% { translate: 0 -6px; } }
+@keyframes tf-ghost { 0%, 62%, 100% { opacity: 0; translate: 0 8px; } 76%, 86% { opacity: .52; translate: 0 0; } }
+@keyframes tf-snap { 0%, 84%, 100% { rotate: -3deg; } 90% { rotate: 3deg; scale: 1.06; } }
+/* the sculpture stays quieter over a picture */
+html:is([data-skin="messi"], [data-skin="verstappen"], [data-skin="interstellar"], [data-skin="bangladesh"], [data-skin="palestine"], [data-skin="islamic"], [data-skin="travel"]) .hero-3d.on { opacity: .42; }
+html:is([data-skin="messi"], [data-skin="batman"], [data-skin="spiderman"], [data-skin="verstappen"], [data-skin="khabib"], [data-skin="arthur"], [data-skin="naruto"], [data-skin="sparrow"], [data-skin="dabbe"], [data-skin="salman"], [data-skin="palestine"], [data-skin="islamic"], [data-skin="travel"], [data-skin="rangers"], [data-skin="tomjerry"], [data-skin="ben10"], [data-skin="bangladesh"], [data-skin="got"], [data-skin="potter"], [data-skin="interstellar"]) .site .aurora { opacity: .22; }
+/* chapter backgrounds are static patterns: one image, drawn once */
+.site.fx-themefx section.chap { background-image: var(--chap-art, none); background-size: var(--chap-size, auto); }
+/* picture credit + fan notice in the footer: only the active theme's shows */
+.theme-credit { flex: 0 0 100%; order: 5; font-size: 10.5px; color: var(--muted-2); margin: 0; display: none; }
+.theme-credit a { color: inherit; }
+
+/* ----- ⚽ Messi: sky-blue stripes, the pitch, the number 10 ----- */
+html[data-skin="messi"] .site { --pic-size: auto 148%; --pic-pos: left 40%; --bg: #f1f8fd; --fg: #0c2340; --mint: #2a8fd4; --on-mint: #fff; --pop2: #f7d046; --pop3: #75c3f0; --hero-bg: #082311; --hero-fg: #fff; --mint-deep: #17699f;
+  --theme-pic: url("/themes/messi.webp"); --display: "Anton", "Space Grotesk", sans-serif; --body: "Barlow", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/messi-band.svg"); --tf-a: url("/themes/art/messi-a.svg"); --tf-w: 86px; --tf-h: 86px; --tf-b: min(26vh, 220px); --tf-anim: tf-roll 13s linear infinite;
+  --chap-art: repeating-linear-gradient(90deg, rgba(117,195,240,.13) 0 90px, transparent 90px 180px); }
+html[data-skin="messi"] .site #hero h1 { font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+html[data-skin="messi"] .site #hero h1 .accent { color: #8fd2f7; }
+html[data-skin="messi"] .site .stitle { font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+html[data-skin="messi"] .site .ribbon { background: repeating-linear-gradient(90deg, #75c3f0 0 70px, #fff 70px 140px); color: #0c2340; text-shadow: 0 0 6px #fff, 0 0 2px #fff; }
+html[data-skin="messi"] .site .ribbon span { font-weight: 400; }
+html[data-skin="messi"] .site .ribbon span::after { content: "10"; opacity: 1; color: #d09e00; }
+
+/* ----- 🦇 Batman: night city, rain, yellow signal ----- */
+html[data-skin="batman"] .site { --bg: #0b0d12; --fg: #e9e7df; --mint: #f5c518; --on-mint: #0b0d12; --pop2: #55617a; --pop3: #f5c518; --hero-bg: #05070b; --hero-fg: #f3f1e9; --r-card: 6px; --r-pill: 4px; --r-sm: 4px;
+  --hero-sky: radial-gradient(70% 60% at 82% 16%, #252c3d, #05070b 70%); --display: "Bebas Neue", "Space Grotesk", sans-serif; --body: "Barlow", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/batman-band.svg"); --tf-a: url("/themes/art/batman-a.svg"); --tf-w: 130px; --tf-h: 66px; --tf-t: 17%; --tf-anim: tf-cross 19s linear infinite; }
+html[data-skin="batman"] .site #hero h1, html[data-skin="batman"] .site .stitle { font-weight: 400; letter-spacing: .03em; }
+html[data-skin="batman"] .site #hero h1 { font-size: clamp(50px, 8.6vw, 112px); }
+html[data-skin="batman"] .site .ribbon { background: #f5c518; color: #0b0d12; }
+html[data-skin="batman"] .site .ribbon span { font-weight: 400; font-size: clamp(18px, 2.2vw, 26px); letter-spacing: .05em; }
+html[data-skin="batman"] .site.fx-themefx :is(.card, .note, .trip):hover { box-shadow: 0 0 0 1px #f5c518, 0 16px 44px -14px #f5c518; }
+
+/* ----- 🕷️ Spider-Man: red, blue, webs, comic lettering ----- */
+html[data-skin="spiderman"] .site { --bg: #0c1433; --fg: #f4f6ff; --mint: #ea2e33; --on-mint: #fff; --pop2: #2f77ff; --pop3: #ffffff; --hero-bg: #0a1130; --hero-fg: #fff; --mint-deep: #ff8f93; --r-card: 16px;
+  --hero-sky: linear-gradient(170deg, #0a1130 0%, #1a2e88 60%, #7c1320 100%); --display: "Bangers", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/spiderman-band.svg"); --tf-a: url("/themes/art/spiderman-a.svg"); --tf-x: 54%; --tf-t: 0; --tf-w: 140px; --tf-h: min(56vh, 440px); --tf-anim: tf-swing 5.6s ease-in-out infinite; }
+html[data-skin="spiderman"] .site .tf-a { transform-origin: 50% 0; }
+html[data-skin="spiderman"] .site #hero h1, html[data-skin="spiderman"] .site .stitle { font-weight: 400; letter-spacing: .03em; }
+html[data-skin="spiderman"] .site #hero h1 { font-size: clamp(50px, 8.6vw, 112px); text-shadow: 3px 3px 0 #2f77ff; }
+html[data-skin="spiderman"] .site #hero h1 .accent { color: #ff4449; text-shadow: 3px 3px 0 #fff; }
+html[data-skin="spiderman"] .site .stitle { text-shadow: 2px 2px 0 #ea2e33; }
+html[data-skin="spiderman"] .site .ribbon { background: linear-gradient(90deg, #ea2e33, #ea2e33 50%, #2f77ff 50%) 0 0 / 300px 100%; color: #fff; text-shadow: 2px 2px 0 #000; }
+html[data-skin="spiderman"] .site .ribbon span { font-weight: 400; font-size: clamp(18px, 2.2vw, 27px); letter-spacing: .05em; }
+html[data-skin="spiderman"] .site.fx-themefx :is(.card, .note, .trip):hover { rotate: -1deg; box-shadow: 6px 6px 0 #ea2e33, -6px -6px 0 #2f77ff; }
+
+/* ----- 🏎️ Max Verstappen: race car, kerbs, checkered flag ----- */
+html[data-skin="verstappen"] .site { --bg: #0a1128; --fg: #f3f5fa; --mint: #ff1e3c; --on-mint: #fff; --pop2: #ffcc00; --pop3: #ff7a00; --hero-bg: #070c1e; --hero-fg: #fff; --mint-deep: #ff7f8f; --r-card: 4px; --r-pill: 4px; --r-sm: 3px;
+  --theme-pic: url("/themes/verstappen.webp"); --display: "Russo One", "Space Grotesk", sans-serif; --body: "Titillium Web", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/verstappen-band.svg"); --tf-a: url("/themes/art/verstappen-a.svg"); --tf-w: 300px; --tf-h: 80px; --tf-b: min(11vh, 80px); --tf-anim: tf-cross 5s cubic-bezier(.6,0,.4,1) infinite;
+  --chap-art: linear-gradient(115deg, rgba(255,30,60,.05) 0 40%, transparent 40%); }
+html[data-skin="verstappen"] .site #hero h1, html[data-skin="verstappen"] .site .stitle { font-weight: 400; font-style: italic; letter-spacing: -.01em; }
+html[data-skin="verstappen"] .site #hero h1 { font-size: clamp(36px, 6.2vw, 78px); }
+html[data-skin="verstappen"] .site .ribbon { color: #fff; background: conic-gradient(#111 25%, #f4f4f4 0 50%, #111 0 75%, #f4f4f4 0) 0 0 / 22px 22px; text-shadow: none; }
+html[data-skin="verstappen"] .site .ribbon span { background: #0a1128; font-style: italic; padding: 2px 16px; margin-right: 22px; }
+html[data-skin="verstappen"] .site .ribbon span::after { content: none; }
+
+/* ----- 🥊 Khabib: the cage, Caucasus peaks, the eagle ----- */
+html[data-skin="khabib"] .site { --bg: #141210; --fg: #f0e9dd; --mint: #c9a24a; --on-mint: #141210; --pop2: #b3261e; --pop3: #2f6b4f; --hero-bg: #0d0b0a; --hero-fg: #f7f1e6; --r-card: 3px; --r-pill: 3px; --r-sm: 3px;
+  --hero-sky: radial-gradient(60% 70% at 72% 40%, #40362b, #0d0b0a 75%); --display: "Teko", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/khabib-band.svg"); --tf-a: url("/themes/art/khabib-a.svg"); --tf-w: 190px; --tf-h: 90px; --tf-t: 13%; --tf-anim: tf-cross 26s linear infinite; }
+html[data-skin="khabib"] .site #hero h1 { font-size: clamp(56px, 9.6vw, 128px); font-weight: 700; line-height: .86; text-transform: uppercase; }
+html[data-skin="khabib"] .site .stitle { font-size: clamp(36px, 5.4vw, 62px); font-weight: 700; text-transform: uppercase; line-height: .95; }
+html[data-skin="khabib"] .site .ribbon { background: #b3261e; color: #f7f1e6; border-block: 3px solid #c9a24a; }
+html[data-skin="khabib"] .site .ribbon span { font-weight: 700; font-size: clamp(20px, 2.6vw, 31px); }
+
+/* ----- 🤠 Arthur Morgan: the frontier at dusk ----- */
+html[data-skin="arthur"] .site { --bg: #1e140c; --fg: #f0e3cc; --mint: #c8893d; --on-mint: #1e140c; --pop2: #a33a1f; --pop3: #d9b36c; --hero-bg: #1a0f07; --hero-fg: #f6ead4; --r-card: 4px; --r-pill: 3px; --r-sm: 3px;
+  --hero-sky: linear-gradient(180deg, #2c1a12 0%, #8a3f1d 55%, #e0883a 88%); --display: "Rye", Georgia, serif; --body: "Bitter", Georgia, serif; --tf-band: url("/themes/art/arthur-band.svg"); --tf-a: url("/themes/art/arthur-a.svg"); --tf-w: 180px; --tf-h: 156px; --tf-b: min(13vh, 96px); --tf-anim: tf-gallop 34s linear infinite;
+  --chap-art: repeating-linear-gradient(90deg, rgba(0,0,0,.09) 0 2px, transparent 2px 86px); }
+html[data-skin="arthur"] .site #hero h1 { font-size: clamp(34px, 5.8vw, 74px); font-weight: 400; }
+html[data-skin="arthur"] .site .stitle { font-weight: 400; font-size: clamp(25px, 3.6vw, 40px); }
+html[data-skin="arthur"] .site .ribbon { background: #6d4522; color: #f6ead4; outline: 1.5px dashed #d9b36c; outline-offset: -5px; }
+html[data-skin="arthur"] .site .ribbon span { font-weight: 400; text-transform: none; }
+
+/* ----- 🍥 Naruto: warm village, orange, spirals, ninja dash ----- */
+html[data-skin="naruto"] .site { --bg: #fff3df; --fg: #2a1a10; --mint: #f7821b; --on-mint: #2a1a10; --pop2: #1a6fc4; --pop3: #e5322d; --hero-bg: #2a160a; --hero-fg: #fff3df; --mint-deep: #b4530a; --r-card: 18px;
+  --hero-sky: linear-gradient(180deg, #5a2410 0%, #d0601a 62%, #f7a845 100%); --display: "Potta One", "Fredoka", sans-serif; --body: "Nunito", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/naruto-band.svg"); --tf-a: url("/themes/art/naruto-a.svg"); --tf-w: 170px; --tf-h: 142px; --tf-b: min(21vh, 170px); --tf-anim: tf-cross 7.5s linear infinite;
+  --chap-art: radial-gradient(circle at 92% 20%, rgba(247,130,27,.13), transparent 26%); }
+html[data-skin="naruto"] .site #hero h1 { font-size: clamp(36px, 6.2vw, 80px); font-weight: 400; }
+html[data-skin="naruto"] .site #hero h1 .accent { color: #ffa53f; }
+html[data-skin="naruto"] .site .stitle { font-weight: 400; }
+html[data-skin="naruto"] .site .ribbon { background: #f7821b; color: #2a1a10; }
+html[data-skin="naruto"] .site .ribbon span { font-weight: 400; }
+html[data-skin="naruto"] .site .ribbon span::after { content: "◉"; color: #e5322d; opacity: 1; }
+
+/* ----- 🏴‍☠️ Captain Jack Sparrow: moonlit sea, parchment gold ----- */
+html[data-skin="sparrow"] .site { --bg: #0b1a22; --fg: #eee3c8; --mint: #d4a742; --on-mint: #0b1a22; --pop2: #a42318; --pop3: #2f8f9d; --hero-bg: #061319; --hero-fg: #f4e9cd; --r-card: 6px; --r-pill: 5px; --r-sm: 4px;
+  --hero-sky: radial-gradient(40% 50% at 74% 22%, #5d8b90, transparent 70%), linear-gradient(180deg, #071822, #123a44); --display: "Pirata One", Georgia, serif; --body: "Alegreya", Georgia, serif; --tf-band: url("/themes/art/sparrow-band.svg"); --tf-a: url("/themes/art/sparrow-a.svg"); --tf-x: 50%; --tf-w: 210px; --tf-h: 196px; --tf-b: min(13vh, 94px); --tf-anim: tf-bob 6s ease-in-out infinite; }
+html[data-skin="sparrow"] .site #hero h1 { font-size: clamp(44px, 7.6vw, 100px); font-weight: 400; letter-spacing: .01em; }
+html[data-skin="sparrow"] .site .stitle { font-weight: 400; font-size: clamp(32px, 4.8vw, 54px); }
+html[data-skin="sparrow"] .site .ribbon { background: #efe1bd; color: #2a1b0e; }
+html[data-skin="sparrow"] .site .ribbon span { font-weight: 400; text-transform: none; font-size: clamp(19px, 2.3vw, 27px); }
+html[data-skin="sparrow"] .site .ribbon span::after { content: "☠"; color: #a42318; opacity: 1; }
+
+/* ----- 🕯️ Dabbe: an unlit house, fog, old typewriter. Creepy, never a jump scare or harsh flash. ----- */
+html[data-skin="dabbe"] .site { --bg: #0a0808; --fg: #d9cfc6; --mint: #a32222; --on-mint: #f2e6de; --pop2: #57130f; --pop3: #6b6b4d; --hero-bg: #060505; --hero-fg: #d9cfc6; --mint-deep: #d97070; --r-card: 2px; --r-pill: 2px; --r-sm: 2px;
+  --hero-sky: radial-gradient(50% 60% at 56% 60%, #29120e, #060505 72%); --display: "Creepster", Georgia, serif; --body: "Special Elite", Georgia, monospace; --tf-band: url("/themes/art/dabbe-band.svg"); --tf-a: url("/themes/art/dabbe-a.svg"); --tf-x: 49%; --tf-w: 96px; --tf-h: 206px; --tf-b: min(7vh, 54px); --tf-anim: tf-ghost 15s ease-in-out infinite; }
+html[data-skin="dabbe"] .site #hero h1 { font-size: clamp(42px, 7.4vw, 96px); font-weight: 400; letter-spacing: .03em; }
+html[data-skin="dabbe"] .site #hero h1 .accent { color: #c62f2f; }
+html[data-skin="dabbe"] .site .stitle { font-weight: 400; letter-spacing: .03em; }
+html[data-skin="dabbe"] .site.fx-themefx .stitle { animation: dim-flicker 9s ease-in-out infinite; }
+@keyframes dim-flicker { 0%, 100% { opacity: 1; } 47% { opacity: 1; } 50% { opacity: .68; } 53% { opacity: .94; } 56% { opacity: .74; } 60% { opacity: 1; } }
+html[data-skin="dabbe"] .site .ribbon { background: #2a0b0a; color: #d9cfc6; }
+html[data-skin="dabbe"] .site .ribbon span { font-weight: 400; letter-spacing: .05em; }
+html[data-skin="dabbe"] .site .ribbon span::after { content: "✟"; opacity: .7; }
+
+/* ----- 🎬 Salman Khan: Bollywood stage, gold, curtains ----- */
+html[data-skin="salman"] .site { --bg: #160a14; --fg: #fdf1e3; --mint: #f2b01e; --on-mint: #160a14; --pop2: #e5267a; --pop3: #24c0c0; --hero-bg: #1c0918; --hero-fg: #fff5e8; --r-card: 16px;
+  --hero-sky: radial-gradient(60% 70% at 72% 28%, #7a1447, #1c0918 72%); --display: "Yatra One", "Fraunces", serif; --body: "Poppins", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/salman-band.svg"); --tf-a: url("/themes/art/salman-a.svg"); --tf-x: 62%; --tf-w: 130px; --tf-h: 130px; --tf-t: 11%; --tf-anim: tf-snap 4s ease-in-out infinite; }
+html[data-skin="salman"] .site #hero h1 { font-size: clamp(38px, 6.6vw, 86px); font-weight: 400; }
+html[data-skin="salman"] .site .stitle { font-weight: 400; }
+html[data-skin="salman"] .site .ribbon { background: linear-gradient(90deg, #f2b01e, #e5267a, #f2b01e); color: #160a14; }
+html[data-skin="salman"] .site .ribbon span { font-weight: 400; text-transform: none; }
+
+/* ----- 🇵🇸 Palestine: flag colours, keffiyeh, olive branch. Kept dignified: no playful motion. ----- */
+html[data-skin="palestine"] .site { --bg: #f7f5ef; --fg: #141414; --mint: #007a3d; --on-mint: #fff; --pop2: #ce1126; --pop3: #141414; --hero-bg: #0d0d0d; --hero-fg: #f7f5ef; --mint-deep: #006432; --r-card: 8px;
+  --theme-pic: url("/themes/palestine.webp"); --display: "Cairo", "Space Grotesk", sans-serif; --body: "Cairo", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/palestine-band.svg"); --tf-a: url("/themes/art/palestine-a.svg"); --tf-w: 150px; --tf-h: 82px; --tf-t: 14%; --tf-anim: tf-cross 42s linear infinite;
+  --chap-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M0 22 22 0 44 22 22 44Z' fill='none' stroke='%23141414' stroke-opacity='.07' stroke-width='2'/%3E%3Cpath d='M22 12 32 22 22 32 12 22Z' fill='%23141414' fill-opacity='.05'/%3E%3C/svg%3E"); }
+html[data-skin="palestine"] .site #hero::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; z-index: 2; background: linear-gradient(#141414 0 33.3%, #f7f5ef 33.3% 66.6%, #007a3d 66.6%); }
+html[data-skin="palestine"] .site #hero h1 { font-weight: 800; }
+html[data-skin="palestine"] .site #hero h1 .accent { color: #3ec47f; }
+html[data-skin="palestine"] .site .stitle { font-weight: 800; }
+html[data-skin="palestine"] .site .ribbon { background: linear-gradient(#141414 0 33.3%, #333 33.3% 66.6%, #007a3d 66.6%); color: #f7f5ef; border-left: 0; }
+html[data-skin="palestine"] .site .ribbon span::after { content: "◆"; color: #ce1126; opacity: 1; }
+
+/* ----- ☪️ Islamic: geometric patterns, gold, lanterns, a mosque at night. No figures. ----- */
+html[data-skin="islamic"] .site { --bg: #06231f; --fg: #f4efe0; --mint: #d8b15a; --on-mint: #06231f; --pop2: #1f8a70; --pop3: #e9d9a8; --hero-bg: #041a17; --hero-fg: #f8f3e3; --r-card: 14px;
+  --theme-pic: url("/themes/islamic.webp"); --display: "Aref Ruqaa", "Fraunces", serif; --body: "Lato", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/islamic-band.svg"); --tf-a: url("/themes/art/islamic-a.svg"); --tf-x: 62%; --tf-t: 0; --tf-w: 76px; --tf-h: 236px; --tf-anim: tf-lantern 7s ease-in-out infinite;
+  --chap-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='%23d8b15a' stroke-opacity='.11' stroke-width='1.4'%3E%3Crect x='16' y='16' width='40' height='40'/%3E%3Crect x='16' y='16' width='40' height='40' transform='rotate(45 36 36)'/%3E%3Cpath d='M0 36H8M64 36h8M36 0v8M36 64v8'/%3E%3C/g%3E%3C/svg%3E"); }
+html[data-skin="islamic"] .site .tf-a { transform-origin: 50% 0; }
+html[data-skin="islamic"] .site #hero h1 { font-weight: 700; font-size: clamp(38px, 6.6vw, 84px); line-height: 1.16; }
+html[data-skin="islamic"] .site .stitle { font-weight: 700; line-height: 1.2; }
+html[data-skin="islamic"] .site .name-line { padding-bottom: .16em; }
+html[data-skin="islamic"] .site .ribbon { background: linear-gradient(90deg, #0d3f37, #1f8a70, #0d3f37); color: #f8f3e3; border-block: 1.5px solid #d8b15a; }
+html[data-skin="islamic"] .site .ribbon span { font-weight: 700; text-transform: none; }
+html[data-skin="islamic"] .site .ribbon span::after { content: "✦"; color: #d8b15a; opacity: 1; }
+
+/* ----- ✈️ Travel: open skies, landmarks, a plane towing a banner ----- */
+html[data-skin="travel"] .site { --bg: #f2fbff; --fg: #12344d; --mint: #ff7a45; --on-mint: #1a1209; --pop2: #16a6b6; --pop3: #ffc93c; --hero-bg: #0e2c40; --hero-fg: #fff; --mint-deep: #c04a18; --r-card: 18px;
+  --theme-pic: url("/themes/travel.webp"); --display: "Pacifico", "Fredoka", cursive; --body: "Nunito", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/travel-band.svg"); --tf-a: url("/themes/art/travel-a.svg"); --tf-w: 290px; --tf-h: 66px; --tf-t: 12%; --tf-anim: tf-cross 22s linear infinite;
+  --chap-art: radial-gradient(circle at 8% 12%, rgba(22,166,182,.09), transparent 22%), radial-gradient(circle at 92% 82%, rgba(255,122,69,.08), transparent 22%); }
+html[data-skin="travel"] .site #hero h1 { font-weight: 400; font-size: clamp(36px, 6.2vw, 80px); line-height: 1.22; }
+html[data-skin="travel"] .site .name-line { padding-bottom: .2em; }
+html[data-skin="travel"] .site .stitle { font-weight: 400; line-height: 1.28; }
+html[data-skin="travel"] .site .ribbon { background: #16a6b6; color: #fff; border-block: 3px dashed #fff; }
+html[data-skin="travel"] .site .ribbon span { font-weight: 400; text-transform: none; }
+html[data-skin="travel"] .site .ribbon span::after { content: "✈"; opacity: 1; }
+
+/* ----- ⚡ Power Rangers: five colours, energy bolts, helmets ----- */
+html[data-skin="rangers"] .site { --bg: #0c0c14; --fg: #f5f5ff; --mint: #ff2a3c; --on-mint: #fff; --pop2: #1e7bff; --pop3: #ffd91e; --hero-bg: #08080f; --hero-fg: #fff; --mint-deep: #ff7e8a; --r-card: 8px;
+  --hero-sky: linear-gradient(115deg, #08080f 38%, #6e0d1a 58%, #0e2f72 76%, #15590f 100%); --display: "Bungee", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/rangers-band.svg"); --tf-a: url("/themes/art/rangers-a.svg"); --tf-x: 56%; --tf-w: 300px; --tf-h: 66px; --tf-t: 12%; --tf-anim: tf-pop 2.4s ease-in-out infinite; }
+html[data-skin="rangers"] .site #hero h1 { font-size: clamp(30px, 5.2vw, 66px); font-weight: 400; }
+html[data-skin="rangers"] .site .stitle { font-weight: 400; font-size: clamp(24px, 3.6vw, 40px); }
+html[data-skin="rangers"] .site .ribbon { background: linear-gradient(90deg, #ff2a3c 0 20%, #1e7bff 20% 40%, #ffd91e 40% 60%, #ff5ec4 60% 80%, #18c24a 80%); color: #fff; text-shadow: 0 0 5px #000, 0 1px 2px #000; }
+html[data-skin="rangers"] .site .ribbon span { font-weight: 400; }
+html[data-skin="rangers"] .site.fx-themefx .card:nth-child(5n+1):hover { border-color: #ff2a3c; } html[data-skin="rangers"] .site.fx-themefx .card:nth-child(5n+2):hover { border-color: #1e7bff; } html[data-skin="rangers"] .site.fx-themefx .card:nth-child(5n+3):hover { border-color: #ffd91e; }
+
+/* ----- 🐭 Tom and Jerry: a cartoon house, the chase, cheese ----- */
+html[data-skin="tomjerry"] .site { --bg: #fff7df; --fg: #33211a; --mint: #f2a71b; --on-mint: #33211a; --pop2: #5f83a8; --pop3: #b36a2c; --hero-bg: #f8dd96; --hero-fg: #33211a; --hero-muted: #5e4436; --hero-sub: #4a3328; --hero-line: #b6905a; --hero-line-2: #cdaa6e; --mint-deep: #9a5f00; --r-card: 20px;
+  --hero-sky: linear-gradient(180deg, #cfe6f2 0%, #f8dd96 62%); --hero-fade: linear-gradient(90deg, rgba(248,221,150,.6), rgba(248,221,150,0) 60%); --display: "Luckiest Guy", "Fredoka", sans-serif; --body: "Baloo 2", "Fredoka", sans-serif; --tf-band: url("/themes/art/tomjerry-band.svg"); --tf-a: url("/themes/art/tomjerry-a.svg"); --tf-w: 360px; --tf-h: 124px; --tf-b: min(4vh, 34px); --tf-anim: tf-cross 8.5s linear infinite; }
+html[data-skin="tomjerry"] .site #hero h1 { font-size: clamp(40px, 7vw, 92px); font-weight: 400; letter-spacing: .02em; }
+html[data-skin="tomjerry"] .site #hero h1 .accent { color: #c6531a; text-shadow: 2px 2px 0 #f2a71b; }
+html[data-skin="tomjerry"] .site #hero .marquee { background: rgba(255,255,255,.34); }
+html[data-skin="tomjerry"] .site #hero .btn-ghost { background: rgba(255,255,255,.55); }
+html[data-skin="tomjerry"] .site .stitle { font-weight: 400; letter-spacing: .02em; }
+html[data-skin="tomjerry"] .site .ribbon { background: #33211a; color: #f2a71b; }
+html[data-skin="tomjerry"] .site .ribbon span { font-weight: 400; }
+html[data-skin="tomjerry"] .site.fx-themefx :is(.card, .note, .trip):hover { rotate: -1.4deg; scale: 1.02; }
+
+/* ----- ⌚ Ben 10: alien green, circuits, the wrist device ----- */
+html[data-skin="ben10"] .site { --bg: #07130a; --fg: #e9ffe6; --mint: #39ff14; --on-mint: #07130a; --pop2: #00c2a8; --pop3: #b6ff00; --hero-bg: #050d07; --hero-fg: #e9ffe6; --r-card: 10px;
+  --hero-sky: radial-gradient(50% 60% at 76% 42%, #15481a, #050d07 72%); --display: "Audiowide", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/ben10-band.svg"); --tf-a: url("/themes/art/ben10-a.svg"); --tf-x: 63%; --tf-w: 108px; --tf-h: 108px; --tf-t: 12%; --tf-anim: tf-pulse 2.8s ease-in-out infinite; }
+html[data-skin="ben10"] .site #hero h1 { font-size: clamp(32px, 5.6vw, 72px); font-weight: 400; }
+html[data-skin="ben10"] .site .stitle { font-weight: 400; font-size: clamp(25px, 3.7vw, 41px); }
+html[data-skin="ben10"] .site .ribbon { background: #071a0a; color: #39ff14; border-block: 2px solid #39ff14; text-shadow: 0 0 8px rgba(57,255,20,.8); }
+html[data-skin="ben10"] .site .ribbon span { font-weight: 400; }
+
+/* ----- 🇧🇩 Bangladesh: the red sun on green, paddy fields, rickshaw, river ----- */
+html[data-skin="bangladesh"] .site { --bg: #f3f8f1; --fg: #0e2a1c; --mint: #006a4e; --on-mint: #fff; --pop2: #f42a41; --pop3: #f4b400; --hero-bg: #00493a; --hero-fg: #f3f8f1; --mint-deep: #006a4e; --r-card: 14px;
+  --theme-pic: url("/themes/bangladesh.webp"); --hero-fade: linear-gradient(90deg, #00493a 28%, rgba(0,73,58,.82) 58%, rgba(0,73,58,.42) 100%); --display: "Baloo Da 2", "Fredoka", sans-serif; --body: "Hind Siliguri", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/bangladesh-band.svg"); --tf-a: url("/themes/art/bangladesh-a.svg"); --tf-w: 180px; --tf-h: 132px; --tf-b: min(4vh, 34px); --tf-anim: tf-cross 24s linear infinite;
+  --chap-art: radial-gradient(circle at 92% 14%, rgba(244,42,65,.09), transparent 18%); }
+html[data-skin="bangladesh"] .site #hero h1 { font-weight: 800; }
+html[data-skin="bangladesh"] .site #hero h1 .accent { color: #ff6476; }
+html[data-skin="bangladesh"] .site .stitle { font-weight: 800; }
+html[data-skin="bangladesh"] .site .ribbon { background: #006a4e; color: #f3f8f1; }
+html[data-skin="bangladesh"] .site .ribbon span::after { content: "●"; color: #f42a41; opacity: 1; font-size: 1.3em; }
+
+/* ----- ⚔️ Game of Thrones: ice on one side, fire on the other, a dragon overhead ----- */
+html[data-skin="got"] .site { --bg: #0e1114; --fg: #e4e4de; --mint: #c7a45a; --on-mint: #0e1114; --pop2: #a8d8ea; --pop3: #d9481c; --hero-bg: #090c0f; --hero-fg: #eeeee8; --r-card: 3px; --r-pill: 3px; --r-sm: 3px;
+  --hero-sky: linear-gradient(90deg, #122538, #0d1216 52%, #471408); --display: "Cinzel", Georgia, serif; --body: "Crimson Text", Georgia, serif; --tf-band: url("/themes/art/got-band.svg"); --tf-a: url("/themes/art/got-a.svg"); --tf-w: 300px; --tf-h: 144px; --tf-t: 11%; --tf-anim: tf-cross 18s linear infinite; }
+html[data-skin="got"] .site #hero h1 { font-size: clamp(32px, 5.6vw, 72px); font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+html[data-skin="got"] .site .stitle { font-weight: 700; letter-spacing: .03em; }
+html[data-skin="got"] .site .ribbon { background: linear-gradient(90deg, #1c3a55, #1a1e23 50%, #6c1f0c); color: #e4e4de; border-block: 1.5px solid #c7a45a; }
+html[data-skin="got"] .site .ribbon span { letter-spacing: .08em; font-weight: 700; }
+html[data-skin="got"] .site .ribbon span::after { content: "⚔"; color: #c7a45a; opacity: 1; }
+
+/* ----- 🧙 Harry Potter: castle, candles, owls, a wand's sparks ----- */
+html[data-skin="potter"] .site { --bg: #0e0b1e; --fg: #efe6cf; --mint: #e3b341; --on-mint: #0e0b1e; --pop2: #a02a33; --pop3: #8f9cf0; --hero-bg: #0a0818; --hero-fg: #f6eeda; --r-card: 10px;
+  --hero-sky: radial-gradient(70% 70% at 62% 30%, #2a2466, #0a0818 74%); --display: "Almendra", Georgia, serif; --body: "Crimson Text", Georgia, serif; --tf-band: url("/themes/art/potter-band.svg"); --tf-a: url("/themes/art/potter-a.svg"); --tf-w: 220px; --tf-h: 102px; --tf-t: 12%; --tf-anim: tf-cross 15s linear infinite; }
+html[data-skin="potter"] .site #hero h1 { font-weight: 700; font-size: clamp(40px, 7vw, 92px); }
+html[data-skin="potter"] .site .stitle { font-weight: 700; }
+html[data-skin="potter"] .site .ribbon { background: linear-gradient(90deg, #5a1a22, #a02a33, #5a1a22); color: #f6eeda; border-block: 1.5px solid #e3b341; }
+html[data-skin="potter"] .site .ribbon span { text-transform: none; font-weight: 700; }
+html[data-skin="potter"] .site .ribbon span::after { content: "⚡"; opacity: 1; }
+html[data-skin="potter"] .site.fx-themefx .stitle { animation: wand-glow 5s ease-in-out infinite; }
+@keyframes wand-glow { 0%, 100% { text-shadow: none; } 50% { text-shadow: 0 0 18px rgba(227,179,65,.55); } }
+
+/* ----- 🌌 Interstellar: a black hole, deep space, a turning ship ----- */
+html[data-skin="interstellar"] .site { --bg: #05070d; --fg: #dfe7f2; --mint: #ff9d42; --on-mint: #05070d; --pop2: #7aa7ff; --pop3: #ffd7a1; --hero-bg: #03050a; --hero-fg: #eef3fa; --r-card: 8px;
+  --theme-pic: url("/themes/interstellar.webp"); --hero-fade: linear-gradient(90deg, #03050a 30%, rgba(3,5,10,.82) 56%, rgba(3,5,10,.5) 100%); --display: "Exo 2", "Space Grotesk", sans-serif; --body: "Exo 2", "Space Grotesk", sans-serif; --tf-band: url("/themes/art/interstellar-band.svg"); --tf-a: url("/themes/art/interstellar-a.svg"); --tf-x: 60%; --tf-w: 96px; --tf-h: 96px; --tf-t: 12%; --tf-anim: tf-spin 24s linear infinite; }
+html[data-skin="interstellar"] .site #hero h1 { font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: clamp(32px, 5.6vw, 72px); }
+html[data-skin="interstellar"] .site .stitle { font-weight: 700; letter-spacing: .05em; text-transform: uppercase; font-size: clamp(24px, 3.5vw, 40px); }
+html[data-skin="interstellar"] .site .ribbon { background: linear-gradient(90deg, #05070d, #2a1a0e 30%, #ff9d42 50%, #2a1a0e 70%, #05070d); color: #fff; text-shadow: 0 0 6px #000, 0 1px 2px #000; }
+html[data-skin="interstellar"] .site .ribbon span { letter-spacing: .1em; }
+
+/* moving figures don't crowd phones */
+@media (max-width: 760px) {
+  .site.fx-themefx .tf-a { width: calc(var(--tf-w, 200px) * .58); height: calc(var(--tf-h, 120px) * .58); }
+  .site.fx-themefx .tf-band { height: 22vh; }
+}
+@media (prefers-reduced-motion: reduce) { .site.fx-themefx .tf-a { display: none; } }

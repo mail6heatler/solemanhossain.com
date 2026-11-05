@@ -9,6 +9,19 @@ import Living from "./Living";
 import ThemeFx from "./ThemeFx";
 import HangingBanner from "./HangingBanner";
 import { Split } from "./Split";
+import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
+
+const CLEAN_URL = /^(https?:\/\/|\/)[\w\-./:%?=&~+#,]+$/;
+/** Pictures the owner added to themes, as CSS. Only a URL with no quotes, brackets or spaces can get in here. */
+function themePicCss(pics: Record<string, string>) {
+  return Object.entries(pics).filter(([k, u]) => /^[a-z0-9]+$/.test(k) && CLEAN_URL.test(u))
+    .map(([k, u]) => `html[data-skin="${k}"] .site{--theme-pic:url("${u}")}`).join("");
+}
+/** What each theme's credit line says; CSS shows only the active theme's. */
+function themeCreditCss(pics: Record<string, string>) {
+  const keys = Array.from(new Set([...FAN_THEMES, ...Object.keys(THEME_CREDITS)]));
+  return keys.map((k) => `html[data-skin="${k}"] .tc-${k}{display:block}`).join("") + Object.keys(pics).map((k) => (/^[a-z0-9]+$/.test(k) ? `.tc-${k} .tc-pic{display:none}` : "")).join("");
+}
 
 export function Nav({ settings, sections, onHome }: { settings: SiteSettings; sections: Section[]; onHome: boolean }) {
   const href = (s: Section) => (onHome ? `#${s.slug}` : `/#${s.slug}`);
@@ -104,6 +117,15 @@ export function Footer({ settings }: { settings: SiteSettings }) {
       <span>{settings.footerLeft.replace("{year}", year)}</span>
       {settings.effects.surprise && <a href="/surprise" className="dice-btn-text">🎲 Surprise me</a>}
       <span>{settings.footerRight}</span>
+      {Array.from(new Set([...FAN_THEMES, ...Object.keys(THEME_CREDITS)])).map((k) => {
+        const c = THEME_CREDITS[k];
+        return (
+          <p key={k} className={`theme-credit tc-${k}`}>
+            {FAN_THEMES.includes(k) && "Unofficial fan theme: not affiliated with or endorsed by anyone named or shown. "}
+            {c && <span className="tc-pic">Photo: <a href={c.page} target="_blank" rel="noopener noreferrer">{c.title}</a> by {c.author}, {c.licenseUrl ? <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer">{c.license}</a> : c.license}, cropped.</span>}
+          </p>
+        );
+      })}
     </footer>
   );
 }
@@ -124,6 +146,7 @@ export function SiteShell({ settings, sections, onHome, children }:
         partyWord={settings.partyWord}
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}
       />
+      <style>{themeCreditCss(settings.themePics) + themePicCss(settings.themePics)}</style>
       {fx.themefx && <ThemeFx />}
       <HangingBanner banner={settings.banner.on && settings.banner.title ? bannerView(settings.banner, settings.timezone) : null} fall={fx.bannerfall} />
       <Living fx={{ sectionfx: fx.sectionfx, cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />

@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
-import { BANNER_KINDS, EFFECTS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SKINS, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
+import { BANNER_KINDS, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SKINS, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -144,6 +144,19 @@ export async function saveAppearance(fd: FormData) {
   }
   refresh();
   redirect("/admin/appearance?saved=1");
+}
+
+// ---------- pictures for the fan themes ----------
+export async function saveThemePics(fd: FormData) {
+  await requireAdmin();
+  const themePics: Record<string, string> = {};
+  for (const k of FAN_THEME_KEYS) {
+    const url = safeUrl(str(fd, `pic_${k}`, 600)).replace(/[^\w\-./:%?=&~+#,]/g, "");
+    if (/^(https?:\/\/|\/)/.test(url)) themePics[k] = url;
+  }
+  await saveSettingsData({ themePics });
+  refresh();
+  redirect("/admin/themes?saved=1");
 }
 
 // ---------- the hanging banner ----------

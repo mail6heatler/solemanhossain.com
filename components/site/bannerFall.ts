@@ -1,11 +1,14 @@
 // What falls from the hanging banner when it's pulled: water on Ocean, sheets of paper on Paper, code on Techy…
 // A canvas that exists only while something is falling, then removes itself. No libraries.
 import { toHex } from "./fx";
+import { sprite } from "./themeArt";
+import { fallSpec, type FallSpec } from "./themeScenes2";
+import type { Palette } from "./themeScenes";
 
 export type Hem = { x: number; y: number; w: number };
 type P = {
   x: number; y: number; vx: number; vy: number; r: number; rot: number; vr: number; ph: number; col: string; k: number;
-  born: number; life: number; bounced?: boolean; ch?: string; ring?: boolean; spray?: boolean;
+  born: number; life: number; bounced?: boolean; ch?: string; ring?: boolean; spray?: boolean; sp?: string;
 };
 type Spec = { rate: number; g: number; terminal: number; speed: [number, number]; life: number };
 
@@ -28,7 +31,7 @@ const TAU = Math.PI * 2;
 const limit = () => (innerWidth < 761 ? 130 : 240);
 
 let canvas: HTMLCanvasElement | null = null, ctx: CanvasRenderingContext2D | null = null, raf = 0, last = 0;
-let parts: P[] = [], skin = "night", spec = SPECS.night, cols: string[] = ["#fff"], ink = "#111", pourUntil = 0, debt = 0, getHem: (() => Hem) | null = null;
+let parts: P[] = [], skin = "night", spec = SPECS.night, cols: string[] = ["#fff"], ink = "#111", pourUntil = 0, debt = 0, getHem: (() => Hem) | null = null, fan: FallSpec | null = null, fanCols: string[] = [];
 
 function palette() {
   skin = document.documentElement.dataset.skin || "night";
@@ -37,13 +40,20 @@ function palette() {
   const get = (k: string, f: string) => toHex(cs.getPropertyValue(k).trim(), f);
   cols = [get("--mint", "#7ee8a2"), get("--pop2", "#f2a5c0"), get("--pop3", "#9fd8e6")];
   ink = get("--fg", "#111111");
+  fan = fallSpec(skin);
+  if (fan) {
+    const pal: Palette = { a: cols[0], b: cols[2], c: cols[1], deep: get("--mint-deep", cols[0]), fg: ink };
+    fanCols = fan.cols ? fan.cols(pal) : cols;
+    spec = { rate: fan.rate, g: fan.g, terminal: fan.terminal, speed: fan.speed, life: 9 };
+  }
 }
 
 function spawn(h: Hem) {
   if (parts.length >= limit()) return;
   const x = h.x + Math.random() * h.w, sp = rnd(spec.speed[0], spec.speed[1]);
   const p: P = { x, y: h.y + rnd(0, 6), vx: rnd(-24, 24), vy: sp, r: rnd(3, 7), rot: rnd(0, TAU), vr: rnd(-2.4, 2.4), ph: rnd(0, TAU), col: pick(cols), k: Math.floor(rnd(0, 4)), born: 0, life: spec.life };
-  if (skin === "paper") { p.r = rnd(13, 26); p.vr = rnd(-1, 1); p.vx = rnd(-40, 40); }
+  if (fan) { p.sp = pick(fan.kinds); p.r = rnd(fan.size[0], fan.size[1]); p.col = pick(fanCols); p.vr = rnd(-fan.spin, fan.spin); p.vx = rnd(-46, 46); }
+  else if (skin === "paper") { p.r = rnd(13, 26); p.vr = rnd(-1, 1); p.vx = rnd(-40, 40); }
   else if (skin === "ocean") { p.r = rnd(3.2, 7.5); p.vx = rnd(-10, 10); p.col = Math.random() < 0.6 ? "#d8fbff" : cols[0]; }
   else if (skin === "techy") { p.ch = pick(Array.from(GLYPHS)); p.vx = 0; p.col = Math.random() < 0.18 ? "#eafff3" : cols[0]; }
   else if (skin === "retro") { p.r = pick([4, 6, 8]); p.vx = rnd(-14, 14); }
@@ -65,6 +75,7 @@ function drawOne(c: CanvasRenderingContext2D, p: P, age: number) {
   c.translate(p.x, p.y);
   c.globalAlpha = Math.min(1, (p.life - age) * 1.6);
   c.fillStyle = c.strokeStyle = p.col;
+  if (p.sp) { c.rotate(p.rot); sprite(c, p.sp, p.r, p.col); c.restore(); return; }
   if (p.ring) { // a splash on the water
     const q = age / p.life;
     c.globalAlpha = (1 - q) * 0.75; c.lineWidth = 1.6;
@@ -144,7 +155,7 @@ function frame(now: number) {
     if (p.born >= p.life) return false;
     if (p.ring) { drawOne(c, p, p.born); return true; }
     p.vy = Math.min(spec.terminal, p.vy + spec.g * dt);
-    const flutter = skin === "paper" || skin === "forest" || skin === "day";
+    const flutter = fan ? fan.flutter : skin === "paper" || skin === "forest" || skin === "day";
     p.x += (p.vx + (flutter ? Math.sin(p.ph + p.born * 1.9) * 62 : 0)) * dt;
     p.y += p.vy * dt;
     p.rot += p.vr * dt;
@@ -153,7 +164,7 @@ function frame(now: number) {
       for (let i = 0; i < 2; i++) extra.push({ ...p, y: H - p.ph * 6 - 2, r: rnd(1, 2), vx: rnd(-90, 90), vy: rnd(-260, -120), born: 0, life: 0.7, spray: true });
       return false;
     }
-    if ((skin === "candy" || skin === "playful") && !p.bounced && p.y > H - 10) { p.bounced = true; p.y = H - 10; p.vy = -p.vy * 0.42; p.vx *= 1.6; }
+    if ((fan ? fan.bounce : skin === "candy" || skin === "playful") && !p.bounced && p.y > H - 10) { p.bounced = true; p.y = H - 10; p.vy = -p.vy * 0.42; p.vx *= 1.6; }
     if (p.y > H + 50) return false;
     drawOne(c, p, p.born);
     return true;

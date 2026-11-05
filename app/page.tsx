@@ -46,6 +46,8 @@ export default async function Home() {
       {/* ═══ HERO ═══ */}
       <section id="hero" data-spy>
         {fx.aurora ? <div className="aurora" aria-hidden /> : <><div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" /></>}
+        <i className="tf-band" aria-hidden />
+        <i className="tf-a" aria-hidden />
         {fx.hero3d && <HeroScene />}
         <FloatingEmojis emojis={s.heroEmojis} enabled={fx.emojis} hero />
         <div className="hero-inner">

@@ -40,6 +40,7 @@ Working on the code? Start with [CLAUDE.md](CLAUDE.md) (how it all fits together
 | **G1–G8** | Entries grouped by subsection (Feed → Poems, Hot takes, Polls…). Add, edit, hide, pin, reorder, delete. Change titles, layout, subsections and emojis in "Section settings" |
 | **Entry editor** | Title, subtitle, story (Markdown), photo upload, date, place, status, mood, tags, buttons, poll options and live results |
 | **Inbox** | Messages from the Say hello form (reply by email, put a note on the public wall, delete), and reactions with the name of whoever left them |
+| **Theme pictures** | Add your own picture to any of the 20 fan themes |
 | **Hanging banner** | An emergency notice or upcoming event that drops from the top of the site, with a countdown and a button |
 | **Settings** | Social links, footer, effects, login username, change password, log out everywhere, export everything as JSON |
 

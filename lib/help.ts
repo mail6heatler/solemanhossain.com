@@ -7,7 +7,7 @@ export const HELP: Record<string, Help> = {
   // ----- themes & personality -----
   defaultTheme: {
     title: "Theme visitors see first",
-    what: "Sets the look of the whole site for anyone who hasn't picked a theme themselves. There are 10 themes, plus Auto (Day calm by day, Night neon after 6 PM in your time zone) and Random (a different theme on every visit).",
+    what: "Sets the look of the whole site for anyone who hasn't picked a theme themselves. There are 30 themes, plus Auto (Day calm by day, Night neon after 6 PM in your time zone) and Random (a different theme on every visit).",
     how: ["Pick a theme from the list.", "Press Save appearance.", "Visitors who already chose a theme in the menu keep their own choice."],
     preview: "/?demo=themes",
   },
@@ -25,8 +25,8 @@ export const HELP: Record<string, Help> = {
   },
   themefx: {
     title: "Each theme's own effects",
-    what: "Every theme gets its own living background and touches. Ocean: rolling waves, bubbles, light shafts. Techy: falling code, a fake break-in typing in the corner, glitching titles. Retro: neon grid, scanlines, flickering titles. Paper: paper grain, drifting scraps, a paper plane, ink splats. Sunset: a sun that climbs as you scroll, embers, birds. Forest: falling leaves, fireflies. Candy: bubbles, sprinkles. Playful: tumbling shapes. Night: stars, shooting stars. Day: warm light, dust. Clicking anywhere makes a burst in that theme's style.",
-    how: ["Switch on and save.", "Preview shows all ten without saving anything.", "To see one theme, add ?theme=ocean to your site's address (or retro, paper, techy…)."],
+    what: "Every theme gets its own living background and touches. Ocean: rolling waves, bubbles, light shafts. Techy: falling code, a fake break-in typing in the corner, glitching titles. Retro: neon grid, scanlines, flickering titles. Paper: paper grain, drifting scraps, a paper plane, ink splats. Sunset: a sun that climbs as you scroll, embers, birds. Forest: falling leaves, fireflies. Candy: bubbles, sprinkles. Playful: tumbling shapes. Night: stars, shooting stars. Day: warm light, dust. The 20 fan themes (Messi, Batman, Bangladesh, Interstellar and the rest) add drawn scenery and a moving figure on the first screen. Clicking anywhere makes a burst in that theme's style.",
+    how: ["Switch on and save.", "Preview shows all thirty without saving anything.", "Add your own picture to a fan theme under Dashboard → Theme pictures.", "To see one theme, add ?theme=ocean to your site's address (or retro, paper, techy…)."],
     preview: "/?demo=themefx",
   },
   mood: {

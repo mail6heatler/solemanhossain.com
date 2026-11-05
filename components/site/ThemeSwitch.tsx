@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { SKINS, SKIN_INFO, SKIN_LABELS, THEMES, type Skin } from "@/lib/settings";
+import { SKIN_GROUPS, SKIN_INFO, SKIN_LABELS, THEMES, type Skin } from "@/lib/settings";
 import { prefersReducedMotion, toast } from "./fx";
 
 const label = (k: string) => SKIN_LABELS[k as Skin] ?? k;
@@ -89,14 +89,19 @@ export default function ThemeSwitch({ defaultTheme, timezone, shuffle, menu = tr
         </button>
         {open && (
           <div className="skin-menu" role="menu" aria-label="Themes">
-            <div className="skin-grid">
-              {SKINS.map((k) => (
-                <button key={k} type="button" role="menuitemradio" aria-checked={pref === k} onClick={(e) => choose(k, e.currentTarget)}>
-                  <span className="sw" aria-hidden style={{ background: `linear-gradient(135deg, ${SKIN_INFO[k].c[0]} 50%, ${SKIN_INFO[k].c[1]} 50%)` }} />
-                  <span>{emoji(k)} {name(k)}<small>{SKIN_INFO[k].d}</small></span>
-                </button>
-              ))}
-            </div>
+            {SKIN_GROUPS.map((g) => (
+              <div key={g.label} role="group" aria-label={g.label}>
+                <div className="skin-group">{g.label}</div>
+                <div className="skin-grid">
+                  {g.keys.map((k) => (
+                    <button key={k} type="button" role="menuitemradio" aria-checked={pref === k} onClick={(e) => choose(k, e.currentTarget)}>
+                      <span className="sw" aria-hidden style={{ background: `linear-gradient(135deg, ${SKIN_INFO[k].c[0]} 50%, ${SKIN_INFO[k].c[1]} 50%)` }} />
+                      <span>{emoji(k)} {name(k)}<small>{SKIN_INFO[k].d}</small></span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>}

@@ -52,7 +52,9 @@ components/site/
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
   scrollFx.ts              GSAP scroll effects + every chapter's in/out motion (separate download)
   ThemeFx.tsx              one canvas behind the content: starts/sleeps it, follows the theme
-  themeScenes.ts           each theme's living background and click burst (separate download)
+  themeScenes.ts           the 10 classic themes' living backgrounds and click bursts (separate download)
+  themeScenes2.ts          the 20 fan themes: one data table of what floats, bursts and falls, plus drawn "pieces"
+  themeArt.ts              small drawn sprites shared by scenes, bursts and banner drops; each is stamped from a cache
   HangingBanner.tsx        the pull-down announcement and its spring physics
   bannerFall.ts            what falls from the banner in each theme; its canvas exists only while something falls
   askName.ts               the "who's reacting?" box; the name is remembered in localStorage (lc_name)
@@ -78,9 +80,15 @@ Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`
 
 ## How the look works
 
-- Colours are CSS variables on `.site`. `html[data-skin]` swaps them for the 10 themes, and `--m` / `--m-deep` (inline on `.site`) carry the mood colour. Use `var(--mint)`, `--fg`, `--bg`, `--card`, `--line`, `--hero-*`, `--pop2`, `--pop3`. Never hard-code a colour; it has to work on every theme, including the light heroes (`paper`, `candy`).
+- Colours are CSS variables on `.site`. `html[data-skin]` swaps them for the 30 themes (10 in `site.css`, 20 fan themes in `themes.css`, where a few tokens set by each theme derive the rest), and `--m` / `--m-deep` (inline on `.site`) carry the mood colour. Use `var(--mint)`, `--fg`, `--bg`, `--card`, `--line`, `--hero-*`, `--pop2`, `--pop3`. Never hard-code a colour; it has to work on every theme, including the light heroes (`paper`, `candy`).
 - `skinScript` runs before first paint: it sets the theme, adds the page-transition opt-in, and decides whether the curtain plays.
 - Public pages navigate with plain `<a>` (full page loads), so page transitions are cross-document view transitions. Every effect starts fresh on each page.
+
+## Adding a theme
+
+Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `THEME_FONTS` in `lib/settings.ts`; add its block to `app/themes.css` (and to the two shared `:is()` lists at the top); add its entry to `CONFIGS` in `themeScenes2.ts`; put scenery and figure SVGs in `public/themes/art/`. Use only original art or free-licensed pictures, and record the licence in `lib/themeCredits.ts`. Measure scrolling afterwards.
+
+**Picture rule:** no official character art and no photos with doubtful licences, whatever the source. Commons licences are only as reliable as the uploader, so skip professional-looking shots from social-media-sized uploads. The owner can add their own pictures under Dashboard → Theme pictures, which is their decision.
 
 ## Adding or changing an effect
 
