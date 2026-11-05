@@ -1,7 +1,7 @@
 import { getSections, getSettings } from "@/lib/data";
 import { saveAppearance } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
-import { EFFECTS, MOODS, SKINS, SKIN_LABELS } from "@/lib/settings";
+import { EFFECTS, MOODS, SELECTABLE, SKIN_LABELS } from "@/lib/settings";
 import { HELP } from "@/lib/help";
 import { InfoTip } from "@/components/admin/Widgets";
 
@@ -34,7 +34,7 @@ export default async function AppearancePage() {
           <div className="fl">
             <div className="lab-row"><label htmlFor="defaultTheme">Theme visitors see first</label><InfoTip help={HELP.defaultTheme} /></div>
             <select id="defaultTheme" name="defaultTheme" defaultValue={s.defaultTheme}>
-              {SKINS.map((k) => <option key={k} value={k}>{SKIN_LABELS[k]}</option>)}
+              {SELECTABLE.map((k) => <option key={k} value={k}>{SKIN_LABELS[k]}</option>)}
             </select>
             <div className="hint">Auto shows Day calm until 6 PM in your clock&apos;s time zone ({s.timezone}), then Night neon. Random picks a new theme on every visit.</div>
           </div>

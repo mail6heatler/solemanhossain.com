@@ -75,24 +75,31 @@ export default async function Home() {
               </div>
             )}
           </div>
-          <div className="hero-right">
-            {fx.sticker ? (
-              <div className="avatar-wrap sticker"><Sticker>{framed}</Sticker></div>
-            ) : (
-              <div className="avatar-wrap">
-                {fx.tilt ? framed : photo}
-                <div className="avatar-ring" />
-                {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
-              </div>
-            )}
+          {!fx.sticker && <div className="hero-right">
+            <div className="avatar-wrap">
+              {fx.tilt ? framed : photo}
+              <div className="avatar-ring" />
+              {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
+            </div>
             <div className="ctas">
               {s.resumeUrl && s.ctaPrimaryLabel && (
                 <a className={`btn-mint ${fx.magnetic ? "mag" : ""}`} href={s.resumeUrl} target="_blank" rel="noopener"><i className="ti ti-download" />{s.ctaPrimaryLabel}</a>
               )}
               {s.ctaSecondaryLabel && <a className={`btn-ghost ${fx.magnetic ? "mag" : ""}`} href={s.ctaSecondaryUrl}><i className="ti ti-send" />{s.ctaSecondaryLabel}</a>}
             </div>
-          </div>
+          </div>}
         </div>
+        {fx.sticker && (
+          <div className="hang">
+            <div className="ctas paper-ctas">
+              {s.resumeUrl && s.ctaPrimaryLabel && (
+                <a className={`btn-paper p-main ${fx.magnetic ? "mag" : ""}`} href={s.resumeUrl} target="_blank" rel="noopener"><span className="paper-face"><i className="ti ti-download" />{s.ctaPrimaryLabel}</span><i className="paper-tape" aria-hidden /></a>
+              )}
+              {s.ctaSecondaryLabel && <a className={`btn-paper p-alt ${fx.magnetic ? "mag" : ""}`} href={s.ctaSecondaryUrl}><span className="paper-face"><i className="ti ti-send" />{s.ctaSecondaryLabel}</span><i className="paper-tape" aria-hidden /></a>}
+            </div>
+            <div className="avatar-wrap sticker"><Sticker>{framed}</Sticker></div>
+          </div>
+        )}
         {s.scrollCue && <div className="scrollcue"><i className="ti ti-chevron-down" />{s.scrollCue}</div>}
         {skills.length > 0 && (
           <div className="marquee" aria-label="Skills">

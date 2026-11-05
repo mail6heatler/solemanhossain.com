@@ -89,6 +89,30 @@ export function Sticker({ children }: { children: React.ReactNode }) {
     if (img.complete && img.naturalWidth) check(); else img.addEventListener("load", check, { once: true });
     return () => img.removeEventListener("load", check);
   }, []);
+  // it swings on its tape when the page scrolls, then settles
+  useEffect(() => {
+    const box = ref.current;
+    if (!box || prefersReducedMotion()) return;
+    let a = 0, v = 0, raf = 0, last = window.scrollY, prev = 0;
+    const loop = (t: number) => {
+      raf = 0;
+      const steps = prev ? Math.min(6, Math.max(1, Math.round((t - prev) / 16.7))) : 1;
+      prev = t;
+      for (let i = 0; i < steps; i++) { v += -a * 0.05; v *= 0.95; a += v; }
+      if (Math.abs(a) < 0.02 && Math.abs(v) < 0.02) { a = 0; v = 0; prev = 0; box.style.rotate = ""; return; }
+      box.style.rotate = `${a.toFixed(2)}deg`;
+      raf = requestAnimationFrame(loop);
+    };
+    const onScroll = () => {
+      const y = window.scrollY, d = y - last;
+      last = y;
+      if (y > window.innerHeight * 1.2) return; // off screen: nothing to do
+      v += Math.max(-0.5, Math.min(0.5, d * 0.012));
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("scroll", onScroll); box.style.rotate = ""; };
+  }, []);
   return (
     <div ref={ref} className="stk">
       <div className="stk-float">{children}</div>

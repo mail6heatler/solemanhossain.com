@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { SKIN_GROUPS, SKIN_INFO, SKIN_LABELS, THEMES, type Skin } from "@/lib/settings";
+import { LIVE_THEMES, SELECTABLE, SKIN_GROUPS, SKIN_INFO, SKIN_LABELS, type Skin } from "@/lib/settings";
 import { prefersReducedMotion, toast } from "./fx";
 
 const label = (k: string) => SKIN_LABELS[k as Skin] ?? k;
@@ -13,7 +13,7 @@ function nightNow(tz: string) {
   return h >= 18 || h < 6;
 }
 const pickRandom = (not?: string) => {
-  const pool = THEMES.filter((t) => t !== not);
+  const pool = LIVE_THEMES.filter((t) => t !== not);
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
@@ -94,7 +94,7 @@ export default function ThemeSwitch({ defaultTheme, timezone, shuffle, menu = tr
                 <div className="skin-group">{g.label}</div>
                 <div className="skin-grid">
                   {g.keys.map((k) => (
-                    <button key={k} type="button" role="menuitemradio" aria-checked={pref === k} onClick={(e) => choose(k, e.currentTarget)}>
+                    <button key={k} type="button" role="menuitemradio" aria-checked={pref === k} disabled={!SELECTABLE.includes(k)} className={SELECTABLE.includes(k) ? undefined : "maint"} onClick={(e) => choose(k, e.currentTarget)}>
                       <span className="sw" aria-hidden style={{ background: `linear-gradient(135deg, ${SKIN_INFO[k].c[0]} 50%, ${SKIN_INFO[k].c[1]} 50%)` }} />
                       <span>{emoji(k)} {name(k)}<small>{SKIN_INFO[k].d}</small></span>
                     </button>

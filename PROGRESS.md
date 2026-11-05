@@ -5,15 +5,28 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
+
+## Decision waiting on the owner
+
+Keep or undo the hanging photo and paper buttons (below), after they've seen it live.
+
+- **Keep:** nothing to do. Record it here.
+- **Undo:** run `git revert --no-edit` on those commits on `main` and push; that redeploys by itself. That also brings the 20 fan themes back to visitors, so re-apply maintenance if the owner still wants it. No database change was made.
 
 ## Agreed for later
 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-06: Hanging photo; 20 fan themes under maintenance
+
+The owner wants the 20 fan themes improved one by one later, so visitors can't pick them for now: they show greyed out in the menu, aren't in Random or shuffle, can't be the default, and a visitor who had chosen one falls back to the site default. `?theme=<key>` still previews them.
+
+The hero photo now hangs from the menu bar (`.hang` in `app/page.tsx`, under the `sticker` switch): taped, sways, swings on scroll, scrolls away with the page. Résumé and Say Hello sit beside it as paper cut-outs. The sculpture moved to the open space below. The Résumé button still needs a résumé uploaded, and the live photo is still a normal photo, not a transparent cut-out.
 
 ### 2026-11-06: Theme menu scrolling
 

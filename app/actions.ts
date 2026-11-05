@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
-import { BANNER_KINDS, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SKINS, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
+import { BANNER_KINDS, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -129,7 +129,7 @@ export async function saveAppearance(fd: FormData) {
   const mood = str(fd, "mood");
   const effects = Object.fromEntries(EFFECTS.map((e) => [e.key, bool(fd, `fx_${e.key}`)])) as Effects;
   await saveSettingsData({
-    defaultTheme: SKINS.includes(theme) ? theme : "night",
+    defaultTheme: SELECTABLE.includes(theme) ? theme : "night",
     themeSwitch: bool(fd, "themeSwitch"),
     mood: MOODS[mood] ? mood : "",
     showMood: bool(fd, "showMood"),

@@ -49,13 +49,14 @@ export default function HeroScene() {
         if (dead) return;
         const intro = document.querySelector(".intro");
         const curtain = intro && getComputedStyle(intro).display !== "none";
-        const avatar = hero.querySelector(".avatar-wrap");
+        const avatar = hero.querySelector(".hero-right .avatar-wrap");
         handle = createHeroScene(canvas, {
           count: window.innerWidth < 761 ? 9000 : 20000,
           colors: readColors(),
           delay: curtain ? 1150 : 150,
           align: () => {
-            if (!avatar || window.scrollY > 40) return null;
+            if (window.scrollY > 40) return null;
+            if (!avatar) return { x: 0.72, y: 0.62 }; // the photo hangs at the top: the sculpture gets the open space below it
             const a = avatar.getBoundingClientRect(), h = hero.getBoundingClientRect();
             return { x: (a.left + a.width / 2 - h.left) / h.width, y: (a.top + a.height / 2 - h.top) / h.height };
           },

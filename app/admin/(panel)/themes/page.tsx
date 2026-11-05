@@ -15,6 +15,9 @@ export default async function ThemePicturesPage() {
       <div className="c" style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
         <i className="ti ti-info-circle" style={{ color: "var(--icon)" }} /> Your site is public, and most photos and character art belong to someone else, who could ask you to take them down. Pictures you took yourself, or ones with a free licence, are the safest choice. You can upload a file or paste a link; an uploaded file loads faster and can&apos;t disappear.
       </div>
+      <div className="c" style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+        <i className="ti ti-tool" style={{ color: "var(--icon)" }} /> These 20 themes are under maintenance. Visitors can&apos;t pick them for now, but Preview still works for you, and anything you save here is kept for later.
+      </div>
       <div className="fx-grid" style={{ marginTop: 14 }}>
         {FAN_THEME_KEYS.map((k) => (
           <div key={k} className="c" style={{ marginBottom: 0 }}>

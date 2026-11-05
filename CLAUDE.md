@@ -86,6 +86,8 @@ Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`
 
 ## Adding a theme
 
+**The 20 fan themes are under maintenance:** not selectable by visitors (`LIVE_THEMES` and `SELECTABLE` in `lib/settings.ts`), still reachable with `?theme=<key>`. To bring one back, add it to `LIVE_THEMES`. Plan: improve them one at a time when the owner asks, starting by asking them for that theme's pictures, GIFs, cut-outs and logos.
+
 Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `THEME_FONTS` in `lib/settings.ts`; add its block to `app/themes.css` (and to the two shared `:is()` lists at the top); add its entry to `CONFIGS` in `themeScenes2.ts`; put scenery and figure SVGs in `public/themes/art/`. Use only original art or free-licensed pictures, and record the licence in `lib/themeCredits.ts`. Measure scrolling afterwards.
 
 **Picture rule:** no official character art and no photos with doubtful licences, whatever the source. Commons licences are only as reliable as the uploader, so skip professional-looking shots from social-media-sized uploads. The owner can add their own pictures under Dashboard → Theme pictures, which is their decision.

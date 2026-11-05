@@ -1183,3 +1183,76 @@ html.lite .ribbon { -webkit-mask: none; mask: none; animation: none; }
 /* theme menu: groups, now that there are 30 themes */
 .skin-menu { overscroll-behavior: contain; } /* reaching the end of the list doesn't scroll the page behind it */
 .skin-group { font: 700 10.5px var(--body); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); padding: 9px 9px 4px; }
+
+/* ================= THE PHOTO HANGS FROM THE MENU BAR ================= */
+/* it lives in the hero, not the menu, so it scrolls away with the page instead of covering what's below */
+.hang { position: absolute; top: 0; right: clamp(24px, 6vw, 92px); z-index: 5; display: flex; align-items: flex-start; gap: 18px; pointer-events: none; }
+.hang > * { pointer-events: auto; }
+.hang .avatar-wrap.sticker { width: clamp(168px, 14.5vw, 214px); margin-top: 52px; flex-shrink: 0; animation: hang-drop 1s cubic-bezier(.2,1.5,.45,1) backwards; animation-delay: calc(var(--hd, 0s) + .45s); }
+@keyframes hang-drop { from { transform: translateY(-112%); } }
+.hang .stk { transform-origin: 50% -30px; }
+.hang .stk-float { transform-origin: 50% -30px; animation: hang-sway 6.5s ease-in-out infinite; }
+@keyframes hang-sway { 0%, 100% { translate: none; rotate: -2deg; } 50% { translate: none; rotate: 1.2deg; } }
+.hang .stk-shadow { display: none; }
+/* its depth is part of the picture, drawn once */
+.hang .avatar-wrap.sticker img, .hang .avatar-wrap.sticker .avatar-ph, html[data-skin="techy"] .site .hang .avatar-wrap.sticker img, html[data-skin="techy"] .site .hang .avatar-wrap.sticker .avatar-ph {
+  filter: drop-shadow(6px 0 0 var(--stk-b)) drop-shadow(-6px 0 0 var(--stk-b)) drop-shadow(0 6px 0 var(--stk-b)) drop-shadow(0 -6px 0 var(--stk-b)) drop-shadow(0 16px 14px rgba(0,0,0,.42)); }
+/* two strips of tape running up behind the menu bar: the bar is what holds it */
+.hang .stk-tape { top: -46px; height: 70px; width: 36px; transform: translateZ(26px) rotate(var(--tr, 4deg)); background: linear-gradient(180deg, rgba(255,244,210,.72), rgba(255,244,210,.5)); clip-path: polygon(0 0, 100% 0, 100% 95%, 88% 100%, 75% 95%, 62% 100%, 50% 95%, 38% 100%, 25% 95%, 12% 100%, 0 95%); }
+.hang .stk-tape.a { display: block; left: 12%; margin-left: 0; --tr: -7deg; }
+.hang .stk-tape.b { display: block; left: auto; right: 12%; --tr: 6deg; }
+.hang .cutout .stk-tape { display: block; }
+
+/* ----- buttons as paper cut-outs ----- */
+.hang .paper-ctas { width: auto; display: flex; flex-direction: column; gap: 16px; align-items: flex-end; margin-top: 88px; animation: hang-drop .9s cubic-bezier(.2,1.5,.45,1) backwards; animation-delay: calc(var(--hd, 0s) + .7s); }
+.btn-paper { position: relative; display: block; text-decoration: none; filter: drop-shadow(0 7px 6px rgba(0,0,0,.34)); rotate: -3.4deg; transform-origin: 50% 0; transition: rotate .35s cubic-bezier(.3,1.7,.5,1), scale .25s, transform .45s cubic-bezier(.25,1.6,.4,1); }
+.btn-paper:nth-child(2) { rotate: 2.6deg; margin-right: 8px; }
+.paper-face { display: flex; align-items: center; gap: 8px; padding: 13px 19px 14px; font: 700 12.5px/1 var(--display); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 2px, transparent 2px 5px), #fbf6e8; color: #1c1a17;
+  /* uneven scissor cuts */
+  clip-path: polygon(1% 7%, 22% 2%, 47% 6%, 71% 1%, 99% 5%, 97% 34%, 100% 61%, 98% 96%, 74% 91%, 49% 98%, 26% 92%, 2% 97%, 3% 66%, 0 35%); }
+.paper-face i { font-size: 15px; }
+.btn-paper.p-main .paper-face { background: repeating-linear-gradient(0deg, rgba(255,255,255,.07) 0 2px, transparent 2px 5px), var(--mint); color: var(--on-mint); }
+.paper-tape { position: absolute; left: 50%; top: -9px; width: 44px; height: 17px; margin-left: -22px; rotate: -3deg; background: rgba(255,244,210,.62); box-shadow: 0 1px 2px rgba(0,0,0,.18); pointer-events: none; }
+.btn-paper:nth-child(2) .paper-tape { rotate: 4deg; left: 42%; }
+.btn-paper:hover { rotate: 0deg; scale: 1.06; }
+.btn-paper:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; }
+html[data-skin="paper"] .site .paper-face { background: #fffdf6; }
+html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--mint); }
+
+/* ----- room for it ----- */
+/* wider screens: the words keep the left, and the sculpture shows below the photo */
+@media (max-width: 1000px) {
+  .site:has(.hang) #hero { padding-top: 322px; }
+  .hang { right: 16px; }
+}
+@media (max-width: 760px) {
+  .site:has(.hang) #hero { padding-top: 248px; }
+  .hang { gap: 12px; left: 16px; right: 16px; justify-content: flex-end; }
+  .hang .avatar-wrap.sticker { width: 118px; margin: 44px 0 0; }
+  .hang .avatar-wrap.sticker img, .hang .avatar-wrap.sticker .avatar-ph, html[data-skin="techy"] .site .hang .avatar-wrap.sticker img, html[data-skin="techy"] .site .hang .avatar-wrap.sticker .avatar-ph { max-height: 160px; filter: drop-shadow(4px 0 0 var(--stk-b)) drop-shadow(-4px 0 0 var(--stk-b)) drop-shadow(0 4px 0 var(--stk-b)) drop-shadow(0 -4px 0 var(--stk-b)) drop-shadow(0 10px 8px rgba(0,0,0,.42)); }
+  .hang .stk-tape { top: -38px; height: 58px; width: 26px; }
+  .hang .paper-ctas { margin-top: 74px; gap: 13px; }
+  .paper-face { padding: 11px 14px 12px; font-size: 11.5px; }
+}
+
+/* ----- themes under maintenance, in the menu ----- */
+.skin-menu button.maint { opacity: .42; cursor: not-allowed; filter: grayscale(.7); }
+.skin-menu button.maint:hover { background: none; }
+
+/* the photo is only just tucked under the bar, so a face at the top isn't cut off; the tape does the holding */
+.hang .avatar-wrap.sticker { margin-top: 60px; }
+.hang .stk-tape { top: -34px; height: 80px; width: 40px; background: linear-gradient(180deg, rgba(255,240,196,.92), rgba(255,240,196,.72)); box-shadow: 0 2px 5px rgba(0,0,0,.3); }
+@media (max-width: 760px) {
+  .hang .avatar-wrap.sticker { margin-top: 56px; }
+  .hang .stk-tape { top: -26px; height: 60px; width: 28px; }
+}
+/* laptops: the headline gives the buttons room, and a long status row wraps */
+@media (min-width: 1001px) and (max-width: 1420px) {
+  .site:has(.hang) #hero h1 { font-size: min(5.2vw, 86px); max-width: calc(72.5vw - 190px); }
+  html[data-skin="techy"] .site:has(.hang) #hero h1, html[data-skin="retro"] .site:has(.hang) #hero h1 { font-size: min(4.9vw, 72px); }
+  .site:has(.hang) .hero-pills { max-width: 52vw; }
+}
+
+/* a solid menu bar, so what's tucked behind it doesn't show through */
+.site .nav { background: var(--bg); }

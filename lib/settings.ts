@@ -31,6 +31,9 @@ export const THEMES = ["day", "night", "playful", "techy", "sunset", "ocean", "f
 /** Everything that can be chosen: the themes plus Auto (day/night by clock) and Random (a different one every visit). */
 export const SKINS = [...THEMES, "auto", "random"] as const;
 export type Skin = (typeof SKINS)[number];
+/** Themes visitors can use now. The fan themes are under maintenance: visible in the menu but not selectable, and only reachable through a ?theme= preview link. */
+export const LIVE_THEMES: Skin[] = ["day", "night", "playful", "techy", "sunset", "ocean", "forest", "paper", "retro", "candy"];
+export const SELECTABLE: Skin[] = [...LIVE_THEMES, "auto", "random"];
 export const SKIN_LABELS: Record<Skin, string> = {
   day: "☀️ Day calm", night: "🌙 Night neon", playful: "🎈 Playful", techy: "💻 Techy",
   sunset: "🌅 Sunset", ocean: "🌊 Ocean", forest: "🌲 Forest", paper: "📰 Paper", retro: "🕹️ Retro", candy: "🍬 Candy",
@@ -77,10 +80,8 @@ export const SKIN_INFO: Record<Skin, { d: string; c: [string, string] }> = {
 /** How the theme menu is grouped. */
 export const SKIN_GROUPS: { label: string; keys: Skin[] }[] = [
   { label: "Classic", keys: ["day", "night", "playful", "techy", "sunset", "ocean", "forest", "paper", "retro", "candy"] },
-  { label: "Heroes and legends", keys: ["messi", "verstappen", "khabib", "salman", "batman", "spiderman", "naruto", "ben10", "rangers"] },
-  { label: "Stories and worlds", keys: ["got", "potter", "interstellar", "sparrow", "arthur", "tomjerry", "dabbe"] },
-  { label: "Places and faith", keys: ["bangladesh", "palestine", "islamic", "travel"] },
   { label: "Let the site choose", keys: ["auto", "random"] },
+  { label: "🚧 Under maintenance: back soon", keys: [...FAN_THEME_KEYS] },
 ];
 /** Fonts for the fan themes. Only the active theme's are downloaded (see skinScript). */
 export const THEME_FONTS: Partial<Record<Skin, string>> = {
@@ -97,7 +98,7 @@ export const EFFECTS = [
   { key: "decode", group: "Hero", label: "Decoding headline" },
   { key: "aurora", group: "Hero", label: "Aurora background" },
   { key: "tilt", group: "Hero", label: "3D photo (tilt, wave, confetti on click)" },
-  { key: "sticker", group: "Hero", label: "Photo as a floating sticker with a border" },
+  { key: "sticker", group: "Hero", label: "Photo hangs from the menu bar, paper cut-out buttons" },
   { key: "magnetic", group: "Hero", label: "Magnetic buttons (all over the site)" },
   { key: "greeting", group: "Hero", label: "Time greeting under the clock" },
   { key: "typewriter", group: "Hero", label: "Typewriter text" },
@@ -280,7 +281,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
   };
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;
-  if (!SKINS.includes(s.defaultTheme)) s.defaultTheme = DEFAULT_SETTINGS.defaultTheme;
+  if (!SELECTABLE.includes(s.defaultTheme)) s.defaultTheme = DEFAULT_SETTINGS.defaultTheme;
   if (s.mood && !MOODS[s.mood]) s.mood = "";
   s.partyWord = String(s.partyWord ?? "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 12);
   return s;
@@ -326,11 +327,11 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
 export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects">) {
   // lt: a device already found to be too slow stays on the lighter version for this visit (see Effects.tsx)
-  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SKINS, t: THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, lt: s.effects.autolite, f: THEME_FONTS }).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SELECTABLE, pv: SKINS, t: LIVE_THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, lt: s.effects.autolite, f: THEME_FONTS }).replace(/</g, "\\u003c");
   // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
     `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
-    `try{var q=new URLSearchParams(location.search).get("theme");if(q&&c.all.indexOf(q)>=0){p=q;h.setAttribute("data-skin-preview","1")}}catch(e){}` +
+    `try{var q=new URLSearchParams(location.search).get("theme");if(q&&c.pv.indexOf(q)>=0){p=q;h.setAttribute("data-skin-preview","1")}}catch(e){}` +
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
     `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
     `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p);` +
