@@ -327,6 +327,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "Write a banner under Dashboard → Hanging banner, or use Preview to see a sample.", "To see another theme, add it to the address: /?demo=banner&theme=ocean"],
     preview: "/?demo=banner",
   },
+  reactfx: {
+    title: "Reaction emojis come alive",
+    what: "A soft wave runs through the reaction bars on screen every few seconds. With a mouse, the emoji under it jumps up and grows while its neighbours lean away, and each one moves its own way: the heart beats, the fire flickers, the laughing face shakes, the mind-blown face pops and the hands clap. Clicking sends out a bigger burst of that emoji.",
+    how: ["Switch on and save (“Emoji reactions on entries” must be on too).", "On the site, move your mouse along any reaction bar."],
+    preview: "/?demo=reactfx",
+  },
   reactions: {
     title: "Emoji reactions",
     what: "Every entry gets ❤️ 🔥 😂 🤯 👏 buttons. The first time someone reacts, they have to type their name (it's remembered in their browser after that). New reactions show up in your bell and Inbox → Reactions with that name. Only you can see names; visitors only see the counts.",

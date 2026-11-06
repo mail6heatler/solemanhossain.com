@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -15,7 +15,17 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-06: Cards that fit, rows that slide
+### 2026-11-06: Reaction bar always visible and lively
+
+The owner wanted the reaction bar always visible under every card and poll, with lively emojis. The bar now sits under the scrolling part of a card (`foot` on `Box`), and untouched emojis are no longer greyed out. New effect `reactfx`: a soft wave on a few on-screen bars at a time, hover makes an emoji jump and grow while its neighbours lean, each emoji moves its own way, and a click sends a bigger burst. Reacting still takes a click, not a hover: the owner agreed, because hovering would cause accidental reactions and name boxes. Visitors' wall messages still have no reactions, because only the owner's entries do.
+
+**Scrolling,** alternating on and off in one session (production build, heavy local test): 65.2 fps on, 67.0 off, which is within this PC's variation; on the 4x slower device 19.8 on, 18.1 off. The first version waved bars as they came on screen and measured 58.7 against 66.1 (15.4 against 19.6 on the slower device), so bars now wave only while scrolling is at rest.
+
+**Also fixed:** the card's 3D tilt lifted a card about 6px as the mouse neared it, sliding the small buttons out from under the mouse, so a card now settles flat while the mouse is on its bar. Direct links (`/#section`) sometimes landed wrong after the rows update; `keepPlace` now keeps correcting while the page grows, for up to 4 seconds or until the visitor moves. 23 of 24 test loads landed exactly and one was 132px low, still on the right section.
+
+**Testing note:** compare smoothness by alternating on and off in one session (see how this entry was measured). One run before and one after is misleading on this PC.
+
+### 2026-11-06: Cards that fit, rows that slide (kept by the owner)
 
 The owner reported cards growing with their content, and rows wrapping downwards. Now:
 

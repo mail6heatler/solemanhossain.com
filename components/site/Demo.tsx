@@ -81,6 +81,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       sticker: { on: fx.sticker, target: ".avatar-wrap", tip: "Your photo floats like a sticker someone just stuck on. Move your mouse over it: it tilts in 3D." },
       sectionfx: { on: fx.sectionfx, tip: "Scroll down slowly: each chapter rises in, then leaves its own way (shrink, tilt, slide, swing)." },
       reactions: { on: fx.reactions, target: ".reacts", tip: "Tap an emoji to react (tap again to take it back). Reactions arrive in your Inbox." },
+      reactfx: { on: fx.reactfx && fx.reactions, target: ".reacts", tip: "Move your mouse along these emojis: each one moves its own way. The bars also wave by themselves now and then.", run: () => document.querySelector(".reacts")?.classList.add("wave") },
       confetti: { on: fx.confetti, target: ".poll", tip: "Vote in this poll for a burst of confetti." },
       plane: { on: fx.plane, target: ".hello", tip: "Send a message here and it flies away as a paper plane." },
       surprise: { on: fx.surprise, target: ".dice-btn", tip: "🎲 Click this to open a random entry." },

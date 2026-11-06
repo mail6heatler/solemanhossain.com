@@ -6,6 +6,9 @@ import { askName, savedName } from "./askName";
 
 type State = { counts: Record<string, number>; mine: string[] };
 
+/** Each emoji's own way of moving on hover (see `reactfx` in site.css). */
+const MOVES: Record<string, string> = { "❤️": "heart", "🔥": "fire", "😂": "laugh", "🤯": "mind", "👏": "clap" };
+
 // All reaction bars on a page ask at once: one request for every entry instead of one each.
 const waiting = new Map<number, ((s: State) => void)[]>();
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -65,7 +68,10 @@ export default function Reactions({ id, compact = false }: { id: number; compact
     setMine((m) => (adding ? [...m, emoji] : m.filter((x) => x !== emoji)));
     setCounts((c) => ({ ...c, [emoji]: Math.max(0, (c[emoji] ?? 0) + (adding ? 1 : -1)) }));
     setPopped(emoji);
-    if (adding) { const r = el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, [emoji], 5, 50); }
+    if (adding) {
+      const r = el.getBoundingClientRect(), lively = el.closest(".fx-reactfx");
+      burst(r.left + r.width / 2, r.top, [emoji], lively ? 12 : 5, lively ? 95 : 50);
+    }
     try {
       const r = await fetch("/api/react", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, emoji, name }) });
       const d = await r.json();
@@ -82,8 +88,8 @@ export default function Reactions({ id, compact = false }: { id: number; compact
         return (
           <button key={e} type="button" aria-pressed={mine.includes(e)} aria-label={`React ${e}, ${n} so far`}
             className={`${popped === e ? "pop" : ""}${n === 0 ? " zero" : ""}`}
-            onAnimationEnd={() => setPopped("")} onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); react(e, ev.currentTarget); }}>
-            <span aria-hidden>{e}</span><span className="n" aria-hidden>{n > 0 ? n : ""}</span>
+            onAnimationEnd={(ev) => { if (ev.target === ev.currentTarget) setPopped(""); }} onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); react(e, ev.currentTarget); }}>
+            <span className={`e m-${MOVES[e] ?? "any"}`} aria-hidden>{e}</span><span className="n" aria-hidden>{n > 0 ? n : ""}</span>
           </button>
         );
       })}

@@ -32,12 +32,18 @@ function Meta({ it, showCat = true }: { it: Item; showCat?: boolean }) {
   return bits.length ? <div className="meta">{bits}</div> : null;
 }
 
-/** Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more. */
-function Box({ children }: { children: React.ReactNode }) {
+/**
+ * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
+ * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible.
+ */
+function Box({ children, foot }: { children: React.ReactNode; foot?: React.ReactNode }) {
   return (
     <>
-      <div className="scrolly"><div className="flow">{children}</div></div>
-      <span className="more-hint" aria-hidden><i className="ti ti-chevrons-down" /></span>
+      <div className="scroll-wrap">
+        <div className="scrolly"><div className="flow">{children}</div></div>
+        <span className="more-hint" aria-hidden><i className="ti ti-chevrons-down" /></span>
+      </div>
+      {foot && <div className="card-foot">{foot}</div>}
     </>
   );
 }
@@ -54,6 +60,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   const st = fx.stagger ? " stagger" : "";
   const vt = (id: number) => morphName(fx.morph, id);
   const R = ({ id }: { id: number }) => (fx.reactions ? <Reactions id={id} compact /> : null);
+  const foot = (id: number) => (fx.reactions ? <Reactions id={id} compact /> : undefined);
   const rowFx: RowFx = { pin: fx.sideways, curve: fx.coverflow, fly: fx.rowfly, lean: fx.rowlean, count: fx.rowcount };
   const row = (className: string, children: React.ReactNode) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
@@ -65,10 +72,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <>
         {items.map((it) => (
           <div key={it.id} className="wall-note quote">
-            <Box>
+            <Box foot={foot(it.id)}>
               <p>{it.body || it.title}</p>
               <div className="by">— {it.subtitle || it.title}</div>
-              <R id={it.id} />
             </Box>
           </div>
         ))}
@@ -116,7 +122,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "strip") {
     const trips = items.map((it) => (
       <div key={it.id} className="trip">
-        <Box>
+        <Box foot={foot(it.id)}>
           <CardLink to={href(section, it)} label={it.title} />
           <div className="ph">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>
           <div className="tb">
@@ -125,7 +131,6 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             {(it.location || it.date_label) && (
               <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
             )}
-            <R id={it.id} />
           </div>
         </Box>
       </div>
@@ -256,12 +261,11 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <>
         {items.map((it, i) => (
           <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}`}>
-            <Box>
+            <Box foot={foot(it.id)}>
               {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
               <h3>{it.title}</h3>
               {it.media[0] && <Cover m={it.media[0]} className="note-media" />}
               {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
-              <R id={it.id} />
             </Box>
           </div>
         ))}
@@ -276,7 +280,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       {items.map((it, i) => (
         <div key={it.id} className={`card${tile(i)}`}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          <Box>
+          <Box foot={foot(it.id)}>
             <CardLink to={href(section, it)} label={it.title} />
             {it.media[0] && <div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>}
             <div className="card-body">
@@ -288,7 +292,6 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               {it.subtitle && <p className="sub">{it.subtitle}</p>}
               {it.type === "poll" ? <p className="ex">📊 Poll · tap to vote</p> : <Markdown className="md ex">{it.body}</Markdown>}
               {it.tags.length > 0 && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-              <R id={it.id} />
             </div>
           </Box>
         </div>

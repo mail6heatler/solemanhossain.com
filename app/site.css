@@ -475,16 +475,11 @@ html[data-skin="playful"] .site .card:hover { transform: translateY(-4px) rotate
 .entry .reacts { margin-top: 28px; }
 /* small version on cards, trips, rows and photos */
 .reacts.mini { position: relative; z-index: 2; gap: 4px; margin-top: 6px; }
-.reacts.mini button { padding: 2px 7px; font-size: 12.5px; gap: 3px; background: color-mix(in srgb, var(--card) 85%, transparent); }
+.reacts.mini button { padding: 3px 8px; font-size: 14px; gap: 3px; background: color-mix(in srgb, var(--card) 85%, transparent); }
 .reacts.mini button .n { font-size: 11px; min-width: 0; }
-.reacts.mini button.zero:not([aria-pressed="true"]) { opacity: .5; filter: grayscale(.4); }
-.reacts.mini button.zero:hover, .reacts.mini button.zero:focus-visible { opacity: 1; filter: none; }
-.card-body .reacts.mini { margin-top: auto; padding-top: 6px; }
-.card .tags + .reacts.mini { margin-top: 2px; }
 .flip-wrap { display: grid; gap: 8px; align-content: start; }
 .ph-cell { display: grid; gap: 4px; align-content: start; min-width: 0; }
 .ph-cell .reacts.mini { margin-top: 0; }
-.wall-note .reacts.mini { margin-top: 8px; }
 .lb-reacts .reacts.mini { margin-top: 0; }
 
 /* timeline (growth) */
@@ -1275,6 +1270,14 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .card .md a { position: relative; z-index: 2; }
 .card .ex.md p { margin-bottom: .6em; }
 .card .ex.md p:last-child { margin-bottom: 0; }
+/* the scrolling part and its hint; the reaction bar sits below them, so it never scrolls away */
+.scroll-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; position: relative; border-radius: inherit; }
+.scroll-wrap:has(+ .card-foot) .more-hint { border-radius: 0; }
+.card-foot { flex: 0 0 auto; position: relative; z-index: 4; padding: 8px 18px 11px; border-top: .5px solid var(--line); }
+.trip .card-foot { padding-inline: 15px; }
+.note .card-foot { padding-inline: 22px; }
+.wall-note .card-foot { padding: 6px 16px 9px; }
+.card-foot .reacts.mini { margin-top: 0; }
 .more-hint { position: absolute; inset: auto 0 0 0; height: 52px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; background: linear-gradient(transparent, var(--card)); color: var(--mint-deep); font-size: 16px; border-radius: 0 0 var(--r-card) var(--r-card); opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 2; }
 .scrolly.more + .more-hint { opacity: 1; }
 .scrolly.more + .more-hint i { animation: more-bob 1.3s ease-in-out infinite; }
@@ -1349,6 +1352,38 @@ html[data-skin="ocean"] .site.fx-themefx .side.flying .stagger.live > :is(.card,
 .wall-row .side { margin-top: 12px; }
 
 html.lite .side .side-track, html.lite .side .side-track > * { will-change: auto; }
+
+/* --- reaction emojis come alive (reactfx). The hit area stays the button, so an emoji growing never flips the hover to its neighbour.
+   Lift and lean use translate/scale/rotate; each emoji's own move uses transform, so the two add up. --- */
+.reacts .e { display: inline-block; line-height: 1; pointer-events: none; transform-origin: 50% 70%; }
+.site.fx-reactfx .reacts .e { transition: translate .22s cubic-bezier(.3,1.7,.5,1), scale .22s cubic-bezier(.3,1.7,.5,1), rotate .22s ease-out; }
+.site.fx-reactfx .reacts.wave button .e { animation: react-wave .75s ease-in-out both; }
+.site.fx-reactfx .reacts.wave button:nth-child(2) .e { animation-delay: .09s; }
+.site.fx-reactfx .reacts.wave button:nth-child(3) .e { animation-delay: .18s; }
+.site.fx-reactfx .reacts.wave button:nth-child(4) .e { animation-delay: .27s; }
+.site.fx-reactfx .reacts.wave button:nth-child(5) .e { animation-delay: .36s; }
+@keyframes react-wave { 40% { transform: translateY(-5px) rotate(-10deg) scale(1.2); } 70% { transform: translateY(1px) rotate(6deg); } }
+.site.fx-reactfx .reacts button:active .e { scale: .85; }
+.site.fx-reactfx .reacts button.pop .n { animation: react-count .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes react-count { from { transform: translateY(70%); opacity: 0; } }
+.reacts .n { display: inline-block; }
+@media (hover: hover) {
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) { position: relative; z-index: 1; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .e { translate: 0 -7px; scale: 1.6; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) + button .e { translate: 0 -2px; scale: 1.15; rotate: 9deg; }
+  .site.fx-reactfx .reacts button:has(+ button:is(:hover, :focus-visible)) .e { translate: 0 -2px; scale: 1.15; rotate: -9deg; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .m-heart { animation: react-heart .9s ease-in-out infinite; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .m-fire { transform-origin: 50% 100%; animation: react-fire .42s ease-in-out infinite; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .m-laugh { animation: react-laugh .3s linear infinite; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .m-mind { animation: react-mind .95s cubic-bezier(.3,1.5,.5,1) infinite; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .m-clap { animation: react-clap .32s ease-in-out infinite; }
+  .site.fx-reactfx .reacts button:is(:hover, :focus-visible) .m-any { animation: react-laugh .5s linear infinite; }
+}
+@keyframes react-heart { 15% { transform: scale(1.22); } 30% { transform: scale(1); } 45% { transform: scale(1.14); } 60% { transform: scale(1); } }
+@keyframes react-fire { 0%, 100% { transform: rotate(-5deg) scaleY(1); } 25% { transform: rotate(5deg) scaleY(1.14); } 50% { transform: rotate(-3deg) scaleY(.95); } 75% { transform: rotate(4deg) scaleY(1.1); } }
+@keyframes react-laugh { 0%, 100% { transform: rotate(-10deg) translateX(-1px); } 50% { transform: rotate(10deg) translate(1px, -1px); } }
+@keyframes react-mind { 30% { transform: scale(1.3) rotate(-9deg); } 48% { transform: scale(.92) rotate(6deg); } 64% { transform: scale(1.12); } }
+@keyframes react-clap { 50% { transform: scaleX(.7) rotate(-7deg); } }
 
 /* rows now pass under the side menu, so its label needs its own backing to stay readable */
 #rail:not(.on-dark) .stop:is(:hover, .active) .label { background: var(--bg); padding: 2px 7px; border-radius: var(--r-pill); }

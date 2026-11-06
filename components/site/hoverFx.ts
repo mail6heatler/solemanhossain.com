@@ -1,6 +1,6 @@
 // Mouse-driven motion (and the few scroll-triggered bits that need no library). No dependencies.
 
-export type HoverFxFlags = { footername: boolean; cardtilt: boolean; spotlight: boolean; liquid: boolean; navpill: boolean; kinetic: boolean; smartcursor: boolean; splittext: boolean; imgreveal: boolean; ambient: boolean; magnetic: boolean };
+export type HoverFxFlags = { reactfx: boolean; footername: boolean; cardtilt: boolean; spotlight: boolean; liquid: boolean; navpill: boolean; kinetic: boolean; smartcursor: boolean; splittext: boolean; imgreveal: boolean; ambient: boolean; magnetic: boolean };
 
 const TILT = ".card, .trip, .note, .wall-note, .ph-tile";
 const SPOT_GROUPS = ".grid3, .notes, .strip, .photogrid, .wall, .hero-stats";
@@ -102,6 +102,39 @@ export function startHoverFx(fx: HoverFxFlags) {
     }
   }
 
+  // reaction bars: a soft wave now and then, a few at a time, only on bars on screen and only while scrolling is at rest:
+  // starting animations while the page scrolls cost about 10% of the frames, and nobody can watch a bar rushing past
+  if (fx.reactfx) {
+    const bars = qsa(".reacts");
+    if (bars.length) {
+      const seen = new Set<HTMLElement>();
+      const lastWave = new Map<HTMLElement, number>();
+      const wave = (b: HTMLElement) => {
+        lastWave.set(b, performance.now());
+        b.classList.add("wave");
+        setTimeout(() => b.classList.remove("wave"), 1500);
+      };
+      const due = (b: HTMLElement) => performance.now() - (lastWave.get(b) ?? -1e9) > 5000;
+      const io = new IntersectionObserver((es) => es.forEach((e) => {
+        if (e.isIntersecting) seen.add(e.target as HTMLElement); else seen.delete(e.target as HTMLElement);
+      }));
+      bars.forEach((b) => io.observe(b));
+      let scrolledAt = 0;
+      const onScroll = () => { scrolledAt = performance.now(); };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      const timer = window.setInterval(() => {
+        if (document.hidden || document.documentElement.classList.contains("lite") || performance.now() - scrolledAt < 500) return;
+        [...seen].filter(due).sort((a, b) => (lastWave.get(a) ?? 0) - (lastWave.get(b) ?? 0)).slice(0, 3).forEach(wave);
+      }, 1200);
+      cleanups.push(() => {
+        clearInterval(timer);
+        io.disconnect();
+        window.removeEventListener("scroll", onScroll);
+        bars.forEach((b) => b.classList.remove("wave"));
+      });
+    }
+  }
+
   if (!fine) return () => cleanups.forEach((c) => c());
 
   // ---------- 3D tilt with spring ----------
@@ -123,7 +156,8 @@ export function startHoverFx(fx: HoverFxFlags) {
     const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
     on("pointermove", (e) => {
       if (e.pointerType !== "mouse") return;
-      const el = (e.target as Element).closest?.(TILT) as HTMLElement | null;
+      // on the reaction bar the card settles flat: tilting would slide the small buttons out from under the mouse
+      const el = (e.target as Element).closest?.(".card-foot, .reacts") ? null : (e.target as Element).closest?.(TILT) as HTMLElement | null;
       if (cur && cur.el !== el) { cur.trx = cur.try_ = cur.tlift = 0; cur = null; }
       if (!el) { kick(); return; }
       let t = live.get(el);

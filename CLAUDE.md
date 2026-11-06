@@ -119,7 +119,11 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 
 ## Rules learned the hard way
 
-- **A card never grows.** Its contents go in `Box` (`SectionBody.tsx`): the shell keeps its size (`--row-h`), `.scrolly` scrolls, and `.card-link` sits inside `.flow` so a finger can still scroll a card that is clickable everywhere.
+- **A card never grows.** Its contents go in `Box` (`SectionBody.tsx`): the shell keeps its size (`--row-h`), `.scrolly` scrolls, and `.card-link` sits inside `.flow` so a finger can still scroll a card that is clickable everywhere. The reaction bar goes in `Box`'s `foot`, outside the scrolling part, so it's always visible.
+- **Don't run an animation forever on things there are many of.** Each animated emoji is its own layer. The reaction wave is a short class added to a few on-screen bars at a time (`reactfx` in `hoverFx.ts`).
+- **Don't start animations while the page is scrolling.** Waving reaction bars as they came on screen cost about 10% of the frames; they now wait until scrolling rests.
+- **A card's 3D tilt moves what's on it.** Small buttons near a card's edge slide out from under the mouse, so `hoverFx.ts` skips tilt over `.card-foot` and `.reacts`. Anything small and clickable near a card's edge needs the same.
+- **`onAnimationEnd` hears animations from children too.** Check `ev.target === ev.currentTarget`, or an emoji's move ends the button's pop.
 - **Inside a 3D row, the browser's own scrolling and hit-testing can't be trusted.** Part of a turned card sits behind the row's flat surface, so the row caught clicks (hence `pointer-events` in the `pin` CSS) and the browser sent the wheel to the page (hence the hand-driven glide in `scrollBoxes.ts`).
 - **`.scrolly` is the exception to the rule below:** no `data-lenis-prevent` and no `overscroll-behavior: contain`, because the page must carry on once a card's text ends. A wheel already moving the page keeps moving it, so a row passing under the mouse doesn't catch on every long card.
 - **Rows add page height after loading,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back. A row's `reveal` is on its sticky stage, because a tall or moved element may never reach the reveal threshold and would stay invisible.

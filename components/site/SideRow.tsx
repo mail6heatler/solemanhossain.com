@@ -11,29 +11,34 @@ const lenis = () => (window as unknown as { __lenis?: Lenis }).__lenis;
 
 /**
  * Rows add page height once they start, which would strand a direct link (/#made) and the browser's Back or reload:
- * the browser has already scrolled by then. So the place is put right after the rows have measured themselves,
- * unless the visitor has started moving around.
+ * the browser has already scrolled by then. So while the page is still growing, the place is put right again,
+ * for a few seconds or until the visitor starts moving around.
  */
-let placeUntil = -1, placeTimer = 0;
+let placing = false;
 function keepPlace() {
-  if (placeUntil === -1) {
-    placeUntil = performance.now() + 2500;
-    const stop = () => { placeUntil = 0; };
-    ["wheel", "touchstart", "keydown", "pointerdown"].forEach((ev) => window.addEventListener(ev, stop, { once: true, passive: true }));
-    window.addEventListener("pagehide", () => { try { sessionStorage.setItem(`lc_y:${location.pathname}`, String(Math.round(scrollY))); } catch {} });
-  }
-  if (performance.now() > placeUntil) return;
-  clearTimeout(placeTimer);
-  placeTimer = window.setTimeout(() => {
-    const kind = (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type;
-    let y = NaN;
-    if (kind === "back_forward" || kind === "reload") { try { y = Number(sessionStorage.getItem(`lc_y:${location.pathname}`) ?? NaN); } catch {} }
-    if (Number.isNaN(y) && location.hash.length > 1) {
-      const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-      if (el) y = el.getBoundingClientRect().top + scrollY;
-    }
-    if (!Number.isNaN(y)) window.scrollTo({ top: y, behavior: "instant" });
-  }, 80);
+  if (placing) return;
+  placing = true;
+  window.addEventListener("pagehide", () => { try { sessionStorage.setItem(`lc_y:${location.pathname}`, String(Math.round(scrollY))); } catch {} });
+  const kind = (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type;
+  let saved = NaN;
+  if (kind === "back_forward" || kind === "reload") { try { saved = Number(sessionStorage.getItem(`lc_y:${location.pathname}`) ?? NaN); } catch {} }
+  const anchor = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+  if (Number.isNaN(saved) && !anchor) return;
+  let timer = 0;
+  const put = () => {
+    const y = !Number.isNaN(saved) ? saved : anchor ? anchor.getBoundingClientRect().top + scrollY : NaN;
+    if (!Number.isNaN(y) && Math.abs(scrollY - y) > 2) window.scrollTo({ top: y, behavior: "instant" });
+  };
+  const ro = new ResizeObserver(() => { clearTimeout(timer); timer = window.setTimeout(put, 80); });
+  const inputs = ["wheel", "touchstart", "keydown", "pointerdown"];
+  const stop = () => {
+    ro.disconnect();
+    clearTimeout(timer);
+    inputs.forEach((ev) => window.removeEventListener(ev, stop));
+  };
+  ro.observe(document.body);
+  inputs.forEach((ev) => window.addEventListener(ev, stop, { once: true, passive: true }));
+  setTimeout(stop, 4000);
 }
 
 /**

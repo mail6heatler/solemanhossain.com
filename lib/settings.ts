@@ -139,6 +139,7 @@ export const EFFECTS = [
   { key: "navpill", group: "Hover", label: "Sliding menu highlight + rolling labels" },
   { key: "bannerfall", group: "Fun", label: "Things fall from the banner when it's pulled" },
   { key: "reactions", group: "Fun", label: "Emoji reactions on entries" },
+  { key: "reactfx", group: "Fun", label: "Reaction emojis come alive" },
   { key: "confetti", group: "Fun", label: "Confetti on poll votes" },
   { key: "plane", group: "Fun", label: "Paper plane on “Say hello”" },
   { key: "surprise", group: "Fun", label: "🎲 Surprise me button" },
