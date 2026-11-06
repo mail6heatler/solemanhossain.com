@@ -1278,6 +1278,11 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .card-links a:hover, .card-links a:focus-visible { scale: 1.05; background: color-mix(in srgb, var(--mint) 16%, transparent); }
 /* a picture-only card: small enough that it doesn't scroll for nothing */
 .note:not(.with-text) { --pic: .56; }
+/* a whole post opens its page; what's interactive inside it sits above that link */
+.post-main { position: relative; }
+.post-main .poll, .post-main video, .post-main .more-media, .post-main .md a, .post-main h3 a { position: relative; z-index: 2; }
+.post:hover h3 a { color: var(--mint-deep); }
+.post .sub { font-size: calc(14px * var(--fs, 1)); color: var(--muted); margin: -3px 0 0; }
 .trip .sub { font-size: calc(12.5px * var(--fs, 1)); color: var(--muted); margin: 0; }
 .trip .ex { font-size: calc(13px * var(--fs, 1)); color: var(--text-2); margin: 3px 0 0; }
 .trip .ex.md p { margin-bottom: .6em; }

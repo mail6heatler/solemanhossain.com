@@ -230,8 +230,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
           <article key={it.id} className={`post${l.className}`} style={l.style}>
             <div className="dotline"><div className="d" style={MOODS[it.mood] ? { background: MOODS[it.mood].color } : undefined} /><div className="l" /></div>
             <div className="post-main">
-              <Meta it={it} hideDate={l.hide("date")} />
+              <CardLink to={href(section, it)} label={it.title} />
+              <Meta it={it} hideDate={l.hide("date")} showStatus />
               <h3><a href={href(section, it)}>{it.pinned ? "📌 " : ""}{it.title}</a></h3>
+              {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
               {it.type === "poll" ? (
                 <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />
               ) : (
@@ -245,6 +247,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                     : <Markdown>{it.body}</Markdown>}
                 </>
               )}
+              <LinkButtons it={it} />
+              {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
               <R id={it.id} />
             </div>
           </article>
