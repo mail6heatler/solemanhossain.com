@@ -21,7 +21,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-07: Bigger menu, thicker belts, uploads that fit (waiting for the owner's keep or undo)
+### 2026-11-07: Bigger menu, thicker belts, uploads that fit (kept by the owner)
 
 The owner asked for all three, plus control of the belt from the dashboard, and said "do the best" when offered a choice on pictures, so option A (fill) was used.
 
