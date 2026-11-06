@@ -330,27 +330,6 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 @media (max-width: 560px) { .order-k { display: none; } }
 .order-hint { font-size: 10.5px; color: var(--text-faint); margin: 8px 0 0; }
 
-/* ---------- the action bar: the same on every dashboard page. A strip at the bottom of the screen, Save large on the right,
-   everything else beside it at the same height. The markup has Save first, so keyboards reach it first. ---------- */
-.save-bar { position: sticky; bottom: 0; z-index: 6; box-sizing: border-box; margin: 20px 0 0; padding: 10px 14px; display: flex; flex-direction: row-reverse; justify-content: flex-start; align-items: center; gap: 10px; background: var(--card-bg); border-top: 1px solid var(--card-border); box-shadow: 0 -10px 20px -18px rgba(0,0,0,.4); }
-.save-bar .b-mint, .save-bar .b-out, .save-bar .b-dark { box-sizing: border-box; min-height: 40px; padding: 0 16px; justify-content: center; }
-.save-bar .b-mint { padding: 0 24px; font-size: 13px; font-weight: 700; }
-.save-bar .b-mint:hover { transform: translateY(-1px); }
-.save-bar .hint { flex: 1; min-width: 0; margin: 0 auto 0 0; }
-/* inside a card, it closes the card off */
-.save-bar.in-card { margin: 6px -15px -14px; padding: 10px 15px; border-radius: 0 0 13px 13px; }
-@media (min-width: 761px) {
-  /* the page scrolls inside a box with padding at the bottom: this reaches past it, so the bar sits on the screen's edge rather than floating above it */
-  .adm-content { overflow-x: hidden; }
-  .save-bar { bottom: -60px; width: calc(100vw - 214px); margin-left: -28px; padding-left: 28px; padding-right: max(28px, calc(100vw - 1162px)); }
-  form:last-child > .save-bar:last-child { margin-bottom: -60px; }
-  .save-bar.in-card { width: auto; margin: 6px -15px -14px; padding: 10px 15px; }
-}
-@media (max-width: 760px) {
-  .save-bar { margin-inline: -14px; padding: 10px 14px; }
-  .save-bar .b-mint { flex: 1 1 auto; }
-  .save-bar .b-out, .save-bar .b-dark { flex: 0 0 auto; }
-  .opt-long { display: none; }
-  .save-bar.in-card { flex-wrap: wrap-reverse; margin: 6px -15px -14px; padding: 10px 15px; }
-  .save-bar.in-card .hint { flex-basis: 100%; }
-}
+/* ---------- Save and the buttons beside it: a plain row in the page, in reading order. The owner chose this over a bar stuck to the screen. ---------- */
+.save-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 0; }
+.save-bar .hint { flex: 1; min-width: 180px; margin: 0; }
