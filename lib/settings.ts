@@ -130,6 +130,7 @@ export const EFFECTS = [
   { key: "ribbons", group: "Scrolling", label: "Sliding headlines before chapters" },
   { key: "velocity", group: "Scrolling", label: "Ribbons react to scroll speed" },
   { key: "imgreveal", group: "Scrolling", label: "Photos wipe in, grids drift" },
+  { key: "milemap", group: "Scrolling", label: "Timeline sections become a lively map" },
   { key: "rowfly", group: "Scrolling", label: "Sideways cards fly in tilted" },
   { key: "rowlean", group: "Scrolling", label: "Sideways rows lean when you scroll fast" },
   { key: "rowcount", group: "Scrolling", label: "Big counter on sideways rows" },

@@ -49,6 +49,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       hero3d: { on: fx.hero3d, target: "#hero", tip: "Move your mouse over the particles: they part around it. Click an empty spot for a shock wave and a new shape.", run: async () => { await sleep(1800); window.dispatchEvent(new Event("lc-hero-next")); } },
       cardtilt: { on: fx.cardtilt, target: inLayout("cards", ".grid3"), tip: "Move your mouse across a card: it tilts toward you and catches the light." },
       coverflow: { on: fx.coverflow, target: ".side", tip: "Keep scrolling: the cards curve around you as they pass the middle of the screen." },
+      milemap: { on: fx.milemap, target: ".mile-map", tip: "Keep scrolling: travel along the trail. It lights up behind you, and each stop's medal pops as you reach it." },
       rowfly: { on: fx.rowfly, target: ".side", tip: "Keep scrolling: cards come in tilted from the edge of the screen and straighten as they arrive." },
       rowlean: { on: fx.rowlean, target: ".side", tip: "Scroll quickly through this row: it leans with your speed, then springs back." },
       rowcount: { on: fx.rowcount, target: ".side", tip: "Keep scrolling: the big number counts the cards as you pass them." },

@@ -70,6 +70,18 @@ function LinkButtons({ it }: { it: Item }) {
 }
 
 /** Visitors see this on an empty section. Older default messages told the owner to use the dashboard, which means nothing to a visitor. */
+/** A milestone's medal, from its subsection's name. */
+function medalFor(it: Item) {
+  if (it.type === "poll") return "chart-bar";
+  const c = `${it.category} ${it.title}`.toLowerCase();
+  if (/certif|skill|course|licen|badge/.test(c)) return "certificate";
+  if (/school|study|degree|universit|college|educat/.test(c)) return "school";
+  if (/career|job|work|officer|intern|assist|manager|engineer/.test(c)) return "briefcase";
+  if (/win|award|prize|achiev|medal|champion/.test(c)) return "trophy";
+  if (/lesson|hard|fail|learn/.test(c)) return "bulb";
+  return "flag";
+}
+
 function Empty({ text }: { text: string }) {
   const shown = !text || /dashboard/i.test(text) ? "Coming soon." : text;
   return <div className="empty reveal r3"><i className="ti ti-pencil" />{shown}</div>;
@@ -255,6 +267,65 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
         ); })}
       </div>
     );
+
+  // milestones as a map: one screen tall however many there are, travelled sideways
+  if (L === "timeline" && fx.milemap) {
+    const zones = [...new Set(items.map((it) => it.category).filter(Boolean))];
+    const zoneColor = (c: string) => ["var(--mint)", "var(--pop2)", "var(--pop3)"][Math.max(0, zones.indexOf(c)) % 3];
+    return (
+      <>
+        {zones.length > 1 && (
+          <div className="zones reveal r3">
+            {zones.map((z) => (
+              <a key={z} className="zone" href={`/s/${section.slug}?c=${encodeURIComponent(z)}`} style={{ ["--z" as string]: zoneColor(z) }}>
+                <i aria-hidden />{z}<b>{items.filter((it) => it.category === z).length}</b>
+              </a>
+            ))}
+          </div>
+        )}
+        <SideRow className="mile-map" fx={{ ...rowFx, curve: false, fly: false, marks: true }}>
+          {items.map((it, i) => {
+            const l = lookFor(it), pic = it.media[0] && !l.hide("pic"), low = i % 2 === 1;
+            return (
+              <div key={it.id} className={`stop${low ? " low" : ""}`} style={{ ...l.style, ["--z" as string]: zoneColor(it.category) }}>
+                <div className="stop-head">
+                  <span className="stop-pin"><i className={`ti ti-${medalFor(it)}`} aria-hidden /></span>
+                  {it.date_label && !l.hide("date") && <span className="stop-date">{it.date_label}</span>}
+                  {i < items.length - 1 && (
+                    <svg className="stop-trail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                      <path className="t-base" d={low ? "M0 100 C50 100 50 0 100 0" : "M0 0 C50 0 50 100 100 100"} />
+                      <path className="t-lit" d={low ? "M0 100 C50 100 50 0 100 0" : "M0 0 C50 0 50 100 100 100"} />
+                    </svg>
+                  )}
+                </div>
+                <div className={`card stop-card${it.body.trim() || it.type === "poll" ? " with-text" : ""}${pic ? "" : " no-pic"}${l.className}`}>
+                  <Box foot={foot(it.id)} to={href(section, it)}>
+                    <CardLink to={href(section, it)} label={it.title} />
+                    {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
+                    <div className="card-body">
+                      {it.category && <span className="chip stop-zone">{it.category}</span>}
+                      <h3>{it.title}</h3>
+                      {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
+                      {(it.location || it.status || it.mood) && !l.hide("date") && (
+                        <div className="meta">
+                          {it.status && <span className="chip line">{it.status}</span>}
+                          {it.location && <span><i className="ti ti-map-pin" style={{ fontSize: 12 }} /> {it.location}</span>}
+                          {it.mood && <Mood mood={it.mood} />}
+                        </div>
+                      )}
+                      {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+                      <LinkButtons it={it} />
+                      {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+                    </div>
+                  </Box>
+                </div>
+              </div>
+            );
+          })}
+        </SideRow>
+      </>
+    );
+  }
 
   if (L === "timeline")
     return (

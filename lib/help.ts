@@ -193,6 +193,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save (“Rows that don't fit slide sideways” must be on too).", "On the site, scroll through a row that doesn't fit on screen."],
     preview: "/?demo=coverflow",
   },
+  milemap: {
+    title: "Timeline sections become a lively map",
+    what: "Sections laid out as a timeline, like your milestones, become a journey: each entry is a stop on a winding trail, with a medal chosen from its subsection's name and a colour per subsection. The trail lights up as visitors travel sideways, and a pin marks where they are. It stays one screen tall however many entries you add. Photos on an entry, like a certificate, show on its stop. With this off, you get the plain vertical timeline.",
+    how: ["Switch on and save.", "Give entries subsections with words like Certifications, Career or Wins to choose their medals.", "Add a certificate as the entry's photo."],
+    preview: "/?demo=milemap",
+  },
   rowfly: {
     title: "Sideways cards fly in tilted",
     what: "A sideways row sweeps in from the edge of the screen as its section arrives. Each card comes in tilted and low, then straightens as it reaches the middle.",

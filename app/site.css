@@ -1405,6 +1405,50 @@ html[data-skin="ocean"] .site.fx-themefx .side.flying .stagger.live > :is(.card,
 
 html.lite .side .side-track, html.lite .side .side-track > * { will-change: auto; }
 
+/* --- milestones as a map: stops on a winding trail. Stops step up and down by --step, and each draws the piece of trail to the next one.
+   Lighting up is a class change when a stop reaches the middle of the screen, so nothing repaints per frame. --- */
+.mile-map.side-track { align-items: flex-start; --step: 54px; --stop-gap: 16px; --pin: 44px; }
+.side.live[data-mode="pin"] .mile-map > * { will-change: auto; }
+.stop { position: relative; width: var(--cw, clamp(250px, 23vw, 300px)); display: flex; flex-direction: column; gap: 10px; }
+.stop.low { margin-top: var(--step); }
+/* in a 3D row the stop's own box would catch the mouse before the card inside it */
+.side[data-mode="pin"] .mile-map.side-track > .stop { pointer-events: none; }
+.side[data-mode="pin"] .stop-card, .side[data-mode="pin"] .stop-pin { pointer-events: auto; }
+@media (max-width: 760px) { .stop { width: min(var(--cw, 300px), 78vw); } .mile-map.side-track { --step: 34px; } }
+.stop-head { position: relative; height: var(--pin); display: flex; align-items: center; gap: 10px; padding-left: 16px; }
+.stop-pin { position: relative; z-index: 2; flex: 0 0 var(--pin); height: var(--pin); border-radius: 50%; display: grid; place-items: center; font-size: 21px; background: var(--card); color: var(--muted); border: 2px solid var(--line); transition: background .3s, color .3s, border-color .3s, box-shadow .3s; }
+.stop-date { position: relative; z-index: 2; font: 700 12px var(--body); color: var(--muted); padding: 2px 8px; border-radius: var(--r-pill); background: var(--bg); }
+.chap.alt .stop-date { background: var(--bg-2); }
+.stop-trail { position: absolute; z-index: 1; left: calc(16px + var(--pin) / 2); top: calc(var(--pin) / 2); width: calc(100% + var(--stop-gap)); height: var(--step); overflow: visible; pointer-events: none; }
+.stop.low .stop-trail { top: calc(var(--pin) / 2 - var(--step)); }
+.stop-trail path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.t-base { stroke: var(--line); stroke-width: 3; stroke-dasharray: 2 9; }
+.t-lit { stroke: var(--z, var(--mint)); stroke-width: 3.5; opacity: 0; transition: opacity .45s; }
+.stop-card { width: 100%; max-height: min(var(--row-h), calc(100vh - 300px)); opacity: .82; translate: 0 8px; transition: opacity .4s, translate .5s cubic-bezier(.2,1.3,.4,1), transform .2s, box-shadow .2s; }
+.stop-card.sized { height: min(var(--row-h), calc(100vh - 300px)); max-height: min(var(--row-h), calc(100vh - 300px)); }
+.stop-card :is(.card-img) { max-height: min(calc(var(--row-h) * var(--pic, .5)), 34vh); }
+.fit-fill.stop-card .card-img { height: min(calc(var(--row-h) * var(--pic, .5)), 34vh); max-height: none; }
+.stop-zone { align-self: flex-start; background: color-mix(in srgb, var(--z, var(--mint)) 20%, transparent); }
+@media (max-width: 760px) { .stop-card { max-height: min(var(--row-h), 62svh); } }
+/* lit: reached, or everything if the row isn't moving (fits on screen, no JavaScript, reduced motion) */
+:is(.stop.passed, .side:not([data-mode="pin"], [data-mode="swipe"]) .stop) .stop-pin { background: var(--z, var(--mint)); border-color: var(--z, var(--mint)); color: var(--on-mint); box-shadow: 0 0 0 4px color-mix(in srgb, var(--z, var(--mint)) 25%, transparent), var(--glow); }
+:is(.stop.passed, .side:not([data-mode="pin"], [data-mode="swipe"]) .stop) .t-lit { opacity: 1; }
+:is(.stop.passed, .side:not([data-mode="pin"], [data-mode="swipe"]) .stop) .stop-card { opacity: 1; translate: 0 0; }
+.stop.passed .stop-pin i { animation: medal-pop .55s cubic-bezier(.3,1.8,.5,1); }
+@keyframes medal-pop { 0% { transform: scale(.4) rotate(-30deg); } 60% { transform: scale(1.25) rotate(8deg); } 100% { transform: none; } }
+.stop:hover .stop-pin i { animation: medal-wiggle .6s ease-in-out; }
+@keyframes medal-wiggle { 25% { transform: rotate(-14deg) scale(1.15); } 60% { transform: rotate(10deg) scale(1.15); } }
+/* you are here */
+.stop.here .stop-pin::after { content: "📍"; position: absolute; left: 50%; top: -24px; margin-left: -10px; font-size: 20px; line-height: 1; animation: here-bob 1.1s ease-in-out infinite; }
+@keyframes here-bob { 50% { translate: 0 -5px; } }
+html.scrolling .stop.here .stop-pin::after { animation-play-state: paused; }
+.zones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.zone { display: inline-flex; align-items: center; gap: 7px; font: 600 12px var(--body); text-decoration: none; padding: 6px 12px; border-radius: var(--r-pill); border: .5px solid var(--line); background: var(--card); transition: border-color .2s, translate .15s; }
+.zone:hover { border-color: var(--z); translate: 0 -2px; }
+.zone i { width: 10px; height: 10px; border-radius: 50%; background: var(--z); }
+.zone b { color: var(--muted); font-weight: 600; }
+.zones + .side { margin-top: 14px; }
+
 /* --- size and look controls (lib/contentStyle.ts). All of it is set once when the page is made, none of it per frame --- */
 .sized:is(.card, .note, .trip, .wall-note) { height: var(--row-h); max-height: var(--row-h); }
 .flip-wrap.sized .flip { height: var(--row-h); }

@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { docTop, pageY, prefersReducedMotion } from "./fx";
 
-export type RowFx = { pin: boolean; curve: boolean; fly: boolean; lean: boolean; count: boolean };
+export type RowFx = { pin: boolean; curve: boolean; fly: boolean; lean: boolean; count: boolean; marks?: boolean };
 
 const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n));
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -58,7 +58,7 @@ export default function SideRow({ className, fx, children }: { className: string
   const bar = useRef<HTMLElement>(null);
   const now = useRef<HTMLElement>(null);
   const total = useRef<HTMLElement>(null);
-  const { pin, curve, fly, lean, count } = fx;
+  const { pin, curve, fly, lean, count, marks = false } = fx;
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -68,9 +68,21 @@ export default function SideRow({ className, fx, children }: { className: string
     let mode: "fit" | "pin" | "swipe" = "fit";
     let over = 0, range = 1, half = 1, seen = true, raf = 0, lastT = 0, lastPos = 0, tilt = 0, shown = -1, oTop = 0, rowLeft = 0, lastW = 0;
     let light = document.documentElement.classList.contains("lite");
-    let cards: { el: HTMLElement; mid: number; d: number }[] = [];
+    let cards: { el: HTMLElement; mid: number; d: number; on: boolean }[] = [];
+    let here: HTMLElement | null = null;
 
+    // `marks`: each card gets "passed" once it has reached the middle of the screen, and the latest one "here"
+    const mark = (shift: number, atEnd: boolean) => {
+      let latest: HTMLElement | null = null;
+      for (const c of cards) {
+        const on = atEnd || c.mid + shift - half < half * 0.15;
+        if (on !== c.on) { c.on = on; c.el.classList.toggle("passed", on); }
+        if (on) latest = c.el;
+      }
+      if (latest !== here) { here?.classList.remove("here"); latest?.classList.add("here"); here = latest; }
+    };
     const pose = (shift: number) => {
+      if (!curve && !fly) return;
       const big = mode === "pin", k = big ? 1 : 0.4;
       for (const c of cards) {
         const d = clamp((c.mid + shift - half) / half, -1.3, 1.3);
@@ -119,6 +131,7 @@ export default function SideRow({ className, fx, children }: { className: string
         t.style.transform = sweep || leaning ? `translateX(${sweep.toFixed(1)}px) ${leaning}` : "";
       }
       if (!light) pose(-pos + sweep);
+      if (marks) mark(-pos, light || p > 0.995);
       if (bar.current) bar.current.style.transform = `scaleX(${p.toFixed(4)})`;
       o.classList.toggle("moved", p > 0.02);
       if (now.current && cards.length) {
@@ -151,7 +164,8 @@ export default function SideRow({ className, fx, children }: { className: string
       lastW = window.innerWidth;
       t.style.transform = "";
       clearPoses();
-      cards = kids.map((el) => ({ el, mid: el.offsetLeft + el.offsetWidth / 2, d: NaN }));
+      cards = kids.map((el) => ({ el, mid: el.offsetLeft + el.offsetWidth / 2, d: NaN, on: el.classList.contains("passed") }));
+      if (marks && mode === "fit") mark(0, true); // everything is in view, so the whole trail is lit
       if (total.current) total.current.textContent = `/ ${pad(kids.length)}`;
       shown = -1;
       lastPos = mode === "pin" ? clamp((pageY() - oTop) / range, 0, 1) * over : rowLeft;
@@ -219,7 +233,7 @@ export default function SideRow({ className, fx, children }: { className: string
       o.classList.remove("flying", "live", "moved");
       delete o.dataset.mode;
     };
-  }, [pin, curve, fly, lean]);
+  }, [pin, curve, fly, lean, marks]);
 
   return (
     <div ref={outer} className="side">
