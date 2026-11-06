@@ -4,6 +4,7 @@ import { UploadField } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
 import { FAN_THEME_KEYS, SKIN_LABELS } from "@/lib/settings";
 import { THEME_CREDITS } from "@/lib/themeCredits";
+import SaveBox from "@/components/admin/SaveBox";
 
 export default async function ThemePicturesPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
@@ -32,10 +33,9 @@ export default async function ThemePicturesPage() {
           </div>
         ))}
       </div>
-      <div className="save-bar">
-        <button className="b-mint"><i className="ti ti-device-floppy" />Save pictures</button>
+      <SaveBox label="Save pictures">
         <a href="/" target="_blank" className="b-out"><i className="ti ti-eye" />View site</a>
-      </div>
+      </SaveBox>
     </form>
   );
 }

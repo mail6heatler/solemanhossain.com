@@ -4,6 +4,7 @@ import { logout, logoutEverywhere, saveSite } from "@/app/actions";
 import { PasswordForm } from "@/components/admin/Forms";
 import { ConfirmSubmit, LinksEditor } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
+import SaveBox from "@/components/admin/SaveBox";
 
 export default async function SettingsPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
@@ -46,9 +47,9 @@ export default async function SettingsPage() {
             <div className="fl"><label>Username you sign in with</label><input className="inp" name="adminUsername" defaultValue={s.adminUsername} autoComplete="off" /></div>
           </div>
         </div>
-        <div className="save-bar">
-          <button className="b-mint"><i className="ti ti-device-floppy" />Save settings</button>
-        </div>
+        <SaveBox label="Save settings">
+          <a href="/" target="_blank" className="b-out"><i className="ti ti-eye" />View site</a>
+        </SaveBox>
       </form>
 
       <div className="adm-label">Password</div>

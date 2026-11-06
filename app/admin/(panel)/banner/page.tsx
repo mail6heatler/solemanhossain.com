@@ -2,6 +2,7 @@ import { getSettings } from "@/lib/data";
 import { saveBanner } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { BANNER_KINDS } from "@/lib/settings";
+import SaveBox from "@/components/admin/SaveBox";
 
 export default async function BannerPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
@@ -46,10 +47,9 @@ export default async function BannerPage() {
         </div>
       </div>
 
-      <div className="save-bar">
-        <button className="b-mint"><i className="ti ti-device-floppy" />Save banner</button>
-        <a href="/?demo=banner" target="_blank" className="b-out"><i className="ti ti-eye" />Preview<span className="opt-long"> (only you see your text)</span></a>
-      </div>
+      <SaveBox label="Save banner" desc="Nothing goes live until you save. Preview shows your text to you only.">
+        <a href="/?demo=banner" target="_blank" className="b-out"><i className="ti ti-eye" />Preview</a>
+      </SaveBox>
     </form>
   );
 }

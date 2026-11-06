@@ -62,9 +62,9 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
           <nav className="adm-nav">
             {links.slice(0, 1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
             <div className="adm-divider" />
-            {links.slice(1, -5).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
+            {links.slice(1, -6).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
             <div className="adm-divider" />
-            {links.slice(-5, -1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
+            {links.slice(-6, -1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
             <span className="mobile-only-settings">{links.slice(-1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}</span>
           </nav>
           <div className="adm-owner">

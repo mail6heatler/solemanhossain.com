@@ -2,6 +2,7 @@ import { getSettings } from "@/lib/data";
 import { saveHero } from "@/app/actions";
 import { ChipsEditor, UploadField } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
+import SaveBox from "@/components/admin/SaveBox";
 
 export default async function HeroPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
@@ -77,10 +78,9 @@ export default async function HeroPage() {
         </div>
       </div>
 
-      <div className="save-bar">
-        <button className="b-mint"><i className="ti ti-device-floppy" />Save hero</button>
+      <SaveBox label="Save hero">
         <a href="/#hero" target="_blank" className="b-out"><i className="ti ti-eye" />Preview</a>
-      </div>
+      </SaveBox>
     </form>
   );
 }

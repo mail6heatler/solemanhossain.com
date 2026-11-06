@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { EFFECTS, MOODS, SELECTABLE, SKIN_LABELS } from "@/lib/settings";
 import { HELP } from "@/lib/help";
 import { InfoTip } from "@/components/admin/Widgets";
+import SaveBox from "@/components/admin/SaveBox";
 
 const GROUP_INTRO: Record<string, string> = {
   Themes: "Extra theme fun for visitors.",
@@ -101,10 +102,9 @@ export default async function AppearancePage() {
         </div>
       </div>
 
-      <div className="save-bar">
-        <button className="b-mint"><i className="ti ti-device-floppy" />Save appearance</button>
+      <SaveBox label="Save appearance">
         <a href="/" target="_blank" className="b-out"><i className="ti ti-eye" />View site</a>
-      </div>
+      </SaveBox>
     </form>
   );
 }

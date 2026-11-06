@@ -9,6 +9,7 @@ import { lookSample } from "@/components/admin/lookSample";
 import { isCustom } from "@/lib/contentStyle";
 import type { Item } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth";
+import SaveBox from "@/components/admin/SaveBox";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -129,7 +130,9 @@ export default async function SectionAdmin({ params }: P) {
             </div>
             <label className="switch"><input type="checkbox" name="visible" defaultChecked={section.visible} />Visible on the site</label>
             <label className="switch"><input type="checkbox" name="ribbon" defaultChecked={section.ribbon} />Show the sliding headline before this section</label>
-            <div className="save-bar in-card"><button className="b-mint"><i className="ti ti-device-floppy" />Save section</button></div>
+            <SaveBox label="Save section">
+              <a href={`/#${section.slug}`} target="_blank" className="b-out"><i className="ti ti-eye" />View on site</a>
+            </SaveBox>
           </div>
         </details>
       </form>

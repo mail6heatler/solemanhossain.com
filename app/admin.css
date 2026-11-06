@@ -330,6 +330,24 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 @media (max-width: 560px) { .order-k { display: none; } }
 .order-hint { font-size: 10.5px; color: var(--text-faint); margin: 8px 0 0; }
 
-/* ---------- Save and the buttons beside it: a plain row in the page, in reading order. The owner chose this over a bar stuck to the screen. ---------- */
-.save-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 0; }
-.save-bar .hint { flex: 1; min-width: 180px; margin: 0; }
+/* ---------- the floating Save box: the same card as the Delete box, but it stays in view while scrolling.
+   It floats only within its own form, so a page with two forms has one box for each part. ---------- */
+.save-bar { position: sticky; bottom: 12px; z-index: 6; display: flex; align-items: center; gap: 14px; margin: 18px 0 0; padding: 12px 15px; background: var(--card-bg); border: .5px solid var(--card-border); border-radius: 13px; box-shadow: 0 12px 30px -12px rgba(0,0,0,.32), 0 1px 3px rgba(0,0,0,.08); }
+.save-bar .grow { flex: 1; min-width: 0; }
+.save-bar .c-desc { white-space: normal; }
+.save-btns { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.save-btns .b-mint, .save-btns .b-out { box-sizing: border-box; height: 38px; padding: 0 16px; justify-content: center; }
+.save-btns .b-mint { font-size: 12.5px; font-weight: 700; padding: 0 20px; }
+.save-btns .b-mint:hover { transform: translateY(-1px); }
+@media (min-width: 761px) {
+  /* the page scrolls inside a box with 60px of padding at the bottom: this brings the Save box down to a small gap above the screen's edge */
+  .save-bar { bottom: -46px; }
+}
+@media (max-width: 760px) {
+  .save-bar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .save-bar .grow { flex-basis: 100%; }
+  .save-bar .c-desc { display: none; }
+  .save-btns { width: 100%; }
+  .save-btns .b-mint { flex: 1 1 auto; }
+  .save-btns .b-out { padding: 0 12px; }
+}

@@ -7,6 +7,7 @@ import LookControls from "@/components/admin/LookControls";
 import { lookSample } from "@/components/admin/lookSample";
 import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { requireAdmin } from "@/lib/auth";
+import SaveBox from "@/components/admin/SaveBox";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -105,10 +106,10 @@ export default async function ItemEditor({ params }: P) {
           </div>
         </div>
 
-        <div className="save-bar">
-          <button className="b-mint"><i className="ti ti-device-floppy" />Save entry</button>
-          <a href={`/admin/s/${item.section_id}`} className="b-out">Back</a>
-        </div>
+        <SaveBox label="Save entry">
+          <a href={`/admin/s/${item.section_id}`} className="b-out"><i className="ti ti-arrow-left" />Back</a>
+          {section && <a href={`/s/${section.slug}/${item.id}`} target="_blank" className="b-out"><i className="ti ti-eye" />Open on site</a>}
+        </SaveBox>
       </form>
 
       <form action={saveLook} id="look">

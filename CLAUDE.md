@@ -107,9 +107,9 @@ Show everything the entry holds that fits a card: subtitle, date, place, mood, s
 
 All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a click can come before the page's own code has loaded; the look is under "opening a page" in `site.css`. A click gives the card `.opening` (press and glow) and adds `.nav-progress`. On `pageswap` the card is named `open-card`; on `pagereveal` a full-screen `.vt-panel` takes that name, so the card grows to fill the screen, turns into the panel, and the panel fades onto the page. Back adds `html.vt-back`: the page shrinks away and, if the card is still on screen, it lands. Pages start loading on hover through speculation rules (a `prefetch` link in browsers without them), and entry pages are cached after their first visit (`revalidate` and an empty `generateStaticParams`; dashboard changes clear them). Firefox gets only the press and the bar. To see it, film with `Page.startScreencast`: screenshots are too slow to catch it and can hang.
 
-## The dashboard's Save buttons
+## The dashboard's Save box
 
-`.save-bar` is a plain row in the page: Save first, then View site, Preview or Default. The owner tried a sticky box and a full-width strip stuck to the screen and rejected both, so keep it in the page with no box around it.
+`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float.
 
 ## Size and look controls
 
