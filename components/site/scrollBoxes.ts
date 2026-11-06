@@ -14,7 +14,9 @@ export function startScrollBoxes(): () => void {
   const boxes = Array.from(document.querySelectorAll<HTMLElement>(".scrolly"));
   if (!boxes.length) return () => {};
   const long = new Set<HTMLElement>();
-  const gliding = new Map<HTMLElement, number>(); // card -> where its text is heading
+  // card -> where its text is heading and exactly where it is now. The browser rounds scrollTop, so reading it back
+  // would stall the glide just short of the end on fast screens, where each frame's step is under a pixel.
+  const gliding = new Map<HTMLElement, { to: number; at: number }>();
   let pageWheelAt = -1e9, raf = 0, lastT = 0;
 
   const glide = (t: number) => {
@@ -22,9 +24,9 @@ export function startScrollBoxes(): () => void {
     const dt = Math.min(t - lastT, 100);
     lastT = t;
     const k = 1 - Math.exp(-dt / 70); // real time, so slow devices don't get slow motion
-    for (const [b, to] of gliding) {
-      const next = b.scrollTop + (to - b.scrollTop) * k;
-      if (Math.abs(to - next) < 1) { b.scrollTop = to; gliding.delete(b); } else b.scrollTop = next;
+    for (const [b, g] of gliding) {
+      g.at += (g.to - g.at) * k;
+      if (Math.abs(g.to - g.at) < 0.5) { b.scrollTop = g.to; gliding.delete(b); } else b.scrollTop = g.at;
     }
     if (gliding.size) raf = requestAnimationFrame(glide);
   };
@@ -33,7 +35,8 @@ export function startScrollBoxes(): () => void {
     if (e.ctrlKey) return;
     const b = e.currentTarget as HTMLElement;
     const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? b.clientHeight : 1);
-    const from = gliding.get(b) ?? b.scrollTop;
+    const glide_ = gliding.get(b);
+    const from = glide_?.to ?? b.scrollTop;
     const to = Math.max(0, Math.min(b.scrollHeight - b.clientHeight, from + delta));
     const canMove = Math.abs(to - from) >= 1;
     const pageIsMoving = e.timeStamp - pageWheelAt < KEEP_PAGE_MS;
@@ -41,7 +44,7 @@ export function startScrollBoxes(): () => void {
       e.preventDefault();
       e.stopPropagation(); // smooth scrolling listens further up
       if (!gliding.size) { lastT = performance.now(); if (!raf) raf = requestAnimationFrame(glide); }
-      gliding.set(b, to);
+      gliding.set(b, { to, at: glide_?.at ?? b.scrollTop });
       return;
     }
     // without smooth scrolling the browser itself would hand this wheel to the card

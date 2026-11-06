@@ -1528,5 +1528,10 @@ html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note,
 @keyframes react-mind { 30% { transform: scale(1.3) rotate(-9deg); } 48% { transform: scale(.92) rotate(6deg); } 64% { transform: scale(1.12); } }
 @keyframes react-clap { 50% { transform: scaleX(.7) rotate(-7deg); } }
 
+/* rows pass under the side menu: only its dots may catch the mouse, or its invisible labels block the cards underneath */
+#rail, #rail .stop { pointer-events: none; }
+#rail .node { pointer-events: auto; position: relative; }
+#rail .node::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
+#rail .stop:hover .label { pointer-events: auto; }
 /* rows now pass under the side menu, so its label needs its own backing to stay readable */
 #rail:not(.on-dark) .stop:is(:hover, .active) .label { background: var(--bg); padding: 2px 7px; border-radius: var(--r-pill); }
