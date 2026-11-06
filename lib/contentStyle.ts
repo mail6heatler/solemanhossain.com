@@ -98,7 +98,7 @@ export function lookOf(s: ContentStyle): Look {
   }
   if (s.text !== undefined) vars["--fs"] = (s.text / 100).toFixed(2);
   if (s.fx !== undefined) { vars["--fx"] = `${s.fx}%`; vars["--fy"] = `${s.fy}%`; }
-  const classes = [h ? "sized" : "", s.fit === "fill" ? "fit-fill" : ""].filter(Boolean).join(" ");
+  const classes = [h ? "sized" : "", s.fit === "fill" ? "fit-fill" : s.fit === "whole" ? "fit-whole" : ""].filter(Boolean).join(" ");
   return {
     className: classes ? ` ${classes}` : "",
     style: Object.keys(vars).length ? (vars as React.CSSProperties) : undefined,

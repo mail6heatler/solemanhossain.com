@@ -41,7 +41,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
 
   const merged = mergeStyles(above, st);
   const look = lookOf(merged);
-  const canFocus = merged.fit === "fill" && !!sample.pic && !look.hide("pic");
+  const canFocus = merged.fit !== "whole" && !!sample.pic && !look.hide("pic");
   // a wide card is shown smaller rather than cut off, so the preview always shows the whole card
   const cardW = merged.size && merged.size !== "custom" ? SIZE_PRESETS[merged.size].w : merged.w ?? SIZE_PRESETS.m.w;
   const fit = Math.min(1, 368 / cardW);
@@ -65,7 +65,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
         ? <div className="ph has-pic"><img src={sample.pic} alt="" /></div>
         : layout === "notes" ? <img className="note-media" src={sample.pic} alt="" />
         : <div className="card-media"><img className="card-img" src={sample.pic} alt="" /></div>}
-      {canFocus && <i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? 50}%` }} aria-hidden />}
+      {canFocus && <i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? (merged.fit === "fill" ? 50 : 40)}%` }} aria-hidden />}
     </div>
   ) : null;
   const reacts = (
@@ -117,9 +117,11 @@ export default function LookControls({ initial, above, sample, layout, level }:
           <div className="fl">
             <span className="lab">Picture</span>
             <Seg label="Picture fit" value={(st.fit ?? "") as "" | "whole" | "fill"} options={[["", "Default"], ["whole", "Show whole"], ["fill", "Fill the space"]]} onChange={(v) => {
-              if (v === "") drop("fit", "fx", "fy"); else set({ fit: v });
+              if (v === "") drop("fit"); else set({ fit: v });
             }} />
-            {merged.fit === "fill" && <div className="hint">Filling can cut the picture&apos;s edges. Click the part of the picture in the preview that must stay visible.</div>}
+            <div className="hint">{merged.fit === "whole" ? "The whole picture always shows, with empty space beside it if its shape differs from the card."
+              : merged.fit === "fill" ? "Every picture gets the same height, so even wide ones lose their sides. Click the part of the picture in the preview that must stay visible."
+              : "The picture fills the card's width and only what doesn't fit is trimmed. Click the part of the picture in the preview that must stay visible."}</div>
             <Slider label="Picture height in the card" value={st.pic} range={LIMITS.pic} unit="%" fallback={sample.body ? 50 : 66} onChange={(pic) => set({ pic })} onClear={() => drop("pic")} />
           </div>
           <div className="fl">

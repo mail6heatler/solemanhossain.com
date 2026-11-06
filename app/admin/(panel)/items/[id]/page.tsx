@@ -74,7 +74,7 @@ export default async function ItemEditor({ params }: P) {
             <label>Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…)</label>
             <textarea name="body" className="tall" defaultValue={item.body} />
           </div>
-          <div className="fl"><span className="lab">Photos &amp; videos</span>
+          <div className="fl"><span className="lab">Photos, videos &amp; PDFs</span>
             <MediaField name="media" initial={item.media} useBlob={useBlob} maxVideoMb={useBlob ? 200 : process.env.VERCEL ? 4 : 60} /></div>
         </div>
 

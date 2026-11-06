@@ -3,10 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Media } from "@/lib/settings";
 import Reactions from "./Reactions";
+import { Cover } from "./Media";
 
 export type Slide = Media & { caption: string; href?: string; itemId?: number };
 
-/** Full-screen viewer for photos and videos: arrows, swipe, Esc, optional link to the entry and reactions. */
+/** Full-screen viewer for photos, videos and PDFs (a PDF shows its first page and a button to open it): arrows, swipe, Esc, optional link to the entry and reactions. */
 export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
   { slides: Slide[]; index: number; onIndex: (i: number) => void; onClose: () => void; reactions?: boolean }) {
   const closeBtn = useRef<HTMLButtonElement>(null);
@@ -43,12 +44,15 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
       <div className="lb-stage" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         {cur.type === "video"
           ? <video key={cur.url} src={cur.url} controls autoPlay playsInline />
-          : <img key={cur.url} src={cur.url} alt={cur.caption} />}
+          : cur.type === "pdf"
+            ? <a key={cur.url} className="lb-pdf" href={cur.url} target="_blank" rel="noopener" aria-label={`Open PDF: ${cur.caption}`}><Cover m={cur} alt={cur.caption} /></a>
+            : <img key={cur.url} src={cur.url} alt={cur.caption} />}
       </div>
       <div className="lb-bar">
         {n > 1 && <button type="button" onClick={() => go(-1)} aria-label="Previous">←</button>}
         <span>{cur.caption}{n > 1 ? ` · ${index + 1}/${n}` : ""}</span>
         {n > 1 && <button type="button" onClick={() => go(1)} aria-label="Next">→</button>}
+        {cur.type === "pdf" && <a href={cur.url} target="_blank" rel="noopener">Open PDF</a>}
         {cur.href && <a href={cur.href}>Open entry</a>}
         <button ref={closeBtn} type="button" onClick={onClose}>Close</button>
         {reactions && cur.itemId && <div className="lb-reacts"><Reactions key={cur.itemId} id={cur.itemId} compact /></div>}
@@ -66,7 +70,12 @@ export function EntryGallery({ media, title, morphName }: { media: Media[]; titl
   const [first, ...rest] = media;
   return (
     <>
-      {first.type === "video" ? (
+      {first.type === "pdf" ? (
+        <a className="pdf-hero" href={first.url} target="_blank" rel="noopener" aria-label={`Open PDF: ${title}`}>
+          <Cover m={first} className="hero-img" style={morphName ? { viewTransitionName: morphName } : undefined} />
+          <span className="pdf-open"><i className="ti ti-file-type-pdf" aria-hidden />Open PDF</span>
+        </a>
+      ) : first.type === "video" ? (
         <video className="hero-img" src={first.url} controls playsInline preload="metadata" style={morphName ? { viewTransitionName: morphName } : undefined} />
       ) : (
         <button type="button" className="hero-img-btn" onClick={() => setOpen(0)} aria-label={`View ${title} full screen`}>
@@ -76,9 +85,10 @@ export function EntryGallery({ media, title, morphName }: { media: Media[]; titl
       {rest.length > 0 && (
         <div className="gallery">
           {rest.map((m, i) => (
-            <button key={m.url + i} type="button" className="g-tile" onClick={() => setOpen(i + 1)} aria-label={`View ${m.type === "video" ? "video" : "photo"} ${i + 2} of ${media.length}`}>
-              {m.type === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" /> : <img src={m.url} alt="" loading="lazy" />}
+            <button key={m.url + i} type="button" className="g-tile" onClick={() => setOpen(i + 1)} aria-label={`View ${m.type === "image" ? "photo" : m.type === "video" ? "video" : "PDF"} ${i + 2} of ${media.length}`}>
+              {m.type === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" /> : m.type === "pdf" ? <Cover m={m} /> : <img src={m.url} alt="" loading="lazy" />}
               {m.type === "video" && <span className="g-play" aria-hidden>▶</span>}
+              {m.type === "pdf" && <span className="media-badges" aria-hidden><span className="mb">PDF</span></span>}
             </button>
           ))}
         </div>

@@ -272,7 +272,7 @@ export const HELP: Record<string, Help> = {
   ribbons: {
     title: "Sliding headlines",
     what: "A slanted band runs across the page before each chapter, repeating that chapter's name. It takes on the look of your theme: wavy on Ocean, a terminal on Techy, neon on Retro, torn newsprint on Paper.",
-    how: ["Switch on and save. This switch turns them all on or off.", "To hide one, untick that section under “Sliding headlines” lower on this page, or in that section's own settings.", "The text comes from each section's emoji and title."],
+    how: ["Switch on and save. This switch turns them all on or off.", "To hide one, untick that section under “Sliding headlines” lower on this page, or in that section's own settings. “Belt size” there makes all of them thicker or thinner.", "The text comes from each section's emoji and title."],
     preview: "/?demo=ribbons",
   },
   velocity: {

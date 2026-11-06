@@ -79,11 +79,17 @@ lib/
 app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in settings.banner)
 ```
 
+`settings.ribbonSize` (Appearance page, `RibbonSize.tsx`) sets how thick the sliding belts are: a percentage that becomes `--rib` on each belt, multiplying its screen-based `--rib-fs` and `--rib-pad`. A theme changing the belt's size sets those two tokens, never `font-size` or `padding`, or the slider stops working there.
+
 A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN IF NOT EXISTS`; it runs by itself on the first request after a deploy. `sections.ribbon` controls the sliding headline per section; `reactions.name` is who reacted.
 
 `settings.heroHidden` takes the hero off the homepage. Nothing is deleted, because the name and photo are also used on other pages. Effects must cope with `#hero` being missing, and the first chapter's ribbon is skipped because it would hide under the menu bar. `LivePill` still runs, hidden, because the dashboard's "people here now" number depends on it.
 
 Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`, `votes`, `reactions`, `stats_daily`, `section_views`, `presence`. Created automatically on first use. New settings fields need no migration because `mergeSettings` fills in defaults.
+
+## PDFs on entries
+
+`Media.type` can be `"pdf"`, with `thumb` (a picture of the first page) and `name`. `components/admin/pdfThumb.ts` makes the picture in the dashboard's browser when the PDF is added and uploads it next to the file, so `pdfjs-dist` is only ever downloaded there; check visitors' scripts don't contain `getDocument`. Everything public goes through `Cover`, which shows the picture, kept to its top because that's where a page's title is, or a drawn `.pdf-tile` for a file that couldn't be read. Clicks end at "Open PDF", a new tab; nothing embeds the file, because phones can't show PDFs inside a page and Blob storage's security headers are strict. Headless Chrome answers a PDF with an empty 204 even from a plain file server, so test the file with `ctx.request`, not `fetch` or a click.
 
 ## How the look works
 
@@ -153,12 +159,13 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 
 ## Rules learned the hard way
 
+- **The menu bar must fit at every width from 961px, in every theme, with the longest name.** Fonts differ a lot between themes. Below 1300px the links drop their emojis, and the name shortens (`.brand-text` clips) before the links would run off the edge. Don't test the name by changing its text: React crashes. Set it with CSS (`::after`).
 - **Check a new CSS class name isn't already used.** The map's stops were `.stop`, the side menu's class, which stretched the menu to 300px and pushed its dots left. It looked like a different bug until someone looked. The map's stops are now `.mstop`.
 - **Nothing may be added inside `.site` before React has started,** or its start-up fails (error 418). Scripts in `<head>` add to `<body>` directly (see `.vt-panel`, `.nav-progress`), and copy the theme's colours over because those are set on `.site`.
 - **A view transition's new image covers its old one at once** unless the new one fades in. That blanked the clicked card as soon as it started growing.
 - **In a 3D row, a card's parent box can catch the mouse before the card,** and `elementsFromPoint` won't show it: only real mouse events do. Check with events, and give wrappers `pointer-events: none` (see `.mstop`). Anything fixed over the page must not catch the mouse with invisible parts either (see `#rail`).
 - **Don't read `scrollTop` back to animate it.** The browser rounds it, so small steps stall on fast screens and the loop never ends. Keep the exact position yourself (`gliding` in `scrollBoxes.ts`).
-- **Pictures are never cut.** Cards use `object-fit: contain` and their real shape, up to 66% of the card's height. Only the tiny thumbnails (flip cards, plain lists, entry-page gallery) still crop.
+- **Pictures fit the card.** Full width in their real shape, and only what's taller than 66% of the card's height is trimmed (`object-fit: cover`), so there are no empty bars. This was the owner's choice on 2026-11-07, replacing "never cut". "Show whole" (`.fit-whole`) never trims, and the expand viewer and entry page always show all of it.
 - **A photo wipe makes the picture its own layer,** so anything inside it sits under the card's link and can't be clicked. Put buttons beside it, in `.pic-box`.
 - **A card never grows.** Its contents go in `Box` (`SectionBody.tsx`): the shell keeps its size (`--row-h`), `.scrolly` scrolls, and `.card-link` sits inside `.flow` so a finger can still scroll a card that is clickable everywhere. The reaction bar goes in `Box`'s `foot`, outside the scrolling part, so it's always visible.
 - **Don't run an animation forever on things there are many of.** Each animated emoji is its own layer. The reaction wave is a short class added to a few on-screen bars at a time (`reactfx` in `hoverFx.ts`).

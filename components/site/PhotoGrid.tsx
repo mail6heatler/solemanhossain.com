@@ -5,6 +5,7 @@ import Reactions from "./Reactions";
 import { Lightbox, type Slide } from "./MediaView";
 import SideRow, { type RowFx } from "./SideRow";
 import FullView from "./FullView";
+import { Cover } from "./Media";
 
 type Item = { id: number; title: string; href: string; media: Media[]; className?: string; style?: React.CSSProperties;
   /** always shown under the photo: phones have no hover to reveal a caption */
@@ -36,13 +37,12 @@ export default function PhotoGrid({ className, items, reactions = false, row }: 
               {cover ? (
                 <button type="button" className="ph-tile" aria-label={`Open: ${it.title}`}
                   onClick={(e) => { lastTile.current = e.currentTarget; setOpen(firstSlide(it.id)); }}>
-                  {cover.type === "video"
-                    ? <video className="hover-play" src={`${cover.url}#t=0.1`} muted playsInline loop preload="metadata" />
-                    : <img src={cover.url} alt={it.title} loading="lazy" decoding="async" />}
+                  <Cover m={cover} alt={it.title} />
                   <span className="cap">{it.title}</span>
-                  {(cover.type === "video" || it.media.length > 1) && (
+                  {(cover.type !== "image" || it.media.length > 1) && (
                     <span className="media-badges" aria-hidden>
                       {cover.type === "video" && <span className="mb play">▶</span>}
+                      {cover.type === "pdf" && <span className="mb">PDF</span>}
                       {it.media.length > 1 && <span className="mb">+{it.media.length - 1}</span>}
                     </span>
                   )}

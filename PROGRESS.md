@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-fit-belt-pdf` (before the bigger menu, thicker belts, pictures filling cards and PDFs on entries), `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -20,6 +20,19 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-07: Bigger menu, thicker belts, uploads that fit (waiting for the owner's keep or undo)
+
+The owner asked for all three, plus control of the belt from the dashboard, and said "do the best" when offered a choice on pictures, so option A (fill) was used.
+
+- **Menu text** follows the screen: links 11 to about 13px on a 1366 laptop and 16px on a 1920 monitor, name 14 to 17 and 21px. It first overflowed in the wide-font themes below 1366, so small laptops drop the link emojis and the name shortens before anything runs off. 132 of 132 theme and width combinations fit with the longest name.
+- **Belts:** 47 to 67px tall on a laptop, 33 to 46px on a phone. Appearance has a Belt size slider (60 to 180%) with a live belt beside it. A bigger belt loops more slowly, so its pace stays the same.
+- **Pictures** fill the card's width and only what doesn't fit is trimmed, reversing the earlier "never cut" rule. Wide pictures stay whole. On the live Me cards the empty space was 16 to 25%.
+- **PDFs** can now be added to entries, in the same box as photos. See "PDFs on entries" in `CLAUDE.md`.
+
+**Old against new, alternating, same local content:** laptop page scroll 71.0 to 66.9 fps over 6 rounds, 3 stutters both. Laptop 4x slower 12.9 to 14.6, 75 to 81. Phone 60.4 to 59.7, 5 to 6. Phone 4x slower 23.3 to 22.2, 42 to 44 (2 rounds each). The new build with an old-size belt gave the same as with the new belt (77.6 and 77.5 fps), so the belt isn't the cost; the laptop gap may be noise, as this PC swung from 66 to 96 fps between runs of one build.
+
+**Not tested:** opening a PDF in a real browser (see the 204 note in `CLAUDE.md`), a real upload to the live site, and a real phone.
 
 ### 2026-11-06: Rows dragging (waiting for the owner's keep or undo)
 

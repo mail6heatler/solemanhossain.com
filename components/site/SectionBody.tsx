@@ -259,8 +259,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                 <>
                   {it.media[0] && !l.hide("pic") && (it.media[0].type === "video"
                     ? <video className="post-media" src={it.media[0].url} controls playsInline preload="metadata" style={vt(it.id)} />
-                    : <div className="pic-box"><img className="post-media" src={it.media[0].url} alt="" loading="lazy" decoding="async" style={vt(it.id)} />{zoom(it)}</div>)}
-                  {it.media.length > 1 && <a className="more-media" href={href(section, it)}>+{it.media.length - 1} more photo{it.media.length > 2 ? "s" : ""}/video{it.media.length > 2 ? "s" : ""} →</a>}
+                    : <div className="pic-box"><Cover m={it.media[0]} className="post-media" style={vt(it.id)} />{it.media[0].type === "pdf" && <MediaBadges media={[it.media[0]]} />}{zoom(it)}</div>)}
+                  {it.media.length > 1 && <a className="more-media" href={href(section, it)}>+{it.media.length - 1} more →</a>}
                   {it.body.length > 420
                     ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)}</p>
                     : <Markdown>{it.body}</Markdown>}
@@ -386,7 +386,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               <h3>{it.title}</h3>
               {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
               <Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />
-              {it.media[0] && !l.hide("pic") && <div className="pic-box"><Cover m={it.media[0]} className="note-media" />{zoom(it)}</div>}
+              {it.media[0] && !l.hide("pic") && <div className="pic-box"><Cover m={it.media[0]} className="note-media" />{it.media[0].type === "pdf" && <MediaBadges media={[it.media[0]]} />}{zoom(it)}</div>}
               {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
               <LinkButtons it={it} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}

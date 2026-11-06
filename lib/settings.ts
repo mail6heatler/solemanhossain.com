@@ -8,12 +8,13 @@ export type Social = { label: string; url: string; icon: string };
 
 export const REACTION_EMOJIS = ["❤️", "🔥", "😂", "🤯", "👏"] as const;
 
-/** One photo or video attached to an entry. The first one is the cover. */
-export type Media = { url: string; type: "image" | "video" };
+/** One photo, video or PDF attached to an entry. The first one is the cover. A PDF carries a picture of its first page (`thumb`) when one could be made. */
+export type Media = { url: string; type: "image" | "video" | "pdf"; thumb?: string; name?: string };
 export const MAX_MEDIA = 30;
 export const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const looksLikeVideo = (url: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+const looksLikePdf = (url: string) => /\.pdf(\?|#|$)/i.test(url);
 
 /** Reads the media list stored with an entry; older entries with only a single photo get that photo as their list. */
 export function parseMedia(raw: unknown, fallbackImage = ""): Media[] {
@@ -21,7 +22,14 @@ export function parseMedia(raw: unknown, fallbackImage = ""): Media[] {
   try { if (typeof raw === "string") arr = JSON.parse(raw); } catch { arr = []; }
   const list = (Array.isArray(arr) ? arr : [])
     .filter((m) => m && typeof m.url === "string" && isSafeUrl(m.url))
-    .map((m) => ({ url: String(m.url).trim().slice(0, 600), type: (m.type === "video" || (m.type !== "image" && looksLikeVideo(m.url)) ? "video" : "image") as Media["type"] }))
+    .map((m): Media => {
+      const url = String(m.url).trim().slice(0, 600);
+      if (m.type === "pdf" || (m.type !== "image" && m.type !== "video" && looksLikePdf(url))) {
+        const thumb = typeof m.thumb === "string" && isSafeUrl(m.thumb) ? m.thumb.trim().slice(0, 600) : "";
+        return { url, type: "pdf", name: String(m.name ?? "").slice(0, 120), ...(thumb ? { thumb } : {}) };
+      }
+      return { url, type: m.type === "video" || (m.type !== "image" && looksLikeVideo(m.url)) ? "video" : "image" };
+    })
     .slice(0, MAX_MEDIA);
   if (!list.length && fallbackImage && isSafeUrl(fallbackImage)) list.push({ url: fallbackImage, type: looksLikeVideo(fallbackImage) ? "video" : "image" });
   return list;
@@ -217,6 +225,8 @@ export type SiteSettings = {
   heroEmojis: string;
   scrollCue: string;
   heroHidden: boolean;
+  /** How thick the sliding belts between sections are, percent of the normal size (RIBBON_SIZE). */
+  ribbonSize: number;
   socials: Social[];
   footerLeft: string;
   footerRight: string;
@@ -260,6 +270,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroEmojis: "🚀 💡 ✨ 🌙 ⚡ 🔮",
   scrollCue: "Scroll to begin",
   heroHidden: false,
+  ribbonSize: 100,
   socials: [
     { label: "Email", url: "mailto:you@example.com", icon: "mail" },
     { label: "LinkedIn", url: "https://linkedin.com/in/", icon: "brand-linkedin" },
@@ -281,6 +292,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   effects: ALL_ON,
 };
 
+export const RIBBON_SIZE = [60, 180] as const;
+export function cleanRibbonSize(v: unknown) {
+  const n = Number(v);
+  return v !== "" && Number.isFinite(n) ? Math.round(Math.min(RIBBON_SIZE[1], Math.max(RIBBON_SIZE[0], n))) : 100;
+}
+
 export function mergeSettings(raw: unknown): SiteSettings {
   let obj: Partial<SiteSettings> = {};
   try {
@@ -293,6 +310,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
     contentStyle: cleanStyle(obj.contentStyle),
   };
+  s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;
   if (!SELECTABLE.includes(s.defaultTheme)) s.defaultTheme = DEFAULT_SETTINGS.defaultTheme;
   if (s.mood && !MOODS[s.mood]) s.mood = "";

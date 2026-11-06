@@ -115,7 +115,7 @@ export default async function Home() {
         const total = counts.get(section.id) ?? 0;
         const ribbonText = `${section.nav_emoji ? `${section.nav_emoji} ` : ""}${section.title}`;
         const ribbon = fx.ribbons && section.ribbon && !(s.heroHidden && i === 0) && (
-          <div className={`ribbon ${i % 2 === 1 ? "rev" : ""} ${i === 0 ? "first" : ""}`} aria-hidden>
+          <div className={`ribbon ${i % 2 === 1 ? "rev" : ""} ${i === 0 ? "first" : ""}`} aria-hidden style={s.ribbonSize === 100 ? undefined : ({ "--rib": s.ribbonSize / 100 } as React.CSSProperties)}>
             <div className="ribbon-track">{Array.from({ length: 20 }, (_, k) => <span key={k}>{ribbonText}</span>)}</div>
           </div>
         );

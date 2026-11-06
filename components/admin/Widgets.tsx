@@ -144,11 +144,19 @@ export async function uploadFile(f: File, useBlob: boolean, onProgress?: (pct: n
   });
 }
 
-type MediaItem = { url: string; type: "image" | "video" };
+type MediaItem = { url: string; type: "image" | "video" | "pdf"; thumb?: string; name?: string };
 type Job = { key: string; name: string; pct: number; err?: string };
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u);
+const isPdfUrl = (u: string) => /\.pdf(\?|#|$)/i.test(u);
+/** A PDF's first page as a picture of its own, stored next to it; "" if the file can't be read (a locked PDF). */
+const pdfThumb = async (src: File | string, base: string, useBlob: boolean) => {
+  const { pdfFirstPage } = await import("./pdfThumb");
+  const page = await pdfFirstPage(src);
+  if (!page) return "";
+  return uploadFile(new File([page], `${base}-page-1.webp`, { type: "image/webp" }), useBlob).catch(() => "");
+};
 
-/** Photos + videos for an entry: upload several at once, drag files in, reorder, choose the cover (first), remove. */
+/** Photos, videos and PDFs for an entry: upload several at once, drag files in, reorder, choose the cover (first), remove. */
 export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: string; initial: MediaItem[]; useBlob: boolean; maxVideoMb: number }) {
   const [items, setItems] = useState<MediaItem[]>(initial);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -166,12 +174,15 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
     for (const f of list) {
       const key = Math.random().toString(36).slice(2);
       const video = f.type.startsWith("video/");
+      const pdf = f.type === "application/pdf";
       setJobs((j) => [...j, { key, name: f.name, pct: 0 }]);
       try {
-        if (!video && !f.type.startsWith("image/")) throw new Error(`${f.name}: only photos and videos`);
-        if (video && f.size > maxVideoMb * 1024 * 1024) throw new Error(`${f.name}: videos can be up to ${maxVideoMb} MB here`);
+        if (!video && !pdf && !f.type.startsWith("image/")) throw new Error(`${f.name}: only photos, videos and PDFs`);
+        if ((video || pdf) && f.size > maxVideoMb * 1024 * 1024) throw new Error(`${f.name}: ${video ? "videos" : "PDFs"} can be up to ${maxVideoMb} MB here`);
+        const base = f.name.replace(/\.\w+$/, "");
+        const thumb = pdf ? await pdfThumb(f, base, useBlob) : "";
         const url = await uploadFile(f, useBlob, (pct) => setJobs((j) => j.map((x) => (x.key === key ? { ...x, pct } : x))));
-        setItems((m) => [...m, { url, type: video ? "video" : "image" }]);
+        setItems((m) => [...m, pdf ? { url, type: "pdf", name: base, ...(thumb ? { thumb } : {}) } : { url, type: video ? "video" : "image" }]);
         setJobs((j) => j.filter((x) => x.key !== key));
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Upload failed";
@@ -185,7 +196,12 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
   const addLink = () => {
     const u = link.trim();
     if (!/^(https?:\/\/|\/)/i.test(u)) return;
-    setItems((m) => [...m, { url: u, type: isVideoUrl(u) ? "video" : "image" }]);
+    if (isPdfUrl(u)) {
+      const base = decodeURIComponent(u.split(/[?#]/)[0].split("/").pop() ?? "").replace(/\.\w+$/, "") || "PDF";
+      setItems((m) => [...m, { url: u, type: "pdf", name: base }]);
+      // the picture of its first page follows if that site allows it to be read; otherwise the card shows a drawn PDF tile
+      pdfThumb(u, base, useBlob).then((thumb) => { if (thumb) setItems((m) => m.map((x) => (x.url === u ? { ...x, thumb } : x))); });
+    } else setItems((m) => [...m, { url: u, type: isVideoUrl(u) ? "video" : "image" }]);
     setLink("");
   };
 
@@ -198,9 +214,12 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
         onDrop={(e) => { e.preventDefault(); setOver(false); onFiles(e.dataTransfer.files); }}>
         {items.map((m, i) => (
           <div key={m.url + i} className="media-tile">
-            {m.type === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" /> : <img src={m.url} alt="" />}
+            {m.type === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" />
+              : m.type === "pdf" && !m.thumb ? <div className="mt-pdf"><i className="ti ti-file-type-pdf" /><span>{m.name || "PDF"}</span></div>
+              : <img src={m.type === "pdf" ? m.thumb : m.url} alt="" style={m.type === "pdf" ? { objectPosition: "top" } : undefined} />}
             {i === 0 && <span className="mt-badge cover">Cover</span>}
             {m.type === "video" && <span className="mt-badge vid"><i className="ti ti-player-play-filled" />Video</span>}
+            {m.type === "pdf" && <span className="mt-badge pdf">PDF</span>}
             <div className="mt-actions">
               <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move earlier" title="Move earlier"><i className="ti ti-arrow-left" /></button>
               <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} aria-label="Move later" title="Move later"><i className="ti ti-arrow-right" /></button>
@@ -220,20 +239,20 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
         ))}
         {items.length + jobs.length < 30 && (
           <button type="button" className="media-add" onClick={() => input.current?.click()}>
-            <i className="ti ti-photo-plus" /><b>Add photos or videos</b><small>or drop files here</small>
+            <i className="ti ti-photo-plus" /><b>Add photos, videos or PDFs</b><small>or drop files here</small>
           </button>
         )}
       </div>
       <div className="media-link">
-        <input className="inp" value={link} onChange={(e) => setLink(e.target.value)} placeholder="…or paste a photo or video link (https://…)"
+        <input className="inp" value={link} onChange={(e) => setLink(e.target.value)} placeholder="…or paste a photo, video or PDF link (https://…)"
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }} />
         <button type="button" className="b-out b-sm" onClick={addLink} disabled={!link.trim()}><i className="ti ti-link" />Add link</button>
       </div>
       <div className="hint">
-        <b className="media-count">{items.length} of 30</b> · The first one is the cover. Photos are resized automatically. Videos (MP4, WebM, MOV) up to {maxVideoMb} MB
-        {useBlob ? "." : " here. Bigger videos need Vercel Blob storage."}{busy && " · Uploading… wait before saving."}
+        <b className="media-count">{items.length} of 30</b> · The first one is the cover, and it&apos;s fitted to the card for you. Photos are resized automatically. Videos (MP4, WebM, MOV) and PDFs up to {maxVideoMb} MB
+        {useBlob ? "." : " here. Bigger files need Vercel Blob storage."}{busy && " · Uploading… wait before saving."}
       </div>
-      <input ref={input} type="file" hidden multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange={(e) => onFiles(e.target.files)} />
+      <input ref={input} type="file" hidden multiple accept="image/*,video/mp4,video/webm,video/quicktime,application/pdf" onChange={(e) => onFiles(e.target.files)} />
     </div>
   );
 }

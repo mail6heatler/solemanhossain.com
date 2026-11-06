@@ -5,6 +5,7 @@ import { EFFECTS, MOODS, SELECTABLE, SKIN_LABELS } from "@/lib/settings";
 import { HELP } from "@/lib/help";
 import { InfoTip } from "@/components/admin/Widgets";
 import SaveBox from "@/components/admin/SaveBox";
+import RibbonSize from "@/components/admin/RibbonSize";
 
 const GROUP_INTRO: Record<string, string> = {
   Themes: "Extra theme fun for visitors.",
@@ -92,6 +93,7 @@ export default async function AppearancePage() {
 
       <div className="adm-label">Sliding headlines <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>Choose which sections get the sliding band above them. &ldquo;Sliding headlines before chapters&rdquo; above turns them all off at once.</span></div>
       <div className="c">
+        <RibbonSize initial={s.ribbonSize} sample={sections[0] ? `${sections[0].nav_emoji ? `${sections[0].nav_emoji} ` : ""}${sections[0].title}` : "Your section title"} />
         <input type="hidden" name="ribbon_ids" value={sections.map((x) => x.id).join(",")} />
         <div className="fx-grid">
           {sections.map((x) => (

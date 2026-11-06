@@ -9,7 +9,7 @@ import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
 import { cleanStyle } from "@/lib/contentStyle";
-import { BANNER_KINDS, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
+import { BANNER_KINDS, cleanRibbonSize, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -172,6 +172,7 @@ export async function saveAppearance(fd: FormData) {
     themeSwitch: bool(fd, "themeSwitch"),
     mood: MOODS[mood] ? mood : "",
     showMood: bool(fd, "showMood"),
+    ribbonSize: cleanRibbonSize(str(fd, "ribbonSize")),
     nowStatus: str(fd, "nowStatus", 120),
     partyWord: str(fd, "partyWord", 12).toLowerCase().replace(/[^a-z]/g, ""),
     effects,
@@ -325,7 +326,7 @@ export async function updateItem(fd: FormData) {
   // photos + videos (first = cover); image_url keeps the first photo for link previews (and older code paths)
   // (a form from before multi-photo support only sends image_url; keep that photo instead of wiping it)
   const media = fd.has("media") ? parseMedia(str(fd, "media", 40000)) : parseMedia([], safeUrl(str(fd, "image_url", 500)));
-  const firstPhoto = media.find((m) => m.type === "image")?.url ?? "";
+  const firstPhoto = media.find((m) => m.type === "image")?.url ?? media.find((m) => m.thumb)?.thumb ?? "";
   await query(
     `UPDATE items SET title=$1, subtitle=$2, body=$3, image_url=$4, tags=$5, links=$6, date_label=$7, status=$8,
        mood=$9, location=$10, category=$11, poll_options=$12, pinned=$13, visible=$14, section_id=$15, media=$16 WHERE id=$17`,

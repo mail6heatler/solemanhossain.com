@@ -246,6 +246,9 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .mt-badge.cover { background: var(--mint); color: #1a1a1a; }
 .mt-badge.vid { left: auto; right: 6px; background: rgba(0,0,0,.65); color: #fff; }
 .mt-badge.vid i { font-size: 10px; }
+.mt-badge.pdf { left: auto; right: 6px; background: #d6332a; color: #fff; }
+.mt-pdf { width: 100%; height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; padding: 10px; text-align: center; font-size: 11.5px; color: var(--text-muted); overflow-wrap: anywhere; }
+.mt-pdf i { font-size: 30px; color: var(--icon); }
 .mt-actions { position: absolute; inset: auto 0 0 0; display: flex; justify-content: center; gap: 3px; padding: 6px; background: linear-gradient(transparent, rgba(0,0,0,.6)); opacity: 0; transition: opacity .15s; }
 .media-tile:hover .mt-actions, .media-tile:focus-within .mt-actions { opacity: 1; }
 @media (hover: none) { .mt-actions { opacity: 1; } }
@@ -298,6 +301,11 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-seg button:hover { color: var(--text-strong); }
 .look-seg button.on { background: var(--mint); color: #0d1a14; font-weight: 700; }
 .look-seg button:focus-visible { outline: 2px solid var(--mint); outline-offset: 1px; }
+.rib-size { margin-bottom: 16px; }
+.rib-size .look-slider { margin-top: 0; }
+.rib-preview { margin-top: 10px; padding: 18px 0; border-radius: 12px; overflow: hidden; background: var(--page-bg); border: .5px dashed var(--input-border); }
+.rib-preview .site { min-height: 0; background: transparent; overflow: visible; }
+.rib-preview .ribbon { margin: 0 -3%; }
 .look-slider { margin-top: 10px; }
 .look-slider-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
 .look-slider-top label { margin: 0 !important; }

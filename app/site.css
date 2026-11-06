@@ -153,18 +153,20 @@ html.lenis, html.lenis body { height: auto; }
 /* nav */
 .site .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 90; display: flex; align-items: center; justify-content: space-between;
   padding: 14px 5vw; background: var(--nav-bg); backdrop-filter: blur(18px); border-bottom: .5px solid var(--line); box-shadow: 0 1px 24px rgba(0,0,0,.04); gap: 18px; }
-.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 14px; text-decoration: none; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: clamp(15px, .75vw + 7px, 21px); text-decoration: none; }
 .brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 4px var(--tint); flex-shrink: 0; animation: dot-pulse 2.8s ease-in-out infinite; }
 @keyframes dot-pulse { 0%,100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 25%, transparent); } 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--mint) 12%, transparent); } }
-.brand-text { display: flex; align-items: center; min-width: 210px; white-space: nowrap; }
+.brand { min-width: 0; }
+.brand-text { display: flex; align-items: center; min-width: 0; overflow: hidden; padding-block: 2px; white-space: nowrap; } /* tight screens shorten the name; the menu itself never runs off the edge */
 .blink-cursor { display: inline-block; width: 2px; height: .9em; background: var(--mint); margin-left: 3px; vertical-align: middle; animation: blink .85s step-end infinite; }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-.nav-right { display: flex; align-items: center; gap: 6px; }
+.nav-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+@media (max-width: 1300px) { .navlinks a .ne { display: none; } } /* small laptops: the emojis give the words their room */
 .navlinks { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; align-items: center; }
 .navlinks li { position: relative; }
-.navlinks a { font-size: 11px; text-decoration: none; letter-spacing: .05em; text-transform: uppercase; font-weight: 600; opacity: .6;
-  padding: 6px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; transition: opacity .2s, background .2s; white-space: nowrap; }
-.navlinks a .ne { font-size: 12px; transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
+.navlinks a { font-size: clamp(11px, .85vw + 1.8px, 16px); text-decoration: none; letter-spacing: .03em; text-transform: uppercase; font-weight: 600; opacity: .6;
+  padding: 7px clamp(6px, .6vw, 12px); border-radius: 8px; display: flex; align-items: center; gap: 5px; transition: opacity .2s, background .2s; white-space: nowrap; }
+.navlinks a .ne { font-size: 1.1em; transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
 .navlinks a:hover { opacity: 1; background: color-mix(in srgb, var(--mint) 12%, transparent); }
 .navlinks a:hover .ne { transform: scale(1.35) rotate(-8deg); }
 .navlinks a.active { opacity: 1; }
@@ -518,7 +520,7 @@ button.ph-tile { padding: 0; cursor: zoom-in; width: 100%; font: inherit; color:
 /* photo viewer */
 .lb { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.9); display: grid; grid-template-rows: 1fr auto; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); touch-action: pan-y; animation: fade-in .2s; }
 @keyframes fade-in { from { opacity: 0; } }
-.lb-stage { display: grid; place-items: center; min-height: 0; }
+.lb-stage { position: relative; display: grid; place-items: center; min-height: 0; }
 .lb-stage img { max-width: min(1100px, 100%); max-height: 100%; object-fit: contain; border-radius: 12px; animation: zoom-in .3s cubic-bezier(.2,.8,.2,1); }
 @keyframes zoom-in { from { transform: scale(.94); opacity: 0; } }
 .lb-bar { display: flex; align-items: center; justify-content: center; gap: 12px; color: #fff; font: 14px var(--body); padding-top: 12px; flex-wrap: wrap; }
@@ -827,12 +829,14 @@ html[data-skin="ocean"] .site #hero h1 .accent .kc:not(.hot) { color: color-mix(
 .site.fx-ambient section.chap.alt::after { left: auto; right: -12vw; bottom: auto; top: -8vw; background: radial-gradient(circle, color-mix(in srgb, var(--pop2) 8%, transparent), transparent 68%); animation-duration: 21s; }
 
 /* --- ribbons + the skills strip lean with scroll speed --- */
-.ribbon { position: relative; z-index: 4; width: 106%; margin: -22px -3% -22px; rotate: -1.4deg; overflow: hidden; background: var(--mint); color: var(--on-mint); padding: 11px 0; box-shadow: 0 10px 34px -12px color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none; }
+.ribbon { position: relative; z-index: 4; width: 106%; margin: -22px -3% -22px; rotate: -1.4deg; overflow: hidden; background: var(--mint); color: var(--on-mint); box-shadow: 0 10px 34px -12px color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none;
+  /* its size follows the screen, times the dashboard's "Belt size" (--rib, set inline when it isn't the default) */
+  --rib-fs: clamp(18px, 2.15vw, 30px); --rib-pad: clamp(12px, 1.15vw, 17px); padding-block: calc(var(--rib-pad) * var(--rib, 1)); }
 .ribbon.rev { rotate: 1.2deg; }
-.ribbon-track { display: flex; width: max-content; animation: marquee 44s linear infinite; }
+.ribbon-track { display: flex; width: max-content; animation: marquee calc(60s * var(--rib, 1)) linear infinite; } /* a bigger belt is longer, so it gets longer to keep the same pace */
 .ribbon.rev .ribbon-track { animation-direction: reverse; }
 .ribbon span, .marquee span { display: inline-block; }
-.ribbon span { font: 800 clamp(14px, 1.9vw, 21px)/1.2 var(--display); text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; padding-right: 34px; }
+.ribbon span { font: 800 calc(var(--rib-fs) * var(--rib, 1))/1.2 var(--display); text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; padding-right: 34px; }
 .ribbon span::after { content: "✦"; margin-left: 34px; opacity: .55; }
 
 /* --- timeline: a glowing comet rides the line --- */
@@ -895,7 +899,7 @@ html[data-skin="ocean"] .site #hero h1 .accent .kc:not(.hot) { color: color-mix(
 
 @media (max-width: 760px) {
   .ghost { top: 70px; -webkit-text-stroke-width: 1px; }
-  .ribbon { margin-top: -14px; margin-bottom: -14px; padding: 8px 0; }
+  .ribbon { margin-top: -14px; margin-bottom: -14px; }
   .site.fx-ambient section.chap::before { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1010,7 +1014,7 @@ html[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note, .hs) { an
 html[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note):nth-child(even) { animation-delay: -3.2s; }
 html[data-skin="ocean"] .site.fx-themefx .stagger.live > .seen { animation: drop-in .95s cubic-bezier(.16,1,.3,1) backwards, ocean-bob 7s ease-in-out infinite 1s; animation-delay: calc(var(--si, 0) * 85ms), 1s; }
 @keyframes ocean-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
-html[data-skin="ocean"] .site .ribbon { padding: 14px 0; background: linear-gradient(90deg, var(--mint), var(--pop2), var(--mint));
+html[data-skin="ocean"] .site .ribbon { --rib-pad: clamp(15px, 1.4vw, 20px); background: linear-gradient(90deg, var(--mint), var(--pop2), var(--mint));
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40' preserveAspectRatio='none'%3E%3Cpath d='M0 7Q40 0 80 7T160 7V33Q120 40 80 33T0 33Z'/%3E%3C/svg%3E") 0 0 / 160px 100% repeat-x;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 40' preserveAspectRatio='none'%3E%3Cpath d='M0 7Q40 0 80 7T160 7V33Q120 40 80 33T0 33Z'/%3E%3C/svg%3E") 0 0 / 160px 100% repeat-x;
   animation: wave-roll 5s linear infinite; }
@@ -1022,10 +1026,10 @@ html[data-skin="paper"] .site.fx-themefx::after { content: ""; opacity: .55; mix
 html[data-skin="paper"] .site.fx-themefx :is(.card, .note, .trip, .wall-note) { rotate: -.7deg; transition: transform .2s, box-shadow .2s, rotate .35s cubic-bezier(.3,1.6,.5,1); }
 html[data-skin="paper"] .site.fx-themefx :is(.card, .note, .trip, .wall-note):nth-child(even) { rotate: .8deg; }
 html[data-skin="paper"] .site.fx-themefx :is(.card, .note, .trip, .wall-note):hover { rotate: 0deg; }
-html[data-skin="paper"] .site .ribbon { background: #fffdf6; color: #141414; box-shadow: 0 8px 18px -8px rgba(0,0,0,.45); padding: 14px 0;
+html[data-skin="paper"] .site .ribbon { background: #fffdf6; color: #141414; box-shadow: 0 8px 18px -8px rgba(0,0,0,.45); --rib-pad: clamp(15px, 1.4vw, 20px);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 4L13 2 27 5 41 1 58 4 72 2 91 6 108 2 125 4 142 1 160 5 178 2 197 5 214 1 240 4V36L226 39 208 35 191 38 172 34 156 38 137 35 118 39 99 35 84 38 66 35 49 39 31 35 14 38 0 36Z'/%3E%3C/svg%3E") 0 0 / 240px 100% repeat-x;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 4L13 2 27 5 41 1 58 4 72 2 91 6 108 2 125 4 142 1 160 5 178 2 197 5 214 1 240 4V36L226 39 208 35 191 38 172 34 156 38 137 35 118 39 99 35 84 38 66 35 49 39 31 35 14 38 0 36Z'/%3E%3C/svg%3E") 0 0 / 240px 100% repeat-x; }
-html[data-skin="paper"] .site .ribbon span { font-style: italic; text-transform: none; font-size: clamp(16px, 2.1vw, 24px); }
+html[data-skin="paper"] .site .ribbon span { font-style: italic; text-transform: none; --rib-fs: clamp(20px, 2.4vw, 33px); }
 html[data-skin="paper"] .site .ribbon span::after { content: "❧"; color: var(--mint); opacity: 1; }
 
 /* 🌅 Sunset, 🌲 Forest, 🍬 Candy, 🎈 Playful: their own bands and touches */
@@ -1364,11 +1368,26 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .wall-note .flow { padding: 14px 16px; }
 .trip .flow .ph { flex-shrink: 0; }
 
-/* --- pictures show whole: full width in their own shape, and a very tall one is fitted inside the card rather than cut --- */
-:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; max-height: calc(var(--row-h) * var(--pic, .66)); object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+/* --- pictures fit the card: always full width in their own shape, and only what's taller than the limit is trimmed, so no empty bars.
+   "Show whole" (.fit-whole) never trims, and the expand button and the entry page always show all of it --- */
+:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; max-height: calc(var(--row-h) * var(--pic, .66)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); background: color-mix(in srgb, var(--fg) 5%, transparent); }
 .trip .ph.has-pic { height: auto; display: block; background: none; flex-shrink: 0; }
-.post-media { height: auto; max-height: var(--post-h, min(70vh, 560px)); object-fit: contain; }
-.ph-tile img, .ph-tile video { object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+.post-media { height: auto; max-height: var(--post-h, min(70vh, 560px)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
+.ph-tile img, .ph-tile video { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); background: color-mix(in srgb, var(--fg) 5%, transparent); }
+/* a PDF's first page is a picture like any other; without one (a locked file) it gets a drawn tile that fits the same way */
+.pdf-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; aspect-ratio: 4 / 3; padding: 14px; color: var(--mint-deep); background: color-mix(in srgb, var(--fg) 5%, transparent); text-align: center; }
+.pdf-tile i { font-size: 44px; line-height: 1; }
+.pdf-tile b { font: 600 13px/1.3 var(--body); color: var(--fg); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+:is(.ph-tile, .g-tile, .ico, .shelf-ico) .pdf-tile { height: 100%; aspect-ratio: auto; padding: 4px; }
+:is(.ico, .shelf-ico) .pdf-tile i { font-size: 22px; }
+:is(.ico, .shelf-ico) .pdf-tile b { display: none; }
+.pdf-hero { display: block; text-align: center; text-decoration: none; cursor: pointer; }
+.entry .pdf-hero .hero-img { display: block; width: auto; max-width: 100%; max-height: 78vh; margin: 26px auto 14px; }
+.pdf-hero .pdf-tile { margin: 26px 0 14px; border-radius: 18px; aspect-ratio: 16 / 9; }
+.pdf-open { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px; padding: 10px 18px; border-radius: 99px; background: var(--mint); color: var(--on-mint); font: 700 14px var(--body); }
+.lb-pdf { position: absolute; inset: 0; text-decoration: none; }
+.lb-pdf img { position: absolute; inset: 0; margin: auto; max-width: 100%; max-height: 100%; }
+.lb-pdf .pdf-tile { position: absolute; inset: 0; margin: auto; width: min(340px, 80vw); height: fit-content; border-radius: 14px; background: var(--card); }
 /* the button sits beside the picture, not inside it: the photo wipe makes the picture its own layer, which would trap the button under the card's link */
 .pic-box { position: relative; flex-shrink: 0; }
 .pic-zoom { position: absolute; right: 8px; bottom: 8px; z-index: 3; width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; cursor: zoom-in; font-size: 15px; background: rgba(0,0,0,.58); color: #fff; opacity: .8; transition: opacity .2s, scale .2s; }
@@ -1490,6 +1509,7 @@ html.scrolling .mstop.here .stop-pin::after { animation-play-state: paused; }
 .fit-fill :is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { height: calc(var(--row-h) * var(--pic, .66)); max-height: none; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); }
 .fit-fill .post-media { height: var(--post-h, min(70vh, 560px)); max-height: none; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); }
 .fit-fill .ph-tile :is(img, video) { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); }
+.fit-whole :is(.card-img, .note-media, .post-media, .trip .ph.has-pic img, .trip .ph.has-pic video, .ph-tile img, .ph-tile video) { object-fit: contain; }
 .card h3 { font-size: calc(19px * var(--fs, 1)); }
 .grid3.bento > .b-big h3 { font-size: calc(26px * var(--fs, 1)); }
 .card .sub { font-size: calc(13px * var(--fs, 1)); }
