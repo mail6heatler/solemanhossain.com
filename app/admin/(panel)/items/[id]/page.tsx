@@ -134,7 +134,7 @@ export default async function ItemEditor({ params }: P) {
           </div>
           {reactionTotal > 0 && (
             <form action={resetReactions}><input type="hidden" name="id" value={item.id} />
-              <ConfirmSubmit message="Clear all reactions on this entry?" className="b-out b-sm"><i className="ti ti-refresh" />Reset reactions</ConfirmSubmit></form>
+              <ConfirmSubmit title="Reset reactions?" message="This clears all reactions on this entry. It can't be undone." yes="Yes, reset" className="b-out b-sm"><i className="ti ti-refresh" />Reset reactions</ConfirmSubmit></form>
           )}
         </div>
       )}
@@ -144,10 +144,10 @@ export default async function ItemEditor({ params }: P) {
         <div className="btns">
           {isPoll && (
             <form action={resetPoll}><input type="hidden" name="id" value={item.id} />
-              <ConfirmSubmit message="Clear all votes on this poll?" className="b-out b-sm"><i className="ti ti-refresh" />Reset votes</ConfirmSubmit></form>
+              <ConfirmSubmit title="Reset votes?" message="This clears all votes on this poll. It can't be undone." yes="Yes, reset" className="b-out b-sm"><i className="ti ti-refresh" />Reset votes</ConfirmSubmit></form>
           )}
           <form action={deleteItem}><input type="hidden" name="id" value={item.id} />
-            <ConfirmSubmit message={`Delete "${item.title}"?`}><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
+            <ConfirmSubmit title={`Delete "${item.title}"?`} message="This entry is removed for good. It can't be undone. Tip: hiding it keeps everything safe." yes="Yes, delete"><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
         </div>
       </div>
     </div>

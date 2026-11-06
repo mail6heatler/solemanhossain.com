@@ -80,7 +80,7 @@ export default async function Inbox({ searchParams }: P) {
               <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="read" />
                 <button className="b-out b-sm">{m.read ? "Mark unread" : "Mark read"}</button></form>
               <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="delete" />
-                <ConfirmSubmit message="Delete this message?" className="b-danger b-sm"><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
+                <ConfirmSubmit title="Delete this message?" message="It's removed for good. This can't be undone." yes="Yes, delete" className="b-danger b-sm"><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
             </div>
           </div>
         </div>

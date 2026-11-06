@@ -351,3 +351,20 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
   .save-btns .b-mint { flex: 1 1 auto; }
   .save-btns .b-out { padding: 0 12px; }
 }
+
+/* ---------- the box that asks before anything risky (ConfirmSubmit) ---------- */
+.confirm-dlg { width: min(430px, calc(100vw - 32px)); }
+.confirm-dlg[open] { animation: confirm-in .18s ease-out; }
+@keyframes confirm-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+.confirm-in { display: grid; gap: 8px; padding: 22px; }
+.confirm-in b { font: 700 17px/1.3 "Syne"; overflow-wrap: anywhere; }
+.confirm-in p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-soft); }
+.confirm-ico { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 4px; border-radius: 50%; font-size: 21px; color: var(--danger); background: color-mix(in srgb, var(--danger) 13%, transparent); }
+.confirm-btns { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.confirm-btns button { box-sizing: border-box; height: 38px; padding: 0 16px; justify-content: center; }
+.confirm-btns .b-out:focus-visible, .b-yes:focus-visible { outline: 2px solid var(--text-strong); outline-offset: 2px; }
+.b-yes { display: inline-flex; align-items: center; gap: 6px; font: 700 12.5px "Space Grotesk"; border: .5px solid transparent; border-radius: 99px; cursor: pointer; color: #fff; background: var(--danger); }
+.b-yes:hover { filter: brightness(1.08); }
+.b-yes:active { transform: scale(.97); }
+@media (max-width: 760px) { .confirm-btns button { flex: 1 1 auto; } }
+@media (prefers-reduced-motion: reduce) { .confirm-dlg[open] { animation: none; } }

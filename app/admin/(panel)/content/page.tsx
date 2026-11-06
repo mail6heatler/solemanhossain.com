@@ -49,7 +49,7 @@ export default async function ContentControls() {
           <div className="c-desc">Clears these settings at all three levels: all content, every section and every entry. Your text, pictures and reactions aren&apos;t touched.</div>
         </div>
         {anything
-          ? <ConfirmSubmit message="Clear every size and look setting on all content, sections and entries? You'd have to set them again." className="b-out b-sm"><i className="ti ti-restore" />Default everywhere</ConfirmSubmit>
+          ? <ConfirmSubmit title="Back to default everywhere?" message="This clears every size and look setting on all content, sections and entries. You'd have to set them again." yes="Yes, clear them" className="b-out b-sm"><i className="ti ti-restore" />Default everywhere</ConfirmSubmit>
           : <span className="c-desc">Everything is on default</span>}
       </form>
     </div>

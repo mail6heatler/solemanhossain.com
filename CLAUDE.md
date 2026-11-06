@@ -109,7 +109,11 @@ All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a cl
 
 ## The dashboard's Save box
 
-`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float.
+`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. The Size & look panels keep theirs inside, because it saves only that panel.
+
+## Asking before anything risky
+
+Use `ConfirmSubmit` (`components/admin/Widgets.tsx`), never the browser's `confirm()`: a box in the middle of the screen with a title, what will happen, Cancel and a red "yes" button. Cancel takes the focus, so an accidental Enter is safe; Esc and a click outside also cancel.
 
 ## Size and look controls
 

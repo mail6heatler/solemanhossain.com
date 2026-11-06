@@ -65,7 +65,7 @@ export default async function SettingsPage() {
         <div className="grow"><div className="c-title">Log out</div><div className="c-desc">Sign out of this device, or every device you&apos;ve ever signed in on.</div></div>
         <div className="btns">
           <form action={logout}><button className="b-out b-sm"><i className="ti ti-logout" />Log out</button></form>
-          <form action={logoutEverywhere}><ConfirmSubmit message="Log out of every device, including this one?" className="b-danger b-sm"><i className="ti ti-devices-x" />Log out everywhere</ConfirmSubmit></form>
+          <form action={logoutEverywhere}><ConfirmSubmit title="Log out everywhere?" message="This logs you out of every device, including this one. You'll need to log in again." yes="Yes, log out" className="b-danger b-sm"><i className="ti ti-devices-x" />Log out everywhere</ConfirmSubmit></form>
         </div>
       </div>
 

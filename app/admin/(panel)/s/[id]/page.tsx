@@ -95,7 +95,7 @@ export default async function SectionAdmin({ params }: P) {
         <form action={resetSectionLooks} className="c c-row" style={{ marginTop: 10 }}>
           <input type="hidden" name="id" value={section.id} />
           <div className="grow"><div className="c-desc">{ownLooks} {ownLooks === 1 ? "entry here has" : "entries here have"} their own size and look settings.</div></div>
-          <ConfirmSubmit message="Set every entry in this section back to following the section?" className="b-out b-sm"><i className="ti ti-restore" />Default for all entries here</ConfirmSubmit>
+          <ConfirmSubmit title="Back to following the section?" message="Every entry here goes back to following the section's size and look. Their own settings are cleared." yes="Yes, set them back" className="b-out b-sm"><i className="ti ti-restore" />Default for all entries here</ConfirmSubmit>
         </form>
       )}
 
@@ -130,17 +130,17 @@ export default async function SectionAdmin({ params }: P) {
             </div>
             <label className="switch"><input type="checkbox" name="visible" defaultChecked={section.visible} />Visible on the site</label>
             <label className="switch"><input type="checkbox" name="ribbon" defaultChecked={section.ribbon} />Show the sliding headline before this section</label>
-            <SaveBox label="Save section">
-              <a href={`/#${section.slug}`} target="_blank" className="b-out"><i className="ti ti-eye" />View on site</a>
-            </SaveBox>
           </div>
         </details>
+        <SaveBox label="Save section">
+          <a href={`/#${section.slug}`} target="_blank" className="b-out"><i className="ti ti-eye" />View on site</a>
+        </SaveBox>
       </form>
 
       <form action={deleteSection} className="c c-row" style={{ marginTop: 14, borderColor: "color-mix(in srgb, var(--danger) 30%, var(--card-border))" }}>
         <input type="hidden" name="id" value={section.id} />
         <div className="grow"><div className="c-title">Delete this section</div><div className="c-desc">Removes it and all {items.length} entries for good. Tip: hiding it is reversible.</div></div>
-        <ConfirmSubmit message={`Delete "${section.title}" and all ${items.length} entries? This can't be undone.`}><i className="ti ti-trash" />Delete</ConfirmSubmit>
+        <ConfirmSubmit title={`Delete "${section.title}"?`} message={`This removes the section${items.length === 0 ? "" : items.length === 1 ? " and its 1 entry" : ` and all ${items.length} entries`} for good. It can't be undone. Tip: hiding it keeps everything safe.`} yes="Yes, delete"><i className="ti ti-trash" />Delete</ConfirmSubmit>
       </form>
     </div>
   );

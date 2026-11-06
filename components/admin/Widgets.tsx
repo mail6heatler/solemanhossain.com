@@ -12,9 +12,30 @@ export function Toast() {
   return <div key={key} className="adm-toast">{msg}</div>;
 }
 
-export function ConfirmSubmit({ message, children, className = "b-danger" }: { message: string; children: React.ReactNode; className?: string }) {
+/**
+ * A button for something risky: it asks in a box first, and only "yes" submits its form.
+ * Cancel takes the focus, so an accidental Enter is safe; Esc and a click outside also cancel.
+ */
+export function ConfirmSubmit({ title, message, yes = "Yes, continue", children, className = "b-danger" }: { title: string; message: string; yes?: string; children: React.ReactNode; className?: string }) {
+  const trigger = useRef<HTMLButtonElement>(null);
+  const box = useRef<HTMLDialogElement>(null);
+  const cancel = useRef<HTMLButtonElement>(null);
+  const close = () => box.current?.close();
   return (
-    <button type="submit" className={className} onClick={(e) => { if (!confirm(message)) e.preventDefault(); }}>{children}</button>
+    <>
+      <button ref={trigger} type="button" className={className} onClick={() => { box.current?.showModal(); cancel.current?.focus(); }}>{children}</button>
+      <dialog ref={box} className="info-dlg confirm-dlg" aria-label={title} onClick={(e) => { if (e.target === box.current) close(); }}>
+        <div className="confirm-in">
+          <span className="confirm-ico" aria-hidden="true"><i className="ti ti-alert-triangle" /></span>
+          <b>{title}</b>
+          <p>{message}</p>
+          <div className="confirm-btns">
+            <button ref={cancel} type="button" className="b-out" onClick={close}>Cancel</button>
+            <button type="button" className="b-yes" onClick={() => { close(); trigger.current?.form?.requestSubmit(); }}><i className="ti ti-check" />{yes}</button>
+          </div>
+        </div>
+      </dialog>
+    </>
   );
 }
 
