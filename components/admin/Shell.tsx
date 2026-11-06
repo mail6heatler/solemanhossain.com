@@ -31,6 +31,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     ...sections.map((s) => ({ href: `/admin/s/${s.id}`, label: `${s.code ? s.code + " · " : ""}${(s.nav_label || s.title).toLowerCase()}`, icon: s.icon, hidden: !s.visible })),
     { href: "/admin/inbox", label: "Inbox", icon: "inbox", badge: unread },
     { href: "/admin/banner", label: "Hanging banner", icon: "speakerphone" },
+    { href: "/admin/content", label: "Content sizes", icon: "adjustments" },
     { href: "/admin/appearance", label: "Appearance", icon: "palette" },
     { href: "/admin/themes", label: "Theme pictures", icon: "photo" },
     { href: "/admin/settings", label: "Settings", icon: "settings" },

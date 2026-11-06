@@ -1,3 +1,5 @@
+import { cleanStyle, type ContentStyle } from "./contentStyle";
+
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
 // so new fields can be added later without a migration.
 
@@ -227,6 +229,8 @@ export type SiteSettings = {
   banner: Banner;
   /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
   themePics: Record<string, string>;
+  /** Size and look for all content; sections and entries can override it (lib/contentStyle.ts). */
+  contentStyle: ContentStyle;
   effects: Effects;
 };
 
@@ -270,6 +274,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   partyWord: "shou",
   banner: DEFAULT_BANNER,
   themePics: {},
+  contentStyle: {},
   effects: ALL_ON,
 };
 
@@ -283,6 +288,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     ...obj,
     effects: { ...DEFAULT_SETTINGS.effects, ...(obj.effects ?? {}) },
     banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
+    contentStyle: cleanStyle(obj.contentStyle),
   };
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;
   if (!SELECTABLE.includes(s.defaultTheme)) s.defaultTheme = DEFAULT_SETTINGS.defaultTheme;

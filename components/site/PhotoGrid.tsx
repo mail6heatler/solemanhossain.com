@@ -5,7 +5,7 @@ import Reactions from "./Reactions";
 import { Lightbox, type Slide } from "./MediaView";
 import SideRow, { type RowFx } from "./SideRow";
 
-type Item = { id: number; title: string; href: string; media: Media[] };
+type Item = { id: number; title: string; href: string; media: Media[]; className?: string; style?: React.CSSProperties };
 
 /** Photo grid (Life): each tile shows the entry's cover; the viewer steps through every photo and video of every entry. */
 export default function PhotoGrid({ className, items, reactions = false, row }: { className: string; items: Item[]; reactions?: boolean; row?: RowFx }) {
@@ -17,7 +17,7 @@ export default function PhotoGrid({ className, items, reactions = false, row }: 
   const tiles = items.map((it) => {
           const cover = it.media[0];
           return (
-            <div key={it.id} className="ph-cell">
+            <div key={it.id} className={`ph-cell${it.className ?? ""}`} style={it.style}>
               {cover ? (
                 <button type="button" className="ph-tile" aria-label={`Open: ${it.title}`}
                   onClick={(e) => { lastTile.current = e.currentTarget; setOpen(firstSlide(it.id)); }}>

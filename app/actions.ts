@@ -8,6 +8,7 @@ import { getSettings } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
+import { cleanStyle } from "@/lib/contentStyle";
 import { BANNER_KINDS, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
@@ -24,6 +25,36 @@ const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").replace(/-+/g, "-").slice(0, 50) || "section";
 const LAYOUT_VALUES = LAYOUTS.map((l) => l.value as string);
 const refresh = () => revalidatePath("/", "layout");
+
+// ---------- size and look controls: all content, a section, one entry ----------
+export async function saveLook(fd: FormData) {
+  await requireAdmin();
+  const style = cleanStyle(str(fd, "style", 2000));
+  const kind = str(fd, "kind"), id = int(fd, "id");
+  if (kind === "item") await query("UPDATE items SET style=$1 WHERE id=$2", [JSON.stringify(style), id]);
+  else if (kind === "section") await query("UPDATE sections SET style=$1 WHERE id=$2", [JSON.stringify(style), id]);
+  else await saveSettingsData({ contentStyle: style });
+  refresh();
+  redirect(kind === "item" ? `/admin/items/${id}?saved=1#look` : kind === "section" ? `/admin/s/${id}?saved=1#look` : "/admin/content?saved=1");
+}
+
+/** Back to default: everything, or just the entries of one section. */
+export async function resetAllLooks() {
+  await requireAdmin();
+  await query("UPDATE items SET style='{}'");
+  await query("UPDATE sections SET style='{}'");
+  await saveSettingsData({ contentStyle: {} });
+  refresh();
+  redirect("/admin/content?saved=1");
+}
+
+export async function resetSectionLooks(fd: FormData) {
+  await requireAdmin();
+  const id = int(fd, "id");
+  await query("UPDATE items SET style='{}' WHERE section_id=$1", [id]);
+  refresh();
+  redirect(`/admin/s/${id}?saved=1#look`);
+}
 
 async function saveSettingsData(patch: Partial<SiteSettings>) {
   const current = await getSettings();

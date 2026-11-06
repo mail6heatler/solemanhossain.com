@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -14,6 +14,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-06: Size and look controls
+
+The owner asked for controls per entry, plus one place to control everything, each with a default button. Dashboard → Content sizes covers all content; each section and entry has a "Size & look" panel. The most specific level wins. Controls: card size (Small, Medium, Large, Custom sliders), picture (whole or fill, focus point, height in the card), text size, and show or hide picture, subtitle, tags, date and place. Each panel has a live preview and a Default button; "Default everywhere" clears all three levels. Nothing changes for visitors until something is set. Tested through the real dashboard on a throwaway local database, never on the live site, so the owner's first real use is the first time it runs against the live database. The new columns are added by themselves on the first request after the deploy.
 
 ### 2026-11-06: Pictures never cut; smoother scrolling
 
@@ -39,6 +43,10 @@ A first attempt that only moved scroll reads out of scroll events changed nothin
 | Laptop, 4x slower | 23.0 fps, 42.0ms, 72 | 24.8 fps, 39.5ms, 67 |
 | Phone size | 53.1 fps, 11.1ms, 5 | 53.8 fps, 10.7ms, 6 |
 | Phone size, 4x slower | 10.6 fps, 94.9ms, 115 | 9.5 fps, 105.7ms, 115 |
+
+A final run with the controls included, in a quieter session: laptop 80.0 fps, 12.8ms and 3 frames over 50ms became 107.0 fps, 8.8ms and 1; 4x slower 26.2 fps, 37.5ms and 54 became 28.2 fps, 34.7ms and 31.
+
+On the live site with real content (laptop, one run each, so a rough guide): hero 37 to 52 fps, Me 51 to 56, Made 51 to 53, Adventures 57 to 60; style passes 3,604 to 1,327 over the run.
 
 Laptop improved; phones did not measurably in simulation. On phones the biggest cost is `Layerize` (the browser organising layers, 5.5ms per frame on the heavy test page), and it hasn't been tackled. Phones scroll natively, so these numbers are page updates rather than the scroll itself. Not yet checked on a real phone.
 

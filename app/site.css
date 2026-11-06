@@ -1283,9 +1283,9 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .trip .flow .ph { flex-shrink: 0; }
 
 /* --- pictures show whole: full width in their own shape, and a very tall one is fitted inside the card rather than cut --- */
-:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; max-height: calc(var(--row-h) * .66); object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; max-height: calc(var(--row-h) * var(--pic, .66)); object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
 .trip .ph.has-pic { height: auto; display: block; background: none; flex-shrink: 0; }
-.post-media { height: auto; max-height: min(70vh, 560px); object-fit: contain; }
+.post-media { height: auto; max-height: var(--post-h, min(70vh, 560px)); object-fit: contain; }
 .ph-tile img, .ph-tile video { object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
 /* the button sits beside the picture, not inside it: the photo wipe makes the picture its own layer, which would trap the button under the card's link */
 .pic-box { position: relative; flex-shrink: 0; }
@@ -1305,16 +1305,17 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .side-stage { display: flex; flex-direction: column; gap: 16px; }
 .side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gutter, 7vw) 16px; align-items: stretch; transform-origin: 0 50%; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter, 7vw); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
 .side-track > * { flex: 0 0 auto; scroll-snap-align: start; min-width: 0; }
-.side-track > .card, .side-track > .note { width: clamp(280px, 27vw, 340px); }
-.side-track > .card.b-big, .side-track > .note.wide { width: clamp(300px, 36vw, 460px); }
-.side-track > .trip { width: clamp(250px, 24vw, 300px); }
+.side-track > .card, .side-track > .note { width: var(--cw, clamp(280px, 27vw, 340px)); }
+.side-track > .card.b-big, .side-track > .note.wide { width: var(--cw, clamp(300px, 36vw, 460px)); }
+.side-track > .trip { width: var(--cw, clamp(250px, 24vw, 300px)); }
 .side-track > .trip .ph:not(.has-pic) { height: clamp(150px, 26vh, 210px); }
-.side-track > .flip-wrap { width: 230px; }
-.side-track > .ph-cell { width: clamp(190px, 20vw, 250px); }
-.side-track > .wall-note { width: clamp(250px, 26vw, 320px); align-self: flex-start; }
+.side-track > .flip-wrap { width: var(--cw, 230px); }
+.side-track > .ph-cell { width: var(--cw, clamp(190px, 20vw, 250px)); }
+.side-track > .wall-note { width: var(--cw, clamp(250px, 26vw, 320px)); align-self: flex-start; }
 .side-track.flips, .side-track.photogrid { align-items: flex-start; }
 @media (max-width: 760px) {
-  .side-track > .card, .side-track > .note, .side-track > .card.b-big, .side-track > .note.wide { width: min(82vw, 330px); }
+  .side-track > .card, .side-track > .note, .side-track > .card.b-big, .side-track > .note.wide { width: min(var(--cw, 330px), 82vw); }
+  .side-track > :is(.trip, .flip-wrap, .ph-cell, .wall-note) { max-width: 82vw; }
 }
 
 /* --- counter, hint and progress bar: only when the row really moves --- */
@@ -1355,6 +1356,32 @@ html[data-skin="ocean"] .site.fx-themefx .side.flying .stagger.live > :is(.card,
 .wall-row .side { margin-top: 12px; }
 
 html.lite .side .side-track, html.lite .side .side-track > * { will-change: auto; }
+
+/* --- size and look controls (lib/contentStyle.ts). All of it is set once when the page is made, none of it per frame --- */
+.sized:is(.card, .note, .trip, .wall-note) { height: var(--row-h); max-height: var(--row-h); }
+.flip-wrap.sized .flip { height: var(--row-h); }
+.ph-cell.sized .ph-tile { aspect-ratio: auto; height: var(--row-h); }
+.fit-fill :is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { height: calc(var(--row-h) * var(--pic, .66)); max-height: none; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); }
+.fit-fill .post-media { height: var(--post-h, min(70vh, 560px)); max-height: none; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); }
+.fit-fill .ph-tile :is(img, video) { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); }
+.card h3 { font-size: calc(19px * var(--fs, 1)); }
+.grid3.bento > .b-big h3 { font-size: calc(26px * var(--fs, 1)); }
+.card .sub { font-size: calc(13px * var(--fs, 1)); }
+.card .ex { font-size: calc(13.5px * var(--fs, 1)); }
+.note h3 { font-size: calc(20px * var(--fs, 1)); }
+.note .md { font-size: calc(1em * var(--fs, 1)); }
+.trip h3 { font-size: calc(16px * var(--fs, 1)); }
+.trip .loc { font-size: calc(12px * var(--fs, 1)); }
+.wall-note p { font-size: calc(14.5px * var(--fs, 1)); }
+.flip-f h3 { font-size: calc(17px * var(--fs, 1)); }
+.flip-f .sub { font-size: calc(12.5px * var(--fs, 1)); }
+.flip-b { font-size: calc(14px * var(--fs, 1)); }
+.shelf-row h3 { font-size: calc(16px * var(--fs, 1)); }
+.post h3 { font-size: calc(18px * var(--fs, 1)); }
+.post .md { font-size: calc(15px * var(--fs, 1)); }
+.tl-row h3 { font-size: calc(18px * var(--fs, 1)); }
+.tl-row p { font-size: calc(14px * var(--fs, 1)); }
+.poll-opt { font-size: calc(14px * var(--fs, 1)); }
 
 /* --- while the page scrolls, decorative loops rest: nobody watches them then, and each running animation is restyled every frame.
    The scroll-linked motion and the moving headlines keep going. --- */

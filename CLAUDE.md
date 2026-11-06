@@ -40,6 +40,7 @@ app/
   s/[slug]/page.tsx        "See all" page (a grid of same-size cards: SectionBody's `grid` prop)
   s/[slug]/[id]/page.tsx   entry page
   admin/(panel)/           dashboard (overview, hero, sections, entries, inbox, appearance, settings)
+  admin/(panel)/content/   "Content sizes": size and look for all content (components/admin/LookControls.tsx is the panel)
   actions.ts               every dashboard change; all call requireAdmin
   api/                     upload, blob, vote, react, track, presence, export
   site.css                 public design: themes first, then components, then "THE LIVELY LAYER"
@@ -73,6 +74,7 @@ lib/
   help.ts                  text for the dashboard's (i) pop-ups
   data.ts, db.ts, schema.ts   queries, connection, tables + starter content
   auth.ts                  login
+  contentStyle.ts          size and look controls: types, limits, how the three levels merge, what goes on a card
 app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in settings.banner)
 ```
 
@@ -95,6 +97,10 @@ Each classic theme also has its own hanging banner in `app/banner.css`. A theme 
 Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `THEME_FONTS` in `lib/settings.ts`; add its block to `app/themes.css` (and to the two shared `:is()` lists at the top); add its entry to `CONFIGS` in `themeScenes2.ts`; put scenery and figure SVGs in `public/themes/art/`. Use only original art or free-licensed pictures, and record the licence in `lib/themeCredits.ts`. Measure scrolling afterwards.
 
 **Picture rule:** no official character art and no photos with doubtful licences, whatever the source. Commons licences are only as reliable as the uploader, so skip professional-looking shots from social-media-sized uploads. The owner can add their own pictures under Dashboard → Theme pictures, which is their decision.
+
+## Size and look controls
+
+Three levels, the most specific wins: all content (`settings.contentStyle`), a section (`sections.style`), one entry (`items.style`). `lookOf(mergeStyles(...))` in `lib/contentStyle.ts` gives a card its class, CSS variables (`--cw`, `--row-h`, `--pic`, `--fs`, `--fx`, `--fy`) and what to hide. They're set once when the page is made, so they cost nothing while scrolling. Limits live in `cleanStyle` and `LIMITS` and run on the server too: a card can't pass 72% of the window's height or, on phones, 82% of its width, because that would bring back cards outgrowing the screen. With nothing set, a card has no extra class or style. Don't add a "hide reactions" option: the owner wants the bar always visible.
 
 ## Adding or changing an effect
 

@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
-import { getSection, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
+import { getLookCounts, getSampleItem, getSection, getSettings, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
 import { LAYOUTS, MOODS } from "@/lib/settings";
-import { createItem, deleteSection, moveItem, toggleItem, updateSection } from "@/app/actions";
+import { createItem, deleteSection, moveItem, resetSectionLooks, saveLook, toggleItem, updateSection } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
+import LookControls from "@/components/admin/LookControls";
+import { lookSample } from "@/components/admin/lookSample";
+import { isCustom } from "@/lib/contentStyle";
 import type { Item } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth";
 
@@ -15,6 +18,8 @@ export default async function SectionAdmin({ params }: P) {
   if (!section) notFound();
   const items = await getItems(section.id);
   const reactions = await getReactionCountsFor(items.map((i) => i.id));
+  const [settings, sample, lookCounts] = await Promise.all([getSettings(), getSampleItem(section.id), getLookCounts()]);
+  const ownLooks = lookCounts.get(section.id) ?? 0;
 
   // group entries by subsection (category), keeping the order you defined
   const names = [...section.categories];
@@ -63,6 +68,25 @@ export default async function SectionAdmin({ params }: P) {
           </form>
         </div>
       ))}
+
+      <form action={saveLook} id="look">
+        <input type="hidden" name="kind" value="section" />
+        <input type="hidden" name="id" value={section.id} />
+        <details className="c" style={{ marginTop: 26 }} open={isCustom(section.style)}>
+          <summary><i className="ti ti-adjustments" style={{ color: "var(--icon)" }} />Size &amp; look for this section{isCustom(section.style) ? " (customised)" : ""}<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
+          <div className="f" style={{ marginTop: 12 }}>
+            <p className="c-desc" style={{ whiteSpace: "normal", margin: 0 }}>Overrides <a href="/admin/content">all content</a> for this section. One entry&apos;s own settings override this.</p>
+            <LookControls initial={section.style} above={settings.contentStyle} sample={lookSample(sample)} layout={section.layout} level="this section" />
+          </div>
+        </details>
+      </form>
+      {ownLooks > 0 && (
+        <form action={resetSectionLooks} className="c c-row" style={{ marginTop: 10 }}>
+          <input type="hidden" name="id" value={section.id} />
+          <div className="grow"><div className="c-desc">{ownLooks} {ownLooks === 1 ? "entry here has" : "entries here have"} their own size and look settings.</div></div>
+          <ConfirmSubmit message="Set every entry in this section back to following the section?" className="b-out b-sm"><i className="ti ti-restore" />Default for all entries here</ConfirmSubmit>
+        </form>
+      )}
 
       <form action={updateSection} id="settings">
         <details className="c" style={{ marginTop: 26 }}>
@@ -114,7 +138,7 @@ function Row({ it, all, reactions }: { it: Item; all: Item[]; reactions?: Reacti
   const r = Object.entries(reactions ?? {}).filter(([, n]) => n > 0).map(([e, n]) => `${e} ${n}`).join("  ");
   const desc = [
     it.type === "poll" ? `📊 poll · ${it.poll_options.length} options` : "",
-    it.date_label, it.location, it.status, MOODS[it.mood]?.label, it.image_url ? "📷" : "", r,
+    it.date_label, it.location, it.status, MOODS[it.mood]?.label, it.image_url ? "📷" : "", isCustom(it.style) ? "own size" : "", r,
   ].filter(Boolean).join(" · ");
   return (
     <div className={`c hov ${it.visible ? "" : "off"}`}>

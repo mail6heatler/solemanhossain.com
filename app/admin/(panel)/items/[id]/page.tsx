@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
-import { getItem, getSection, getSections, getPollCounts, getReactionCounts } from "@/lib/data";
+import { getItem, getSection, getSections, getSettings, getPollCounts, getReactionCounts } from "@/lib/data";
 import { MOODS, REACTION_EMOJIS } from "@/lib/settings";
-import { deleteItem, resetPoll, resetReactions, updateItem } from "@/app/actions";
+import { deleteItem, resetPoll, resetReactions, saveLook, updateItem } from "@/app/actions";
 import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
+import LookControls from "@/components/admin/LookControls";
+import { lookSample } from "@/components/admin/lookSample";
+import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { requireAdmin } from "@/lib/auth";
 
 type P = { params: Promise<{ id: string }> };
@@ -12,7 +15,7 @@ export default async function ItemEditor({ params }: P) {
   const { id } = await params;
   const item = /^\d+$/.test(id) ? await getItem(Number(id)) : null;
   if (!item) notFound();
-  const [section, sections] = await Promise.all([getSection({ id: item.section_id }), getSections()]);
+  const [section, sections, settings] = await Promise.all([getSection({ id: item.section_id }), getSections(), getSettings()]);
   const isPoll = item.type === "poll";
   const counts = isPoll ? await getPollCounts(item.id, item.poll_options.length) : [];
   const reactions = isPoll ? {} : await getReactionCounts(item.id);
@@ -106,6 +109,18 @@ export default async function ItemEditor({ params }: P) {
           <button className="b-mint"><i className="ti ti-device-floppy" />Save entry</button>
           <a href={`/admin/s/${item.section_id}`} className="b-out">Back</a>
         </div>
+      </form>
+
+      <form action={saveLook} id="look">
+        <input type="hidden" name="kind" value="item" />
+        <input type="hidden" name="id" value={item.id} />
+        <details className="c" style={{ marginTop: 24 }} open={isCustom(item.style)}>
+          <summary><i className="ti ti-adjustments" style={{ color: "var(--icon)" }} />Size &amp; look for this {isPoll ? "poll" : "entry"}{isCustom(item.style) ? " (customised)" : ""}<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
+          <div className="f" style={{ marginTop: 12 }}>
+            <p className="c-desc" style={{ whiteSpace: "normal", margin: 0 }}>Overrides its section and <a href="/admin/content">all content</a>, for this one only.</p>
+            <LookControls initial={item.style} above={mergeStyles(settings.contentStyle, section?.style)} sample={lookSample(item)} layout={section?.layout ?? "cards"} level="this entry" />
+          </div>
+        </details>
       </form>
 
       {!isPoll && (

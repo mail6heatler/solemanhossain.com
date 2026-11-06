@@ -1,10 +1,13 @@
 import { query, queryOne, Row } from "./db";
 import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
+import { cleanStyle, type ContentStyle } from "./contentStyle";
 
 export type Section = {
   id: number; slug: string; code: string; nav_label: string; nav_emoji: string; eyebrow: string;
   eyebrow_emoji: string; title: string; subtitle: string; layout: string; emojis: string;
   categories: string[]; empty_text: string; home_limit: number; sort: number; visible: boolean; ribbon: boolean;
+  /** size and look for this section's content */
+  style: ContentStyle;
 };
 
 export type Item = {
@@ -14,6 +17,8 @@ export type Item = {
   created_at: string;
   /** photos + videos; media[0] is the cover */
   media: Media[];
+  /** size and look for this entry */
+  style: ContentStyle;
 };
 
 export type Message = {
@@ -23,7 +28,7 @@ export type Message = {
 
 const splitList = (s: string) => String(s || "").split(",").map((t) => t.trim()).filter(Boolean);
 
-const toSection = (r: Row): Section => ({ ...(r as any), id: Number(r.id), categories: splitList(r.categories) });
+const toSection = (r: Row): Section => ({ ...(r as any), id: Number(r.id), categories: splitList(r.categories), style: cleanStyle(r.style) });
 const toItem = (r: Row): Item => ({
   ...(r as any),
   id: Number(r.id),
@@ -33,6 +38,7 @@ const toItem = (r: Row): Item => ({
   poll_options: (() => { try { const a = JSON.parse(r.poll_options); return Array.isArray(a) ? a.map(String) : []; } catch { return []; } })(),
   created_at: new Date(r.created_at).toISOString(),
   media: parseMedia(r.media, String(r.image_url ?? "")),
+  style: cleanStyle(r.style),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 
@@ -71,6 +77,19 @@ export async function getItems(sectionId: number, opts: { visibleOnly?: boolean;
 export async function getItemCounts(visibleOnly = false) {
   const rows = await query(`SELECT section_id, COUNT(*)::int AS n FROM items ${visibleOnly ? "WHERE visible" : ""} GROUP BY section_id`);
   return new Map(rows.map((r) => [Number(r.section_id), Number(r.n)]));
+}
+
+/** How many entries in each section have their own size and look settings. */
+export async function getLookCounts() {
+  const rows = await query(`SELECT section_id, COUNT(*)::int AS n FROM items WHERE style <> '{}' GROUP BY section_id`);
+  return new Map(rows.map((r) => [Number(r.section_id), Number(r.n)]));
+}
+
+/** A real entry for the size and look preview, with a photo if there is one. */
+export async function getSampleItem(sectionId?: number) {
+  const where = sectionId ? "WHERE section_id = $1" : "";
+  const rows = await query(`SELECT * FROM items ${where} ORDER BY (media <> '[]') DESC, pinned DESC, sort, id LIMIT 1`, sectionId ? [sectionId] : []);
+  return rows[0] ? toItem(rows[0]) : null;
 }
 
 export async function getItem(id: number) {
