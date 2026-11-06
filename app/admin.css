@@ -319,3 +319,16 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-actions button:disabled { opacity: .45; cursor: default; }
 .look .hint { font-size: 10.5px; line-height: 1.45; color: var(--text-faint); margin-top: 6px; }
 .look-actions .hint { margin-top: 0; flex: 1; min-width: 180px; }
+
+/* ---------- order of a section's entries ---------- */
+.order-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.order-list li { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 10px; border: .5px solid var(--input-border); background: var(--page-bg); cursor: grab; font-size: 12.5px; }
+.order-list li:active { cursor: grabbing; }
+.order-list li.over { border-color: var(--mint); box-shadow: 0 0 0 2px rgba(126,232,162,.35); }
+.order-list li.off .order-t { text-decoration: line-through; opacity: .7; }
+.order-grip { color: var(--text-faint); font-size: 15px; }
+.order-n { font-variant-numeric: tabular-nums; color: var(--text-faint); width: 18px; text-align: right; font-size: 11px; }
+.order-t { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-k { color: var(--text-faint); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 34%; }
+@media (max-width: 560px) { .order-k { display: none; } }
+.order-hint { font-size: 10.5px; color: var(--text-faint); margin: 8px 0 0; }

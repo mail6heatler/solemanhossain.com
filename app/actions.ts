@@ -270,17 +270,18 @@ export async function toggleSection(fd: FormData) {
 }
 
 async function reorder(table: "sections" | "items", id: number, dir: "up" | "down", sectionId?: number) {
-  // items move within their own subsection (category), so groups stay tidy
+  // an entry swaps with its neighbour in the same subsection, but the whole section is renumbered:
+  // numbering one subsection alone made it collide with the others, so the site's order drifted from the dashboard's
   const all = await query(
     table === "items"
-      ? `SELECT id FROM items WHERE section_id=$1 AND category = (SELECT category FROM items WHERE id=$2)
-         ORDER BY pinned DESC, sort, id`
-      : "SELECT id FROM sections ORDER BY sort, id",
-    table === "items" ? [sectionId, id] : []
+      ? "SELECT id, category FROM items WHERE section_id=$1 ORDER BY pinned DESC, sort, id"
+      : "SELECT id, '' AS category FROM sections ORDER BY sort, id",
+    table === "items" ? [sectionId] : []
   );
   const ids = all.map((r) => Number(r.id));
   const i = ids.indexOf(id);
-  const j = dir === "up" ? i - 1 : i + 1;
+  let j = dir === "up" ? i - 1 : i + 1;
+  while (i >= 0 && j >= 0 && j < ids.length && all[j].category !== all[i].category) j += dir === "up" ? -1 : 1;
   if (i < 0 || j < 0 || j >= ids.length) return;
   [ids[i], ids[j]] = [ids[j], ids[i]];
   for (const [k, rid] of ids.entries()) await query(`UPDATE ${table} SET sort=$1 WHERE id=$2`, [k + 1, rid]);
@@ -345,6 +346,15 @@ export async function toggleItem(fd: FormData) {
 export async function moveItem(fd: FormData) {
   await requireAdmin();
   await reorder("items", int(fd, "id"), str(fd, "dir") === "up" ? "up" : "down", int(fd, "section_id"));
+  refresh();
+}
+
+/** Sets a section's whole order from the dashboard's drag-and-drop list. Pinned entries still come first on the site. */
+export async function saveItemOrder(sectionId: number, ids: number[]) {
+  await requireAdmin();
+  const own = new Set((await query("SELECT id FROM items WHERE section_id=$1", [sectionId])).map((r) => Number(r.id)));
+  const clean = ids.filter((id) => own.has(Number(id)));
+  for (const [k, id] of clean.entries()) await query("UPDATE items SET sort=$1 WHERE id=$2 AND section_id=$3", [k + 1, id, sectionId]);
   refresh();
 }
 

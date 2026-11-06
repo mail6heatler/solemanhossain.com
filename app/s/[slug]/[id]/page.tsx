@@ -7,6 +7,7 @@ import { Mood } from "@/components/site/SectionBody";
 import { EntryGallery } from "@/components/site/MediaView";
 import PollCard from "@/components/site/PollCard";
 import Reactions from "@/components/site/Reactions";
+import BackLink from "@/components/site/BackLink";
 import { Split } from "@/components/site/Split";
 
 type P = { params: Promise<{ slug: string; id: string }> };
@@ -39,7 +40,7 @@ export default async function EntryPage({ params }: P) {
   return (
     <SiteShell settings={settings} sections={sections} onHome={false}>
       <article className="entry">
-        <a className="back" href={`/s/${section.slug}`}><i className="ti ti-arrow-left" />{section.title}</a>
+        <BackLink href={`/s/${section.slug}`} label={section.title} />
         <div className="meta" style={{ marginTop: 26 }}>
           {section.code && <span className="chip dark">{section.code}</span>}
           {item.category && <span className="chip">{item.category}</span>}

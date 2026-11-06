@@ -4,6 +4,7 @@ import { LAYOUTS, MOODS } from "@/lib/settings";
 import { createItem, deleteSection, moveItem, resetSectionLooks, saveLook, toggleItem, updateSection } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
 import LookControls from "@/components/admin/LookControls";
+import OrderList from "@/components/admin/OrderList";
 import { lookSample } from "@/components/admin/lookSample";
 import { isCustom } from "@/lib/contentStyle";
 import type { Item } from "@/lib/data";
@@ -48,6 +49,15 @@ export default async function SectionAdmin({ params }: P) {
           the &ldquo;say hello&rdquo; form (messages arrive in your <a href="/admin/inbox">Inbox</a>) and the guest wall.
           Entries you add here appear as testimonials: put the quote in the story and the person&apos;s name in the subtitle.
         </div>
+      )}
+
+      {items.length > 1 && (
+        <details className="c" id="order" style={{ marginBottom: 14 }}>
+          <summary><i className="ti ti-arrows-sort" style={{ color: "var(--icon)" }} />Order on the site: {items.length} entries<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
+          <div style={{ marginTop: 12 }}>
+            <OrderList sectionId={section.id} initial={items.map((it) => ({ id: it.id, title: it.title, pinned: it.pinned, visible: it.visible, kind: [it.type === "poll" ? "Poll" : "", it.category].filter(Boolean).join(" · ") }))} />
+          </div>
+        </details>
       )}
 
       {groups.map((g) => (

@@ -24,9 +24,10 @@ export function Mood({ mood }: { mood: string }) {
   return <span className="mood" title={`Mood: ${m.label}`}><i style={{ background: m.color }} />{m.label}</span>;
 }
 
-function Meta({ it, showCat = true, hideDate = false }: { it: Item; showCat?: boolean; hideDate?: boolean }) {
+function Meta({ it, showCat = true, hideDate = false, showStatus = false }: { it: Item; showCat?: boolean; hideDate?: boolean; showStatus?: boolean }) {
   const bits = [
     showCat && it.category ? <span key="c" className="chip">{it.category}</span> : null,
+    showStatus && it.status ? <span key="s" className="chip line">{it.status}</span> : null,
     it.date_label && !hideDate ? <span key="d">{it.date_label}</span> : null,
     it.location && !hideDate ? <span key="l"><i className="ti ti-map-pin" style={{ fontSize: 12 }} /> {it.location}</span> : null,
     it.mood ? <Mood key="m" mood={it.mood} /> : null,
@@ -38,12 +39,16 @@ function Meta({ it, showCat = true, hideDate = false }: { it: Item; showCat?: bo
  * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
  * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible.
  */
-function Box({ children, foot }: { children: React.ReactNode; foot?: React.ReactNode }) {
+function Box({ children, foot, to }: { children: React.ReactNode; foot?: React.ReactNode; to?: string }) {
   return (
     <>
       <div className={`scroll-wrap${foot ? " has-foot" : ""}`}>
-        <div className="scrolly"><div className="flow">{children}</div></div>
-        <span className="more-hint" aria-hidden><i className="ti ti-chevrons-down" /></span>
+        <div className="scrolly"><div className="flow">
+          {children}
+          {to && <a className="read-more" href={to}>Read the full story<i className="ti ti-arrow-right" aria-hidden /></a>}
+        </div></div>
+        <span className="more-hint" aria-hidden><span className="more-pill"><span className="more-word">Scroll for more</span><i className="ti ti-chevrons-down hint-arrow" /></span></span>
+        <i className="scroll-line" aria-hidden><b /></i>
       </div>
       {foot && <div className="card-foot">{foot}</div>}
     </>
@@ -126,7 +131,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "strip") {
     const trips = items.map((it) => { const l = lookFor(it); return (
       <div key={it.id} className={`trip${l.className}`} style={l.style}>
-        <Box foot={foot(it.id)}>
+        <Box foot={foot(it.id)} to={href(section, it)}>
           <CardLink to={href(section, it)} label={it.title} />
           {!l.hide("pic") && <div className="pic-box"><div className={`ph${it.media[0] ? " has-pic" : ""}`}>{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>{zoom(it)}</div>}
           <div className="tb">
@@ -264,12 +269,16 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     return row("notes", (
       <>
         {items.map((it, i) => { const l = lookFor(it); return (
-          <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}${l.className}`} style={l.style}>
-            <Box foot={foot(it.id)}>
+          <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
+            <Box foot={foot(it.id)} to={href(section, it)}>
+              <CardLink to={href(section, it)} label={it.title} />
               {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
               <h3>{it.title}</h3>
+              {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
+              <Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />
               {it.media[0] && !l.hide("pic") && <div className="pic-box"><Cover m={it.media[0]} className="note-media" />{zoom(it)}</div>}
               {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
+              {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
             </Box>
           </div>
         ); })}
@@ -282,9 +291,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   return row(`grid3${bento ? " bento" : ""}`, (
     <>
       {items.map((it, i) => { const l = lookFor(it); const pic = it.media[0] && !l.hide("pic"); return (
-        <div key={it.id} className={`card${tile(i)}${pic ? "" : " no-pic"}${l.className}`} style={l.style}>
+        <div key={it.id} className={`card${tile(i)}${pic ? "" : " no-pic"}${it.body.trim() ? " with-text" : ""}${l.className}`} style={l.style}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          <Box foot={foot(it.id)}>
+          <Box foot={foot(it.id)} to={href(section, it)}>
             <CardLink to={href(section, it)} label={it.title} />
             {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
             <div className="card-body">

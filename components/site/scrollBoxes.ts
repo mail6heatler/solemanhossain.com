@@ -1,6 +1,7 @@
 /**
  * Cards with more text than fits scroll inside themselves (`.scrolly`). This adds what CSS can't:
- * - the "more below" hint, shown only while there is more;
+ * - the "Scroll for more" hint: it says so and keeps moving, on cards on screen, until that card has been scrolled once;
+ * - a line on the card's edge showing how far through it the visitor is, and the "Read the full story" button at the end;
  * - the mouse wheel moves the card's text first, then the page carries on. It's done by hand because inside a 3D row
  *   the browser hands the wheel to the page, and smooth scrolling would otherwise take it anyway;
  * - a wheel already moving the page keeps moving the page, so a row sliding past the mouse doesn't catch on every long card.
@@ -51,18 +52,29 @@ export function startScrollBoxes(): () => void {
   };
   const noteWheel = (e: WheelEvent) => { if (!e.ctrlKey) pageWheelAt = e.timeStamp; };
 
+  // only cards on screen keep their hint moving
+  const onScreen = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle("in-view", e.isIntersecting)));
+  const scrolledOnce = new WeakSet<HTMLElement>();
   const sync = (b: HTMLElement) => {
-    const isLong = b.scrollHeight - b.clientHeight > 1;
+    const hidden = b.scrollHeight - b.clientHeight;
+    const isLong = hidden > 1;
     b.classList.toggle("more", isLong && b.scrollTop + b.clientHeight < b.scrollHeight - 6);
+    if (b.scrollTop > 10) scrolledOnce.add(b);
+    b.classList.toggle("nudge", hidden > 40 && !scrolledOnce.has(b));
+    const line = b.parentElement?.querySelector<HTMLElement>(".scroll-line b");
+    if (line && isLong) line.style.transform = `scaleY(${Math.min(1, (b.scrollTop + b.clientHeight) / b.scrollHeight).toFixed(3)})`;
     if (isLong === long.has(b)) return;
+    b.classList.toggle("long", isLong);
     if (isLong) {
       long.add(b);
       b.tabIndex = 0; // keyboard users can scroll it too
       b.addEventListener("wheel", onWheel, { passive: false });
+      onScreen.observe(b);
     } else {
       long.delete(b);
       b.removeAttribute("tabindex");
       b.removeEventListener("wheel", onWheel);
+      onScreen.unobserve(b);
     }
   };
   const onScroll = (e: Event) => { const b = e.target as HTMLElement; if (b.classList?.contains("scrolly")) sync(b); };
@@ -76,9 +88,10 @@ export function startScrollBoxes(): () => void {
   return () => {
     cancelAnimationFrame(raf);
     ro.disconnect();
+    onScreen.disconnect();
     document.removeEventListener("scroll", onScroll, { capture: true });
     document.removeEventListener("wheel", noteWheel);
     long.forEach((b) => { b.removeEventListener("wheel", onWheel); b.removeAttribute("tabindex"); });
-    boxes.forEach((b) => b.classList.remove("more"));
+    boxes.forEach((b) => b.classList.remove("more", "long", "nudge", "in-view"));
   };
 }

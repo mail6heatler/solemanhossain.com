@@ -73,15 +73,21 @@ export default function LookControls({ initial, above, sample, layout, level }:
       {["❤️", "🔥", "😂", "🤯", "👏"].map((e) => <button key={e} type="button" tabIndex={-1}><span className="e">{e}</span></button>)}
     </div></div>
   );
-  const text = (
+  const head = (
     <>
       <h3>{sample.title}</h3>
-      {sample.subtitle && layout !== "notes" && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}
+      {sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}
+      {sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}
+    </>
+  );
+  const rest = (
+    <>
       {sample.body && <div className="md ex"><p>{sample.body}</p></div>}
-      {sample.meta && !look.hide("date") && <div className="loc"><i className="ti ti-map-pin" />{sample.meta}</div>}
       {sample.tags.length > 0 && !look.hide("tags") && <div className="tags">{sample.tags.map((t) => <span key={t}>{t}</span>)}</div>}
     </>
   );
+  const text = <>{head}{rest}</>;
+  const withText = sample.body ? " with-text" : "";
   const box = (inner: React.ReactNode) => (
     <>
       <div className="scroll-wrap has-foot"><div className="scrolly"><div className="flow">{inner}</div></div></div>
@@ -114,7 +120,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
               if (v === "") drop("fit", "fx", "fy"); else set({ fit: v });
             }} />
             {merged.fit === "fill" && <div className="hint">Filling can cut the picture&apos;s edges. Click the part of the picture in the preview that must stay visible.</div>}
-            <Slider label="Picture height in the card" value={st.pic} range={LIMITS.pic} unit="%" fallback={66} onChange={(pic) => set({ pic })} onClear={() => drop("pic")} />
+            <Slider label="Picture height in the card" value={st.pic} range={LIMITS.pic} unit="%" fallback={sample.body ? 50 : 66} onChange={(pic) => set({ pic })} onClear={() => drop("pic")} />
           </div>
           <div className="fl">
             <Slider label="Text size" value={st.text} range={LIMITS.text} unit="%" fallback={100} onChange={(t) => set({ text: t })} onClear={() => drop("text")} />
@@ -137,9 +143,9 @@ export default function LookControls({ initial, above, sample, layout, level }:
               {layout === "strip" ? (
                 <div className={`trip${look.className}`} style={look.style}>{box(<>{picBlock ?? (look.hide("pic") ? null : <div className="pic-box"><div className="ph"><i className="ti ti-map-pin" /></div></div>)}<div className="tb">{text}</div></>)}</div>
               ) : layout === "notes" ? (
-                <div className={`note${look.className}`} style={look.style}>{box(<>{picBlock}{text}</>)}</div>
+                <div className={`note${withText}${look.className}`} style={look.style}>{box(<>{head}{picBlock}{rest}</>)}</div>
               ) : (
-                <div className={`card${look.className}`} style={look.style}>{box(<>{picBlock}<div className="card-body">{text}</div></>)}</div>
+                <div className={`card${withText}${look.className}`} style={look.style}>{box(<>{picBlock}<div className="card-body">{text}</div></>)}</div>
               )}
             </div>
           </div>
