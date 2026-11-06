@@ -5,9 +5,23 @@ import Reactions from "./Reactions";
 import { Lightbox, type Slide } from "./MediaView";
 import SideRow, { type RowFx } from "./SideRow";
 
-type Item = { id: number; title: string; href: string; media: Media[]; className?: string; style?: React.CSSProperties };
+type Item = { id: number; title: string; href: string; media: Media[]; className?: string; style?: React.CSSProperties;
+  /** always shown under the photo: phones have no hover to reveal a caption */
+  info?: { subtitle?: string; meta?: string; text?: string; tags?: string[] } };
 
 /** Photo grid (Life): each tile shows the entry's cover; the viewer steps through every photo and video of every entry. */
+export function PhotoInfo({ title, href, info }: { title: string; href: string; info?: Item["info"] }) {
+  return (
+    <div className="ph-info">
+      <a href={href}>{title}</a>
+      {info?.subtitle && <span className="ph-sub">{info.subtitle}</span>}
+      {info?.meta && <span className="ph-meta">{info.meta}</span>}
+      {info?.text && <span className="ph-text">{info.text}</span>}
+      {info?.tags && info.tags.length > 0 && <span className="ph-meta">{info.tags.map((t) => `#${t}`).join(" ")}</span>}
+    </div>
+  );
+}
+
 export default function PhotoGrid({ className, items, reactions = false, row }: { className: string; items: Item[]; reactions?: boolean; row?: RowFx }) {
   const slides: Slide[] = items.flatMap((it) => it.media.map((m, i) => ({ ...m, caption: `${it.title}${it.media.length > 1 ? ` (${i + 1}/${it.media.length})` : ""}`, href: it.href, itemId: it.id })));
   const firstSlide = (id: number) => slides.findIndex((s) => s.itemId === id);
@@ -35,6 +49,7 @@ export default function PhotoGrid({ className, items, reactions = false, row }: 
               ) : (
                 <a href={it.href} className="ph-tile txt">{it.title}</a>
               )}
+              <PhotoInfo title={it.title} href={it.href} info={it.info} />
               {reactions && <Reactions id={it.id} compact />}
             </div>
           );

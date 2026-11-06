@@ -5,7 +5,7 @@ import PollCard from "./PollCard";
 import HelloForm from "./HelloForm";
 import Reactions from "./Reactions";
 import SideRow, { type RowFx } from "./SideRow";
-import PhotoGrid from "./PhotoGrid";
+import PhotoGrid, { PhotoInfo } from "./PhotoGrid";
 import { Cover, MediaBadges } from "./Media";
 import PicZoom from "./PicZoom";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
@@ -97,6 +97,12 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   const R = ({ id }: { id: number }) => (fx.reactions ? <Reactions id={id} compact /> : null);
   const foot = (id: number) => (fx.reactions ? <Reactions id={id} compact /> : undefined);
   const lookFor = (it: Item) => lookOf(mergeStyles(settings.contentStyle, section.style, it.style));
+  const photoInfo = (it: Item, l: ReturnType<typeof lookFor>) => ({
+    subtitle: l.hide("subtitle") ? "" : it.subtitle,
+    meta: l.hide("date") ? "" : [it.date_label, it.location].filter(Boolean).join(" · "),
+    text: excerpt(it.body, 90),
+    tags: l.hide("tags") ? [] : it.tags,
+  });
   const zoom = (it: Item) => (fx.lightbox && it.media.length > 0 ? <PicZoom media={it.media} title={it.title} /> : null);
   const rowFx: RowFx = { pin: fx.sideways, curve: fx.coverflow, fly: fx.rowfly, lean: fx.rowlean, count: fx.rowcount };
   const row = (className: string, children: React.ReactNode) => grid
@@ -109,7 +115,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <>
         {items.map((it) => (
           <div key={it.id} className={`wall-note quote${lookFor(it).className}`} style={lookFor(it).style}>
-            <Box foot={foot(it.id)}>
+            <Box foot={foot(it.id)} to={href(section, it)}>
+              <CardLink to={href(section, it)} label={it.title} />
               <p>{it.body || it.title}</p>
               <div className="by">— {it.subtitle || it.title}</div>
             </Box>
@@ -130,8 +137,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     );
     return (
       <>
+        <div className="connect-wrap">
         {settings.socials.length > 0 && (
-          <div className="connectrow reveal r3">
+          <div className={`connectrow reveal r3${grid ? "" : " beside"}`}>
             {settings.socials.map((s, i) => (
               <a key={i} href={s.url} {...(s.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
                 <i className={`ti ti-${s.icon}`} />{s.label}
@@ -143,6 +151,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
           <HelloForm title={settings.connectFormTitle} plane={fx.plane} />
           {grid && <div className="wall">{hasNotes && <h3>From the wall</h3>}{notes}{noNotes}</div>}
           {!grid && !hasNotes && noNotes}
+        </div>
         </div>
         {!grid && hasNotes && (
           <div className="wall-row">
@@ -346,7 +355,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "photos") {
     if (fx.lightbox)
       return <PhotoGrid className={grid ? `photogrid reveal r3${st}` : `photogrid${st}`} reactions={fx.reactions} row={grid ? undefined : rowFx}
-        items={items.map((it) => { const l = lookFor(it); return { id: it.id, title: it.title, media: l.hide("pic") ? [] : it.media, href: href(section, it), className: l.className, style: l.style }; })} />;
+        items={items.map((it) => { const l = lookFor(it); return { id: it.id, title: it.title, media: l.hide("pic") ? [] : it.media, href: href(section, it), className: l.className, style: l.style, info: photoInfo(it, l) }; })} />;
     return row("photogrid", (
       <>
         {items.map((it) => { const l = lookFor(it); return (
@@ -360,6 +369,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             ) : (
               <a href={href(section, it)} className="ph-tile txt">{it.title}</a>
             )}
+            <PhotoInfo title={it.title} href={href(section, it)} info={photoInfo(it, l)} />
             <R id={it.id} />
           </div>
         ); })}
