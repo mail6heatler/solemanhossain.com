@@ -1266,7 +1266,13 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .note h3 { transition: color .2s; }
 .note .sub { font-size: calc(13px * var(--fs, 1)); color: var(--muted); margin: -6px 0 0; }
 /* a poll in a clickable card votes rather than opening the card */
-.flow > .poll { position: relative; z-index: 2; }
+.flow .poll { position: relative; z-index: 2; }
+/* an entry's own buttons on the card */
+.card-links { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.card-links a { display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: var(--r-pill); border: 1px solid var(--mint); color: var(--mint-deep); font: 700 12px var(--body); text-decoration: none; transition: scale .15s, background .2s; }
+.card-links a:hover, .card-links a:focus-visible { scale: 1.05; background: color-mix(in srgb, var(--mint) 16%, transparent); }
+/* a picture-only card: small enough that it doesn't scroll for nothing */
+.note:not(.with-text) { --pic: .56; }
 /* with text to read, the picture leaves room for it (inline settings from the controls still win) */
 .with-text { --pic: .5; }
 /* at the end of a card's text; only cards that really scroll need it, the rest are one click anyway */

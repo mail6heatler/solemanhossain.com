@@ -55,6 +55,20 @@ function Box({ children, foot, to }: { children: React.ReactNode; foot?: React.R
   );
 }
 
+/** The entry's buttons (like "View project"), on the card itself. They sit above the card's own link. */
+function LinkButtons({ it }: { it: Item }) {
+  if (!it.links.length) return null;
+  return (
+    <div className="card-links">
+      {it.links.slice(0, 3).map((l, i) => (
+        <a key={i} href={l.url} {...(l.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+          {l.label}{l.url.startsWith("http") && <i className="ti ti-arrow-up-right" aria-hidden />}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function Empty({ text }: { text: string }) {
   return <div className="empty reveal r3"><i className="ti ti-pencil" />{text || "Nothing here yet."}</div>;
 }
@@ -278,6 +292,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               <Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />
               {it.media[0] && !l.hide("pic") && <div className="pic-box"><Cover m={it.media[0]} className="note-media" />{zoom(it)}</div>}
               {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
+              <LinkButtons it={it} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
             </Box>
           </div>
@@ -291,7 +306,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   return row(`grid3${bento ? " bento" : ""}`, (
     <>
       {items.map((it, i) => { const l = lookFor(it); const pic = it.media[0] && !l.hide("pic"); return (
-        <div key={it.id} className={`card${tile(i)}${pic ? "" : " no-pic"}${it.body.trim() ? " with-text" : ""}${l.className}`} style={l.style}>
+        <div key={it.id} className={`card${tile(i)}${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
           <Box foot={foot(it.id)} to={href(section, it)}>
             <CardLink to={href(section, it)} label={it.title} />
@@ -303,7 +318,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               </div>
               <h3>{it.title}</h3>
               {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
-              {it.type === "poll" ? <p className="ex">📊 Poll · tap to vote</p> : <Markdown className="md ex">{it.body}</Markdown>}
+              <Meta it={it} showCat={false} hideDate={l.hide("date")} />
+              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+              <LinkButtons it={it} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
             </div>
           </Box>
