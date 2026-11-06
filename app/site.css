@@ -429,7 +429,8 @@ html[data-skin="playful"] .site .card:hover { transform: translateY(-4px) rotate
 .flips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 14px; margin-top: 30px; }
 .flip { perspective: 900px; height: 230px; text-decoration: none; display: block; }
 .flip-in { position: relative; width: 100%; height: 100%; transition: transform .7s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
-.flip:hover .flip-in, .flip:focus-visible .flip-in { transform: rotateY(180deg); }
+.flip:hover .flip-in, .flip:focus-visible .flip-in, .flip.flipped .flip-in { transform: rotateY(180deg); }
+@media (hover: none) { .flip:hover:not(.flipped) .flip-in { transform: none; } }
 .flip-f, .flip-b { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--r-card); border: .5px solid var(--line); padding: 16px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
 .flip-f { background: var(--card); justify-content: flex-end; }
 .flip-f .ico { margin-bottom: auto; width: 54px; height: 54px; border-radius: 14px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; background: var(--tint); color: var(--mint-deep); }
@@ -437,6 +438,10 @@ html[data-skin="playful"] .site .card:hover { transform: translateY(-4px) rotate
 .flip-f h3 { font-size: 17px; font-weight: 700; line-height: 1.2; }
 .flip-f .sub { font-size: 12.5px; color: var(--muted); }
 .flip-b { transform: rotateY(180deg); background: var(--inv-bg); color: var(--inv-fg); justify-content: center; font-size: 14px; box-shadow: var(--glow); }
+.flip-f h3, .flip-f .sub { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; flex-shrink: 0; }
+.flip-f .sub { -webkit-line-clamp: 2; }
+.flip-meta, .flip-tags { font-size: 11.5px; opacity: .78; }
+.flip-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
 .flip-b .more { font-size: 12px; color: var(--mint); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-top: 6px; }
 
 /* stream (feed) */

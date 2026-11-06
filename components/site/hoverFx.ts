@@ -137,6 +137,21 @@ export function startHoverFx(fx: HoverFxFlags) {
     }
   }
 
+  // phones have no hover, so a flip card's back could never be read: the first tap flips it, the second opens it
+  if (!fine) {
+    const flipTap = (e: MouseEvent) => {
+      const a = (e.target as Element).closest?.(".flip") as HTMLElement | null;
+      if (!a) return;
+      if (!a.classList.contains("flipped")) {
+        e.preventDefault();
+        document.querySelector(".flip.flipped")?.classList.remove("flipped");
+        a.classList.add("flipped");
+      }
+    };
+    document.addEventListener("click", flipTap);
+    cleanups.push(() => document.removeEventListener("click", flipTap));
+  }
+
   if (!fine) return () => cleanups.forEach((c) => c());
 
   // ---------- 3D tilt with spring ----------

@@ -69,8 +69,10 @@ function LinkButtons({ it }: { it: Item }) {
   );
 }
 
+/** Visitors see this on an empty section. Older default messages told the owner to use the dashboard, which means nothing to a visitor. */
 function Empty({ text }: { text: string }) {
-  return <div className="empty reveal r3"><i className="ti ti-pencil" />{text || "Nothing here yet."}</div>;
+  const shown = !text || /dashboard/i.test(text) ? "Coming soon." : text;
+  return <div className="empty reveal r3"><i className="ti ti-pencil" />{shown}</div>;
 }
 
 /** `grid`: the "See all" pages lay everything out in a neat grid. The homepage uses sideways rows. */
@@ -186,7 +188,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                     {it.subtitle && !l.hide("subtitle") && <div className="sub">{it.subtitle}</div>}
                   </div>
                   <div className="flip-b" aria-hidden>
-                    <span>{excerpt(it.body, 170) || "Why this one stuck with me…"}</span>
+                    {(it.date_label || it.location) && !l.hide("date") && <span className="flip-meta">{[it.date_label, it.location].filter(Boolean).join(" · ")}</span>}
+                    <span className="flip-text">{it.type === "poll" ? "A poll. Open it to vote." : excerpt(it.body, 130) || it.subtitle}</span>
+                    {it.tags.length > 0 && !l.hide("tags") && <span className="flip-tags">{it.tags.map((t) => `#${t}`).join(" ")}</span>}
                     <span className="more">Read more →</span>
                   </div>
                 </div>
@@ -205,6 +209,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             <div>
               <h3>{it.title}</h3>
               {it.subtitle && !l.hide("subtitle") && <div className="sub">{it.subtitle}</div>}
+              <Meta it={it} showCat={false} hideDate={l.hide("date")} />
+              {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
               <R id={it.id} />
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
