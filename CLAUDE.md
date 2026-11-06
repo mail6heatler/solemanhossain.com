@@ -47,12 +47,13 @@ app/
   admin.css                dashboard design
 components/site/
   Chrome.tsx               SiteShell (wrapper for every public page), Nav, Rail, BottomBar, Footer
-  SectionBody.tsx          the 8 section layouts
+  SectionBody.tsx          the 8 section layouts, including the milestones map (`milemap`, a timeline as stops on a trail)
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
   scrollFx.ts              scroll effects + every chapter's in/out motion, one loop that sleeps when idle (separate download)
   PicZoom.tsx              the expand button on a card's picture; opens the full-screen viewer
+  BackLink.tsx             Back on an entry page: returns to where the visitor was
   ThemeFx.tsx              one canvas behind the content: starts/sleeps it, follows the theme
   themeScenes.ts           the 10 classic themes' living backgrounds and click bursts (separate download)
   themeScenes2.ts          the 20 fan themes: one data table of what floats, bursts and falls, plus drawn "pieces"
@@ -98,6 +99,10 @@ Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `
 
 **Picture rule:** no official character art and no photos with doubtful licences, whatever the source. Commons licences are only as reliable as the uploader, so skip professional-looking shots from social-media-sized uploads. The owner can add their own pictures under Dashboard → Theme pictures, which is their decision.
 
+## What every card must do
+
+Show everything the entry holds that fits a card: subtitle, date, place, mood, status, tags and its buttons (`LinkButtons`). Open its full page when clicked (`CardLink`, inside `Box`'s `.flow`), while reactions, polls, the expand button, video controls and links in the text stay above that link with `z-index`. Pass `to` to `Box` for the "Read the full story" button. Anything hover reveals needs another way on phones (see the flip cards' first tap, and `.ph-info` under photos). The dashboard's order list (`OrderList`) shows entries in the exact order visitors see.
+
 ## Size and look controls
 
 Three levels, the most specific wins: all content (`settings.contentStyle`), a section (`sections.style`), one entry (`items.style`). `lookOf(mergeStyles(...))` in `lib/contentStyle.ts` gives a card its class, CSS variables (`--cw`, `--row-h`, `--pic`, `--fs`, `--fx`, `--fy`) and what to hide. They're set once when the page is made, so they cost nothing while scrolling. Limits live in `cleanStyle` and `LIMITS` and run on the server too: a card can't pass 72% of the window's height or, on phones, 82% of its width, because that would bring back cards outgrowing the screen. With nothing set, a card has no extra class or style. Don't add a "hide reactions" option: the owner wants the bar always visible.
@@ -118,7 +123,7 @@ Every visual effect has a switch on the Appearance page. To add one:
 - **Each running animation is restyled every frame the page draws,** even one the graphics card moves. Decorative loops rest while scrolling (`html.scrolling` in `site.css`); add long-running decoration to that list.
 - **A 3D transform makes an element its own layer, even when invisible.** Off-screen title letters were 162 layers. Keep waiting states flat (`.sleep .split-host`).
 - **A phone's address bar sliding away fires `resize`.** Don't rebuild on it: check the width changed (see `SideRow`, `ThemeFx`, `scrollFx`).
-- **Compare old and new builds side by side.** Copy `.next`, `package.json`, `next.config.mjs` and `public` to a scratch folder, link `node_modules`, run `next start -p 3001` there, and alternate between the two. Headless Chrome isn't limited to the screen's refresh rate, so "busy %" misleads: compare frames per second, milliseconds of work per frame and frames over 50ms. Scroll a phone test with `Input.dispatchTouchEvent`; `Input.synthesizeScrollGesture` doesn't move this page.
+- **Compare old and new builds side by side.** Copy `.next`, `package.json`, `next.config.mjs` and `public` to a scratch folder, link `node_modules`, run `next start -p 3001` there, and alternate between the two. Headless Chrome isn't limited to the screen's refresh rate, so "busy %" misleads: compare frames per second, milliseconds of work per frame and frames over 50ms. Scroll a phone test with `Input.dispatchTouchEvent`; `Input.synthesizeScrollGesture` doesn't move this page. Turbopack refuses a linked `node_modules`, so to build an older version, commit everything, `git checkout` the tag, build, copy `.next` out, and check out `main` again.
 
 Scrolling was once 29 frames per second (6 on a weak device), from many small costs rather than one big one. Before adding motion:
 
@@ -133,6 +138,8 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 
 ## Rules learned the hard way
 
+- **In a 3D row, a card's parent box can catch the mouse before the card,** and `elementsFromPoint` won't show it: only real mouse events do. Check with events, and give wrappers `pointer-events: none` (see `.stop`). Anything fixed over the page must not catch the mouse with invisible parts either (see `#rail`).
+- **Don't read `scrollTop` back to animate it.** The browser rounds it, so small steps stall on fast screens and the loop never ends. Keep the exact position yourself (`gliding` in `scrollBoxes.ts`).
 - **Pictures are never cut.** Cards use `object-fit: contain` and their real shape, up to 66% of the card's height. Only the tiny thumbnails (flip cards, plain lists, entry-page gallery) still crop.
 - **A photo wipe makes the picture its own layer,** so anything inside it sits under the card's link and can't be clicked. Put buttons beside it, in `.pic-box`.
 - **A card never grows.** Its contents go in `Box` (`SectionBody.tsx`): the shell keeps its size (`--row-h`), `.scrolly` scrolls, and `.card-link` sits inside `.flow` so a finger can still scroll a card that is clickable everywhere. The reaction bar goes in `Box`'s `foot`, outside the scrolling part, so it's always visible.

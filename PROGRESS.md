@@ -5,9 +5,15 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
+
+## Decisions for the owner
+
+- G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
+- The wall shows a test message, "fds", from mail6heatler. G2 and G3 still hold placeholder text ("Describe what it does…", "dcxzfcvsdfzxcvzxvx"). These are the owner's content, so they weren't touched.
+- Rows with 2 or 3 cards stay still on a computer. Asked twice, not answered.
 
 ## Agreed for later
 
@@ -15,11 +21,30 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-06: Size and look controls
+### 2026-11-06: G1 to G8, section by section
+
+The owner asked for every section's flaws to be found and fixed together, with a live tracker page (https://claude.ai/artifact/VfNivVwBVgFP4yrJisQbT6) showing a timer and the current task. Each section went live with its own restore point.
+
+- **G1 notes:** subtitle, date, place, mood, status and tags on the card; the whole card opens its page (it did nothing before); pictures take about half the card when there's text.
+- **Shared, from G1:** "Scroll for more" keeps moving until a card has been scrolled, with a progress line on the card's edge; "Read the full story" at the end of a long card; a drag-and-drop order list per section, with arrows for phones; Back returns to where the visitor was. The old subsection arrows numbered one subsection alone, which collided with the others and made the site's order drift; they now renumber the whole section.
+- **G2 cards:** date, place and mood; buttons on the card; polls vote on the card.
+- **G3 trips:** subtitle, story, mood, status, tags and buttons; a small pin when there's no photo but there is text.
+- **G4 lists:** on phones the first tap flips a card and the second opens it (phones could never read the back); no filler text; date, place and tags. Empty sections say "Coming soon" when their saved message mentions the dashboard.
+- **G5 posts:** the whole post opens; subtitle, status, tags and buttons.
+- **G6 milestones:** a map (`milemap`, on by default; off gives the old timeline). Stops on a winding trail with a medal chosen from the subsection's name and a colour per subsection. The trail lights up by a class change as each stop reaches the middle, and a pin marks the latest. One screen tall however many entries; See all uses it too. Certificates are the entry's photos.
+- **G7 photos:** title, subtitle, date, place, a line of story and tags always under the photo, because the hover caption never showed on phones.
+- **G8 connect:** quotes open their page; the links sit beside the form on wide screens.
+- **Found by the final tests:** the side menu's invisible labels, about 300px wide, blocked cards passing under them (`hitscan` with real mouse events: 30 of 143 positions missed, now 1, and that one is a menu dot). Card scrolling stalled just short of the end on fast screens and left a loop running.
+
+**Old build (`before-g1`) against new, alternating, identical heavy local content:** laptop 62.7 to 85.2 fps, 17.9 to 11.6ms work per frame, 19 to 4 frames over 50ms. Laptop 4x slower 27.9 to 27.4 fps, 35.6 to 35.5ms, but 28 to 45 frames over 50ms, so a weak laptop stutters more; not tracked down. Phone size 76.4 to 73.3 fps, 6.1 to 7.2ms, 1 to 0.
+
+G4 and G7 were tested only with sample entries, because they're empty on the live site. The map and dashboard order list ran on a throwaway local copy, never against live content.
+
+### 2026-11-06: Size and look controls (kept by the owner)
 
 The owner asked for controls per entry, plus one place to control everything, each with a default button. Dashboard → Content sizes covers all content; each section and entry has a "Size & look" panel. The most specific level wins. Controls: card size (Small, Medium, Large, Custom sliders), picture (whole or fill, focus point, height in the card), text size, and show or hide picture, subtitle, tags, date and place. Each panel has a live preview and a Default button; "Default everywhere" clears all three levels. Nothing changes for visitors until something is set. Tested through the real dashboard on a throwaway local database, never on the live site, so the owner's first real use is the first time it runs against the live database. The new columns are added by themselves on the first request after the deploy.
 
-### 2026-11-06: Pictures never cut; smoother scrolling
+### 2026-11-06: Pictures never cut; smoother scrolling (kept by the owner)
 
 **Pictures:** an earlier change of mine limited note pictures to 190px with cropping, cutting about 35% off square photos, and normal cards cropped to a fixed shape. Now every card, post and photo tile shows the whole picture, at full width in its own shape, up to 66% of the card's height. An expand button opens the full-screen viewer. Tiny thumbnails still crop.
 
