@@ -32,7 +32,14 @@ The owner asked for all three, plus control of the belt from the dashboard, and 
 
 **Old against new, alternating, same local content:** laptop page scroll 71.0 to 66.9 fps over 6 rounds, 3 stutters both. Laptop 4x slower 12.9 to 14.6, 75 to 81. Phone 60.4 to 59.7, 5 to 6. Phone 4x slower 23.3 to 22.2, 42 to 44 (2 rounds each). The new build with an old-size belt gave the same as with the new belt (77.6 and 77.5 fps), so the belt isn't the cost; the laptop gap may be noise, as this PC swung from 66 to 96 fps between runs of one build.
 
+**On the live site after release:** menu 13.4px and name 17.2px at 1366, belt 67px (46px on a phone), no sideways overflow, no page errors, the PDF library absent from visitors' scripts, 16 of 16 cards open.
+
 **Not tested:** opening a PDF in a real browser (see the 204 note in `CLAUDE.md`), a real upload to the live site, and a real phone.
+
+**Found, not changed:**
+- "Reading this book" has its own saved "Show whole", so it keeps its grey sides until the owner sets it to Default.
+- Menu links to Growth, Life and Connect land 153px early, with the old-size belt too; Feed also did with the new belt in one run. The page grows 153px after loading, while the glide is under way, most likely from a lazy-loaded picture with no reserved height. Offered to the owner as a separate fix.
+- `behave2.mjs` still expects the Made row to slide; it has two cards now, so three of its checks no longer apply.
 
 ### 2026-11-06: Rows dragging (waiting for the owner's keep or undo)
 
