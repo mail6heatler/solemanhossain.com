@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { accent, burst, confettiCannons, confettiFrom, prefersReducedMotion, rain, toast } from "./fx";
+import { accent, burst, confettiCannons, confettiFrom, docTop, pageY, prefersReducedMotion, rain, toast } from "./fx";
 import { startScrollBoxes } from "./scrollBoxes";
 
 type Fx = { autolite: boolean; smooth: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
@@ -24,19 +24,33 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     const bar = document.getElementById("progress");
     const up = document.querySelector<HTMLElement>(".totop");
     const ring100 = up?.querySelector<SVGCircleElement>(".val");
-    let ringShown = -1;
-    const onScroll = () => {
-      const h = document.documentElement;
-      const max = h.scrollHeight - h.clientHeight;
-      const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    let ringShown = -1, pageMax = 0, barRaf = 0;
+    const paintBar = () => {
+      barRaf = 0;
+      const top = pageY();
+      const pct = pageMax > 0 ? (top / pageMax) * 100 : 0;
       if (bar) bar.style.transform = `scaleX(${(pct / 100).toFixed(4)})`; // scaling needs no page layout, unlike width
-      if (up) up.classList.toggle("on", h.scrollTop > window.innerHeight * 0.5);
+      if (up) up.classList.toggle("on", top > window.innerHeight * 0.5);
       const whole = Math.round(pct);
       if (ring100 && whole !== ringShown) { ringShown = whole; ring100.style.strokeDashoffset = String(100 - whole); }
     };
+    const onScroll = () => { if (!barRaf) barRaf = requestAnimationFrame(paintBar); };
+    const measurePage = () => { const h = document.documentElement; pageMax = h.scrollHeight - h.clientHeight; onScroll(); };
+    const pageSize = new ResizeObserver(measurePage);
+    pageSize.observe(document.body);
+    measurePage();
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    cleanups.push(() => window.removeEventListener("scroll", onScroll));
+    cleanups.push(() => { cancelAnimationFrame(barRaf); pageSize.disconnect(); window.removeEventListener("scroll", onScroll); });
+
+    // decorative loops rest while the page scrolls (see html.scrolling in site.css)
+    let restTimer = 0, moving = false;
+    const scrollingNow = () => {
+      if (!moving) { moving = true; document.documentElement.classList.add("scrolling"); }
+      clearTimeout(restTimer);
+      restTimer = window.setTimeout(() => { moving = false; document.documentElement.classList.remove("scrolling"); }, 320);
+    };
+    window.addEventListener("scroll", scrollingNow, { passive: true });
+    cleanups.push(() => { clearTimeout(restTimer); window.removeEventListener("scroll", scrollingNow); document.documentElement.classList.remove("scrolling"); });
 
     // smooth scrolling (also makes the #section links glide)
     const html = document.documentElement;
@@ -159,24 +173,36 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     const lines = Array.from(document.querySelectorAll<HTMLElement>(".tline.draw"));
     if (fx.timeline && lines.length) {
       // row positions are read once and reused, and an off-screen timeline does nothing
-      const state = lines.map((tl) => ({ tl, h: -1, p: -1, rows: [] as { el: HTMLElement; top: number }[] }));
-      const draw = () => {
-        const vh = window.innerHeight;
+      const state = lines.map((tl) => ({ tl, top: 0, h: -1, p: -1, rows: [] as { el: HTMLElement; top: number }[] }));
+      let drawRaf = 0;
+      const paint = () => {
+        drawRaf = 0;
+        const vh = window.innerHeight, y = pageY();
         for (const s of state) {
-          const r = s.tl.getBoundingClientRect();
-          if (s.p >= 0 && (r.bottom < -vh * 0.3 || r.top > vh * 1.3)) continue;
-          if (r.height !== s.h) { s.h = r.height; s.rows = Array.from(s.tl.querySelectorAll<HTMLElement>(".tl-row")).map((el) => ({ el, top: el.offsetTop })); }
-          const p = reduced ? 1 : Math.min(1, Math.max(0, (vh * 0.72 - r.top) / Math.max(1, r.height - 22)));
+          const top = s.top - y;
+          if (s.p >= 0 && (top + s.h < -vh * 0.3 || top > vh * 1.3)) continue;
+          const p = reduced ? 1 : Math.min(1, Math.max(0, (vh * 0.72 - top) / Math.max(1, s.h - 22)));
           if (Math.abs(p - s.p) < 0.002) continue;
           s.p = p;
           s.tl.style.setProperty("--p", p.toFixed(3));
-          for (const row of s.rows) row.el.classList.toggle("lit", (row.top + 12) / Math.max(1, r.height - 22) <= p + 0.02);
+          for (const row of s.rows) row.el.classList.toggle("lit", (row.top + 12) / Math.max(1, s.h - 22) <= p + 0.02);
         }
       };
-      draw();
+      const draw = () => { if (!drawRaf) drawRaf = requestAnimationFrame(paint); };
+      const measureLines = () => {
+        for (const s of state) {
+          s.top = docTop(s.tl);
+          s.h = s.tl.offsetHeight;
+          s.rows = Array.from(s.tl.querySelectorAll<HTMLElement>(".tl-row")).map((el) => ({ el, top: el.offsetTop }));
+          s.p = -1;
+        }
+        draw();
+      };
+      const lineSizes = new ResizeObserver(measureLines);
+      lineSizes.observe(document.body);
+      measureLines();
       window.addEventListener("scroll", draw, { passive: true });
-      window.addEventListener("resize", draw);
-      cleanups.push(() => { window.removeEventListener("scroll", draw); window.removeEventListener("resize", draw); });
+      cleanups.push(() => { cancelAnimationFrame(drawRaf); lineSizes.disconnect(); window.removeEventListener("scroll", draw); });
     }
 
     // scroll-spy (nav, rail, phone menu) + section view tracking + explorer badge
@@ -357,25 +383,28 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       };
       readColor();
       window.addEventListener("skinchange", readColor);
-      let mx = -999, my = -999, rx = -999, ry = -999, raf = 0;
+      let mx = -999, my = -999, rx = -999, ry = -999, raf = 0, ringShownAt = "";
       const dots = Array.from({ length: 60 }, () => ({
         x: Math.random() * innerWidth, y: Math.random() * innerHeight,
         vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
       }));
       const resize = () => { if (canvas) { canvas.width = innerWidth; canvas.height = innerHeight; } };
       resize();
-      const mm = (e: MouseEvent) => { mx = e.clientX; my = e.clientY; if (dot) { dot.style.left = mx + "px"; dot.style.top = my + "px"; } };
-      const md = () => dot && (dot.style.transform = "translate(-50%,-50%) scale(1.8)");
-      const mu = () => dot && (dot.style.transform = "translate(-50%,-50%) scale(1)");
+      // moved by transform: changing left and top makes the browser redo the page layout every frame
+      let dotScale = 1;
+      const placeDot = () => { if (dot) dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%) scale(${dotScale})`; };
+      const mm = (e: MouseEvent) => { mx = e.clientX; my = e.clientY; placeDot(); };
+      const md = () => { dotScale = 1.8; placeDot(); };
+      const mu = () => { dotScale = 1; placeDot(); };
       const loop = () => {
         const gapX = mx - rx, gapY = my - ry;
         rx += gapX * 0.14; ry += gapY * 0.14;
         if (ring) {
-          ring.style.left = rx + "px"; ring.style.top = ry + "px";
           // the plain ring stretches along its path when moving fast; a labelled one stays round so its text reads
           const speed = Math.min(1, Math.hypot(gapX, gapY) / 160);
-          ring.style.transform = ring.className || speed < 0.02 ? "translate(-50%,-50%)"
-            : `translate(-50%,-50%) rotate(${Math.atan2(gapY, gapX)}rad) scale(${1 + speed * 0.55},${1 - speed * 0.3})`;
+          const place = `translate(${rx.toFixed(1)}px, ${ry.toFixed(1)}px) translate(-50%,-50%)`;
+          const next = ring.className || speed < 0.02 ? place : `${place} rotate(${Math.atan2(gapY, gapX).toFixed(3)}rad) scale(${(1 + speed * 0.55).toFixed(3)},${(1 - speed * 0.3).toFixed(3)})`;
+          if (next !== ringShownAt) { ring.style.transform = next; ringShownAt = next; }
         }
         if (ctx && canvas && !document.documentElement.classList.contains("lite")) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);

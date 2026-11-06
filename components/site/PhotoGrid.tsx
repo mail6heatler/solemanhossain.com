@@ -23,7 +23,7 @@ export default function PhotoGrid({ className, items, reactions = false, row }: 
                   onClick={(e) => { lastTile.current = e.currentTarget; setOpen(firstSlide(it.id)); }}>
                   {cover.type === "video"
                     ? <video className="hover-play" src={`${cover.url}#t=0.1`} muted playsInline loop preload="metadata" />
-                    : <img src={cover.url} alt={it.title} loading="lazy" />}
+                    : <img src={cover.url} alt={it.title} loading="lazy" decoding="async" />}
                   <span className="cap">{it.title}</span>
                   {(cover.type === "video" || it.media.length > 1) && (
                     <span className="media-badges" aria-hidden>

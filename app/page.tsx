@@ -44,7 +44,7 @@ export default async function Home() {
     <SiteShell settings={s} sections={sections} onHome>
       {fx.intro && <Intro name={s.nickname || s.fullName} />}
       {/* ═══ HERO ═══ */}
-      <section id="hero" data-spy>
+      <section id="hero" data-spy className={fx.sticker ? "hero-hang" : undefined}>
         {fx.aurora ? <div className="aurora" aria-hidden /> : <><div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" /></>}
         <i className="tf-band" aria-hidden />
         <i className="tf-a" aria-hidden />

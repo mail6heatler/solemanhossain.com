@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { prefersReducedMotion, toHex } from "./fx";
+import { pageY, prefersReducedMotion, toHex } from "./fx";
 import type { Frame, Palette, Scene } from "./themeScenes";
 
 /**
@@ -33,6 +33,8 @@ export default function ThemeFx() {
         scene = makeScene(skin, palette, w, ht);
       };
       const size = () => {
+        // a phone's address bar sliding away is not a real resize, and rebuilding the scene would stutter the scroll
+        if (w && window.innerWidth === w && Math.abs(window.innerHeight - ht) < 140) return;
         w = canvas.width = window.innerWidth;
         ht = canvas.height = window.innerHeight;
         load();
@@ -43,7 +45,7 @@ export default function ThemeFx() {
         const dt = Math.min(0.1, last ? (now - last) / 1000 : 0.03);
         const cost = performance.now();
         last = now; t += dt;
-        const y = window.scrollY, d = y - lastY;
+        const y = pageY(), d = y - lastY;
         lastY = y;
         speed += (d - speed) * 0.15;
         if (!scene) return;

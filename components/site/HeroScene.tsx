@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { prefersReducedMotion, toHex } from "./fx";
+import { pageY, prefersReducedMotion, toHex } from "./fx";
 import type { HeroSceneHandle, SceneColors } from "./heroEngine";
 
 function readColors(): SceneColors {
@@ -78,12 +78,13 @@ export default function HeroScene() {
       window.addEventListener("skinchange", onSkin);
       off.push(() => window.removeEventListener("skinchange", onSkin));
 
-      const onScroll = () => handle.scroll(Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight))));
+      let heroH = hero.offsetHeight;
+      const onScroll = () => handle.scroll(Math.min(1, Math.max(0, pageY() / Math.max(1, heroH))));
       window.addEventListener("scroll", onScroll, { passive: true });
       off.push(() => window.removeEventListener("scroll", onScroll));
       onScroll();
 
-      const ro = new ResizeObserver(() => handle.resize());
+      const ro = new ResizeObserver(() => { heroH = hero.offsetHeight; handle.resize(); });
       ro.observe(hero);
       off.push(() => ro.disconnect());
 

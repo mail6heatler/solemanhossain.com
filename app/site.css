@@ -353,8 +353,8 @@ html[data-skin="playful"] .site .aurora { opacity: .7; background:
 
 /* cursor fx */
 #hack-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 70; }
-#cursor-dot { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); pointer-events: none; z-index: 10000; transform: translate(-50%,-50%); mix-blend-mode: difference; left: -20px; top: -20px; }
-#cursor-ring { position: fixed; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); left: -40px; top: -40px; }
+#cursor-dot { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); pointer-events: none; z-index: 10000; transform: translate(-99px,-99px); mix-blend-mode: difference; left: 0; top: 0; }
+#cursor-ring { position: fixed; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none; z-index: 9999; transform: translate(-99px,-99px); left: 0; top: 0; }
 @media (hover: none), (pointer: coarse) { #hack-canvas, #cursor-dot, #cursor-ring { display: none; } }
 
 /* ----- shared bits ----- */
@@ -386,7 +386,7 @@ html[data-skin="playful"] .site .aurora { opacity: .7; background:
 .card:hover::before { opacity: 1; }
 .card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.08), var(--glow); }
 html[data-skin="playful"] .site .card:hover { transform: translateY(-4px) rotate(-.8deg); }
-.card-img { aspect-ratio: 16/10; object-fit: cover; width: 100%; background: var(--bg-2); }
+.card-img { width: 100%; background: var(--bg-2); }
 .card-body { padding: 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; position: relative; }
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 20px; }
 .card h3 { font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: -.005em; }
@@ -398,12 +398,11 @@ html[data-skin="playful"] .site .card:hover { transform: translateY(-4px) rotate
 .grid3.bento { grid-template-columns: repeat(4, minmax(0,1fr)); grid-auto-flow: dense; }
 .grid3.bento > .b-big { grid-column: span 2; grid-row: span 2; }
 .grid3.bento > .b-big h3 { font-size: 26px; }
-.grid3.bento > .b-big .card-img { aspect-ratio: 16/9; }
 .grid3.bento > .b-wide { grid-column: span 2; }
 /* a big tile without a photo gets a colour wash so it doesn't look empty */
-.grid3.bento > .b-big:not(:has(.card-img)) { background: radial-gradient(120% 90% at 0% 100%, color-mix(in srgb, var(--mint) 26%, transparent), transparent 60%), var(--card); }
-.grid3.bento > .b-big:not(:has(.card-img)) .card-body { justify-content: flex-end; padding: 26px; }
-.grid3.bento > .b-big:not(:has(.card-img)) .card-top { margin-bottom: auto; }
+.grid3.bento > .b-big.no-pic { background: radial-gradient(120% 90% at 0% 100%, color-mix(in srgb, var(--mint) 26%, transparent), transparent 60%), var(--card); }
+.grid3.bento > .b-big.no-pic .card-body { justify-content: flex-end; padding: 26px; }
+.grid3.bento > .b-big.no-pic .card-top { margin-bottom: auto; }
 @media (max-width: 900px) { .grid3.bento { grid-template-columns: repeat(2, minmax(0,1fr)); } .grid3.bento > .b-big { grid-row: span 1; } }
 @media (max-width: 560px) { .grid3.bento { grid-template-columns: 1fr; } .grid3.bento > .b-big, .grid3.bento > .b-wide { grid-column: auto; } }
 
@@ -647,7 +646,6 @@ html[data-skin="techy"] .site :is(.ph-tile, .shelf-ico, .note img, .md img, .md 
 .card-media { position: relative; }
 .card-media .card-img { display: block; }
 video.card-img, .trip .ph video, .ph-tile video, .shelf-ico video, .flip-f .ico video, .note-media { width: 100%; height: 100%; object-fit: cover; display: block; background: var(--bg-2); }
-video.card-img { aspect-ratio: 16/10; height: auto; }
 .note-media { height: auto; border-radius: 10px; max-height: 420px; }
 .trip .ph { position: relative; }
 .media-badges { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 2; pointer-events: none; }
@@ -897,8 +895,6 @@ html[data-skin="ocean"] .site #hero h1 .accent .kc:not(.hot) { color: color-mix(
 /* --- hero photo as a floating sticker --- */
 .avatar-wrap.sticker { width: 216px; height: auto; perspective: 1000px; animation: stk-slap .75s cubic-bezier(.2,1.4,.4,1) backwards; animation-delay: calc(var(--hd, 0s) + .55s); }
 @keyframes stk-slap { 0% { opacity: 0; transform: scale(2.1) rotate(16deg); } 62% { opacity: 1; transform: scale(.93) rotate(-1deg); } }
-.hero-inner:has(.sticker) { gap: 36px; }
-.hero-right:has(.sticker) { width: clamp(170px, 15vw, 216px); }
 .avatar-wrap.sticker { width: 100%; }
 .stk { position: relative; --stk-b: #fff; }
 html[data-skin="paper"] .site .stk { --stk-b: #fffdf6; }
@@ -928,15 +924,13 @@ html[data-skin="candy"] .site .stk { --stk-b: #fff; }
 .sticker .avatar-tilt:hover .avatar-wave, .sticker .avatar-tilt:focus-visible .avatar-wave { transform: translateZ(50px) scale(1); }
 .stk-shadow { position: absolute; left: 9%; right: 9%; bottom: -28px; height: 26px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.6), transparent); filter: blur(3px); animation: stk-shadow 6s ease-in-out infinite; }
 @keyframes stk-shadow { 0%, 100% { transform: scale(.82); opacity: .55; } 50% { transform: scale(1.04); opacity: .95; } }
-.sticker ~ .ctas, .hero-right:has(.sticker) .ctas { margin-top: 26px; }
+.sticker ~ .ctas { margin-top: 26px; }
 @media (max-width: 760px) {
-  .hero-right:has(.sticker) { width: auto; }
   .avatar-wrap.sticker { width: 128px; height: auto; margin: 12px 0 18px 6px; flex-shrink: 0; }
   .avatar-wrap.sticker img, .avatar-wrap.sticker .avatar-ph { max-height: 170px; font-size: 40px; filter: drop-shadow(4px 0 0 var(--stk-b)) drop-shadow(-4px 0 0 var(--stk-b)) drop-shadow(0 4px 0 var(--stk-b)) drop-shadow(0 -4px 0 var(--stk-b)) drop-shadow(0 1px 1px rgba(0,0,0,.22)); }
   .stk-tape { width: 60px; height: 20px; top: -13px; }
   .stk-tape.a { margin-left: -30px; }
   .stk-shadow { bottom: -18px; height: 16px; }
-  .hero-right:has(.sticker) .ctas { margin-top: 12px; }
 }
 
 /* --- sliding headlines before every chapter --- */
@@ -1204,12 +1198,12 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 /* ----- room for it ----- */
 /* wider screens: the words keep the left, and the sculpture shows below the photo */
 @media (max-width: 1000px) {
-  .site:has(.hang) #hero { padding-top: 322px; }
+  .site #hero.hero-hang { padding-top: 322px; }
   .hang .paper-ctas { margin-top: 152px; }
   .hang { right: 16px; }
 }
 @media (max-width: 760px) {
-  .site:has(.hang) #hero { padding-top: 282px; }
+  .site #hero.hero-hang { padding-top: 282px; }
   .hang { gap: 12px; left: 16px; right: 16px; justify-content: flex-end; }
   .hang .avatar-wrap.sticker { width: 118px; margin: 44px 0 0; }
   .hang .avatar-wrap.sticker img, .hang .avatar-wrap.sticker .avatar-ph, html[data-skin="techy"] .site .hang .avatar-wrap.sticker img, html[data-skin="techy"] .site .hang .avatar-wrap.sticker .avatar-ph { max-height: 160px; filter: drop-shadow(4px 0 0 var(--stk-b)) drop-shadow(-4px 0 0 var(--stk-b)) drop-shadow(0 4px 0 var(--stk-b)) drop-shadow(0 -4px 0 var(--stk-b)) drop-shadow(0 10px 8px rgba(0,0,0,.42)); }
@@ -1231,9 +1225,9 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 }
 /* laptops: the headline gives the buttons room, and a long status row wraps */
 @media (min-width: 1001px) and (max-width: 1420px) {
-  .site:has(.hang) #hero h1 { font-size: min(5.2vw, 86px); max-width: calc(72.5vw - 190px); }
-  html[data-skin="techy"] .site:has(.hang) #hero h1, html[data-skin="retro"] .site:has(.hang) #hero h1 { font-size: min(4.9vw, 72px); }
-  .site:has(.hang) .hero-pills { max-width: 52vw; }
+  .site #hero.hero-hang h1 { font-size: min(5.2vw, 86px); max-width: calc(72.5vw - 190px); }
+  html[data-skin="techy"] .site #hero.hero-hang h1, html[data-skin="retro"] .site #hero.hero-hang h1 { font-size: min(4.9vw, 72px); }
+  .site #hero.hero-hang .hero-pills { max-width: 52vw; }
 }
 
 /* a solid menu bar, so what's tucked behind it doesn't show through */
@@ -1272,7 +1266,7 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .card .ex.md p:last-child { margin-bottom: 0; }
 /* the scrolling part and its hint; the reaction bar sits below them, so it never scrolls away */
 .scroll-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; position: relative; border-radius: inherit; }
-.scroll-wrap:has(+ .card-foot) .more-hint { border-radius: 0; }
+.scroll-wrap.has-foot .more-hint { border-radius: 0; }
 .card-foot { flex: 0 0 auto; position: relative; z-index: 4; padding: 8px 18px 11px; border-top: .5px solid var(--line); }
 .trip .card-foot { padding-inline: 15px; }
 .note .card-foot { padding-inline: 22px; }
@@ -1280,21 +1274,31 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .card-foot .reacts.mini { margin-top: 0; }
 .more-hint { position: absolute; inset: auto 0 0 0; height: 52px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; background: linear-gradient(transparent, var(--card)); color: var(--mint-deep); font-size: 16px; border-radius: 0 0 var(--r-card) var(--r-card); opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 2; }
 .scrolly.more + .more-hint { opacity: 1; }
-.scrolly.more + .more-hint i { animation: more-bob 1.3s ease-in-out infinite; }
+.scrolly.more + .more-hint i { animation: more-bob 1.3s ease-in-out 3; }
 @keyframes more-bob { 50% { translate: 0 3px; } }
 
 .note, .wall-note { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
 .note .flow { padding: 22px; gap: 10px; }
 .wall-note .flow { padding: 14px 16px; }
 .trip .flow .ph { flex-shrink: 0; }
-.note-media { max-height: 190px; }
+
+/* --- pictures show whole: full width in their own shape, and a very tall one is fitted inside the card rather than cut --- */
+:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; max-height: calc(var(--row-h) * .66); object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+.trip .ph.has-pic { height: auto; display: block; background: none; flex-shrink: 0; }
+.post-media { height: auto; max-height: min(70vh, 560px); object-fit: contain; }
+.ph-tile img, .ph-tile video { object-fit: contain; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+/* the button sits beside the picture, not inside it: the photo wipe makes the picture its own layer, which would trap the button under the card's link */
+.pic-box { position: relative; flex-shrink: 0; }
+.pic-zoom { position: absolute; right: 8px; bottom: 8px; z-index: 3; width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; cursor: zoom-in; font-size: 15px; background: rgba(0,0,0,.58); color: #fff; opacity: .8; transition: opacity .2s, scale .2s; }
+.pic-zoom:hover, .pic-zoom:focus-visible { opacity: 1; scale: 1.14; }
+.pic-zoom:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
 .side-track > :is(.card, .trip, .note), .grid3 > :is(.card, .trip), .notes > .note { max-height: var(--row-h); }
 .wall-note { max-height: min(280px, 50vh); }
 
 /* --- "See all": same-size cards in a neat grid --- */
 .grid3, .notes { grid-auto-rows: 1fr; }
 .grid3 > .trip { width: auto; }
-.grid3 > .trip .ph { height: 170px; }
+.grid3 > .trip .ph:not(.has-pic) { height: 170px; }
 
 /* --- the row reaches both edges of the screen, so cards come from outside it --- */
 .side { margin-top: 34px; margin-left: calc(var(--gutter, 7vw) * -1); width: 100vw; max-width: 100vw; position: relative; }
@@ -1303,9 +1307,8 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .side-track > * { flex: 0 0 auto; scroll-snap-align: start; min-width: 0; }
 .side-track > .card, .side-track > .note { width: clamp(280px, 27vw, 340px); }
 .side-track > .card.b-big, .side-track > .note.wide { width: clamp(300px, 36vw, 460px); }
-.side-track > .card .card-img { aspect-ratio: 16/9; }
 .side-track > .trip { width: clamp(250px, 24vw, 300px); }
-.side-track > .trip .ph { height: clamp(150px, 26vh, 210px); }
+.side-track > .trip .ph:not(.has-pic) { height: clamp(150px, 26vh, 210px); }
 .side-track > .flip-wrap { width: 230px; }
 .side-track > .ph-cell { width: clamp(190px, 20vw, 250px); }
 .side-track > .wall-note { width: clamp(250px, 26vw, 320px); align-self: flex-start; }
@@ -1352,6 +1355,14 @@ html[data-skin="ocean"] .site.fx-themefx .side.flying .stagger.live > :is(.card,
 .wall-row .side { margin-top: 12px; }
 
 html.lite .side .side-track, html.lite .side .side-track > * { will-change: auto; }
+
+/* --- while the page scrolls, decorative loops rest: nobody watches them then, and each running animation is restyled every frame.
+   The scroll-linked motion and the moving headlines keep going. --- */
+html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .scrollcue i, .hang .stk-float, .side-hint i, #hero h1 .accent .kc, .hb-tag .ti),
+html.scrolling :is(.brand .dot, .pulse)::after,
+html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note, .hs) { animation-play-state: paused !important; }
+/* a title's letters waiting off screen stay flat: tipped back in 3D, every letter is its own layer for the browser to manage */
+.sleep .split-host.reveal:not(.in) .ch { transform: translateY(112%); transition: none; }
 
 /* --- reaction emojis come alive (reactfx). The hit area stays the button, so an emoji growing never flips the hover to its neighbour.
    Lift and lean use translate/scale/rotate; each emoji's own move uses transform, so the two add up. --- */

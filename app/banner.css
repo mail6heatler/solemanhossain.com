@@ -430,5 +430,7 @@ html.lite .hb :is(.hb-tab, .hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-titl
 @media (prefers-reduced-motion: reduce) {
   .hb :is(.hb-tab, .hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-title), .hb :is(.hb-sway, .hb-light)::before, .hb :is(.hb-sway, .hb-light)::after { animation: none !important; }
 }
+/* rolled up, nothing of it can be seen, so nothing of it should be moving */
+.hb:not(.open) :is(.hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-title), .hb:not(.open) :is(.hb-sway, .hb-light)::before, .hb:not(.open) :is(.hb-sway, .hb-light)::after { animation-play-state: paused; }
 /* the banner noticed it's on a device that can't keep up (see the loop in HangingBanner) */
 .hb.hb-calm :is(.hb-sway, .hb-top, .hb-light, .hb-dangles i, .hb-title), .hb.hb-calm :is(.hb-sway, .hb-light)::before, .hb.hb-calm :is(.hb-sway, .hb-light)::after { animation: none !important; }

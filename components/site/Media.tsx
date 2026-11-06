@@ -8,7 +8,7 @@ export function Cover({ m, className, style, alt = "" }: { m?: Media; className?
   if (!m) return null;
   if (m.type === "video")
     return <video className={`${className ?? ""} hover-play`} src={`${m.url}#t=0.1`} muted playsInline loop preload="metadata" style={style} aria-label={alt || "Video"} />;
-  return <img className={className} src={m.url} alt={alt} loading="lazy" style={style} />;
+  return <img className={className} src={m.url} alt={alt} loading="lazy" decoding="async" style={style} />;
 }
 
 /** "▶" on a video cover, and "📷 5" when an entry has more than one photo or video. */

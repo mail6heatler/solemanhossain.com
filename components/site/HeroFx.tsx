@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { confettiFrom, prefersReducedMotion } from "./fx";
+import { confettiFrom, pageY, prefersReducedMotion } from "./fx";
 import { isSplittable } from "./Split";
 
 const GLYPHS = "!<>-_\\/[]{}=+*^?#01ABCDEFXYZ%$";
@@ -93,7 +93,7 @@ export function Sticker({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const box = ref.current;
     if (!box || prefersReducedMotion()) return;
-    let a = 0, v = 0, raf = 0, last = window.scrollY, prev = 0;
+    let a = 0, v = 0, raf = 0, last = pageY(), prev = 0;
     const loop = (t: number) => {
       raf = 0;
       const steps = prev ? Math.min(6, Math.max(1, Math.round((t - prev) / 16.7))) : 1;
@@ -104,7 +104,7 @@ export function Sticker({ children }: { children: React.ReactNode }) {
       raf = requestAnimationFrame(loop);
     };
     const onScroll = () => {
-      const y = window.scrollY, d = y - last;
+      const y = pageY(), d = y - last;
       last = y;
       if (y > window.innerHeight * 1.2) return; // off screen: nothing to do
       v += Math.max(-0.5, Math.min(0.5, d * 0.012));

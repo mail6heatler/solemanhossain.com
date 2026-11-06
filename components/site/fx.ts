@@ -4,6 +4,32 @@
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/**
+ * The page's scroll position. Asking the browser (window.scrollY, positions) makes it finish its styles on the spot,
+ * which used to happen several times per frame. Smooth scrolling already knows the number, so it's taken from there;
+ * without it (phones, the lighter version) it's read once per scroll event.
+ * So: read with this, write in requestAnimationFrame, never write during a scroll event.
+ */
+let scrollNow = -1, listening = false, viaLenis = false;
+const smooth = () => (window as unknown as { __lenis?: { animatedScroll: number } }).__lenis;
+export function pageY() {
+  const l = smooth();
+  if (l) { viaLenis = true; return l.animatedScroll; }
+  if (scrollNow < 0 || viaLenis) { viaLenis = false; scrollNow = window.scrollY; }
+  if (!listening) {
+    listening = true;
+    window.addEventListener("scroll", (e) => { if (e.target === document && !smooth()) scrollNow = window.scrollY; }, { passive: true, capture: true });
+  }
+  return scrollNow;
+}
+
+/** An element's top in the page, ignoring transforms. Read it when the layout changes and keep it. */
+export function docTop(el: HTMLElement) {
+  let top = 0;
+  for (let e: HTMLElement | null = el; e; e = e.offsetParent as HTMLElement | null) top += e.offsetTop;
+  return top;
+}
+
 /** Turns any CSS colour into #rrggbb, for canvas and WebGL drawing. */
 export function toHex(css: string, fallback: string) {
   const c = document.createElement("canvas").getContext("2d");

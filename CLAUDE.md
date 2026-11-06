@@ -28,7 +28,7 @@ There is no test suite. Verify visually: drive the site with `playwright-core` f
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack) with React 19, plain CSS, Postgres (`postgres` in production, PGlite locally), `jose` for the login cookie, Vercel Blob for uploads, Lenis for smooth scrolling, GSAP ScrollTrigger for scroll effects, three.js for the 3D hero, canvas-confetti.
+Next.js 16 (App Router, Turbopack) with React 19, plain CSS, Postgres (`postgres` in production, PGlite locally), `jose` for the login cookie, Vercel Blob for uploads, Lenis for smooth scrolling, three.js for the 3D hero, canvas-confetti.
 
 Next.js here is newer than most training data. Read `node_modules/next/dist/docs/` before using a Next API you aren't certain of (see `AGENTS.md`).
 
@@ -50,7 +50,8 @@ components/site/
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
-  scrollFx.ts              GSAP scroll effects + every chapter's in/out motion (separate download)
+  scrollFx.ts              scroll effects + every chapter's in/out motion, one loop that sleeps when idle (separate download)
+  PicZoom.tsx              the expand button on a card's picture; opens the full-screen viewer
   ThemeFx.tsx              one canvas behind the content: starts/sleeps it, follows the theme
   themeScenes.ts           the 10 classic themes' living backgrounds and click bursts (separate download)
   themeScenes2.ts          the 20 fan themes: one data table of what floats, bursts and falls, plus drawn "pieces"
@@ -106,6 +107,13 @@ Every visual effect has a switch on the Appearance page. To add one:
 
 ## Keeping scrolling smooth
 
+- **Never ask the browser for a position during a frame.** `window.scrollY` and `getBoundingClientRect` make it finish its styles on the spot, so each one after a change is an extra style pass. Read with `pageY()` from `fx.ts`, keep element positions with `docTop()` (refreshed by a `ResizeObserver` on `body`), and write in `requestAnimationFrame`, never in a scroll event.
+- **No `:has()` on a large or always-changing element.** `.site:has(.hang)` restyled 800+ elements whenever anything on the page changed. Use a plain class.
+- **Each running animation is restyled every frame the page draws,** even one the graphics card moves. Decorative loops rest while scrolling (`html.scrolling` in `site.css`); add long-running decoration to that list.
+- **A 3D transform makes an element its own layer, even when invisible.** Off-screen title letters were 162 layers. Keep waiting states flat (`.sleep .split-host`).
+- **A phone's address bar sliding away fires `resize`.** Don't rebuild on it: check the width changed (see `SideRow`, `ThemeFx`, `scrollFx`).
+- **Compare old and new builds side by side.** Copy `.next`, `package.json`, `next.config.mjs` and `public` to a scratch folder, link `node_modules`, run `next start -p 3001` there, and alternate between the two. Headless Chrome isn't limited to the screen's refresh rate, so "busy %" misleads: compare frames per second, milliseconds of work per frame and frames over 50ms. Scroll a phone test with `Input.dispatchTouchEvent`; `Input.synthesizeScrollGesture` doesn't move this page.
+
 Scrolling was once 29 frames per second (6 on a weak device), from many small costs rather than one big one. Before adding motion:
 
 - **Animate only `transform`, `translate`, `rotate`, `scale` and `opacity`.** Anything else (box-shadow, background-position, mask-position, text-shadow, filter, custom properties) runs on the main thread every frame.
@@ -119,6 +127,8 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 
 ## Rules learned the hard way
 
+- **Pictures are never cut.** Cards use `object-fit: contain` and their real shape, up to 66% of the card's height. Only the tiny thumbnails (flip cards, plain lists, entry-page gallery) still crop.
+- **A photo wipe makes the picture its own layer,** so anything inside it sits under the card's link and can't be clicked. Put buttons beside it, in `.pic-box`.
 - **A card never grows.** Its contents go in `Box` (`SectionBody.tsx`): the shell keeps its size (`--row-h`), `.scrolly` scrolls, and `.card-link` sits inside `.flow` so a finger can still scroll a card that is clickable everywhere. The reaction bar goes in `Box`'s `foot`, outside the scrolling part, so it's always visible.
 - **Don't run an animation forever on things there are many of.** Each animated emoji is its own layer. The reaction wave is a short class added to a few on-screen bars at a time (`reactfx` in `hoverFx.ts`).
 - **Don't start animations while the page is scrolling.** Waving reaction bars as they came on screen cost about 10% of the frames; they now wait until scrolling rests.
@@ -126,7 +136,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **`onAnimationEnd` hears animations from children too.** Check `ev.target === ev.currentTarget`, or an emoji's move ends the button's pop.
 - **Inside a 3D row, the browser's own scrolling and hit-testing can't be trusted.** Part of a turned card sits behind the row's flat surface, so the row caught clicks (hence `pointer-events` in the `pin` CSS) and the browser sent the wheel to the page (hence the hand-driven glide in `scrollBoxes.ts`).
 - **`.scrolly` is the exception to the rule below:** no `data-lenis-prevent` and no `overscroll-behavior: contain`, because the page must carry on once a card's text ends. A wheel already moving the page keeps moving it, so a row passing under the mouse doesn't catch on every long card.
-- **Rows add page height after loading,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back. A row's `reveal` is on its sticky stage, because a tall or moved element may never reach the reveal threshold and would stay invisible.
+- **Rows add page height after loading,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back, re-checking for 4 seconds. A row's `reveal` is on its sticky stage, because a tall or moved element may never reach the reveal threshold and would stay invisible.
 
 - **Anything that scrolls inside the page needs `data-lenis-prevent` and `overscroll-behavior: contain`.** Otherwise smooth scrolling takes the wheel and the page moves instead (see the theme menu).
 
@@ -145,6 +155,6 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Letters must not be split in scripts that join them.** Bangla and emoji sequences stay whole words: use `isSplittable` from `Split.tsx`.
 - **View-transition opt-in must be in `<head>`.** In the body it arrives too late and the browser aborts the transition.
 - **File names differ only by case at your peril.** `heroScene.ts` beside `HeroScene.tsx` breaks on Windows, which is why the engine is `heroEngine.ts`.
-- **Keep heavy libraries out of the first load.** three.js and GSAP are behind dynamic `import()`, and the site must stay complete if either fails to download.
+- **Keep heavy libraries out of the first load.** three.js is behind dynamic `import()`, and the site must stay complete if it fails to download.
 - **Respect `prefers-reduced-motion`.** `Living` doesn't start at all, the 3D never loads, and the curtain is hidden.
 - **Don't mutate React-managed text.** DOM effects may only touch server-rendered static nodes, or use `style`/`classList` on client ones.

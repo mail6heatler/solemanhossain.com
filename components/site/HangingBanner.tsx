@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { BANNER_KINDS, type BannerView } from "@/lib/settings";
-import { confettiFrom, prefersReducedMotion } from "./fx";
+import { confettiFrom, pageY, prefersReducedMotion } from "./fx";
 import { Split } from "./Split";
 
 // How long it stays down before rolling itself up: longer when someone asked for it, and longer for more words.
@@ -133,7 +133,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       let ran = false;
       while (owed >= STEP) { physics(); owed -= STEP; ran = true; }
       if (ran) paint();
-      const settled = !dragging && Math.abs(T - pos) < 0.2 && Math.abs(v) < 0.1 && Math.abs(a) < 0.02 && Math.abs(va) < 0.012 && Math.abs(r) < 0.02 && Math.abs(vr) < 0.012;
+      const settled = !dragging && Math.abs(T - pos) < 0.2 && Math.abs(v) < 0.1 && ((shut && pos < 1) || (Math.abs(a) < 0.02 && Math.abs(va) < 0.012 && Math.abs(r) < 0.02 && Math.abs(vr) < 0.012)); // rolled up: any swing left can't be seen
       if (settled && (shut || calm)) { pos = T; a = 0; va = 0; r = 0; vr = 0; lastFrame = 0; owed = 0; paint(); return; }
       raf = requestAnimationFrame(loop);
     };
@@ -210,10 +210,8 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       kick();
     };
     const scroll = () => {
-      const y = window.scrollY, d = y - lastScroll;
+      const y = pageY(), d = y - lastScroll;
       lastScroll = y;
-      const top = nav ? Math.round(nav.getBoundingClientRect().bottom) : -1;
-      if (nav && top !== lastTop) { el.style.top = `${top}px`; lastTop = top; }
       if (shut || dragging) return;
       va += clamp(d * 0.006, -0.3, 0.3);
       if (Math.abs(y - openedAt) > 700) setDrop(false); // it also rolls up once they've moved on; the tab stays

@@ -7,6 +7,7 @@ import Reactions from "./Reactions";
 import SideRow, { type RowFx } from "./SideRow";
 import PhotoGrid from "./PhotoGrid";
 import { Cover, MediaBadges } from "./Media";
+import PicZoom from "./PicZoom";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
 
@@ -39,7 +40,7 @@ function Meta({ it, showCat = true }: { it: Item; showCat?: boolean }) {
 function Box({ children, foot }: { children: React.ReactNode; foot?: React.ReactNode }) {
   return (
     <>
-      <div className="scroll-wrap">
+      <div className={`scroll-wrap${foot ? " has-foot" : ""}`}>
         <div className="scrolly"><div className="flow">{children}</div></div>
         <span className="more-hint" aria-hidden><i className="ti ti-chevrons-down" /></span>
       </div>
@@ -61,6 +62,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   const vt = (id: number) => morphName(fx.morph, id);
   const R = ({ id }: { id: number }) => (fx.reactions ? <Reactions id={id} compact /> : null);
   const foot = (id: number) => (fx.reactions ? <Reactions id={id} compact /> : undefined);
+  const zoom = (it: Item) => (fx.lightbox && it.media.length > 0 ? <PicZoom media={it.media} title={it.title} /> : null);
   const rowFx: RowFx = { pin: fx.sideways, curve: fx.coverflow, fly: fx.rowfly, lean: fx.rowlean, count: fx.rowcount };
   const row = (className: string, children: React.ReactNode) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
@@ -124,7 +126,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <div key={it.id} className="trip">
         <Box foot={foot(it.id)}>
           <CardLink to={href(section, it)} label={it.title} />
-          <div className="ph">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>
+          <div className="pic-box"><div className={`ph${it.media[0] ? " has-pic" : ""}`}>{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>{zoom(it)}</div>
           <div className="tb">
             {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
             <h3>{it.title}</h3>
@@ -202,7 +204,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                 <>
                   {it.media[0] && (it.media[0].type === "video"
                     ? <video className="post-media" src={it.media[0].url} controls playsInline preload="metadata" style={vt(it.id)} />
-                    : <img className="post-media" src={it.media[0].url} alt="" loading="lazy" style={vt(it.id)} />)}
+                    : <div className="pic-box"><img className="post-media" src={it.media[0].url} alt="" loading="lazy" decoding="async" style={vt(it.id)} />{zoom(it)}</div>)}
                   {it.media.length > 1 && <a className="more-media" href={href(section, it)}>+{it.media.length - 1} more photo{it.media.length > 2 ? "s" : ""}/video{it.media.length > 2 ? "s" : ""} →</a>}
                   {it.body.length > 420
                     ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)} <a href={href(section, it)}>read more</a></p>
@@ -264,7 +266,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             <Box foot={foot(it.id)}>
               {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
               <h3>{it.title}</h3>
-              {it.media[0] && <Cover m={it.media[0]} className="note-media" />}
+              {it.media[0] && <div className="pic-box"><Cover m={it.media[0]} className="note-media" />{zoom(it)}</div>}
               {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
             </Box>
           </div>
@@ -278,11 +280,11 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   return row(`grid3${bento ? " bento" : ""}`, (
     <>
       {items.map((it, i) => (
-        <div key={it.id} className={`card${tile(i)}`}>
+        <div key={it.id} className={`card${tile(i)}${it.media[0] ? "" : " no-pic"}`}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
           <Box foot={foot(it.id)}>
             <CardLink to={href(section, it)} label={it.title} />
-            {it.media[0] && <div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>}
+            {it.media[0] && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
             <div className="card-body">
               <div className="card-top">
                 {it.category ? <span className="chip">{it.category}</span> : <span />}

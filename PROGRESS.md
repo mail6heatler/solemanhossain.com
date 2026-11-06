@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -15,7 +15,34 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-06: Reaction bar always visible and lively
+### 2026-11-06: Pictures never cut; smoother scrolling
+
+**Pictures:** an earlier change of mine limited note pictures to 190px with cropping, cutting about 35% off square photos, and normal cards cropped to a fixed shape. Now every card, post and photo tile shows the whole picture, at full width in its own shape, up to 66% of the card's height. An expand button opens the full-screen viewer. Tiny thumbnails still crop.
+
+**Lag:** the owner sensed it, and measuring by section on the live site found the hero at 37 fps and Me and Made at 51. What was wrong, in order of what helped:
+
+- The old scroll library read the scroll position on every scroll event, forcing a style pass. It drove only five simple effects, so it's gone (`scrollFx.ts` is now one loop on kept positions, and GSAP is uninstalled, about 118KB less).
+- `.site:has(.hang)`: anything changing anywhere made the browser recheck 800+ elements. 30 big style passes in 5 seconds became 5.
+- Decorative loops now rest while the page scrolls (`html.scrolling`).
+- Off-screen title letters were 162 layers; they now stay flat while waiting.
+- The cursor moved with left and top, redoing layout every frame; it uses transform now.
+- The banner kept swinging, invisibly, after rolling up, and its flags kept animating; both stop now.
+- Pictures decode off the main thread (`decoding="async"`), and address-bar resizes no longer rebuild rows or the theme canvas.
+
+A first attempt that only moved scroll reads out of scroll events changed nothing, and the idea that `:is()` selectors were the cost was wrong (only about 50 exist). Measure before believing a cause.
+
+**Old build against new, alternating, heavy local test content:**
+
+| | Old | New |
+|---|---|---|
+| Laptop | 71.6 fps, 13.5ms work per frame, 3 frames over 50ms | 83.9 fps, 11.5ms, 1 |
+| Laptop, 4x slower | 23.0 fps, 42.0ms, 72 | 24.8 fps, 39.5ms, 67 |
+| Phone size | 53.1 fps, 11.1ms, 5 | 53.8 fps, 10.7ms, 6 |
+| Phone size, 4x slower | 10.6 fps, 94.9ms, 115 | 9.5 fps, 105.7ms, 115 |
+
+Laptop improved; phones did not measurably in simulation. On phones the biggest cost is `Layerize` (the browser organising layers, 5.5ms per frame on the heavy test page), and it hasn't been tackled. Phones scroll natively, so these numbers are page updates rather than the scroll itself. Not yet checked on a real phone.
+
+### 2026-11-06: Reaction bar always visible and lively (kept by the owner)
 
 The owner wanted the reaction bar always visible under every card and poll, with lively emojis. The bar now sits under the scrolling part of a card (`foot` on `Box`), and untouched emojis are no longer greyed out. New effect `reactfx`: a soft wave on a few on-screen bars at a time, hover makes an emoji jump and grow while its neighbours lean, each emoji moves its own way, and a click sends a bigger burst. Reacting still takes a click, not a hover: the owner agreed, because hovering would cause accidental reactions and name boxes. Visitors' wall messages still have no reactions, because only the owner's entries do.
 

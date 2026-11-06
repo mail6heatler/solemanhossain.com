@@ -6,7 +6,7 @@ import type { ScrollFxFlags } from "./scrollFx";
 
 /**
  * Starts the newer layer of motion once the page is on screen: hover effects straight away, then the scroll
- * effects, whose code (GSAP) is downloaded separately so it never slows the first page load. If that download
+ * effects, whose code is downloaded separately so it never slows the first page load. If that download
  * fails the site stays complete, because every animated thing is visible by default.
  */
 export default function Living({ fx }: { fx: HoverFxFlags & ScrollFxFlags }) {

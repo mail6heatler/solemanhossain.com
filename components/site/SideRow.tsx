@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { prefersReducedMotion } from "./fx";
+import { docTop, pageY, prefersReducedMotion } from "./fx";
 
 export type RowFx = { pin: boolean; curve: boolean; fly: boolean; lean: boolean; count: boolean };
 
@@ -34,9 +34,12 @@ function keepPlace() {
   const stop = () => {
     ro.disconnect();
     clearTimeout(timer);
+    checks.forEach(clearTimeout);
     inputs.forEach((ev) => window.removeEventListener(ev, stop));
   };
   ro.observe(document.body);
+  // the page can also settle without changing its total height
+  const checks = [300, 800, 1500, 2500, 3500].map((ms) => window.setTimeout(put, ms));
   inputs.forEach((ev) => window.addEventListener(ev, stop, { once: true, passive: true }));
   setTimeout(stop, 4000);
 }
@@ -63,7 +66,7 @@ export default function SideRow({ className, fx, children }: { className: string
     if (!o || !t) return;
     const wide = window.matchMedia("(min-width: 761px)");
     let mode: "fit" | "pin" | "swipe" = "fit";
-    let over = 0, range = 1, half = 1, seen = true, raf = 0, lastT = 0, lastPos = 0, tilt = 0, shown = -1;
+    let over = 0, range = 1, half = 1, seen = true, raf = 0, lastT = 0, lastPos = 0, tilt = 0, shown = -1, oTop = 0, rowLeft = 0, lastW = 0;
     let light = document.documentElement.classList.contains("lite");
     let cards: { el: HTMLElement; mid: number; d: number }[] = [];
 
@@ -89,8 +92,8 @@ export default function SideRow({ className, fx, children }: { className: string
       if (!seen || mode === "fit") return;
       const dt = clamp(time - lastT, 1, 100);
       lastT = time;
-      const top = o.getBoundingClientRect().top;
-      const pos = mode === "pin" ? clamp(-top / range, 0, 1) * over : t.scrollLeft;
+      const top = oTop - pageY(); // kept positions: asking the browser here would make it redo its styles
+      const pos = mode === "pin" ? clamp(-top / range, 0, 1) * over : rowLeft;
       const p = over > 0 ? pos / over : 0;
       const speed = (pos - lastPos) / dt;
       lastPos = pos;
@@ -115,7 +118,7 @@ export default function SideRow({ className, fx, children }: { className: string
       } else {
         t.style.transform = sweep || leaning ? `translateX(${sweep.toFixed(1)}px) ${leaning}` : "";
       }
-      if (!light) pose((mode === "pin" ? -pos : -t.scrollLeft) + sweep);
+      if (!light) pose(-pos + sweep);
       if (bar.current) bar.current.style.transform = `scaleX(${p.toFixed(4)})`;
       o.classList.toggle("moved", p > 0.02);
       if (now.current && cards.length) {
@@ -143,12 +146,15 @@ export default function SideRow({ className, fx, children }: { className: string
       o.classList.toggle("flying", fly && moves);
       o.style.height = mode === "pin" ? `calc(100vh + ${Math.round(over)}px)` : "";
       range = Math.max(1, o.offsetHeight - window.innerHeight);
+      oTop = docTop(o);
+      rowLeft = t.scrollLeft;
+      lastW = window.innerWidth;
       t.style.transform = "";
       clearPoses();
       cards = kids.map((el) => ({ el, mid: el.offsetLeft + el.offsetWidth / 2, d: NaN }));
       if (total.current) total.current.textContent = `/ ${pad(kids.length)}`;
       shown = -1;
-      lastPos = mode === "pin" ? clamp(-o.getBoundingClientRect().top / range, 0, 1) * over : t.scrollLeft;
+      lastPos = mode === "pin" ? clamp((pageY() - oTop) / range, 0, 1) * over : rowLeft;
       keepPlace();
       kick();
     };
@@ -156,7 +162,7 @@ export default function SideRow({ className, fx, children }: { className: string
     // a sideways trackpad swipe moves the row too, and keyboard focus brings its card into view
     const sideWheel = (e: WheelEvent) => {
       if (mode !== "pin" || Math.abs(e.deltaX) <= Math.abs(e.deltaY) || !seen) return;
-      const top = o.getBoundingClientRect().top;
+      const top = oTop - pageY();
       if (top > 0 || top < -range) return;
       e.preventDefault();
       const l = lenis();
@@ -167,7 +173,7 @@ export default function SideRow({ className, fx, children }: { className: string
       if (mode !== "pin" || !(e.target as Element).matches?.(":focus-visible")) return;
       const c = cards.find((x) => x.el.contains(e.target as Node));
       if (!c) return;
-      const y = window.scrollY + o.getBoundingClientRect().top + clamp((c.mid - half) / over, 0, 1) * range;
+      const y = oTop + clamp((c.mid - half) / over, 0, 1) * range;
       const l = lenis();
       if (l) l.scrollTo(y); else window.scrollTo({ top: y });
     };
@@ -185,9 +191,15 @@ export default function SideRow({ className, fx, children }: { className: string
     const stage = t.parentElement;
     if (!light) stage?.addEventListener("wheel", sideWheel, { passive: false });
     t.addEventListener("focusin", focus);
-    t.addEventListener("scroll", kick, { passive: true }); // phones swipe the row itself
+    const swiped = () => { rowLeft = t.scrollLeft; kick(); };
+    t.addEventListener("scroll", swiped, { passive: true }); // phones swipe the row itself
+    // rows above this one, pictures and fonts all move it down the page
+    const pageSize = new ResizeObserver(() => { oTop = docTop(o); });
+    pageSize.observe(document.body);
+    // a phone's address bar sliding away is not a real resize
+    const resized = () => { if (window.innerWidth !== lastW || mode === "pin") measure(); };
     window.addEventListener("scroll", kick, { passive: true });
-    window.addEventListener("resize", measure);
+    window.addEventListener("resize", resized);
     window.addEventListener("lc-lite", toLite);
     wide.addEventListener("change", measure);
     return () => {
@@ -195,9 +207,10 @@ export default function SideRow({ className, fx, children }: { className: string
       io.disconnect();
       stage?.removeEventListener("wheel", sideWheel);
       t.removeEventListener("focusin", focus);
-      t.removeEventListener("scroll", kick);
+      t.removeEventListener("scroll", swiped);
+      pageSize.disconnect();
       window.removeEventListener("scroll", kick);
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", resized);
       window.removeEventListener("lc-lite", toLite);
       wide.removeEventListener("change", measure);
       clearPoses();

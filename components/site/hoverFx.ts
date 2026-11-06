@@ -10,6 +10,8 @@ const MAGNETS = ".mag, .see-all, .connectrow a, .btn-ink, .btn-line";
 const WIPE = ".card-media, .trip .ph, .ph-tile:not(.txt), .post-media, .note-media, .entry .hero-img, .g-tile";
 const GLYPHS = "!<>-_/[]{}=+*^?#01";
 
+import { pageY } from "./fx";
+
 const qsa = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => Array.from(root.querySelectorAll<T>(s));
 
 export function startHoverFx(fx: HoverFxFlags) {
@@ -95,7 +97,7 @@ export function startHoverFx(fx: HoverFxFlags) {
   if (fx.navpill) {
     const nav = document.querySelector<HTMLElement>(".site .nav");
     if (nav) {
-      const sync = () => nav.classList.toggle("scrolled", window.scrollY > 60);
+      const sync = () => nav.classList.toggle("scrolled", pageY() > 60);
       sync();
       window.addEventListener("scroll", sync, { passive: true });
       cleanups.push(() => window.removeEventListener("scroll", sync));
