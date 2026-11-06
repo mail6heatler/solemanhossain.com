@@ -33,7 +33,9 @@ The owner said sliding felt like dragging on computer and phone, and asked for n
 
 **Old against new, alternating, same local content, 3 rounds:** phone swipe 47.0 to 117.2 fps, 7.7 to 4.4ms work per frame, 3 to 0 frames over 50ms. Phone swipe 4x slower 20.1 to 38.9 fps, 37.9 to 23.5ms, 66 to 5. Page past rows on a phone 66.1 to 69.4 fps. Laptop slide 123.9 to 116.3 fps, 7.2 to 8.1ms, 0 to 0, which is about the same and may be this PC's variation. Laptop 4x slower 29.9 to 30.0 fps. One wheel click on the test page finishes in 292ms, was 626ms.
 
-**Unexplained:** one direct-link test run had its page crash, right after a long measuring run. It didn't happen again in 36 more loads of the new build or 18 of the old, so the cause is unknown.
+**On the live site, one run each, so a rough guide:** phone swipe 49.7 to 72.8 fps, settling 332 to 151ms after the finger lifts. Slower phone 19.4 to 26.3 fps, 90 to 16 frames over 50ms, settling 620 to 279ms. Laptop, Growth row 34.8 to 51.6 fps, 4 to 1 frames over 50ms. All 16 homepage cards open when clicked. Not tried on a real phone.
+
+**Test browsers crashing:** while checking this, test pages crashed several times, even on Vercel's own login page, always after several pages in one browser, on a PC with about 1.5 GB of memory free. With a new browser for each page there were none in 24 loads (old, new and live) or 16 card clicks. So it looks like the test setup, not the site, though the exact cause wasn't found.
 
 ### 2026-11-06: Four general fixes
 
