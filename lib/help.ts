@@ -162,8 +162,8 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=intro",
   },
   pagefx: {
-    title: "Pages glide into each other",
-    what: "When someone opens another page on your site, the old page sinks back while the new one rises over it, instead of flashing white. Works in Chrome, Edge and Safari; other browsers simply open the page.",
+    title: "Opening a card: it grows into the page",
+    what: "When someone clicks a card, it answers at once with a press and a glow, a thin bar shows the page is coming, then the card grows to fill the screen and becomes the page. Back reverses it. Other links: the old page sinks back while the new one rises over it, instead of flashing white. Works in Chrome, Edge and Safari; other browsers simply open the page.",
     how: ["Switch on and save.", "On the site, click any entry or a “See all” link."],
     preview: "/?demo=pagefx",
   },

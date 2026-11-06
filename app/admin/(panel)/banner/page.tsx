@@ -48,7 +48,7 @@ export default async function BannerPage() {
 
       <div className="save-bar">
         <button className="b-mint"><i className="ti ti-device-floppy" />Save banner</button>
-        <a href="/?demo=banner" target="_blank" className="b-out"><i className="ti ti-eye" />Preview (only you see your text)</a>
+        <a href="/?demo=banner" target="_blank" className="b-out"><i className="ti ti-eye" />Preview<span className="opt-long"> (only you see your text)</span></a>
       </div>
     </form>
   );

@@ -46,7 +46,7 @@ export default async function SettingsPage() {
             <div className="fl"><label>Username you sign in with</label><input className="inp" name="adminUsername" defaultValue={s.adminUsername} autoComplete="off" /></div>
           </div>
         </div>
-        <div className="save-bar" style={{ position: "static", margin: "6px 0 0", padding: 0, background: "none", border: 0, backdropFilter: "none" }}>
+        <div className="save-bar">
           <button className="b-mint"><i className="ti ti-device-floppy" />Save settings</button>
         </div>
       </form>

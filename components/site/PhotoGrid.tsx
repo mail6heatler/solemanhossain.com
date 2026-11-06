@@ -4,6 +4,7 @@ import type { Media } from "@/lib/settings";
 import Reactions from "./Reactions";
 import { Lightbox, type Slide } from "./MediaView";
 import SideRow, { type RowFx } from "./SideRow";
+import FullView from "./FullView";
 
 type Item = { id: number; title: string; href: string; media: Media[]; className?: string; style?: React.CSSProperties;
   /** always shown under the photo: phones have no hover to reveal a caption */
@@ -50,7 +51,7 @@ export default function PhotoGrid({ className, items, reactions = false, row }: 
                 <a href={it.href} className="ph-tile txt">{it.title}</a>
               )}
               <PhotoInfo title={it.title} href={it.href} info={it.info} />
-              {reactions && <Reactions id={it.id} compact />}
+              <div className="card-foot plain">{reactions && <Reactions id={it.id} compact />}<FullView to={it.href} label={it.title} /></div>
             </div>
           );
         });

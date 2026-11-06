@@ -12,6 +12,10 @@ import { Split } from "@/components/site/Split";
 
 type P = { params: Promise<{ slug: string; id: string }> };
 
+// made on the first visit and kept, so opening a card doesn't wait for the database. Dashboard changes clear it (`refresh` in actions.ts).
+export const revalidate = 300;
+export async function generateStaticParams() { return []; }
+
 async function load(slug: string, id: string) {
   const section = await getSection({ slug }, true);
   const item = /^\d+$/.test(id) ? await getItem(Number(id)) : null;

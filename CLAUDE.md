@@ -101,7 +101,15 @@ Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `
 
 ## What every card must do
 
-Show everything the entry holds that fits a card: subtitle, date, place, mood, status, tags and its buttons (`LinkButtons`). Open its full page when clicked (`CardLink`, inside `Box`'s `.flow`), while reactions, polls, the expand button, video controls and links in the text stay above that link with `z-index`. Pass `to` to `Box` for the "Read the full story" button. Anything hover reveals needs another way on phones (see the flip cards' first tap, and `.ph-info` under photos). The dashboard's order list (`OrderList`) shows entries in the exact order visitors see.
+Show everything the entry holds that fits a card: subtitle, date, place, mood, status, tags and its buttons (`LinkButtons`). Open its full page when clicked (`CardLink`, inside `Box`'s `.flow`), while reactions, polls, the expand button, video controls and links in the text stay above that link with `z-index`. Pass `to` to `Box` for the "Full view" button in the card's bar, or use `FullView` in a `.card-foot.plain` outside `Box`; every card has it. "Scroll for more" shows on every scrollable card whenever it's at its top. Anything hover reveals needs another way on phones (see the flip cards' first tap, and `.ph-info` under photos). The dashboard's order list (`OrderList`) shows entries in the exact order visitors see.
+
+## Opening a card
+
+All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a click can come before the page's own code has loaded; the look is under "opening a page" in `site.css`. A click gives the card `.opening` (press and glow) and adds `.nav-progress`. On `pageswap` the card is named `open-card`; on `pagereveal` a full-screen `.vt-panel` takes that name, so the card grows to fill the screen, turns into the panel, and the panel fades onto the page. Back adds `html.vt-back`: the page shrinks away and, if the card is still on screen, it lands. Pages start loading on hover through speculation rules (a `prefetch` link in browsers without them), and entry pages are cached after their first visit (`revalidate` and an empty `generateStaticParams`; dashboard changes clear them). Firefox gets only the press and the bar. To see it, film with `Page.startScreencast`: screenshots are too slow to catch it and can hang.
+
+## The dashboard's action bar
+
+`.save-bar` on every page: a strip on the bottom edge of the screen, Save large on the right, the rest beside it at the same height. The markup has Save first, so `row-reverse` shows it last while keyboards reach it first. `.adm-content` scrolls with 60px of bottom padding, so the bar needs `bottom: -60px` to reach the edge. `.save-bar.in-card` is the version that closes off a card, used by `LookControls` and section settings.
 
 ## Size and look controls
 
@@ -138,7 +146,10 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 
 ## Rules learned the hard way
 
-- **In a 3D row, a card's parent box can catch the mouse before the card,** and `elementsFromPoint` won't show it: only real mouse events do. Check with events, and give wrappers `pointer-events: none` (see `.stop`). Anything fixed over the page must not catch the mouse with invisible parts either (see `#rail`).
+- **Check a new CSS class name isn't already used.** The map's stops were `.stop`, the side menu's class, which stretched the menu to 300px and pushed its dots left. It looked like a different bug until someone looked. The map's stops are now `.mstop`.
+- **Nothing may be added inside `.site` before React has started,** or its start-up fails (error 418). Scripts in `<head>` add to `<body>` directly (see `.vt-panel`, `.nav-progress`), and copy the theme's colours over because those are set on `.site`.
+- **A view transition's new image covers its old one at once** unless the new one fades in. That blanked the clicked card as soon as it started growing.
+- **In a 3D row, a card's parent box can catch the mouse before the card,** and `elementsFromPoint` won't show it: only real mouse events do. Check with events, and give wrappers `pointer-events: none` (see `.mstop`). Anything fixed over the page must not catch the mouse with invisible parts either (see `#rail`).
 - **Don't read `scrollTop` back to animate it.** The browser rounds it, so small steps stall on fast screens and the loop never ends. Keep the exact position yourself (`gliding` in `scrollBoxes.ts`).
 - **Pictures are never cut.** Cards use `object-fit: contain` and their real shape, up to 66% of the card's height. Only the tiny thumbnails (flip cards, plain lists, entry-page gallery) still crop.
 - **A photo wipe makes the picture its own layer,** so anything inside it sits under the card's link and can't be clicked. Put buttons beside it, in `.pic-box`.

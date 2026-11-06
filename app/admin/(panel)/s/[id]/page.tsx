@@ -129,7 +129,7 @@ export default async function SectionAdmin({ params }: P) {
             </div>
             <label className="switch"><input type="checkbox" name="visible" defaultChecked={section.visible} />Visible on the site</label>
             <label className="switch"><input type="checkbox" name="ribbon" defaultChecked={section.ribbon} />Show the sliding headline before this section</label>
-            <div><button className="b-mint"><i className="ti ti-device-floppy" />Save section</button></div>
+            <div className="save-bar in-card"><button className="b-mint"><i className="ti ti-device-floppy" />Save section</button></div>
           </div>
         </details>
       </form>

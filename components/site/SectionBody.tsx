@@ -8,6 +8,7 @@ import SideRow, { type RowFx } from "./SideRow";
 import PhotoGrid, { PhotoInfo } from "./PhotoGrid";
 import { Cover, MediaBadges } from "./Media";
 import PicZoom from "./PicZoom";
+import FullView from "./FullView";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
@@ -39,18 +40,15 @@ function Meta({ it, showCat = true, hideDate = false, showStatus = false }: { it
  * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
  * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible.
  */
-function Box({ children, foot, to }: { children: React.ReactNode; foot?: React.ReactNode; to?: string }) {
+function Box({ children, foot, to, label = "" }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string }) {
   return (
     <>
-      <div className={`scroll-wrap${foot ? " has-foot" : ""}`}>
-        <div className="scrolly"><div className="flow">
-          {children}
-          {to && <a className="read-more" href={to}>Read the full story<i className="ti ti-arrow-right" aria-hidden /></a>}
-        </div></div>
+      <div className={`scroll-wrap${foot || to ? " has-foot" : ""}`}>
+        <div className="scrolly"><div className="flow">{children}</div></div>
         <span className="more-hint" aria-hidden><span className="more-pill"><span className="more-word">Scroll for more</span><i className="ti ti-chevrons-down hint-arrow" /></span></span>
         <i className="scroll-line" aria-hidden><b /></i>
       </div>
-      {foot && <div className="card-foot">{foot}</div>}
+      {(foot || to) && <div className="card-foot">{foot}{to && <FullView to={to} label={label} />}</div>}
     </>
   );
 }
@@ -115,7 +113,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <>
         {items.map((it) => (
           <div key={it.id} className={`wall-note quote${lookFor(it).className}`} style={lookFor(it).style}>
-            <Box foot={foot(it.id)} to={href(section, it)}>
+            <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
               <CardLink to={href(section, it)} label={it.title} />
               <p>{it.body || it.title}</p>
               <div className="by">— {it.subtitle || it.title}</div>
@@ -168,7 +166,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "strip") {
     const trips = items.map((it) => { const l = lookFor(it); return (
       <div key={it.id} className={`trip${it.body.trim() ? " with-text" : ""}${l.className}`} style={l.style}>
-        <Box foot={foot(it.id)} to={href(section, it)}>
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
           <CardLink to={href(section, it)} label={it.title} />
           {!l.hide("pic") && <div className="pic-box"><div className={`ph${it.media[0] ? " has-pic" : ""}`}>{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>{zoom(it)}</div>}
           <div className="tb">
@@ -212,11 +210,11 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                     {(it.date_label || it.location) && !l.hide("date") && <span className="flip-meta">{[it.date_label, it.location].filter(Boolean).join(" · ")}</span>}
                     <span className="flip-text">{it.type === "poll" ? "A poll. Open it to vote." : excerpt(it.body, 130) || it.subtitle}</span>
                     {it.tags.length > 0 && !l.hide("tags") && <span className="flip-tags">{it.tags.map((t) => `#${t}`).join(" ")}</span>}
-                    <span className="more">Read more →</span>
+                    <span className="more">Full view →</span>
                   </div>
                 </div>
               </a>
-              <R id={it.id} />
+              <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
             </div>
           ); })}
         </>
@@ -232,7 +230,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               {it.subtitle && !l.hide("subtitle") && <div className="sub">{it.subtitle}</div>}
               <Meta it={it} showCat={false} hideDate={l.hide("date")} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-              <R id={it.id} />
+              <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
               {it.status && <span className="chip line">{it.status}</span>}
@@ -264,13 +262,13 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                     : <div className="pic-box"><img className="post-media" src={it.media[0].url} alt="" loading="lazy" decoding="async" style={vt(it.id)} />{zoom(it)}</div>)}
                   {it.media.length > 1 && <a className="more-media" href={href(section, it)}>+{it.media.length - 1} more photo{it.media.length > 2 ? "s" : ""}/video{it.media.length > 2 ? "s" : ""} →</a>}
                   {it.body.length > 420
-                    ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)} <a href={href(section, it)}>read more</a></p>
+                    ? <p className="md" style={{ margin: 0 }}>{excerpt(it.body, 380)}</p>
                     : <Markdown>{it.body}</Markdown>}
                 </>
               )}
               <LinkButtons it={it} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-              <R id={it.id} />
+              <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
             </div>
           </article>
         ); })}
@@ -296,7 +294,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
           {items.map((it, i) => {
             const l = lookFor(it), pic = it.media[0] && !l.hide("pic"), low = i % 2 === 1;
             return (
-              <div key={it.id} className={`stop${low ? " low" : ""}`} style={{ ...l.style, ["--z" as string]: zoneColor(it.category) }}>
+              <div key={it.id} className={`mstop${low ? " low" : ""}`} style={{ ...l.style, ["--z" as string]: zoneColor(it.category) }}>
                 <div className="stop-head">
                   <span className="stop-pin"><i className={`ti ti-${medalFor(it)}`} aria-hidden /></span>
                   {it.date_label && !l.hide("date") && <span className="stop-date">{it.date_label}</span>}
@@ -308,7 +306,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                   )}
                 </div>
                 <div className={`card stop-card${it.body.trim() || it.type === "poll" ? " with-text" : ""}${pic ? "" : " no-pic"}${l.className}`}>
-                  <Box foot={foot(it.id)} to={href(section, it)}>
+                  <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
                     <CardLink to={href(section, it)} label={it.title} />
                     {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
                     <div className="card-body">
@@ -346,7 +344,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             <Meta it={it} hideDate={l.hide("date")} />
             <h3>{it.title}</h3>
             {(it.subtitle || it.body) && !(l.hide("subtitle") && !it.body) && <p>{(!l.hide("subtitle") && it.subtitle) || excerpt(it.body, 180)}</p>}
-            <R id={it.id} />
+            <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
           </div>
         ); })}
       </div>
@@ -370,7 +368,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               <a href={href(section, it)} className="ph-tile txt">{it.title}</a>
             )}
             <PhotoInfo title={it.title} href={href(section, it)} info={photoInfo(it, l)} />
-            <R id={it.id} />
+            <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
           </div>
         ); })}
       </>
@@ -382,7 +380,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <>
         {items.map((it, i) => { const l = lookFor(it); return (
           <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
-            <Box foot={foot(it.id)} to={href(section, it)}>
+            <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
               <CardLink to={href(section, it)} label={it.title} />
               {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
               <h3>{it.title}</h3>
@@ -406,7 +404,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       {items.map((it, i) => { const l = lookFor(it); const pic = it.media[0] && !l.hide("pic"); return (
         <div key={it.id} className={`card${tile(i)}${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          <Box foot={foot(it.id)} to={href(section, it)}>
+          <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
             <CardLink to={href(section, it)} label={it.title} />
             {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
             <div className="card-body">

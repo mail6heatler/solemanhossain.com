@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -21,7 +21,16 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-06: G1 to G8, section by section
+### 2026-11-06: Four general fixes
+
+- **Side menu pushed left:** my G6 bug. The map's stops used the class `.stop`, which is also the menu's, so the menu went 300px wide. Renamed to `.mstop`, and the menu is now a slim column on a backing at the right edge. This was also the real cause of "the menu's invisible labels block cards" in the G1 to G8 entry below.
+- **No visible transition:** it did run (about 0.65s), but after 1.3 to 2.1s of nothing, and only as a soft fade. Now the click answers at once, pages load on hover and are cached, and the card grows to fill the screen. See "Opening a card" in `CLAUDE.md`.
+- **Scroll for more** shows whenever a scrollable card is at its top, not just until the first scroll. **Full view** replaces "Read the full story": it's in every card's bar, always visible, arrow only on very narrow cards.
+- **Dashboard:** one action bar on every page. See `CLAUDE.md`.
+
+**Scrolling, old build (`before-g1`) against new, alternating, heavy local content:** laptop 102.9 to 96.7 fps, 9.3 to 10.2ms work per frame, 1 to 1 frames over 50ms. Laptop 4x slower 29.1 to 24.1 fps, 34.1 to 41.2ms, 26 to 35. Phone size 76.9 to 73.0 fps, 6.1 to 7.2ms, 0 to 0. So today's work costs a little, most on a weak laptop. The previous run of this same comparison showed laptop 62.7 to 85.2 fps, which was this PC's variation and not a gain: treat one comparison as a rough guide, and repeat it before believing a difference. Not tracked down yet.
+
+### 2026-11-06: G1 to G8, section by section (kept by the owner)
 
 The owner asked for every section's flaws to be found and fixed together, with a live tracker page (https://claude.ai/artifact/VfNivVwBVgFP4yrJisQbT6) showing a timer and the current task. Each section went live with its own restore point.
 

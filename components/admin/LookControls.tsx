@@ -71,7 +71,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
   const reacts = (
     <div className="card-foot"><div className="reacts mini" aria-hidden>
       {["❤️", "🔥", "😂", "🤯", "👏"].map((e) => <button key={e} type="button" tabIndex={-1}><span className="e">{e}</span></button>)}
-    </div></div>
+    </div><span className="full-view" aria-hidden><span>Full view</span><i className="ti ti-arrow-right" /></span></div>
   );
   const head = (
     <>
@@ -152,7 +152,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
           <div className="hint">In your site&apos;s default colours. On phones, cards never get wider than the screen, and on any screen a card stays shorter than the window.</div>
         </div>
       </div>
-      <div className="look-actions">
+      <div className="look-actions save-bar in-card">
         <button className="b-mint"><i className="ti ti-device-floppy" />Save</button>
         <button type="button" className="b-out" disabled={!isCustom(st)} onClick={() => setSt({})}><i className="ti ti-restore" />Default</button>
         <span className="hint">{isCustom(st) ? `Default clears ${level}'s own settings. Press Save to keep the change.` : `Nothing set for ${level}: it follows the default.`}</span>

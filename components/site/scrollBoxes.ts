@@ -1,7 +1,7 @@
 /**
  * Cards with more text than fits scroll inside themselves (`.scrolly`). This adds what CSS can't:
- * - the "Scroll for more" hint: it says so and keeps moving, on cards on screen, until that card has been scrolled once;
- * - a line on the card's edge showing how far through it the visitor is, and the "Read the full story" button at the end;
+ * - the "Scroll for more" hint: it says so and keeps moving, on cards on screen, whenever a card is at its top;
+ * - a line on the card's edge showing how far through it the visitor is;
  * - the mouse wheel moves the card's text first, then the page carries on. It's done by hand because inside a 3D row
  *   the browser hands the wheel to the page, and smooth scrolling would otherwise take it anyway;
  * - a wheel already moving the page keeps moving the page, so a row sliding past the mouse doesn't catch on every long card.
@@ -57,13 +57,11 @@ export function startScrollBoxes(): () => void {
 
   // only cards on screen keep their hint moving
   const onScreen = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle("in-view", e.isIntersecting)));
-  const scrolledOnce = new WeakSet<HTMLElement>();
   const sync = (b: HTMLElement) => {
     const hidden = b.scrollHeight - b.clientHeight;
     const isLong = hidden > 1;
     b.classList.toggle("more", isLong && b.scrollTop + b.clientHeight < b.scrollHeight - 6);
-    if (b.scrollTop > 10) scrolledOnce.add(b);
-    b.classList.toggle("nudge", hidden > 40 && !scrolledOnce.has(b));
+    b.classList.toggle("nudge", hidden > 6 && b.scrollTop < 10);
     const line = b.parentElement?.querySelector<HTMLElement>(".scroll-line b");
     if (line && isLong) line.style.transform = `scaleY(${Math.min(1, (b.scrollTop + b.clientHeight) / b.scrollHeight).toFixed(3)})`;
     if (isLong === long.has(b)) return;
