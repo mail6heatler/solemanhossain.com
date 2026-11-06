@@ -1,6 +1,6 @@
 import { getSettings } from "@/lib/data";
-import { saveHero } from "@/app/actions";
-import { ChipsEditor, UploadField } from "@/components/admin/Widgets";
+import { saveHero, setHeroHidden } from "@/app/actions";
+import { ChipsEditor, ConfirmSubmit, UploadField } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
 
@@ -8,9 +8,11 @@ export default async function HeroPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const s = await getSettings();
   return (
-    <form action={saveHero} className="adm-page">
+    <div className="adm-page">
+    <form action={saveHero}>
       <h1 className="adm-h">G0 · Hero</h1>
       <p className="adm-sub">Your homepage first impression: photo, headline, skills, résumé and more</p>
+      {s.heroHidden && <div className="c"><div className="c-title">The hero is off your homepage right now</div><div className="c-desc" style={{ whiteSpace: "normal" }}>You can still edit it here. Bring it back at the bottom of this page.</div></div>}
 
       <div className="c">
         <div className="c-title" style={{ marginBottom: 10 }}>Avatar / profile photo</div>
@@ -78,9 +80,26 @@ export default async function HeroPage() {
         </div>
       </div>
 
-      <SaveBox label="Save hero">
-        <a href="/#hero" target="_blank" className="b-out"><i className="ti ti-eye" />Preview</a>
+      <SaveBox label="Save hero" still>
+        {s.heroHidden
+          ? <a href="/" target="_blank" className="b-out"><i className="ti ti-eye" />View site</a>
+          : <a href="/#hero" target="_blank" className="b-out"><i className="ti ti-eye" />Preview</a>}
       </SaveBox>
     </form>
+
+    {s.heroHidden ? (
+      <form action={setHeroHidden} className="c c-row" style={{ marginTop: 14 }}>
+        <input type="hidden" name="hidden" value="0" />
+        <div className="grow"><div className="c-title">Bring back the hero</div><div className="c-desc">Everything comes back exactly as it was.</div></div>
+        <button className="b-mint"><i className="ti ti-arrow-back-up" />Bring back</button>
+      </form>
+    ) : (
+      <form action={setHeroHidden} className="c c-row" style={{ marginTop: 14, borderColor: "color-mix(in srgb, var(--danger) 30%, var(--card-border))" }}>
+        <input type="hidden" name="hidden" value="1" />
+        <div className="grow"><div className="c-title">Remove the hero</div><div className="c-desc">Takes it off your homepage. Your name, photo, text and résumé stay saved.</div></div>
+        <ConfirmSubmit title="Remove the hero from your homepage?" message="Visitors will start at your first section. Your name, photo, text and résumé stay saved, and you can bring it back here with one click." yes="Yes, remove"><i className="ti ti-trash" />Remove</ConfirmSubmit>
+      </form>
+    )}
+    </div>
   );
 }

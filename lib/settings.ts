@@ -216,6 +216,7 @@ export type SiteSettings = {
   ctaSecondaryUrl: string;
   heroEmojis: string;
   scrollCue: string;
+  heroHidden: boolean;
   socials: Social[];
   footerLeft: string;
   footerRight: string;
@@ -258,6 +259,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   ctaSecondaryUrl: "#connect",
   heroEmojis: "🚀 💡 ✨ 🌙 ⚡ 🔮",
   scrollCue: "Scroll to begin",
+  heroHidden: false,
   socials: [
     { label: "Email", url: "mailto:you@example.com", icon: "mail" },
     { label: "LinkedIn", url: "https://linkedin.com/in/", icon: "brand-linkedin" },

@@ -59,10 +59,10 @@ export function Nav({ settings, sections, onHome }: { settings: SiteSettings; se
   );
 }
 
-export function Rail({ sections }: { sections: Section[] }) {
+export function Rail({ sections, hero }: { sections: Section[]; hero: boolean }) {
   return (
-    <div id="rail" className="on-dark" aria-hidden>
-      <a className="stop" data-target="hero" href="#hero"><span className="label">Hero</span><span className="node" /></a>
+    <div id="rail" className={hero ? "on-dark" : undefined} aria-hidden>
+      {hero && <a className="stop" data-target="hero" href="#hero"><span className="label">Hero</span><span className="node" /></a>}
       {sections.map((s) => (
         <a key={s.id} className="stop" data-target={s.slug} href={`#${s.slug}`} style={{ textDecoration: "none" }}>
           <span className="label">{s.code ? `${s.code} · ` : ""}{s.nav_label || s.title}</span><span className="node" />
@@ -152,7 +152,7 @@ export function SiteShell({ settings, sections, onHome, children }:
       <Living fx={{ reactfx: fx.reactfx && fx.reactions, sectionfx: fx.sectionfx, cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       <Nav settings={settings} sections={sections} onHome={onHome} />
-      {onHome && <Rail sections={sections} />}
+      {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}
       {children}
       <Footer settings={settings} />
       {fx.bottombar && <BottomBar sections={sections} onHome={onHome} />}

@@ -81,6 +81,8 @@ app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in sett
 
 A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN IF NOT EXISTS`; it runs by itself on the first request after a deploy. `sections.ribbon` controls the sliding headline per section; `reactions.name` is who reacted.
 
+`settings.heroHidden` takes the hero off the homepage. Nothing is deleted, because the name and photo are also used on other pages. Effects must cope with `#hero` being missing, and the first chapter's ribbon is skipped because it would hide under the menu bar. `LivePill` still runs, hidden, because the dashboard's "people here now" number depends on it.
+
 Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`, `votes`, `reactions`, `stats_daily`, `section_views`, `presence`. Created automatically on first use. New settings fields need no migration because `mergeSettings` fills in defaults.
 
 ## How the look works
@@ -109,7 +111,7 @@ All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a cl
 
 ## The dashboard's Save box
 
-`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. The Size & look panels keep theirs inside, because it saves only that panel.
+`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. The Size & look panels keep theirs inside, because it saves only that panel. The hero page's box doesn't float (`still`): the owner wants it resting at the end of the page, above the Remove box.
 
 ## Asking before anything risky
 

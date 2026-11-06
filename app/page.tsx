@@ -43,7 +43,8 @@ export default async function Home() {
   return (
     <SiteShell settings={s} sections={sections} onHome>
       {fx.intro && <Intro name={s.nickname || s.fullName} />}
-      {/* ═══ HERO ═══ */}
+      {/* ═══ HERO ═══ (when it's removed: keep a heading for search engines, and the counter behind the dashboard's "people here now") */}
+      {s.heroHidden ? <><h1 className="sr-only">{s.fullName}</h1>{fx.visitors && <div hidden><LivePill /></div>}</> : (
       <section id="hero" data-spy className={fx.sticker ? "hero-hang" : undefined}>
         {fx.aurora ? <div className="aurora" aria-hidden /> : <><div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" /></>}
         <i className="tf-band" aria-hidden />
@@ -107,12 +108,13 @@ export default async function Home() {
           </div>
         )}
       </section>
+      )}
 
       {/* ═══ SECTIONS ═══ */}
       {blocks.map(({ section, items, wall }, i) => {
         const total = counts.get(section.id) ?? 0;
         const ribbonText = `${section.nav_emoji ? `${section.nav_emoji} ` : ""}${section.title}`;
-        const ribbon = fx.ribbons && section.ribbon && (
+        const ribbon = fx.ribbons && section.ribbon && !(s.heroHidden && i === 0) && (
           <div className={`ribbon ${i % 2 === 1 ? "rev" : ""} ${i === 0 ? "first" : ""}`} aria-hidden>
             <div className="ribbon-track">{Array.from({ length: 20 }, (_, k) => <span key={k}>{ribbonText}</span>)}</div>
           </div>

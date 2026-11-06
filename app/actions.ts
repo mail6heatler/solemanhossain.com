@@ -129,6 +129,14 @@ export async function saveHero(fd: FormData) {
   redirect("/admin/hero?saved=1");
 }
 
+/** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */
+export async function setHeroHidden(fd: FormData) {
+  await requireAdmin();
+  await saveSettingsData({ heroHidden: str(fd, "hidden", 1) === "1" });
+  refresh();
+  redirect("/admin/hero?saved=1");
+}
+
 // ---------- site settings ----------
 export async function saveSite(fd: FormData) {
   await requireAdmin();
