@@ -4,7 +4,7 @@ import Markdown, { excerpt } from "./Markdown";
 import PollCard from "./PollCard";
 import HelloForm from "./HelloForm";
 import Reactions from "./Reactions";
-import StripScroller from "./StripScroller";
+import SideRow, { type RowFx } from "./SideRow";
 import PhotoGrid from "./PhotoGrid";
 import { Cover, MediaBadges } from "./Media";
 
@@ -32,19 +32,59 @@ function Meta({ it, showCat = true }: { it: Item; showCat?: boolean }) {
   return bits.length ? <div className="meta">{bits}</div> : null;
 }
 
+/** Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more. */
+function Box({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <div className="scrolly"><div className="flow">{children}</div></div>
+      <span className="more-hint" aria-hidden><i className="ti ti-chevrons-down" /></span>
+    </>
+  );
+}
+
 function Empty({ text }: { text: string }) {
   return <div className="empty reveal r3"><i className="ti ti-pencil" />{text || "Nothing here yet."}</div>;
 }
 
-export default function SectionBody({ section, items, settings, wall }:
-  { section: Section; items: Item[]; settings: SiteSettings; wall?: Message[] }) {
+/** `grid`: the "See all" pages lay everything out in a neat grid. The homepage uses sideways rows. */
+export default function SectionBody({ section, items, settings, wall, grid = false }:
+  { section: Section; items: Item[]; settings: SiteSettings; wall?: Message[]; grid?: boolean }) {
   const L = section.layout;
   const fx = settings.effects;
   const st = fx.stagger ? " stagger" : "";
   const vt = (id: number) => morphName(fx.morph, id);
   const R = ({ id }: { id: number }) => (fx.reactions ? <Reactions id={id} compact /> : null);
+  const rowFx: RowFx = { pin: fx.sideways, curve: fx.coverflow, fly: fx.rowfly, lean: fx.rowlean, count: fx.rowcount };
+  const row = (className: string, children: React.ReactNode) => grid
+    ? <div className={`${className} reveal r3${st}`}>{children}</div>
+    : <SideRow className={`${className}${st}`} fx={rowFx}>{children}</SideRow>;
 
   if (L === "connect") {
+    const hasNotes = items.length > 0 || (wall?.length ?? 0) > 0;
+    const notes = (
+      <>
+        {items.map((it) => (
+          <div key={it.id} className="wall-note quote">
+            <Box>
+              <p>{it.body || it.title}</p>
+              <div className="by">— {it.subtitle || it.title}</div>
+              <R id={it.id} />
+            </Box>
+          </div>
+        ))}
+        {wall?.map((m) => (
+          <div key={m.id} className="wall-note">
+            <Box>
+              <p>{m.body}</p>
+              <div className="by">— {m.name} · {new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
+            </Box>
+          </div>
+        ))}
+      </>
+    );
+    const noNotes = !hasNotes && (
+      <div className="empty" style={{ marginTop: 0 }}><i className="ti ti-message-heart" />Notes people leave (and you approve) show up here.</div>
+    );
     return (
       <>
         {settings.socials.length > 0 && (
@@ -56,28 +96,17 @@ export default function SectionBody({ section, items, settings, wall }:
             ))}
           </div>
         )}
-        <div className="connect-grid reveal r3">
+        <div className={`connect-grid reveal r3${grid ? "" : " solo"}`}>
           <HelloForm title={settings.connectFormTitle} plane={fx.plane} />
-          <div className="wall">
-            {(items.length > 0 || (wall && wall.length > 0)) && <h3>From the wall</h3>}
-            {items.map((it) => (
-              <div key={it.id} className="wall-note quote">
-                <p>{it.body || it.title}</p>
-                <div className="by">— {it.subtitle || it.title}</div>
-                <R id={it.id} />
-              </div>
-            ))}
-            {wall?.map((m) => (
-              <div key={m.id} className="wall-note">
-                <p>{m.body}</p>
-                <div className="by">— {m.name} · {new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
-              </div>
-            ))}
-            {items.length === 0 && (!wall || wall.length === 0) && (
-              <div className="empty" style={{ marginTop: 0 }}><i className="ti ti-message-heart" />Notes people leave (and you approve) show up here.</div>
-            )}
-          </div>
+          {grid && <div className="wall">{hasNotes && <h3>From the wall</h3>}{notes}{noNotes}</div>}
+          {!grid && !hasNotes && noNotes}
         </div>
+        {!grid && hasNotes && (
+          <div className="wall-row">
+            <h3>From the wall</h3>
+            <SideRow className="wall" fx={rowFx}>{notes}</SideRow>
+          </div>
+        )}
       </>
     );
   }
@@ -87,27 +116,27 @@ export default function SectionBody({ section, items, settings, wall }:
   if (L === "strip") {
     const trips = items.map((it) => (
       <div key={it.id} className="trip">
-        <CardLink to={href(section, it)} label={it.title} />
-        <div className="ph">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>
-        <div className="tb">
-          {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
-          <h3>{it.title}</h3>
-          {(it.location || it.date_label) && (
-            <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
-          )}
-          <R id={it.id} />
-        </div>
+        <Box>
+          <CardLink to={href(section, it)} label={it.title} />
+          <div className="ph">{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>
+          <div className="tb">
+            {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
+            <h3>{it.title}</h3>
+            {(it.location || it.date_label) && (
+              <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
+            )}
+            <R id={it.id} />
+          </div>
+        </Box>
       </div>
     ));
-    return fx.sideways
-      ? <StripScroller className={`strip reveal r3${st}`} depth={fx.coverflow}>{trips}</StripScroller>
-      : <div className={`strip reveal r3${st}`}>{trips}</div>;
+    return row(grid ? "grid3" : "strip", trips);
   }
 
   if (L === "list") {
     if (fx.flip)
-      return (
-        <div className={`flips reveal r3${st}`}>
+      return row("flips", (
+        <>
           {items.map((it) => (
             <div key={it.id} className="flip-wrap">
               <a href={href(section, it)} className="flip" aria-label={`${it.title}${it.subtitle ? `, ${it.subtitle}` : ""}`}>
@@ -130,8 +159,8 @@ export default function SectionBody({ section, items, settings, wall }:
               <R id={it.id} />
             </div>
           ))}
-        </div>
-      );
+        </>
+      ));
     return (
       <div className={`shelf reveal r3${st}`}>
         {items.map((it) => (
@@ -200,10 +229,10 @@ export default function SectionBody({ section, items, settings, wall }:
 
   if (L === "photos") {
     if (fx.lightbox)
-      return <PhotoGrid className={`photogrid reveal r3${st}`} reactions={fx.reactions}
+      return <PhotoGrid className={grid ? `photogrid reveal r3${st}` : `photogrid${st}`} reactions={fx.reactions} row={grid ? undefined : rowFx}
         items={items.map((it) => ({ id: it.id, title: it.title, media: it.media, href: href(section, it) }))} />;
-    return (
-      <div className={`photogrid reveal r3${st}`}>
+    return row("photogrid", (
+      <>
         {items.map((it) => (
           <div key={it.id} className="ph-cell">
             {it.media[0] ? (
@@ -218,48 +247,52 @@ export default function SectionBody({ section, items, settings, wall }:
             <R id={it.id} />
           </div>
         ))}
-      </div>
-    );
+      </>
+    ));
   }
 
   if (L === "notes")
-    return (
-      <div className={`notes reveal r3${st}`}>
+    return row("notes", (
+      <>
         {items.map((it, i) => (
           <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}`}>
-            {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
-            <h3>{it.title}</h3>
-            {it.media[0] && <Cover m={it.media[0]} className="note-media" />}
-            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
-            <R id={it.id} />
+            <Box>
+              {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
+              <h3>{it.title}</h3>
+              {it.media[0] && <Cover m={it.media[0]} className="note-media" />}
+              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
+              <R id={it.id} />
+            </Box>
           </div>
         ))}
-      </div>
-    );
+      </>
+    ));
 
   // cards (default); as a bento grid the first (featured) card gets the big tile
-  const bento = fx.bento && items.length >= 3;
+  const bento = fx.bento && items.length >= 3 && !grid;
   const tile = (i: number) => (!bento ? "" : i === 0 ? " b-big" : i % 4 === 3 ? " b-wide" : "");
-  return (
-    <div className={`grid3 reveal r3${st}${bento ? " bento" : ""}`}>
+  return row(`grid3${bento ? " bento" : ""}`, (
+    <>
       {items.map((it, i) => (
         <div key={it.id} className={`card${tile(i)}`}>
-          <CardLink to={href(section, it)} label={it.title} />
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          {it.media[0] && <div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>}
-          <div className="card-body">
-            <div className="card-top">
-              {it.category ? <span className="chip">{it.category}</span> : <span />}
-              {it.status && !it.pinned && <span className="chip line">{it.status}</span>}
+          <Box>
+            <CardLink to={href(section, it)} label={it.title} />
+            {it.media[0] && <div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>}
+            <div className="card-body">
+              <div className="card-top">
+                {it.category ? <span className="chip">{it.category}</span> : <span />}
+                {it.status && !it.pinned && <span className="chip line">{it.status}</span>}
+              </div>
+              <h3>{it.title}</h3>
+              {it.subtitle && <p className="sub">{it.subtitle}</p>}
+              {it.type === "poll" ? <p className="ex">📊 Poll · tap to vote</p> : <Markdown className="md ex">{it.body}</Markdown>}
+              {it.tags.length > 0 && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+              <R id={it.id} />
             </div>
-            <h3>{it.title}</h3>
-            {it.subtitle && <p className="sub">{it.subtitle}</p>}
-            {it.type === "poll" ? <p className="ex">📊 Poll · tap to vote</p> : it.body && <p className="ex">{excerpt(it.body)}</p>}
-            {it.tags.length > 0 && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-            <R id={it.id} />
-          </div>
+          </Box>
         </div>
       ))}
-    </div>
-  );
+    </>
+  ));
 }

@@ -37,7 +37,7 @@ Next.js here is newer than most training data. Read `node_modules/next/dist/docs
 ```
 app/
   page.tsx                 homepage: hero + one <section> per database section
-  s/[slug]/page.tsx        "See all" page
+  s/[slug]/page.tsx        "See all" page (a grid of same-size cards: SectionBody's `grid` prop)
   s/[slug]/[id]/page.tsx   entry page
   admin/(panel)/           dashboard (overview, hero, sections, entries, inbox, appearance, settings)
   actions.ts               every dashboard change; all call requireAdmin
@@ -63,7 +63,8 @@ components/site/
   Split.tsx                server-rendered split text: <Split> for letters, <Words> for words
   Intro.tsx                opening curtain (CSS only)
   HeroFx.tsx               decoding/kinetic headline, avatar tilt, greeting, live counter
-  StripScroller.tsx        sideways pinned photo trail and its 3D curve
+  SideRow.tsx              the homepage's row of cards: never wraps; pins and slides sideways on computers, swiped on phones, plus curve, fly-in, lean, counter
+  scrollBoxes.ts           cards that scroll inside themselves: the "more" hint and the wheel (text first, then page)
   ThemeSwitch.tsx          theme menu, shuffle, circular theme wipe
   Demo.tsx                 ?demo=<key> previews opened from dashboard pop-ups
 lib/
@@ -117,6 +118,11 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Anything that spawns things must have a cap.** `bannerFall.ts` once had splashes that made more splashes, and it froze the page.
 
 ## Rules learned the hard way
+
+- **A card never grows.** Its contents go in `Box` (`SectionBody.tsx`): the shell keeps its size (`--row-h`), `.scrolly` scrolls, and `.card-link` sits inside `.flow` so a finger can still scroll a card that is clickable everywhere.
+- **Inside a 3D row, the browser's own scrolling and hit-testing can't be trusted.** Part of a turned card sits behind the row's flat surface, so the row caught clicks (hence `pointer-events` in the `pin` CSS) and the browser sent the wheel to the page (hence the hand-driven glide in `scrollBoxes.ts`).
+- **`.scrolly` is the exception to the rule below:** no `data-lenis-prevent` and no `overscroll-behavior: contain`, because the page must carry on once a card's text ends. A wheel already moving the page keeps moving it, so a row passing under the mouse doesn't catch on every long card.
+- **Rows add page height after loading,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back. A row's `reveal` is on its sticky stage, because a tall or moved element may never reach the reveal threshold and would stay invisible.
 
 - **Anything that scrolls inside the page needs `data-lenis-prevent` and `overscroll-behavior: contain`.** Otherwise smooth scrolling takes the wheel and the page moves instead (see the theme menu).
 

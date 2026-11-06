@@ -55,7 +55,7 @@ export function startScrollFx(fx: ScrollFxFlags) {
 
     // photo grids: columns slide at slightly different speeds (not on phones, where there is less room)
     if (fx.imgreveal && window.matchMedia("(min-width: 761px)").matches) {
-      qsa(".photogrid").forEach((grid) => {
+      qsa(".photogrid:not(.side-track)").forEach((grid) => {
         const cells = Array.from(grid.children) as HTMLElement[];
         if (cells.length < 4) return;
         const cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length || 1;

@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -14,6 +14,20 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-06: Cards that fit, rows that slide
+
+The owner reported cards growing with their content, and rows wrapping downwards. Now:
+
+- **Cards keep their size** (at most 440px, or 62% of the screen height on short windows). Extra content scrolls inside the card, with a bouncing arrow while there is more. Normal cards show their full text instead of the first 150 characters; a click still opens the entry.
+- **The homepage never wraps** (`SideRow.tsx`): cards, notes, flip cards, photos, trips and wall notes sit in one row reaching both screen edges. If they don't fit, computers pin the section and slide the row while scrolling down; phones swipe. If they fit, nothing moves. Timeline, journal, plain list and the Say Hello form stay vertical; the wall moved under the form.
+- **"See all" pages stay a grid of same-size cards** (the owner's choice, on my recommendation).
+- **Effects, each with a switch:** curve (`coverflow`, now on every row), fly-in (`rowfly`), lean with speed (`rowlean`), big counter (`rowcount`). `sideways` now covers every row; off gives a plain row with a scrollbar.
+- Also: a sideways trackpad swipe moves the row, and keyboard focus brings its card into view.
+
+**Scrolling** (real graphics card, 1366x768, wheel-scrolling for up to 14 seconds): live site before this change 65.5 fps, 0 to 2 frames over 50ms, and 16.1 fps on the 4x slower simulated device. New version on a heavy local test (up to 11 cards in each of 6 rows, production build) 65.8 fps, 3 frames over 50ms, and 23.5 fps on the slower device. Both slower-device runs went to the lighter version.
+
+**Testing notes:** `next build` caches the homepage, so `next start` shows the database that was used at build time; use `next dev` to compare data. Test with `PGLITE_DIR` pointing at a copy of `.data/pglite`, never the real one.
 
 ### 2026-11-07: A real hanging thing for each theme (kept by the owner)
 

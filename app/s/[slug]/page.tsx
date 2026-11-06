@@ -43,7 +43,7 @@ export default async function SectionPage({ params, searchParams }: P) {
               ))}
             </div>
           )}
-          <SectionBody section={section} items={items} settings={settings} wall={wall} />
+          <SectionBody section={section} items={items} settings={settings} wall={wall} grid />
         </div>
       </section>
     </SiteShell>

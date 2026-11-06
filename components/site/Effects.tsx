@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { accent, burst, confettiCannons, confettiFrom, prefersReducedMotion, rain, toast } from "./fx";
+import { startScrollBoxes } from "./scrollBoxes";
 
 type Fx = { autolite: boolean; smooth: boolean; countup: boolean; timeline: boolean; sparkles: boolean; explorer: boolean; party: boolean };
 const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
@@ -89,6 +90,8 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     );
     document.querySelectorAll("section.chap, section[data-spy], .ribbon").forEach((el) => sleepObs.observe(el));
     cleanups.push(() => sleepObs.disconnect());
+
+    cleanups.push(startScrollBoxes());
 
     // reveal (+ cards dropping in one by one, via CSS on .stagger.in)
     const revealObs = new IntersectionObserver(

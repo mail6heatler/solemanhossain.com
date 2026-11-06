@@ -136,9 +136,9 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=stagger",
   },
   sideways: {
-    title: "Photo-trail sections slide sideways",
-    what: "On computers, sections laid out as a photo trail (like Adventures) stay in place while scrolling down moves the trips sideways, like a film strip. On phones visitors swipe instead.",
-    how: ["Switch on and save.", "Add 4 or more entries with photos to the section so there's something to slide.", "On the site, scroll down through that section."],
+    title: "Rows that don't fit slide sideways",
+    what: "On the homepage, cards never wrap onto a new line. When a row doesn't fit on a computer, the section stays in place while scrolling down moves the cards sideways. On phones visitors swipe. With this off, computers get a scrollbar under the row instead.",
+    how: ["Switch on and save.", "Add enough entries to a section that they don't all fit across the screen.", "On the site, scroll down through that section."],
     preview: "/?demo=sideways",
   },
   timeline: {
@@ -188,10 +188,28 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=cardtilt",
   },
   coverflow: {
-    title: "Photo trail curves in 3D",
-    what: "While the Photo trail slides sideways, the trips turn and shrink as they move away from the middle of the screen, like a curved film strip. On phones they only shrink.",
-    how: ["Switch on and save (“Photo-trail sections slide sideways” must be on too).", "On the site, scroll through a photo-trail section."],
+    title: "Sideways rows curve in 3D",
+    what: "While a row slides sideways, its cards turn and shrink as they move away from the middle of the screen, like a curved film strip. On phones they only shrink.",
+    how: ["Switch on and save (“Rows that don't fit slide sideways” must be on too).", "On the site, scroll through a row that doesn't fit on screen."],
     preview: "/?demo=coverflow",
+  },
+  rowfly: {
+    title: "Sideways cards fly in tilted",
+    what: "A sideways row sweeps in from the edge of the screen as its section arrives. Each card comes in tilted and low, then straightens as it reaches the middle.",
+    how: ["Switch on and save.", "On the site, scroll to a row that doesn't fit on screen."],
+    preview: "/?demo=rowfly",
+  },
+  rowlean: {
+    title: "Sideways rows lean when you scroll fast",
+    what: "The whole row leans and stretches a little with your scrolling speed, then springs back when you slow down.",
+    how: ["Switch on and save.", "On the site, scroll quickly through a row that doesn't fit on screen."],
+    preview: "/?demo=rowlean",
+  },
+  rowcount: {
+    title: "Big counter on sideways rows",
+    what: "A large number such as 03 / 12 shows which card visitors have reached in a sideways row.",
+    how: ["Switch on and save.", "On the site, scroll through a row that doesn't fit on screen."],
+    preview: "/?demo=rowcount",
   },
 
   // ----- text -----
