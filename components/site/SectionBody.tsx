@@ -144,16 +144,23 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
 
   if (L === "strip") {
     const trips = items.map((it) => { const l = lookFor(it); return (
-      <div key={it.id} className={`trip${l.className}`} style={l.style}>
+      <div key={it.id} className={`trip${it.body.trim() ? " with-text" : ""}${l.className}`} style={l.style}>
         <Box foot={foot(it.id)} to={href(section, it)}>
           <CardLink to={href(section, it)} label={it.title} />
           {!l.hide("pic") && <div className="pic-box"><div className={`ph${it.media[0] ? " has-pic" : ""}`}>{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>{zoom(it)}</div>}
           <div className="tb">
             {it.category && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
             <h3>{it.title}</h3>
+            {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
             {(it.location || it.date_label) && !l.hide("date") && (
               <div className="loc"><i className="ti ti-map-pin" />{[it.location, it.date_label].filter(Boolean).join(" · ")}</div>
             )}
+            {(it.mood || it.status) && !l.hide("date") && (
+              <div className="meta">{it.status && <span className="chip line">{it.status}</span>}{it.mood && <Mood mood={it.mood} />}</div>
+            )}
+            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+            <LinkButtons it={it} />
+            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
           </div>
         </Box>
       </div>

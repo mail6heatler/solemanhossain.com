@@ -1273,6 +1273,14 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .card-links a:hover, .card-links a:focus-visible { scale: 1.05; background: color-mix(in srgb, var(--mint) 16%, transparent); }
 /* a picture-only card: small enough that it doesn't scroll for nothing */
 .note:not(.with-text) { --pic: .56; }
+.trip .sub { font-size: calc(12.5px * var(--fs, 1)); color: var(--muted); margin: 0; }
+.trip .ex { font-size: calc(13px * var(--fs, 1)); color: var(--text-2); margin: 3px 0 0; }
+.trip .ex.md p { margin-bottom: .6em; }
+.trip .ex.md p:last-child { margin-bottom: 0; }
+.trip .md a { position: relative; z-index: 2; }
+.trip .tb { flex: 1 0 auto; }
+/* a trip with no photo but a story to tell: the pin stays small, so the story isn't pushed out of view */
+.side-track > .trip.with-text .ph:not(.has-pic), .grid3 > .trip.with-text .ph:not(.has-pic) { height: 64px; font-size: 22px; }
 /* with text to read, the picture leaves room for it (inline settings from the controls still win) */
 .with-text { --pic: .5; }
 /* at the end of a card's text; only cards that really scroll need it, the rest are one click anyway */
