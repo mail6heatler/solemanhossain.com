@@ -51,6 +51,8 @@ function keepPlace() {
  *
  * Only `transform` on the track and `rotate`/`scale`/`translate`/`opacity` on the cards change per frame. Card positions
  * are measured once, cards past the screen edge aren't written to, and nothing runs while the row is off screen.
+ * A swiped row stays flat and straight: reshaping its cards made phones redraw them on every frame (42 to 118 fps when
+ * removed, and it followed the finger more closely). Only its counter, bar and trail marks follow the swipe.
  */
 export default function SideRow({ className, fx, children }: { className: string; fx: RowFx; children: React.ReactNode }) {
   const outer = useRef<HTMLDivElement>(null);
@@ -66,7 +68,7 @@ export default function SideRow({ className, fx, children }: { className: string
     if (!o || !t) return;
     const wide = window.matchMedia("(min-width: 761px)");
     let mode: "fit" | "pin" | "swipe" = "fit";
-    let over = 0, range = 1, half = 1, seen = true, raf = 0, lastT = 0, lastPos = 0, tilt = 0, shown = -1, oTop = 0, rowLeft = 0, lastW = 0;
+    let over = 0, range = 1, half = 1, seen = true, raf = 0, lastT = 0, lastPos = 0, tilt = 0, shown = -1, oTop = 0, rowLeft = 0, lastW = 0, barAt = -1;
     let light = document.documentElement.classList.contains("lite");
     let cards: { el: HTMLElement; mid: number; d: number; on: boolean }[] = [];
     let here: HTMLElement | null = null;
@@ -83,18 +85,17 @@ export default function SideRow({ className, fx, children }: { className: string
     };
     const pose = (shift: number) => {
       if (!curve && !fly) return;
-      const big = mode === "pin", k = big ? 1 : 0.4;
       for (const c of cards) {
         const d = clamp((c.mid + shift - half) / half, -1.3, 1.3);
         if (Math.abs(d - c.d) < 0.003) continue;
         c.d = d;
         const enter = fly ? clamp((d - 0.6) / 0.6, 0, 1) : 0, leave = fly ? clamp((-d - 0.75) / 0.5, 0, 1) : 0;
-        const ry = curve && big ? -d * 17 : 0, rz = (enter * 10 - leave * 5) * k, angle = Math.hypot(ry, rz);
+        const ry = curve ? -d * 17 : 0, rz = enter * 10 - leave * 5, angle = Math.hypot(ry, rz);
         const s = c.el.style;
         s.rotate = angle < 0.01 ? "" : `0 ${(ry / angle).toFixed(3)} ${(rz / angle).toFixed(3)} ${angle.toFixed(2)}deg`;
-        s.translate = fly ? `0 ${((enter * 70 - leave * 20) * k).toFixed(1)}px` : "";
-        s.scale = curve ? (1 - Math.abs(d) * (big ? 0.08 : 0.06)).toFixed(3) : "";
-        s.opacity = fly && big ? (1 - enter * 0.35 - leave * 0.4).toFixed(3) : "";
+        s.translate = fly ? `0 ${(enter * 70 - leave * 20).toFixed(1)}px` : "";
+        s.scale = curve ? (1 - Math.abs(d) * 0.08).toFixed(3) : "";
+        s.opacity = fly ? (1 - enter * 0.35 - leave * 0.4).toFixed(3) : "";
       }
     };
     const clearPoses = () => cards.forEach((c) => { c.d = NaN; c.el.style.rotate = c.el.style.scale = c.el.style.translate = c.el.style.opacity = ""; });
@@ -110,29 +111,26 @@ export default function SideRow({ className, fx, children }: { className: string
       const speed = (pos - lastPos) / dt;
       lastPos = pos;
 
-      // the row sweeps in from the side while its section rises into view
-      // (a pinned row finishes as it pins; a swiped row never reaches the top of the screen, so it finishes well before)
-      const risen = mode === "pin" ? top / window.innerHeight : (top / window.innerHeight - 0.55) / 0.45;
-      const sweep = fly && !light ? Math.pow(clamp(risen, 0, 1), 1.4) * half * 0.9 : 0;
-      // the row leans with scroll speed and springs back (on real time, so slow devices don't get slow motion)
-      if (lean && !light) {
+      const pinned = mode === "pin";
+      // a pinned row sweeps in from the side while its section rises into view, finishing as it pins
+      const sweep = pinned && fly && !light ? Math.pow(clamp(top / window.innerHeight, 0, 1), 1.4) * half * 0.9 : 0;
+      // it leans with scroll speed and springs back (on real time, so slow devices don't get slow motion)
+      if (pinned && lean && !light) {
         const want = clamp(speed * 2.2, -6, 6);
         tilt += (want - tilt) * (1 - Math.exp(-dt / 90));
         if (want === 0 && Math.abs(tilt) < 0.03) tilt = 0;
       } else tilt = 0;
       const leaning = tilt ? `skewX(${(-tilt).toFixed(2)}deg) scaleX(${(1 + Math.abs(tilt) * 0.004).toFixed(4)})` : "";
 
-      if (mode === "pin") {
+      if (pinned) {
         // anchored on the middle of the screen, otherwise stretching a long row would throw it sideways
         t.style.transform = leaning
           ? `translateX(${half}px) ${leaning} translateX(${(-half - pos + sweep).toFixed(1)}px)`
           : `translateX(${(-pos + sweep).toFixed(1)}px)`;
-      } else {
-        t.style.transform = sweep || leaning ? `translateX(${sweep.toFixed(1)}px) ${leaning}` : "";
+        if (!light) pose(-pos + sweep);
       }
-      if (!light) pose(-pos + sweep);
       if (marks) mark(-pos, light || p > 0.995);
-      if (bar.current) bar.current.style.transform = `scaleX(${p.toFixed(4)})`;
+      if (bar.current && p !== barAt) { barAt = p; bar.current.style.transform = `scaleX(${p.toFixed(4)})`; }
       o.classList.toggle("moved", p > 0.02);
       if (now.current && cards.length) {
         const i = Math.round(p * (cards.length - 1));
@@ -168,6 +166,7 @@ export default function SideRow({ className, fx, children }: { className: string
       if (marks && mode === "fit") mark(0, true); // everything is in view, so the whole trail is lit
       if (total.current) total.current.textContent = `/ ${pad(kids.length)}`;
       shown = -1;
+      barAt = -1;
       lastPos = mode === "pin" ? clamp((pageY() - oTop) / range, 0, 1) * over : rowLeft;
       keepPlace();
       kick();
@@ -207,12 +206,13 @@ export default function SideRow({ className, fx, children }: { className: string
     t.addEventListener("focusin", focus);
     const swiped = () => { rowLeft = t.scrollLeft; kick(); };
     t.addEventListener("scroll", swiped, { passive: true }); // phones swipe the row itself
+    const pageMoved = () => { if (mode === "pin") kick(); }; // a swiped row has nothing to do when the page moves
     // rows above this one, pictures and fonts all move it down the page
     const pageSize = new ResizeObserver(() => { oTop = docTop(o); });
     pageSize.observe(document.body);
     // a phone's address bar sliding away is not a real resize
     const resized = () => { if (window.innerWidth !== lastW || mode === "pin") measure(); };
-    window.addEventListener("scroll", kick, { passive: true });
+    window.addEventListener("scroll", pageMoved, { passive: true });
     window.addEventListener("resize", resized);
     window.addEventListener("lc-lite", toLite);
     wide.addEventListener("change", measure);
@@ -223,7 +223,7 @@ export default function SideRow({ className, fx, children }: { className: string
       t.removeEventListener("focusin", focus);
       t.removeEventListener("scroll", swiped);
       pageSize.disconnect();
-      window.removeEventListener("scroll", kick);
+      window.removeEventListener("scroll", pageMoved);
       window.removeEventListener("resize", resized);
       window.removeEventListener("lc-lite", toLite);
       wide.removeEventListener("change", measure);

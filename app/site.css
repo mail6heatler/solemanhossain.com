@@ -1385,8 +1385,8 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 /* --- the row reaches both edges of the screen, so cards come from outside it --- */
 .side { margin-top: 34px; margin-left: calc(var(--gutter, 7vw) * -1); width: 100vw; max-width: 100vw; position: relative; }
 .side-stage { display: flex; flex-direction: column; gap: 16px; }
-.side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gutter, 7vw) 16px; align-items: stretch; transform-origin: 0 50%; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter, 7vw); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
-.side-track > * { flex: 0 0 auto; scroll-snap-align: start; min-width: 0; }
+.side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gutter, 7vw) 16px; align-items: stretch; transform-origin: 0 50%; scroll-snap-type: none; scroll-padding-inline: var(--gutter, 7vw); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
+.side-track > * { flex: 0 0 auto; min-width: 0; }
 .side-track > .card, .side-track > .note { width: var(--cw, clamp(280px, 27vw, 340px)); }
 .side-track > .card.b-big, .side-track > .note.wide { width: var(--cw, clamp(300px, 36vw, 460px)); }
 .side-track > .trip { width: var(--cw, clamp(250px, 24vw, 300px)); }
@@ -1418,7 +1418,7 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 
 /* --- computers: the section holds still while the row slides --- */
 .side[data-mode="pin"] .side-stage { position: sticky; top: 0; height: 100vh; justify-content: center; padding-top: 52px; perspective: 1500px; }
-.side[data-mode="pin"] .side-track { overflow: visible; scroll-snap-type: none; transform-style: preserve-3d; }
+.side[data-mode="pin"] .side-track { overflow: visible; transform-style: preserve-3d; }
 /* in 3D, part of a turned card sits behind the row's flat surface, which would catch the mouse instead of the card */
 .side[data-mode="pin"] .side-track { pointer-events: none; }
 .side[data-mode="pin"] .side-track > * { pointer-events: auto; }

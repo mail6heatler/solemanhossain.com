@@ -189,7 +189,7 @@ export const HELP: Record<string, Help> = {
   },
   coverflow: {
     title: "Sideways rows curve in 3D",
-    what: "While a row slides sideways, its cards turn and shrink as they move away from the middle of the screen, like a curved film strip. On phones they only shrink.",
+    what: "While a row slides sideways, its cards turn and shrink as they move away from the middle of the screen, like a curved film strip. Computers only: on phones cards slide flat, so swiping stays smooth.",
     how: ["Switch on and save (“Rows that don't fit slide sideways” must be on too).", "On the site, scroll through a row that doesn't fit on screen."],
     preview: "/?demo=coverflow",
   },
@@ -201,13 +201,13 @@ export const HELP: Record<string, Help> = {
   },
   rowfly: {
     title: "Sideways cards fly in tilted",
-    what: "A sideways row sweeps in from the edge of the screen as its section arrives. Each card comes in tilted and low, then straightens as it reaches the middle.",
+    what: "A sideways row sweeps in from the edge of the screen as its section arrives. Each card comes in tilted and low, then straightens as it reaches the middle. Computers only: on phones cards slide flat, so swiping stays smooth.",
     how: ["Switch on and save.", "On the site, scroll to a row that doesn't fit on screen."],
     preview: "/?demo=rowfly",
   },
   rowlean: {
     title: "Sideways rows lean when you scroll fast",
-    what: "The whole row leans and stretches a little with your scrolling speed, then springs back when you slow down.",
+    what: "The whole row leans and stretches a little with your scrolling speed, then springs back when you slow down. Computers only: on phones cards slide flat, so swiping stays smooth.",
     how: ["Switch on and save.", "On the site, scroll quickly through a row that doesn't fit on screen."],
     preview: "/?demo=rowlean",
   },

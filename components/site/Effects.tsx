@@ -62,7 +62,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       cleanups.push(() => window.removeEventListener("lc-lite", toNative));
       import("lenis").then(({ default: Lenis }) => {
         if (dead) return;
-        const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.14 });
+        const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.3 });
         lenis = l;
         (window as unknown as { __lenis?: unknown }).__lenis = l;
       }).catch(() => {});

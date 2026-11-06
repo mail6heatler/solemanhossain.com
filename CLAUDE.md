@@ -66,7 +66,7 @@ components/site/
   Split.tsx                server-rendered split text: <Split> for letters, <Words> for words
   Intro.tsx                opening curtain (CSS only)
   HeroFx.tsx               decoding/kinetic headline, avatar tilt, greeting, live counter
-  SideRow.tsx              the homepage's row of cards: never wraps; pins and slides sideways on computers, swiped on phones, plus curve, fly-in, lean, counter
+  SideRow.tsx              the homepage's row of cards: never wraps; pins and slides sideways on computers with curve, fly-in and lean; on phones it's swiped, flat, with a counter
   scrollBoxes.ts           cards that scroll inside themselves: the "more" hint and the wheel (text first, then page)
   ThemeSwitch.tsx          theme menu, shuffle, circular theme wipe
   Demo.tsx                 ?demo=<key> previews opened from dashboard pop-ups
@@ -146,6 +146,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Off-screen work must stop.** `Effects.tsx` puts `.sleep` on off-screen sections and ribbons, which pauses every animation inside and hides decorations. Scroll handlers should skip off-screen targets and read cached positions instead of measuring per frame.
 - **No `backdrop-filter` or `mix-blend-mode` on anything large or fixed.** Both force the browser to redraw what's behind on every scrolled frame.
 - **Scaling an element without `will-change: transform` re-draws its text at each size.** Set it only while moving, and clear it at rest (see chapter motion in `scrollFx.ts`).
+- **A swiped row stays flat.** Reshaping its cards every frame made phones redraw them: removing it took a swipe from 42 to 118 fps, and from 65 stutters to 3 on a slower device. Curve, fly-in and lean are for pinned rows only. Measure a swipe on its own (see `Input.dispatchTouchEvent` above), because scrolling past rows doesn't show this. Rows have no scroll snap: even `proximity` pulled a short swipe back to the card it left.
 - **Set `playbackRate` only when the value changes**, and only on what's on screen. Each write resynchronises the animation.
 - **Slow devices get `html.lite`.** `Effects.tsx` watches frame times while scrolling; under about 25 fps for several seconds it sets the class, stores `lc_lite` in sessionStorage and fires `lc-lite`. Anything heavy must check the class at start and stop on that event. To add to it, see `ThemeFx`, `HeroScene`, `Living` and the `html.lite` CSS.
 - **Anything that spawns things must have a cap.** `bannerFall.ts` once had splashes that made more splashes, and it froze the page.

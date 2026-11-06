@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -20,6 +20,20 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-06: Rows dragging (waiting for the owner's keep or undo)
+
+The owner said sliding felt like dragging on computer and phone, and asked for normal sliding if it couldn't be fixed.
+
+- **Phone, a real cause:** a swiped row reshaped every card on every frame, so the phone kept redrawing them. Swiped rows now stay flat and straight. Curve, fly-in and lean are for pinned rows only.
+- **Phone, snapping removed:** `proximity` still pulled a 108px swipe back to its card, so rows now have no snap and stop where the finger leaves them. Numbers can't show how this feels, so it needs a real phone.
+- **Computer, a likely cause, not proven:** frames were already fine, and removing the curve gained nothing (132 to 134 fps). What remained was the wheel glide, so Lenis `lerp` went from 0.14 to 0.3. This affects all wheel scrolling on computers. Picked by measuring, not by feel.
+- **Agreed fallback:** if a computer still drags, drop pinning there. The wheel then simply goes down the page, and cards move by trackpad, Shift + wheel or the scrollbar.
+- **Left alone:** a swipe up that starts on a long card scrolls its text first. One card took two swipes before the page moved. The owner asked for cards that scroll inside.
+
+**Old against new, alternating, same local content, 3 rounds:** phone swipe 47.0 to 117.2 fps, 7.7 to 4.4ms work per frame, 3 to 0 frames over 50ms. Phone swipe 4x slower 20.1 to 38.9 fps, 37.9 to 23.5ms, 66 to 5. Page past rows on a phone 66.1 to 69.4 fps. Laptop slide 123.9 to 116.3 fps, 7.2 to 8.1ms, 0 to 0, which is about the same and may be this PC's variation. Laptop 4x slower 29.9 to 30.0 fps. One wheel click on the test page finishes in 292ms, was 626ms.
+
+**Unexplained:** one direct-link test run had its page crash, right after a long measuring run. It didn't happen again in 36 more loads of the new build or 18 of the old, so the cause is unknown.
 
 ### 2026-11-06: Four general fixes
 
