@@ -200,7 +200,7 @@ export default function SideRow({ className, fx, children, after }: { className:
     const waitAtLeast = (ms: number) => { hold = Math.max(hold, performance.now() + ms); };
 
     const measure = () => {
-      const kids = Array.from(t.children) as HTMLElement[];
+      const kids = (Array.from(t.children) as HTMLElement[]).filter((k) => !k.hasAttribute("data-rider")); // what rides along isn't a card
       const last = kids[kids.length - 1];
       if (!last) return;
       const hand = !still && !touchy.matches;

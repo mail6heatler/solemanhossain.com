@@ -377,6 +377,12 @@ export const HELP: Record<string, Help> = {
   },
 
   // ----- layout -----
+  tripfx: {
+    title: "Boarding passes: a vehicle travels the route, stamps thump",
+    what: "A section laid out as Boarding passes (like Adventures) shows each entry as a paper ticket on a dashed route. With this on, a small vehicle travels along the route to the ticket you're on, tickets slide in as they arrive, and stamps thump down. With it off, the tickets and the route stay, without the movement. The vehicle comes from the entry's words, or from a tag: plane, car, bus, train, boat, bike, shoe or balloon. The stamp comes from its Status; otherwise an entry with a date says Visited, and one on your bucket list says Next stop.",
+    how: ["Switch on and save.", "To use it on another section, choose “Boarding passes” as its layout, under Section settings."],
+    preview: "/?demo=tripfx",
+  },
   windowfx: {
     title: "App windows pop open, with a bouncing dock",
     what: "A section laid out as App windows (like Made) shows each project as a small app window on a desktop, with a dock of icons below. With this on, windows pop open as they arrive, their address bar fills like a page loading, and the dock's icons grow under the mouse and bounce when clicked. With it off they look the same but stay still.",

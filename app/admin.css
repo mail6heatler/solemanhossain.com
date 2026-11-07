@@ -316,6 +316,7 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-preview-col { min-width: 0; position: sticky; top: 74px; }
 .look-preview-lab { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
 .look-preview { border-radius: 14px; background: var(--page-bg); border: .5px dashed var(--input-border); padding: 14px; overflow: auto; max-height: 72vh; }
+.look-preview .tkt-cell { width: var(--cw, 310px); max-width: 100%; }
 .look-preview .site { min-height: 0; background: transparent; width: max-content; max-width: 100%; margin: 0 auto; --row-h: min(440px, 62vh); }
 .look-preview :is(.card, .note, .trip) { width: var(--cw, 340px); max-height: var(--row-h); }
 .look-focus { cursor: crosshair; }

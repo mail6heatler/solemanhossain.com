@@ -156,6 +156,7 @@ export const EFFECTS = [
   { key: "sparkles", group: "Fun", label: "Click sparkles" },
   { key: "visitors", group: "Fun", label: "“People here now” counter" },
   { key: "game404", group: "Fun", label: "404 page mini game" },
+  { key: "tripfx", group: "Layout", label: "Boarding passes: a vehicle travels the route, stamps thump" },
   { key: "windowfx", group: "Layout", label: "App windows pop open, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
   { key: "flip", group: "Layout", label: "Flip cards for list sections" },
@@ -336,6 +337,7 @@ export function parseLinks(raw: unknown): Link[] {
 export const LAYOUTS = [
   { value: "windows", label: "App windows — projects on a desktop" },
   { value: "cards", label: "Cards grid — projects" },
+  { value: "tickets", label: "Boarding passes — trips on a route" },
   { value: "strip", label: "Photo trail — trips (scrolls sideways)" },
   { value: "list", label: "Shelf list — books, songs, people" },
   { value: "stream", label: "Feed stream — thoughts, polls" },

@@ -114,6 +114,9 @@ export const SCHEMA = [
   // G2's new look, agreed with the owner on 2026-11-07. The old cards stay a choice under Section settings.
   `WITH first AS (INSERT INTO done_once (key) VALUES ('made-windows') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'windows' WHERE slug = 'made' AND layout = 'cards' AND EXISTS (SELECT 1 FROM first)`,
+  // G3's new look, agreed on 2026-11-07. The old photo trail stays a choice under Section settings.
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('adventures-tickets') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'tickets' WHERE slug = 'adventures' AND layout = 'strip' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {
@@ -163,7 +166,7 @@ const SECTIONS: SeedSection[] = [
     slug: "adventures", code: "G3", nav_label: "Adventures", nav_emoji: "✈️", eyebrow: "Adventures", eyebrow_emoji: "✈️",
     title: "Places I've been",
     subtitle: "A trail of trips: photo, place name and date.",
-    layout: "strip", emojis: "🗺️ 🧭 🌏",
+    layout: "tickets", emojis: "🗺️ 🧭 🌏",
     categories: "Expeditions, Quest chronicles, Through my eyes, Bucket list, Moments that made me wander",
     empty_text: "No trips logged yet.",
     items: [

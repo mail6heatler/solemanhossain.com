@@ -61,7 +61,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
   const picBlock = sample.pic && !look.hide("pic") ? (
     <div className={`pic-box${canFocus ? " look-focus" : ""}`} onClick={canFocus ? focus : undefined} title={canFocus ? "Click the part that must stay visible" : undefined}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {layout === "strip"
+      {layout === "strip" || layout === "tickets"
         ? <div className="ph has-pic"><img src={sample.pic} alt="" /></div>
         : layout === "notes" ? <img className="note-media" src={sample.pic} alt="" />
         : <div className="card-media"><img className="card-img" src={sample.pic} alt="" /></div>}
@@ -146,6 +146,21 @@ export default function LookControls({ initial, above, sample, layout, level }:
                 <div className={`trip${look.className}`} style={look.style}>{box(<>{picBlock ?? (look.hide("pic") ? null : <div className="pic-box"><div className="ph"><i className="ti ti-map-pin" /></div></div>)}<div className="tb">{text}</div></>)}</div>
               ) : layout === "notes" ? (
                 <div className={`note${withText}${look.className}`} style={look.style}>{box(<>{head}{picBlock}{rest}</>)}</div>
+              ) : layout === "tickets" ? (
+                <div className={`tkt-cell${look.className}`} style={look.style}>
+                  <div className={`trip tkt${withText}`}>
+                    <div className="tkt-head">
+                      <div className="tkt-band"><span className="tkt-carrier">Your subsection</span><span className="tkt-no">G3-01</span></div>
+                      <div className="tkt-route">
+                        <div className="tkt-end"><small>From</small><b>Home</b></div>
+                        <div className="tkt-path" aria-hidden />
+                        <div className="tkt-end to"><small>To</small><h3>{sample.title}</h3></div>
+                      </div>
+                    </div>
+                    <div className="tkt-tear" aria-hidden />
+                    {box(<>{picBlock}<div className="tb">{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)}
+                  </div>
+                </div>
               ) : layout === "windows" ? (
                 <div className={`card win${withText}${look.className}`} style={look.style}>
                   <div className="win-head">

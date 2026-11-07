@@ -49,8 +49,10 @@ app/
   admin.css                dashboard design
 components/site/
   Chrome.tsx               SiteShell (wrapper for every public page), Nav, Rail, BottomBar, Footer
-  SectionBody.tsx          the 9 section layouts, including the milestones map (`milemap`, a timeline as stops on a trail) and app windows (`windows`)
+  SectionBody.tsx          the 10 section layouts, including the milestones map (`milemap`, a timeline as stops on a trail), app windows (`windows`) and boarding passes (`tickets`)
   Dock.tsx                 the icons under a desktop of app windows; a click sends "row-go" to its SideRow, which answers with "row-at"
+  TicketRider.tsx          the vehicle travelling the route above boarding passes; it rides inside the row's track (`data-rider`, so SideRow doesn't count it)
+  vehicles.tsx             the drawn vehicles, and which one an entry gets from its tags or words
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
@@ -119,6 +121,8 @@ Show everything the entry holds that fits a card: subtitle, date, place, mood, s
 The owner wants each section to look like what it holds, one section at a time (see "Section makeovers" in `PROGRESS.md`, which has the checklist). A new look is a new value in `LAYOUTS`, so the old look stays a choice under Section settings; `lookOf`, `Box` and `SideRow` still do the work.
 
 **App windows (`windows`, G2):** each project is a `.card.win`, so it keeps everything a card does. Its title bar and address bar (`.win-head`) sit above `Box`, so they don't scroll. A window `isolation: isolate`s itself, or a window behind would paint its scroll line over the one in front. A project with no picture gets `CodeView`, its own details written as code; its subtitle, tags, date and place are then in the code, not repeated below. The `windowfx` switch only controls motion: the pop on arrival (the `.stagger` machinery), the address bar filling, the dock's swell and bounce. New classes here are prefixed (`cd-`, `win-`, `dock-`), because `.c`, `.f` and `.k` are already taken.
+
+**Boarding passes (`tickets`, G3):** each entry is a `.trip.tkt` inside a `.tkt-cell`, which also holds its stretch of the dashed route (`.tkt-stop`), so the route moves with the row. The notches are two circles in the page's colour on the tear line (`--bg`, or `--bg-2` on `.chap.alt`), not a mask, which would also cut off the ticket's shadow. The top part has a fixed height (`--tear`), because the tear line has to line up with it, and the route names are in the body font, because the wide display fonts split words at that size. The vehicle moves only by a CSS transition on `transform`. When the row is sliding it follows "row-at"; when everything fits it tours the tickets, there and back. It goes to a ticket the mouse is really on (the same `movementX` rule as the row). Its stamp comes from Status, otherwise Visited if there's a date, or Next stop for bucket-list words, otherwise none, so nothing claims a trip was made without a date.
 
 ## Rows that don't fit
 

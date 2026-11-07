@@ -1541,6 +1541,86 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
   .dock-i, .win-head, .dock-tip { transition: none; }
 }
 
+/* --- G3: trips as boarding passes on a route (layout "tickets", SectionBody + TicketRider + vehicles). A ticket is a .trip inside a cell that also
+   holds its stretch of the route. The notches are two circles in the page's colour, not a mask: a mask makes the browser do extra work around
+   anything that moves inside it, and it would cut off the ticket's shadow too --- */
+.tkt-cell { --pic: .42; --row-h: min(480px, 70vh); position: relative; isolation: isolate; display: flex; flex-direction: column; width: var(--cw, 320px); }
+@media (max-width: 760px) { .tkt-cell { --row-h: min(470px, 70svh); } }
+.trip.tkt { --tear: 98px; flex: none; width: 100%; height: var(--row-h); max-height: var(--row-h); display: flex; flex-direction: column; overflow: visible; box-shadow: 0 14px 26px -14px color-mix(in srgb, var(--fg) 48%, transparent); }
+.tkt-cell.sized > .tkt { height: var(--row-h); }
+.trip.tkt :is(.scroll-wrap, .scrolly) { border-radius: 0; } /* they start at the tear line, not at the ticket's corner */
+.tkt-head { position: relative; flex: none; height: var(--tear); overflow: hidden; border-radius: var(--r-card) var(--r-card) 0 0; background: color-mix(in srgb, var(--mint) 15%, var(--card)); }
+.tkt-link { position: absolute; inset: 0; z-index: 1; }
+.tkt-band { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px 0; font: 700 10.5px/1.3 var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--mint-deep); }
+.tkt-carrier { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tkt-no { flex: none; color: var(--muted); font-family: ui-monospace, "JetBrains Mono", Consolas, monospace; }
+.tkt-route { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 9px 16px 0; } /* From takes what it needs, so a short name never breaks */
+.tkt-end small { display: block; margin-bottom: 2px; font: 600 9.5px/1.2 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.tkt-end { min-width: 0; }
+.tkt-end:not(.to) { max-width: 120px; }
+.tkt-end b, .trip .tkt-end h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; margin: 0; font: 800 calc(16px * var(--fs, 1))/1.15 var(--body); /* not the display font: some are too wide for a ticket and would split a word */ text-transform: uppercase; letter-spacing: -.005em; color: var(--fg); }
+.tkt-end.to { text-align: right; }
+.tkt-path { position: relative; width: 40px; height: 26px; display: grid; place-items: center; }
+.tkt-path::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed color-mix(in srgb, var(--fg) 24%, transparent); }
+.tkt-path svg { position: relative; height: 22px; width: auto; max-width: 100%; }
+.tkt-path svg[data-k="balloon"] { height: 28px; }
+.tkt-tear { position: relative; z-index: 4; flex: none; height: 0; margin-inline: 16px; border-top: 2px dashed color-mix(in srgb, var(--fg) 22%, transparent); }
+.tkt-tear::before, .tkt-tear::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg); }
+.chap.alt .tkt-tear::before, .chap.alt .tkt-tear::after { background: var(--bg-2); }
+.tkt-tear::before { left: -25.5px; }
+.tkt-tear::after { right: -25.5px; }
+.tkt-art { flex: none; height: calc(var(--row-h) * var(--pic) * .68); display: grid; place-items: center; overflow: hidden;
+  background: radial-gradient(38px 15px at 22% 30%, color-mix(in srgb, var(--inv-fg) 62%, transparent) 60%, transparent 62%), radial-gradient(28px 11px at 78% 58%, color-mix(in srgb, var(--inv-fg) 62%, transparent) 60%, transparent 62%), linear-gradient(color-mix(in srgb, var(--pop3) 30%, var(--card)), color-mix(in srgb, var(--mint) 12%, var(--card))); }
+.tkt-art svg { height: 66%; width: auto; max-width: 70%; }
+.tkt-fields { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 2px 0; }
+.tkt-fields dt { font: 600 9.5px/1.2 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.tkt-fields dd { margin: 2px 0 0; font: 600 calc(12.5px * var(--fs, 1))/1.3 var(--body); color: var(--text-2); }
+.tkt .tb { padding-top: 12px; }
+.tkt-stamp { position: absolute; z-index: 3; right: 12px; top: calc(var(--tear) + 12px); max-width: 72%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; rotate: -9deg; padding: 3px 9px; border: 2.5px solid currentColor; border-radius: 7px; background: color-mix(in srgb, var(--card) 72%, transparent); color: var(--pop3); font: 800 12px/1.2 var(--display); letter-spacing: .09em; text-transform: uppercase; pointer-events: none; }
+.tkt-cell:not(.next) .tkt-stamp { color: color-mix(in srgb, var(--pop2) 72%, var(--fg)); }
+.tkt-cell.next .tkt-stamp { color: var(--mint-deep); border-style: dashed; }
+.tkt-cell.next .tkt { border: 1.5px dashed color-mix(in srgb, var(--mint-deep) 60%, var(--line)); }
+.tkt-cell.next .tkt-head { background: color-mix(in srgb, var(--mint) 7%, transparent); }
+/* the vehicles' colours */
+.v-a { fill: var(--mint); } .v-b { fill: var(--pop2); } .v-c { fill: var(--pop3); } .v-d { fill: var(--fg); } .v-e { fill: var(--card); }
+.v-line { fill: none; stroke: var(--fg); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.v-line-a { stroke: var(--mint-deep); }
+.v-line-e { stroke: var(--card); stroke-width: 1.800; }
+/* the row and its route: each cell draws its own stretch, so the route moves with the row, and it lights up behind the vehicle */
+.side-track.tkt-row { gap: 18px; padding-top: 8px; padding-bottom: 30px; }
+.side-track.tkt-row > .tkt-cell { width: var(--cw, clamp(280px, 25vw, 330px)); }
+@media (max-width: 760px) { .side-track.tkt-row { gap: 14px; } .side-track.tkt-row > .tkt-cell { width: min(var(--cw, 310px), 82vw); } }
+.tkt-stop { position: relative; flex: none; height: 46px; }
+.tkt-stop::before, .tkt-stop::after { content: ""; position: absolute; top: calc(50% - 1.5px); border-top: 3px dashed color-mix(in srgb, var(--fg) 22%, transparent); }
+.tkt-stop::before { left: -9px; right: 50%; }
+.tkt-stop::after { left: 50%; right: -9px; }
+.tkt-cell.first .tkt-stop::before, .tkt-cell.last .tkt-stop::after { display: none; }
+.tkt-cell.passed .tkt-stop::before, .tkt-cell.passed .tkt-stop::after, .tkt-cell.here .tkt-stop::before { border-top: 3px solid var(--mint); }
+.tkt-stop i { position: absolute; z-index: 1; left: 50%; top: 50%; width: 14px; height: 14px; translate: -50% -50%; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--fg) 30%, var(--card)); background: var(--card); transition: background .3s, border-color .3s; }
+.tkt-cell:is(.passed, .here) .tkt-stop i { border-color: var(--mint); background: var(--mint); }
+.tkt-cell.next .tkt-stop i { border-style: dashed; }
+.tkt-rider { display: none; position: absolute; z-index: 6; left: 0; top: 8px; width: 60px; height: 46px; pointer-events: none; transition: transform 1.2s cubic-bezier(.45,0,.2,1) !important; }
+.side[data-mode] .tkt-rider { display: block; }
+.tkt-rider-in { position: absolute; inset: 0; display: grid; place-items: center; }
+.tkt-rider.going-back .tkt-rider-in { scale: -1 1; }
+.tkt-rider svg { grid-area: 1 / 1; height: 38px; width: auto; opacity: 0; transition: opacity .25s; }
+.tkt-rider svg[data-k="balloon"] { height: 52px; margin-top: -16px; }
+.tkt-rider svg.on { opacity: 1; }
+/* what the switch controls: tickets slide in, stamps thump down, the vehicle and any big drawing bob at rest */
+.site.fx-tripfx .side .tkt-row.stagger.live > .tkt-cell { opacity: 0; }
+.site.fx-tripfx .side .tkt-row.stagger.live > .tkt-cell.seen { opacity: 1; animation: tkt-in .6s cubic-bezier(.2,1,.3,1) backwards; animation-delay: calc(var(--si, 0) * 85ms); }
+@keyframes tkt-in { from { opacity: 0; translate: 0 28px; } }
+.side .tkt-row.stagger.live > .tkt-rider { opacity: 1; animation: none; }
+.site.fx-tripfx .tkt-cell.seen .tkt-stamp { animation: tkt-stamp .42s cubic-bezier(.3,1.5,.5,1) backwards; animation-delay: calc(.55s + var(--si, 0) * 85ms); }
+@keyframes tkt-stamp { from { opacity: 0; scale: 2.3; } }
+.site.fx-tripfx .tkt-rider svg.on, .site.fx-tripfx .tkt-cell.here .tkt-art svg { animation: tkt-bob 2.6s ease-in-out infinite; }
+@keyframes tkt-bob { 50% { transform: translateY(-3px); } }
+html.lite .tkt-rider svg, html.lite .tkt-art svg { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .tkt-rider { transition: none !important; }
+  .tkt-rider svg, .tkt-art svg { animation: none !important; }
+}
+
 /* --- Say Hello: the form on top, the wall in its own row below --- */
 .connect-grid.solo { grid-template-columns: minmax(0, 620px); }
 .wall-row { margin-top: 30px; }
@@ -1619,7 +1699,7 @@ html.scrolling .mstop.here .stop-pin::after { animation-play-state: paused; }
 
 /* --- while the page scrolls, decorative loops rest: nobody watches them then, and each running animation is restyled every frame.
    The scroll-linked motion and the moving headlines keep going. --- */
-html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .scrollcue i, .hang .stk-float, #hero h1 .accent .kc, .hb-tag .ti, .hint-arrow),
+html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .scrollcue i, .hang .stk-float, #hero h1 .accent .kc, .hb-tag .ti, .hint-arrow, .tkt-rider svg, .tkt-art svg),
 html.scrolling :is(.brand .dot, .pulse)::after,
 html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note, .hs) { animation-play-state: paused !important; }
 /* a title's letters waiting off screen stay flat: tipped back in 3D, every letter is its own layer for the browser to manage */
