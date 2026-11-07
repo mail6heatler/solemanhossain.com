@@ -14,7 +14,9 @@ import TicketRider from "./TicketRider";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
 import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./TripFrame";
 import { ShelfDecor, ShelfLamp, StudyFrame, studyView, type StudyBody } from "./StudyFrame";
-import { ComicFrame, ComicMore, comicView, FlyingBrain, type ComicBody } from "./ComicFrame";
+import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
+import { FlyingBrain } from "./comicArt";
+import ComicPoll from "./ComicPoll";
 import TvPlay from "./TvPlay";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
@@ -484,16 +486,22 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       const l = lookFor(it);
       const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
       const v = comicView(it, { code: section.code, fallback: section.nav_label || section.title, index: i, hideSubtitle: l.hide("subtitle"), hasPic: !!first });
-      const poll = it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : null;
-      const body: ComicBody = ({ above, withPoll, text }) => (
+      const poll = it.type !== "poll" ? null : v.look === "buttons"
+        ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />
+        : <ComicPoll id={it.id} options={it.poll_options} look={v.look as "scale" | "vs" | "quick" | "slash" | "quad"} word={v.word} confetti={fx.confetti} />;
+      const says = v.subtitle ? <p className="sub">{v.subtitle}</p> : null;
+      const body: ComicBody = ({ above, withPoll }) => (
         <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
           <CardLink to={href(section, it)} label={it.title} />
           <div className="tb">
             {above}
-            {v.subtitle && <p className="sub">{v.subtitle}</p>}
+            {v.look !== "poem" && says}
             {withPoll && poll}
-            {text.trim() && <div className="cm-box"><Markdown className="md ex">{text}</Markdown></div>}
-            <Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />
+            {v.look === "poem"
+              ? v.verses.map((line, n) => <Markdown key={n} className="md ex cm-verse">{line}</Markdown>)
+              : v.text.trim() && <div className="cm-box"><Markdown className="md ex">{v.text}</Markdown></div>}
+            {v.look === "poem" && says}
+            <Meta it={v.look === "vibe" && v.mood ? { ...it, mood: "" } : it} showCat={false} hideDate={l.hide("date")} showStatus />
             <LinkButtons it={it} />
             {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
           </div>

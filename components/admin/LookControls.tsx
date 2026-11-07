@@ -3,6 +3,7 @@ import { TripFrame, type PassView } from "@/components/site/TripFrame";
 import { Vehicle } from "@/components/site/vehicles";
 import { StudyFrame, type StudyView } from "@/components/site/StudyFrame";
 import { ComicFrame, type ComicView } from "@/components/site/ComicFrame";
+import ComicPoll from "@/components/site/ComicPoll";
 import { useState } from "react";
 import { HIDE_LABELS, LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles, type ContentStyle, type HideKey } from "@/lib/contentStyle";
 
@@ -173,8 +174,10 @@ export default function LookControls({ initial, above, sample, layout, level }:
                   <div className={`trip tkt cm${withText}`} style={look.style}>
                     <ComicFrame view={look.hide("subtitle") ? { ...sample.comic, subtitle: "" } : sample.comic} first={sample.pic && !look.hide("pic") ? { url: sample.pic, type: "image" } : undefined} fixedPic={"--pic" in (look.style ?? {})}
                       link={canFocus ? <span className="tkt-link look-focus" onClick={focus} title="Click the part that must stay visible"><i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? 30}%` }} aria-hidden /></span> : undefined}
-                      poll={sample.options && <div className="poll">{sample.options.map((o) => <button key={o} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}</div>}
-                      body={({ above, withPoll, text }) => box(<div className="tb">{above}{sample.comic?.subtitle && !look.hide("subtitle") && <p className="sub">{sample.comic.subtitle}</p>}{withPoll && sample.options && <div className="poll">{sample.options.map((o) => <button key={o} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}</div>}{text.trim() && <div className="cm-box"><div className="md ex"><p>{text}</p></div></div>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{sample.tags.length > 0 && !look.hide("tags") && <div className="tags">{sample.tags.map((t) => <span key={t}>{t}</span>)}</div>}</div>)} />
+                      still poll={sample.options && (sample.comic.look === "buttons"
+                        ? <div className="poll">{sample.options.map((o) => <button key={o} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}</div>
+                        : <ComicPoll id={0} still options={sample.options} look={sample.comic.look as "scale" | "vs" | "quick" | "slash" | "quad"} word={sample.comic.word} />)}
+                      body={({ above, withPoll }) => box(<div className="tb">{above}{sample.comic?.subtitle && !look.hide("subtitle") && <p className="sub">{sample.comic.subtitle}</p>}{withPoll && sample.options && <div className="poll">{sample.options.map((o) => <button key={o} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}</div>}{sample.comic?.look === "poem" ? sample.comic.verses.map((line, n) => <div key={n} className="md ex cm-verse"><p>{line}</p></div>) : sample.comic?.text.trim() && <div className="cm-box"><div className="md ex"><p>{sample.comic.text}</p></div></div>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{sample.tags.length > 0 && !look.hide("tags") && <div className="tags">{sample.tags.map((t) => <span key={t}>{t}</span>)}</div>}</div>)} />
                   </div>
                 </div>
               ) : layout === "windows" ? (

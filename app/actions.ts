@@ -342,6 +342,8 @@ export async function updateItem(fd: FormData) {
   if (fd.has("pass")) await query("UPDATE items SET pass=$1 WHERE id=$2", [JSON.stringify(cleanPass(String(fd.get("pass")))), id]);
   if (fd.has("study")) await query("UPDATE items SET study=$1 WHERE id=$2", [JSON.stringify(cleanStudy(String(fd.get("study")))), id]);
   if (fd.has("comic")) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(String(fd.get("comic")))), id]);
+  // a Comic strip's plain entry can become a poll; without at least two options it stays plain
+  if (str(fd, "make_poll") === "1" && poll.length >= 2) await query("UPDATE items SET type='poll' WHERE id=$1", [id]);
   refresh();
   redirect(`/admin/items/${id}?saved=1`);
 }

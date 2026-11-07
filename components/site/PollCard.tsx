@@ -2,16 +2,18 @@
 import { useEffect, useState } from "react";
 import { confettiFrom } from "./fx";
 
-export default function PollCard({ id, options, confetti = false }: { id: number; options: string[]; confetti?: boolean }) {
+/** A poll's votes and how to cast one, for a card's buttons and for the comic strip's panels. `still` is a preview: it fetches nothing. */
+export function usePoll(id: number, confetti = false, still = false) {
   const [counts, setCounts] = useState<number[] | null>(null);
   const [mine, setMine] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (still) return;
     fetch(`/api/vote?id=${id}`).then((r) => r.json()).then((d) => {
       if (Array.isArray(d.counts)) { setCounts(d.counts); setMine(d.mine); }
     }).catch(() => {});
-  }, [id]);
+  }, [id, still]);
 
   const vote = async (option: number, el: HTMLElement) => {
     if (busy) return;
@@ -24,7 +26,11 @@ export default function PollCard({ id, options, confetti = false }: { id: number
   };
 
   const total = counts?.reduce((a, b) => a + b, 0) ?? 0;
-  const show = mine !== null;
+  return { counts, mine, busy, vote, total, show: mine !== null };
+}
+
+export default function PollCard({ id, options, confetti = false }: { id: number; options: string[]; confetti?: boolean }) {
+  const { counts, mine, busy, vote, total, show } = usePoll(id, confetti);
   return (
     <div className="poll">
       {options.map((o, i) => {

@@ -4,6 +4,7 @@ import { prefersReducedMotion } from "./fx";
 import { Vehicle, type VehicleKind } from "./vehicles";
 
 const TOUR_MS = 4500; // how long it stays at a stop when a row of tickets all fit on the screen
+const SETTLE_MS = 300; // how long the row must rest on an entry before it wakes, so that a show doesn't start on every entry a finger passes over
 
 /**
  * The vehicle travelling the route above a row of boarding passes. It lives inside the row's track, so it moves with the row, and it
@@ -22,7 +23,7 @@ export default function TicketRider({ kinds, className = "tkt-rider", children, 
     const cells = (Array.from(track.children) as HTMLElement[]).filter((c) => !c.hasAttribute("data-rider"));
     if (!cells.length) return;
     const icons = Array.from(inner.children) as HTMLElement[];
-    let xs: number[] = [], lastW = 0, here = -1, wanted = 0, onScreen = false, pointing = false, timer = 0, heading = 1;
+    let xs: number[] = [], lastW = 0, here = -1, wanted = 0, onScreen = false, pointing = false, timer = 0, heading = 1, wake = 0;
     let lastTarget: EventTarget | null = null;
 
     const set = (x: number, ms: number) => {
@@ -35,7 +36,7 @@ export default function TicketRider({ kinds, className = "tkt-rider", children, 
       xs = cells.map((c) => c.offsetLeft + c.offsetWidth / 2 - w / 2);
       set(here >= 0 ? xs[here] : xs[0] - 90, 0);
     };
-    const go = (i: number) => {
+    const go = (i: number, settle = 0) => {
       if (i === here || xs[i] === undefined) return;
       if (!onScreen) { wanted = i; return; }
       const from = here >= 0 ? xs[here] : xs[i] - 90;
@@ -45,7 +46,9 @@ export default function TicketRider({ kinds, className = "tkt-rider", children, 
       if (kinds) icons.forEach((s) => s.classList.toggle("on", s.dataset.k === kinds[i]));
       set(xs[i], ms);
       if (ms && kinds) inner.animate?.([{ translate: "0 0" }, { translate: "0 -12px" }, { translate: "0 0" }], { duration: ms, easing: "ease-in-out" });
-      cells.forEach((c, k) => { c.classList.toggle("passed", k < i); c.classList.toggle("here", k === i); });
+      clearTimeout(wake);
+      cells.forEach((c, k) => { c.classList.toggle("passed", k < i); c.classList.remove("here"); });
+      if (settle) wake = window.setTimeout(() => cells[i].classList.add("here"), settle); else cells[i].classList.add("here");
       here = i;
     };
 
@@ -57,7 +60,7 @@ export default function TicketRider({ kinds, className = "tkt-rider", children, 
       }
       timer = window.setTimeout(tour, TOUR_MS);
     };
-    const rowAt = (e: Event) => { if (!pointing) go((e as CustomEvent<number>).detail); };
+    const rowAt = (e: Event) => { if (!pointing) go((e as CustomEvent<number>).detail, SETTLE_MS); };
     // only a mouse that really moves counts, as on the row itself: the page can bring a row under a resting one
     const moved = (e: PointerEvent) => {
       if (e.pointerType === "mouse" && !e.movementX && !e.movementY) return;
@@ -94,6 +97,7 @@ export default function TicketRider({ kinds, className = "tkt-rider", children, 
     window.addEventListener("resize", resized);
     return () => {
       clearTimeout(timer);
+      clearTimeout(wake);
       seen.disconnect();
       side.removeEventListener("row-at", rowAt);
       track.removeEventListener("pointermove", moved);
