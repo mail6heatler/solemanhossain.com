@@ -123,7 +123,7 @@ export default async function SectionAdmin({ params }: P) {
               <div className="fl"><label>Entries shown on the homepage</label><input className="inp" type="number" name="home_limit" min={1} max={60} defaultValue={section.home_limit} />
                 <div className="hint">More than this adds a &ldquo;See all&rdquo; button.</div></div>
             </div>
-            <div className="fl"><label>Subsections (one per line)</label><textarea name="categories" defaultValue={section.categories.join("\n")} /></div>
+            <div className="fl"><label>Subsections (one per line)</label><textarea name="categories" defaultValue={section.categories.join("\n")} />{section.layout === "tickets" && <div className="hint">With Boarding passes, a subsection&apos;s name picks its entries&apos; frame: a quest gets a camera, a bucket list a bucket, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}</div>
             <div className="f2">
               <div className="fl"><label>Floating emojis (separate with spaces)</label><input className="inp" name="emojis" defaultValue={section.emojis} /></div>
               <div className="fl"><label>Message when empty</label><input className="inp" name="empty_text" defaultValue={section.empty_text} /></div>

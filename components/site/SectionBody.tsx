@@ -12,6 +12,7 @@ import FullView from "./FullView";
 import Dock from "./Dock";
 import TicketRider from "./TicketRider";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
+import { frameFor, stampFor, TripFrame } from "./TripFrame";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
@@ -431,40 +432,37 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       const l = lookFor(it);
       const pic = it.media[0] && !l.hide("pic");
       const next = isNextTrip(it);
-      const stamp = it.status || (next ? "Next stop" : it.date_label ? "Visited" : "");
+      const frame = frameFor(it.category);
+      const stamp = stampFor(it, frame);
+      const picture = pic
+        ? <div className="pic-box"><div className="ph has-pic"><Cover m={it.media[0]} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>
+        : !l.hide("pic") && !it.media[0] ? <div className="tkt-art" aria-hidden><Vehicle kind={kinds[i]} /></div> : null;
+      // `above` sits at the top of the part that scrolls; the title goes in the text unless the frame already shows it
+      const body = (above: React.ReactNode, title: boolean) => (
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+          <CardLink to={href(section, it)} label={it.title} />
+          {above}
+          <div className="tb">
+            {title && <h3>{it.title}</h3>}
+            {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
+            {(it.date_label || it.location || it.mood) && (
+              <dl className="tkt-fields">
+                {it.date_label && !l.hide("date") && <div><dt>Date</dt><dd>{it.date_label}</dd></div>}
+                {it.location && !l.hide("date") && <div><dt>Place</dt><dd>{it.location}</dd></div>}
+                {it.mood && <div><dt>Mood</dt><dd><Mood mood={it.mood} /></dd></div>}
+              </dl>
+            )}
+            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+            <LinkButtons it={it} />
+            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+          </div>
+        </Box>
+      );
       return (
-        <div key={it.id} className={`tkt-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${next ? " next" : ""}${l.className}`} style={l.style}>
+        <div key={it.id} className={`tkt-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${next ? " next" : ""}${!picture && stamp ? " tkt-nopic" : ""}${l.className}`} style={l.style}>
           {!grid && <div className="tkt-stop" aria-hidden><i /></div>}
-          <div className={`trip tkt${it.body.trim() ? " with-text" : ""}`}>
-            <div className="tkt-head">
-              <a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />
-              <div className="tkt-band"><span className="tkt-carrier">{it.category || section.nav_label || section.title}</span><span className="tkt-no">{section.code || "TR"}-{String(i + 1).padStart(2, "0")}</span></div>
-              <div className="tkt-route">
-                <div className="tkt-end"><small>From</small><b>{home}</b></div>
-                <div className="tkt-path" aria-hidden><Vehicle kind={kinds[i]} /></div>
-                <div className="tkt-end to"><small>To</small><h3>{it.title}</h3></div>
-              </div>
-            </div>
-            <div className="tkt-tear" aria-hidden />
-            <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-              <CardLink to={href(section, it)} label={it.title} />
-              {pic
-                ? <div className="pic-box"><div className="ph has-pic"><Cover m={it.media[0]} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>
-                : !l.hide("pic") && !it.media[0] && <div className="tkt-art" aria-hidden><Vehicle kind={kinds[i]} /></div>}
-              <div className="tb">
-                {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
-                {(it.date_label || it.location || it.mood) && (
-                  <dl className="tkt-fields">
-                    {it.date_label && !l.hide("date") && <div><dt>Date</dt><dd>{it.date_label}</dd></div>}
-                    {it.location && !l.hide("date") && <div><dt>Place</dt><dd>{it.location}</dd></div>}
-                    {it.mood && <div><dt>Mood</dt><dd><Mood mood={it.mood} /></dd></div>}
-                  </dl>
-                )}
-                {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
-                <LinkButtons it={it} />
-                {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-              </div>
-            </Box>
+          <div className={`trip tkt fr-${frame}${it.body.trim() ? " with-text" : ""}`}>
+            <TripFrame frame={frame} subsection={it.category || section.nav_label || section.title} no={`${section.code || "TR"}-${String(i + 1).padStart(2, "0")}`} home={home} title={it.title} date={l.hide("date") ? "" : it.date_label} kind={kinds[i]} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} drawn={!pic} body={body} />
             {stamp && <span className="tkt-stamp">{stamp}</span>}
           </div>
         </div>

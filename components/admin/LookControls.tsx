@@ -1,8 +1,10 @@
 "use client";
+import { TripFrame, type FrameKind } from "@/components/site/TripFrame";
+import { Vehicle, type VehicleKind } from "@/components/site/vehicles";
 import { useState } from "react";
 import { HIDE_LABELS, LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles, type ContentStyle, type HideKey } from "@/lib/contentStyle";
 
-export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string };
+export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; subsection?: string; date?: string; frame?: FrameKind; kind?: VehicleKind; stamp?: string };
 
 const SIZES = [["", "Default"], ["s", SIZE_PRESETS.s.label], ["m", SIZE_PRESETS.m.label], ["l", SIZE_PRESETS.l.label], ["custom", "Custom"]] as const;
 
@@ -147,18 +149,12 @@ export default function LookControls({ initial, above, sample, layout, level }:
               ) : layout === "notes" ? (
                 <div className={`note${withText}${look.className}`} style={look.style}>{box(<>{head}{picBlock}{rest}</>)}</div>
               ) : layout === "tickets" ? (
-                <div className={`tkt-cell${look.className}`} style={look.style}>
-                  <div className={`trip tkt${withText}`}>
-                    <div className="tkt-head">
-                      <div className="tkt-band"><span className="tkt-carrier">Your subsection</span><span className="tkt-no">G3-01</span></div>
-                      <div className="tkt-route">
-                        <div className="tkt-end"><small>From</small><b>Home</b></div>
-                        <div className="tkt-path" aria-hidden />
-                        <div className="tkt-end to"><small>To</small><h3>{sample.title}</h3></div>
-                      </div>
-                    </div>
-                    <div className="tkt-tear" aria-hidden />
-                    {box(<>{picBlock}<div className="tb">{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)}
+                <div className={`tkt-cell${look.hide("pic") && sample.stamp ? " tkt-nopic" : ""}${look.className}`} style={look.style}>
+                  <div className={`trip tkt fr-${sample.frame ?? "ticket"}${withText}`}>
+                    <TripFrame frame={sample.frame ?? "ticket"} subsection={sample.subsection || "Your subsection"} no="G3-01" home="Home" title={sample.title} date={look.hide("date") ? "" : sample.date ?? ""} kind={sample.kind ?? "plane"}
+                      picture={picBlock ?? (!look.hide("pic") && <div className="tkt-art" aria-hidden><Vehicle kind={sample.kind ?? "plane"} /></div>)} drawn={!picBlock}
+                      body={(above, showTitle) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
+                    {sample.stamp && <span className="tkt-stamp">{sample.stamp}</span>}
                   </div>
                 </div>
               ) : layout === "windows" ? (

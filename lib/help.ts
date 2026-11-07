@@ -379,7 +379,7 @@ export const HELP: Record<string, Help> = {
   // ----- layout -----
   tripfx: {
     title: "Boarding passes: a vehicle travels the route, stamps thump",
-    what: "A section laid out as Boarding passes (like Adventures) shows each entry as a paper ticket on a dashed route. With this on, a small vehicle travels along the route to the ticket you're on, tickets slide in as they arrive, and stamps thump down. With it off, the tickets and the route stay, without the movement. The vehicle comes from the entry's words, or from a tag: plane, car, bus, train, boat, bike, shoe or balloon. The stamp comes from its Status; otherwise an entry with a date says Visited, and one on your bucket list says Next stop.",
+    what: "A section laid out as Boarding passes (like Adventures) shows each entry on a dashed route, in a frame chosen by its Subsection: a quest gets a camera, a bucket list a bucket, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket. With this on, a small vehicle travels along the route to the entry you're on, frames slide in as they arrive, stamps thump down, the camera's shutter flashes and the bucket's handle swings. With it off, the frames and the route stay, without the movement. The vehicle comes from the entry's words, or from a tag: plane, car, bus, train, boat, bike, shoe or balloon. The stamp comes from its Status, which has one-click buttons on the entry's page.",
     how: ["Switch on and save.", "To use it on another section, choose “Boarding passes” as its layout, under Section settings."],
     preview: "/?demo=tripfx",
   },

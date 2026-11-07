@@ -7,7 +7,7 @@ export type VehicleKind = "plane" | "car" | "bus" | "train" | "boat" | "bike" | 
 
 const WORDS: [VehicleKind, RegExp][] = [
   ["balloon", /\b(balloon|bucket list|bucket|someday|wish|dream|next|to be decided)\b/],
-  ["shoe", /\b(shoes?|walk|walking|hike|hiking|trek|trekking|run|running|marathon|race|foot)\b/],
+  ["shoe", /\b(shoes?|walk|walking|hike|hiking|trek|trekking|run|running|marathon|race|foot|quests?)\b/],
   ["boat", /\b(boat|ship|ferry|cruise|sail|sailing|launch)\b/],
   ["train", /\b(train|rail|railway)\b/],
   ["bus", /\b(bus|coach)\b/],
@@ -26,9 +26,11 @@ export function vehicleFor(it: Trip): VehicleKind {
   return "plane";
 }
 
-/** On the list, not yet done: it waits with a dashed edge and says so. */
+/** Not gone yet. What the owner set as Status decides; without one, the entry's words do. */
 export const isNextTrip = (it: { category: string; status: string; title: string; location: string }) =>
-  /\b(bucket|someday|wish|dream|upcoming|planned|plan|next|to be decided)\b/i.test(`${it.category} ${it.status} ${it.title} ${it.location}`);
+  it.status
+    ? /\b(next|dream|someday|wish|upcoming|planned|plan|soon)\b/i.test(it.status)
+    : /\b(bucket|someday|wish|dream|upcoming|planned|plan|next|to be decided)\b/i.test(`${it.category} ${it.title} ${it.location}`);
 
 const wheel = (x: number, y: number) => <><circle className="v-d" cx={x} cy={y} r="6" /><circle className="v-e" cx={x} cy={y} r="2.4" /></>;
 

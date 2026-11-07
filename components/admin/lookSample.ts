@@ -1,3 +1,5 @@
+import { frameFor, stampFor } from "@/components/site/TripFrame";
+import { vehicleFor } from "@/components/site/vehicles";
 import type { Item } from "@/lib/data";
 import { excerpt } from "@/components/site/Markdown";
 import type { LookSample } from "./LookControls";
@@ -13,5 +15,10 @@ export function lookSample(it: Item | null | undefined): LookSample {
     pic,
     tags: it.tags,
     meta: [it.location, it.date_label].filter(Boolean).join(" · "),
+    subsection: it.category,
+    date: it.date_label,
+    frame: frameFor(it.category),
+    kind: vehicleFor(it),
+    stamp: stampFor(it, frameFor(it.category)),
   };
 }

@@ -8,6 +8,7 @@ import { lookSample } from "@/components/admin/lookSample";
 import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
+import TripStatus from "@/components/admin/TripStatus";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -43,6 +44,7 @@ export default async function ItemEditor({ params }: P) {
             <div className="fl"><label>Subsection</label>
               <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
               <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+              {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a bucket, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
             </div>
           </div>
         </div>
@@ -83,7 +85,7 @@ export default async function ItemEditor({ params }: P) {
           <div className="f3">
             <div className="fl"><label>Date (any text)</label><input className="inp" name="date_label" defaultValue={item.date_label} placeholder="March 2026, Last summer…" /></div>
             <div className="fl"><label>Place</label><input className="inp" name="location" defaultValue={item.location} placeholder="Cox's Bazar" /></div>
-            <div className="fl"><label>Status</label><input className="inp" name="status" defaultValue={item.status} placeholder="Reading, Done, In progress…" /></div>
+            <div className="fl"><label htmlFor="status">Status</label>{section?.layout === "tickets" ? <TripStatus initial={item.status} /> : <input className="inp" id="status" name="status" defaultValue={item.status} placeholder="Reading, Done, In progress…" />}</div>
           </div>
           <div className="f2">
             <div className="fl"><label>Mood</label>

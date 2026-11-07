@@ -334,6 +334,9 @@ export function parseLinks(raw: unknown): Link[] {
   }
 }
 
+/** One-click choices for Status on a Boarding passes entry. It shows on the frame as the stamp. */
+export const TRIP_STATUSES = ["Visited", "Next destination", "Dream place", "On the way", "Done"] as const;
+
 export const LAYOUTS = [
   { value: "windows", label: "App windows — projects on a desktop" },
   { value: "cards", label: "Cards grid — projects" },

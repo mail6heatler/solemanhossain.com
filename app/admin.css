@@ -306,6 +306,10 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .rib-preview { margin-top: 10px; padding: 18px 0; border-radius: 12px; overflow: hidden; background: var(--page-bg); border: .5px dashed var(--input-border); }
 .rib-preview .site { min-height: 0; background: transparent; overflow: visible; }
 .rib-preview .ribbon { margin: 0 -3%; }
+.status-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.status-btn { padding: 4px 11px; border: 1px solid var(--input-border); border-radius: 99px; background: none; color: var(--text-muted); font: 600 11.5px "Space Grotesk"; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.status-btn:hover { border-color: var(--mint); color: var(--text-strong); }
+.status-btn.on { background: var(--mint); border-color: var(--mint); color: #1a1a1a; }
 .look-slider { margin-top: 10px; }
 .look-slider-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
 .look-slider-top label { margin: 0 !important; }
@@ -317,6 +321,8 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-preview-lab { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
 .look-preview { border-radius: 14px; background: var(--page-bg); border: .5px dashed var(--input-border); padding: 14px; overflow: auto; max-height: 72vh; }
 .look-preview .tkt-cell { width: var(--cw, 310px); max-width: 100%; }
+.look-preview .tkt-cell .trip { width: 100%; }
+.look-preview .bkt-photo { pointer-events: auto; }
 .look-preview .site { min-height: 0; background: transparent; width: max-content; max-width: 100%; margin: 0 auto; --row-h: min(440px, 62vh); }
 .look-preview :is(.card, .note, .trip) { width: var(--cw, 340px); max-height: var(--row-h); }
 .look-focus { cursor: crosshair; }
