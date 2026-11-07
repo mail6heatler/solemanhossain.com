@@ -2,6 +2,7 @@
 
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
+import { cleanBoxes } from "@/lib/boxes";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -28,6 +29,13 @@ const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").replace(/-+/g, "-").slice(0, 50) || "section";
 const LAYOUT_VALUES = LAYOUTS.map((l) => l.value as string);
 const refresh = () => revalidatePath("/", "layout");
+// a new value each time, so the Saved message shows on every save, even the second in a row from the same page
+const saved = () => `saved=${Date.now()}`;
+/** A Save on an entry's or a section's page also remembers which of its boxes are open. */
+const saveBoxes = async (table: "items" | "sections", id: number, fd: FormData) => {
+  const boxes = str(fd, "boxes", 2000);
+  if (boxes) await query(`UPDATE ${table} SET boxes=$1 WHERE id=$2`, [JSON.stringify(cleanBoxes(boxes)), id]);
+};
 
 // ---------- size and look controls: all content, a section, one entry ----------
 export async function saveLook(fd: FormData) {
@@ -37,8 +45,10 @@ export async function saveLook(fd: FormData) {
   if (kind === "item") await query("UPDATE items SET style=$1 WHERE id=$2", [JSON.stringify(style), id]);
   else if (kind === "section") await query("UPDATE sections SET style=$1 WHERE id=$2", [JSON.stringify(style), id]);
   else await saveSettingsData({ contentStyle: style });
+  if (kind === "item") await saveBoxes("items", id, fd);
+  else if (kind === "section") await saveBoxes("sections", id, fd);
   refresh();
-  redirect(kind === "item" ? `/admin/items/${id}?saved=1#look` : kind === "section" ? `/admin/s/${id}?saved=1#look` : "/admin/content?saved=1");
+  redirect(kind === "item" ? `/admin/items/${id}?${saved()}#look` : kind === "section" ? `/admin/s/${id}?${saved()}#look` : `/admin/content?${saved()}`);
 }
 
 /** Back to default: everything, or just the entries of one section. */
@@ -48,7 +58,7 @@ export async function resetAllLooks() {
   await query("UPDATE sections SET style='{}'");
   await saveSettingsData({ contentStyle: {} });
   refresh();
-  redirect("/admin/content?saved=1");
+  redirect(`/admin/content?${saved()}`);
 }
 
 export async function resetSectionLooks(fd: FormData) {
@@ -56,7 +66,7 @@ export async function resetSectionLooks(fd: FormData) {
   const id = int(fd, "id");
   await query("UPDATE items SET style='{}' WHERE section_id=$1", [id]);
   refresh();
-  redirect(`/admin/s/${id}?saved=1#look`);
+  redirect(`/admin/s/${id}?${saved()}#look`);
 }
 
 async function saveSettingsData(patch: Partial<SiteSettings>) {
@@ -129,7 +139,7 @@ export async function saveHero(fd: FormData) {
     scrollCue: str(fd, "scrollCue", 60),
   });
   refresh();
-  redirect("/admin/hero?saved=1");
+  redirect(`/admin/hero?${saved()}`);
 }
 
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */
@@ -137,7 +147,7 @@ export async function setHeroHidden(fd: FormData) {
   await requireAdmin();
   await saveSettingsData({ heroHidden: str(fd, "hidden", 1) === "1" });
   refresh();
-  redirect("/admin/hero?saved=1");
+  redirect(`/admin/hero?${saved()}`);
 }
 
 // ---------- site settings ----------
@@ -161,7 +171,7 @@ export async function saveSite(fd: FormData) {
     socials,
   });
   refresh();
-  redirect("/admin/settings?saved=1");
+  redirect(`/admin/settings?${saved()}`);
 }
 
 // ---------- appearance: themes, mood, effects ----------
@@ -186,7 +196,7 @@ export async function saveAppearance(fd: FormData) {
     if (Number.isInteger(id) && id > 0) await query("UPDATE sections SET ribbon=$1 WHERE id=$2", [bool(fd, `ribbon_${id}`), id]);
   }
   refresh();
-  redirect("/admin/appearance?saved=1");
+  redirect(`/admin/appearance?${saved()}`);
 }
 
 // ---------- pictures for the fan themes ----------
@@ -199,7 +209,7 @@ export async function saveThemePics(fd: FormData) {
   }
   await saveSettingsData({ themePics });
   refresh();
-  redirect("/admin/themes?saved=1");
+  redirect(`/admin/themes?${saved()}`);
 }
 
 // ---------- the hanging banner ----------
@@ -222,7 +232,7 @@ export async function saveBanner(fd: FormData) {
     },
   });
   refresh();
-  redirect("/admin/banner?saved=1");
+  redirect(`/admin/banner?${saved()}`);
 }
 
 // ---------- sections ----------
@@ -264,8 +274,9 @@ export async function updateSection(fd: FormData) {
      str(fd, "eyebrow", 80), str(fd, "eyebrow_emoji", 16), str(fd, "subtitle", 400), layout, str(fd, "emojis", 80),
      cats, str(fd, "empty_text", 300), Math.max(1, Math.min(60, int(fd, "home_limit", 6))), bool(fd, "visible"), bool(fd, "ribbon"), id]
   );
+  await saveBoxes("sections", id, fd);
   refresh();
-  redirect(`/admin/s/${id}?saved=1#settings`);
+  redirect(`/admin/s/${id}?${saved()}#settings`);
 }
 
 export async function deleteSection(fd: FormData) {
@@ -344,8 +355,9 @@ export async function updateItem(fd: FormData) {
   if (fd.has("comic")) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(String(fd.get("comic")))), id]);
   // a Comic strip's plain entry can become a poll; without at least two options it stays plain
   if (str(fd, "make_poll") === "1" && poll.length >= 2) await query("UPDATE items SET type='poll' WHERE id=$1", [id]);
+  await saveBoxes("items", id, fd);
   refresh();
-  redirect(`/admin/items/${id}?saved=1`);
+  redirect(`/admin/items/${id}?${saved()}`);
 }
 
 export async function deleteItem(fd: FormData) {
@@ -379,13 +391,13 @@ export async function saveItemOrder(sectionId: number, ids: number[]) {
 export async function resetPoll(fd: FormData) {
   await requireAdmin();
   await query("DELETE FROM votes WHERE item_id=$1", [int(fd, "id")]);
-  redirect(`/admin/items/${int(fd, "id")}?saved=1`);
+  redirect(`/admin/items/${int(fd, "id")}?${saved()}`);
 }
 
 export async function resetReactions(fd: FormData) {
   await requireAdmin();
   await query("DELETE FROM reactions WHERE item_id=$1", [int(fd, "id")]);
-  redirect(`/admin/items/${int(fd, "id")}?saved=1`);
+  redirect(`/admin/items/${int(fd, "id")}?${saved()}`);
 }
 
 // ---------- messages (admin) ----------

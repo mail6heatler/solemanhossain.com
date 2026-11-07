@@ -8,6 +8,9 @@ import { lookSample } from "@/components/admin/lookSample";
 import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
+import { Box } from "@/components/admin/Box";
+import BoxMemory from "@/components/admin/BoxMemory";
+import { boxOpen } from "@/lib/boxes";
 import TripStatus from "@/components/admin/TripStatus";
 import TripPanel from "@/components/admin/TripPanel";
 import StudyPanel from "@/components/admin/StudyPanel";
@@ -30,9 +33,10 @@ export default async function ItemEditor({ params }: P) {
   const total = counts.reduce((a, b) => a + b, 0);
   const cats = Array.from(new Set([...(section?.categories ?? []), item.category].filter(Boolean)));
   const trip = tripContext(settings, section);
+  const open = (name: string, first = true) => boxOpen(item.boxes, name, first);
 
   return (
-    <div className="adm-page">
+    <div className="adm-page" key={item.id}>
       <a href={`/admin/s/${item.section_id}`} className="b-out b-sm" style={{ marginBottom: 14 }}><i className="ti ti-arrow-left" />{section?.code} · {section?.title}</a>
       <h1 className="adm-h" style={{ marginTop: 12 }}>{isPoll ? "📊 " : ""}{item.title}</h1>
       <p className="adm-sub">
@@ -40,26 +44,29 @@ export default async function ItemEditor({ params }: P) {
         {section && <a href={`/s/${section.slug}/${item.id}`} target="_blank">open on site ↗</a>}
       </p>
 
+      <BoxMemory />
       <form action={updateItem} id="entry">
         <input type="hidden" name="id" value={item.id} />
-        <div className="c f">
-          <div className="fl"><label>Title</label><input className="inp" name="title" defaultValue={item.title} required /></div>
-          <div className="f2">
-            <div className="fl"><label>Subtitle (author, tech stack, a person&apos;s name…)</label><input className="inp" name="subtitle" defaultValue={item.subtitle} /></div>
-            <div className="fl"><label>Subsection</label>
-              <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
-              <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
-              {section?.layout === "study" && <div className="hint">Its name picks the object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note. You can also choose under On the shelf.</div>}
-              {section?.layout === "comic" && <div className="hint">Its name picks the panel: hot takes get a shout with flames; poems a night sky; sayings a fridge door; on repeat a spinning record; vibing waves in the Mood&apos;s colour; a brain dump a bin; chaos scraps of paper; quick fire a quiz show; and anything else a speech bubble. A poll under overrated or underrated gets a balance scale, and any other poll goes by how many options it has. You can also choose one under In the comic, below.</div>}
-              {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
+        <input type="hidden" name="boxes" />
+        <Box name="basics" title="Title & subsection" icon="forms" open={open("basics")}>
+          <div className="f">
+            <div className="fl"><label>Title</label><input className="inp" name="title" defaultValue={item.title} required /></div>
+            <div className="f2">
+              <div className="fl"><label>Subtitle (author, tech stack, a person&apos;s name…)</label><input className="inp" name="subtitle" defaultValue={item.subtitle} /></div>
+              <div className="fl"><label>Subsection</label>
+                <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
+                <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+                {section?.layout === "study" && <div className="hint">Its name picks the object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note. You can also choose under On the shelf.</div>}
+                {section?.layout === "comic" && <div className="hint">Its name picks the panel: hot takes get a shout with flames; poems a night sky; sayings a fridge door; on repeat a spinning record; vibing waves in the Mood&apos;s colour; a brain dump a bin; chaos scraps of paper; quick fire a quiz show; and anything else a speech bubble. A poll under overrated or underrated gets a balance scale, and any other poll goes by how many options it has. You can also choose one under In the comic, below.</div>}
+                {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
+              </div>
             </div>
           </div>
-        </div>
+        </Box>
 
         {isPoll && (
-          <>
-            <div className="adm-label">Poll options</div>
-            <div className="c f">
+          <Box name="poll" title="Poll options" icon="chart-bar" open={open("poll")}>
+            <div className="f">
               <div className="fl"><label>One option per line (2 to 8)</label><textarea name="poll_options" defaultValue={item.poll_options.join("\n")} style={{ minHeight: 110 }} /></div>
               <div>
                 {item.poll_options.map((o, i) => (
@@ -74,76 +81,79 @@ export default async function ItemEditor({ params }: P) {
                 <div className="c-desc">{total} votes so far</div>
               </div>
             </div>
-          </>
+          </Box>
         )}
 
-        <div className="adm-label">Story</div>
-        <div className="c f">
-          <div className="fl">
-            <label>Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…)</label>
-            <textarea name="body" className="tall" defaultValue={item.body} />
+        <Box name="story" title="Story" icon="article" open={open("story")}>
+          <div className="f">
+            <div className="fl">
+              <label>Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…)</label>
+              <textarea name="body" className="tall" defaultValue={item.body} />
+            </div>
+            <div className="fl"><span className="lab">{section?.layout === "study" ? "Photos, videos, sound & PDFs" : "Photos, videos & PDFs"}</span>
+              <MediaField name="media" initial={item.media} useBlob={useBlob} maxVideoMb={useBlob ? 200 : process.env.VERCEL ? 4 : 60} allowAudio={section?.layout === "study"} /></div>
           </div>
-          <div className="fl"><span className="lab">{section?.layout === "study" ? "Photos, videos, sound & PDFs" : "Photos, videos & PDFs"}</span>
-            <MediaField name="media" initial={item.media} useBlob={useBlob} maxVideoMb={useBlob ? 200 : process.env.VERCEL ? 4 : 60} allowAudio={section?.layout === "study"} /></div>
-        </div>
+        </Box>
 
-        <div className="adm-label">Details</div>
-        <div className="c f">
-          <div className="f3">
-            <div className="fl"><label>Date (any text)</label><input className="inp" name="date_label" defaultValue={item.date_label} placeholder="March 2026, Last summer…" /></div>
-            <div className="fl"><label>Place</label><input className="inp" name="location" defaultValue={item.location} placeholder="Cox's Bazar" /></div>
-            <div className="fl"><label htmlFor="status">Status</label>{section?.layout === "tickets" ? <TripStatus initial={item.status} /> : section?.layout === "study" ? <TripStatus initial={item.status} options={STUDY_STATUSES} hint="Shows on the book's ribbon, the player's sticker or the phone's notification." /> : <input className="inp" id="status" name="status" defaultValue={item.status} placeholder="Reading, Done, In progress…" />}</div>
-          </div>
-          <div className="f2">
-            <div className="fl"><label>Mood</label>
-              <select name="mood" defaultValue={item.mood}>
-                <option value="">— none —</option>
-                {Object.entries(MOODS).map(([k, m]) => <option key={k} value={k}>{m.emoji} {m.label}</option>)}
-              </select>
+        <Box name="details" title="Details" icon="list-details" open={open("details")}>
+          <div className="f">
+            <div className="f3">
+              <div className="fl"><label>Date (any text)</label><input className="inp" name="date_label" defaultValue={item.date_label} placeholder="March 2026, Last summer…" /></div>
+              <div className="fl"><label>Place</label><input className="inp" name="location" defaultValue={item.location} placeholder="Cox's Bazar" /></div>
+              <div className="fl"><label htmlFor="status">Status</label>{section?.layout === "tickets" ? <TripStatus initial={item.status} /> : section?.layout === "study" ? <TripStatus initial={item.status} options={STUDY_STATUSES} hint="Shows on the book's ribbon, the player's sticker or the phone's notification." /> : <input className="inp" id="status" name="status" defaultValue={item.status} placeholder="Reading, Done, In progress…" />}</div>
             </div>
-            <div className="fl"><label>Tags (comma separated)</label><input className="inp" name="tags" defaultValue={item.tags.join(", ")} /></div>
-          </div>
-          <div className="fl"><span className="lab">Buttons on the entry page (first one is highlighted)</span><LinksEditor name="links" initial={item.links} /></div>
-          <div className="f2">
-            <div className="fl"><label>Section</label>
-              <select name="section_id" defaultValue={item.section_id}>{sections.map((s) => <option key={s.id} value={s.id}>{s.code} · {s.title}</option>)}</select>
+            <div className="f2">
+              <div className="fl"><label>Mood</label>
+                <select name="mood" defaultValue={item.mood}>
+                  <option value="">— none —</option>
+                  {Object.entries(MOODS).map(([k, m]) => <option key={k} value={k}>{m.emoji} {m.label}</option>)}
+                </select>
+              </div>
+              <div className="fl"><label>Tags (comma separated)</label><input className="inp" name="tags" defaultValue={item.tags.join(", ")} /></div>
+            </div>
+            <div className="fl"><span className="lab">Buttons on the entry page (first one is highlighted)</span><LinksEditor name="links" initial={item.links} /></div>
+            <div className="f2">
+              <div className="fl"><label>Section</label>
+                <select name="section_id" defaultValue={item.section_id}>{sections.map((s) => <option key={s.id} value={s.id}>{s.code} · {s.title}</option>)}</select>
+              </div>
+            </div>
+            <div className="switches">
+              <label className="switch"><input type="checkbox" name="visible" defaultChecked={item.visible} />Visible on site</label>
+              <label className="switch"><input type="checkbox" name="pinned" defaultChecked={item.pinned} />Pin / feature at the top</label>
             </div>
           </div>
-          <div className="switches">
-            <label className="switch"><input type="checkbox" name="visible" defaultChecked={item.visible} />Visible on site</label>
-            <label className="switch"><input type="checkbox" name="pinned" defaultChecked={item.pinned} />Pin / feature at the top</label>
-          </div>
-        </div>
-        {section?.layout === "study" && <StudyPanel initial={item.study} category={item.category} />}
-        {section?.layout === "comic" && <ComicPanel initial={item.comic} title={item.title} category={item.category} isPoll={isPoll} options={item.poll_options} hasPic={item.media.some((m) => m.type !== "audio")} />}
-        {section?.layout === "tickets" && <TripPanel initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
+        </Box>
+        {section?.layout === "study" && <StudyPanel open={open("panel")} initial={item.study} category={item.category} />}
+        {section?.layout === "comic" && <ComicPanel open={open("panel")} initial={item.comic} title={item.title} category={item.category} isPoll={isPoll} options={item.poll_options} hasPic={item.media.some((m) => m.type !== "audio")} />}
+        {section?.layout === "tickets" && <TripPanel open={open("panel")} initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
       </form>
 
       <form action={saveLook} id="look">
         <input type="hidden" name="kind" value="item" />
         <input type="hidden" name="id" value={item.id} />
-        <details className="c" style={{ marginTop: 24 }} open={isCustom(item.style)}>
-          <summary><i className="ti ti-adjustments" style={{ color: "var(--icon)" }} />Size &amp; look for this {isPoll ? "poll" : "entry"}{isCustom(item.style) ? " (customised)" : ""}<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
-          <div className="f" style={{ marginTop: 12 }}>
+        <input type="hidden" name="boxes" />
+        <Box name="look" title={`Size & look for this ${isPoll ? "poll" : "entry"}${isCustom(item.style) ? " (customised)" : ""}`} icon="adjustments" open={open("look", isCustom(item.style))}>
+          <div className="f">
             <p className="c-desc" style={{ whiteSpace: "normal", margin: 0 }}>Overrides its section and <a href="/admin/content">all content</a>, for this one only.</p>
             <LookControls initial={item.style} above={mergeStyles(settings.contentStyle, section?.style)} sample={lookSample(item, trip)} layout={section?.layout ?? "cards"} level="this entry" />
           </div>
-        </details>
+        </Box>
       </form>
 
       {!isPoll && (
-        <div className="c c-row" style={{ marginTop: 24 }}>
-          <div className="grow">
-            <div className="c-title">Reactions</div>
-            <div className="c-desc" style={{ whiteSpace: "normal", fontSize: 15 }}>
-              {REACTION_EMOJIS.map((e) => <span key={e} style={{ marginRight: 14 }}>{e} <b>{reactions[e] ?? 0}</b></span>)}
+        <Box name="reactions" title="Reactions" icon="mood-smile" open={open("reactions")}>
+          <div className="c-row">
+            <div className="grow">
+              <div className="c-desc" style={{ whiteSpace: "normal", fontSize: 15 }}>
+                {REACTION_EMOJIS.map((e) => <span key={e} style={{ marginRight: 14 }}>{e} <b>{reactions[e] ?? 0}</b></span>)}
+              </div>
             </div>
+            {reactionTotal > 0 && (
+              <form action={resetReactions}><input type="hidden" name="id" value={item.id} />
+                <ConfirmSubmit title="Reset reactions?" message="This clears all reactions on this entry. It can't be undone." yes="Yes, reset" className="b-out b-sm"><i className="ti ti-refresh" />Reset reactions</ConfirmSubmit></form>
+            )}
           </div>
-          {reactionTotal > 0 && (
-            <form action={resetReactions}><input type="hidden" name="id" value={item.id} />
-              <ConfirmSubmit title="Reset reactions?" message="This clears all reactions on this entry. It can't be undone." yes="Yes, reset" className="b-out b-sm"><i className="ti ti-refresh" />Reset reactions</ConfirmSubmit></form>
-          )}
-        </div>
+        </Box>
       )}
 
       <SaveBox label="Save entry" form="entry">

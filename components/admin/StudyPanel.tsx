@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Box } from "./Box";
 import { STUDY_LOOKS, STUDY_MEDIA, studyLookOf, type StudyInfo, type StudyLook, type StudyMedia } from "@/lib/studyItem";
 
 /**
  * What an entry in a Study shelf section shows beyond its usual fields. It follows the Subsection box as the owner types, because that
  * picks the object unless they choose one here. Saved with the entry through the hidden field.
  */
-export default function StudyPanel({ initial, category }: { initial: StudyInfo; category: string }) {
+export default function StudyPanel({ open, initial, category }: { open: boolean; initial: StudyInfo; category: string }) {
   const [s, setS] = useState(initial);
   const [sub, setSub] = useState(category);
   useEffect(() => {
@@ -24,8 +25,8 @@ export default function StudyPanel({ initial, category }: { initial: StudyInfo; 
   return (
     <>
       <input type="hidden" name="study" value={JSON.stringify(s)} />
-      <div className="adm-label">On the shelf</div>
-      <div className="c f">
+      <Box name="panel" title="On the shelf" icon="books" open={open}>
+      <div className="f">
         <div className="f2">
           <div className="fl"><label htmlFor="study-look">Looks like</label>
             <select id="study-look" value={s.look} onChange={(e) => setS((p) => ({ ...p, look: e.target.value as StudyLook | "" }))}>
@@ -53,6 +54,7 @@ export default function StudyPanel({ initial, category }: { initial: StudyInfo; 
         <div className="fl"><label htmlFor="study-line">The line that stuck</label>
           <input className="inp" id="study-line" value={s.line} maxLength={300} placeholder="A quote or lyric, shown highlighted at the top of the text" onChange={(e) => setS((p) => ({ ...p, line: e.target.value }))} /></div>
       </div>
+      </Box>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { cleanStudy, type StudyInfo } from "./studyItem";
 import { cleanComic, type ComicInfo } from "./comicItem";
+import { cleanBoxes, type BoxState } from "./boxes";
 import { cleanPass, type TripPass } from "./tripPass";
 import { query, queryOne, Row } from "./db";
 import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
@@ -11,6 +12,8 @@ export type Section = {
   categories: string[]; empty_text: string; home_limit: number; sort: number; visible: boolean; ribbon: boolean;
   /** size and look for this section's content */
   style: ContentStyle;
+  /** which boxes on its dashboard page are open, as last saved */
+  boxes: BoxState;
 };
 
 export type Item = {
@@ -28,6 +31,8 @@ export type Item = {
   study: StudyInfo;
   /** which panel it gets in a comic strip, and the word in its burst */
   comic: ComicInfo;
+  /** which boxes on its dashboard page are open, as last saved */
+  boxes: BoxState;
 };
 
 export type Message = {
@@ -37,7 +42,7 @@ export type Message = {
 
 const splitList = (s: string) => String(s || "").split(",").map((t) => t.trim()).filter(Boolean);
 
-const toSection = (r: Row): Section => ({ ...(r as any), id: Number(r.id), categories: splitList(r.categories), style: cleanStyle(r.style) });
+const toSection = (r: Row): Section => ({ ...(r as any), id: Number(r.id), categories: splitList(r.categories), style: cleanStyle(r.style), boxes: cleanBoxes(r.boxes) });
 const toItem = (r: Row): Item => ({
   ...(r as any),
   id: Number(r.id),
@@ -51,6 +56,7 @@ const toItem = (r: Row): Item => ({
   pass: cleanPass(r.pass),
   study: cleanStudy(r.study),
   comic: cleanComic(r.comic),
+  boxes: cleanBoxes(r.boxes),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 

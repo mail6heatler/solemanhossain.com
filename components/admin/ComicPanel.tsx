@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Box } from "./Box";
 import { COMIC_LOOKS, SFX_MAX, comicLookOf, comicOptionsFromTitle, comicPollChoices, comicPollOf, comicReadyOptions, comicWantsPoll, sfxOf, voteWordOf, type ComicAnyLook, type ComicInfo } from "@/lib/comicItem";
 
 const lines = (s: string) => s.split("\n").map((x) => x.trim()).filter(Boolean);
@@ -8,7 +9,7 @@ const lines = (s: string) => s.split("\n").map((x) => x.trim()).filter(Boolean);
  * What an entry in a Comic strip section shows beyond its usual fields. It follows the Subsection and poll option boxes as the owner types,
  * because those pick the panel unless they choose one here. Saved with the entry through the hidden field.
  */
-export default function ComicPanel({ initial, title: firstTitle, category, isPoll: wasPoll, options: firstOptions, hasPic }: { initial: ComicInfo; title: string; category: string; isPoll: boolean; options: string[]; hasPic: boolean }) {
+export default function ComicPanel({ open, initial, title: firstTitle, category, isPoll: wasPoll, options: firstOptions, hasPic }: { open: boolean; initial: ComicInfo; title: string; category: string; isPoll: boolean; options: string[]; hasPic: boolean }) {
   const [s, setS] = useState(initial);
   const [title, setTitle] = useState(firstTitle);
   const [sub, setSub] = useState(category);
@@ -59,8 +60,8 @@ export default function ComicPanel({ initial, title: firstTitle, category, isPol
   return (
     <>
       <input type="hidden" name="comic" value={JSON.stringify(s)} />
-      <div className="adm-label">In the comic</div>
-      <div className="c f">
+      <Box name="panel" title="In the comic" icon="bolt" open={open}>
+      <div className="f">
         <div className="f2">
           <div className="fl"><label htmlFor="comic-look">Panel</label>
             {isPoll && hasPic ? (
@@ -114,6 +115,7 @@ export default function ComicPanel({ initial, title: firstTitle, category, isPol
           </div>
         )}
       </div>
+      </Box>
     </>
   );
 }

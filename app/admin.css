@@ -170,10 +170,10 @@
 .err { color: var(--danger); font-size: 12px; }
 
 /* toast */
-.adm-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--mint); color: #1a1a1a; font-weight: 700; font-size: 12.5px; padding: 10px 20px; border-radius: 99px; z-index: 100;
-  box-shadow: 0 8px 30px rgba(0,0,0,.15); animation: toast-in .3s ease, toast-out .4s ease 2.4s forwards; }
-@keyframes toast-in { from { transform: translate(-50%, 30px); opacity: 0; } }
-@keyframes toast-out { to { transform: translate(-50%, 30px); opacity: 0; visibility: hidden; } }
+.adm-toast { position: fixed; top: 68px; left: 50%; transform: translateX(-50%); background: var(--mint); color: #1a1a1a; font-weight: 700; font-size: 13.5px; padding: 12px 24px; border-radius: 99px; z-index: 100;
+  box-shadow: 0 8px 30px rgba(0,0,0,.15); animation: toast-in .3s ease, toast-out .4s ease 3.2s forwards; }
+@keyframes toast-in { from { transform: translate(-50%, -30px); opacity: 0; } }
+@keyframes toast-out { to { transform: translate(-50%, -30px); opacity: 0; visibility: hidden; } }
 
 /* category groups */
 .cat-h { display: flex; align-items: center; gap: 10px; margin: 22px 0 9px; }
@@ -188,6 +188,11 @@ details.c > summary::-webkit-details-marker { display: none; }
 details.c[open] > summary { margin-bottom: 14px; }
 details.c > summary .ti-chevron-down { margin-left: auto; transition: transform .2s; }
 details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
+/* a titled box on an entry's or a section's page, opened and closed by its title */
+.box { margin-bottom: 12px; }
+.box > summary .ti:first-child { color: var(--icon); }
+.box > summary span { min-width: 0; }
+.box > div:first-of-type > .cat-h { margin-top: 0; }
 
 /* messages */
 .msg { display: flex; gap: 12px; align-items: flex-start; }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Box } from "./Box";
 import { codeFor, frameFor, type FrameKind } from "@/components/site/TripFrame";
 import { MAX_TICKS, TRIP_VEHICLES, type TickLine, type TripPass } from "@/lib/tripPass";
 
@@ -7,8 +8,8 @@ import { MAX_TICKS, TRIP_VEHICLES, type TickLine, type TripPass } from "@/lib/tr
  * What an entry in a Boarding passes section shows beyond its usual fields. It follows the Subsection box as the owner types, because that
  * picks the frame: a pass's details for a ticket, tick lines for a bucket list's note. Saved with the entry through the hidden field.
  */
-export default function TripPanel({ initial, category, title, place, home, passenger }:
-  { initial: TripPass; category: string; title: string; place: string; home: string; passenger: string }) {
+export default function TripPanel({ open, initial, category, title, place, home, passenger }:
+  { open: boolean; initial: TripPass; category: string; title: string; place: string; home: string; passenger: string }) {
   const [pass, setPass] = useState(initial);
   const [frame, setFrame] = useState<FrameKind>(frameFor(category));
   useEffect(() => {
@@ -32,8 +33,8 @@ export default function TripPanel({ initial, category, title, place, home, passe
   return (
     <>
       <input type="hidden" name="pass" value={JSON.stringify(pass)} />
-      <div className="adm-label">{frame === "ticket" ? "On the boarding pass" : frame === "bucket" ? "On the bucket list note" : "On this frame"}</div>
-      <div className="c f">
+      <Box name="panel" title={frame === "ticket" ? "On the boarding pass" : frame === "bucket" ? "On the bucket list note" : "On this frame"} icon="ticket" open={open}>
+      <div className="f">
         {frame === "ticket" && (
           <>
             <div className="c-desc" style={{ whiteSpace: "normal", margin: 0 }}>Leave a box empty and it&apos;s worked out for you. The grey words show what it would say.</div>
@@ -81,6 +82,7 @@ export default function TripPanel({ initial, category, title, place, home, passe
           {frame === "ticket" && <div className="fl"><label htmlFor="pass-name">Name on the pass</label><input {...field("name")} maxLength={30} placeholder={vehicleName} /></div>}
         </div>
       </div>
+      </Box>
     </>
   );
 }

@@ -4,7 +4,7 @@
 
 A personal site with a private dashboard for its owner, Soleman Hossain ("Shourobh"). Everything visitors see is editable at `/admin`. Read this file and `PROGRESS.md` before exploring; they exist so nobody has to re-read the whole codebase.
 
-**Working with the owner:** they aren't a developer. Explain in plain language, show results rather than code, and handle deployment yourself. They like bold, lively design, and for risky visual changes they want to see it live, then choose keep or undo.
+**Working with the owner:** they aren't a developer. Explain in plain language, show results rather than code, and handle deployment yourself. They like bold, lively design, and for risky visual changes they want to see it live, then choose keep or undo. **Since 2026-11-08 they want no extra checking:** do the approved task, run the build, push and publish, and they look at it themselves and say what's wrong. No test scripts, comparisons or screenshot rounds unless they ask. The how-tos below are for when they do.
 
 ## Commands
 
@@ -177,6 +177,12 @@ All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a cl
 ## The dashboard's Save box
 
 `SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. On an entry's page it's outside the form altogether (`form="entry"` on the button), directly above the Delete box and after Size & look and Reactions, and it floats over all of them. While Size & look is open, that panel's own box (`.look-actions`) covers it at the same width. The Size & look panels keep theirs inside, because it saves only that panel. The hero page's box doesn't float (`still`): the owner wants it resting at the end of the page, above the Remove box.
+
+## The dashboard's boxes
+
+On an entry's page and a section's page, everything is a `Box` (`components/admin/Box.tsx`): a title with an arrow, which opens and closes it. The owner's rule: any Save on the page remembers how every box is at that moment, so an open box stays open and a closed one shows only its title, every time. `BoxMemory` writes them into the submitted form's hidden `boxes` field as it goes, including boxes outside that form (`items.boxes`, `sections.boxes`, `lib/boxes.ts`), so a form on these pages that should remember needs that field and `saveBoxes` in its action. Each entry and each section remembers its own. A box that's never been saved starts the way it did before this existed: Order, Size & look and Section settings closed (Size & look open if customised), the rest open. Only the Save and Delete boxes aren't `Box`es and have no arrow. Every box must have a title. A closed box's fields still save; one hiding a required field would stop a Save with nothing to see, so `BoxMemory` opens it. `Box`es hold a `div.f`, not `.c.f`. On the section page `form#look` is inside its box and the "entries have their own settings" row beside it, so that the row isn't a second, untitled box; a link to `#look` opens the box by itself in Chrome.
+
+The Saved message (`Toast` in `Widgets.tsx`) is at the top, because the floating Save box sits at the bottom. `saved()` in `actions.ts` gives a new value each time, so it shows on every save; with `?saved=1` the address didn't change on a second save in a row, and it never came.
 
 ## Asking before anything risky
 

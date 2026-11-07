@@ -59,6 +59,9 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS study TEXT NOT NULL DEFAULT '{}'`,
   // which comic panel an entry gets and the word in its burst (lib/comicItem.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS comic TEXT NOT NULL DEFAULT '{}'`,
+  // which boxes on its dashboard page are open, as last saved (lib/boxes.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS boxes TEXT NOT NULL DEFAULT '{}'`,
+  `ALTER TABLE sections ADD COLUMN IF NOT EXISTS boxes TEXT NOT NULL DEFAULT '{}'`,
   `ALTER TABLE sections ADD COLUMN IF NOT EXISTS style TEXT NOT NULL DEFAULT '{}'`,
   `CREATE TABLE IF NOT EXISTS files (
     id TEXT PRIMARY KEY,

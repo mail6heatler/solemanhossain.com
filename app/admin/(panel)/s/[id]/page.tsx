@@ -11,6 +11,9 @@ import { isCustom } from "@/lib/contentStyle";
 import type { Item } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
+import { Box } from "@/components/admin/Box";
+import BoxMemory from "@/components/admin/BoxMemory";
+import { boxOpen } from "@/lib/boxes";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -31,9 +34,10 @@ export default async function SectionAdmin({ params }: P) {
   const loose = items.filter((i) => !i.category);
   if (loose.length || names.length === 0) groups.push({ name: "", items: loose });
   const isConnect = section.layout === "connect";
+  const open = (name: string, first = true) => boxOpen(section.boxes, name, first);
 
   return (
-    <div className="adm-page">
+    <div className="adm-page" key={section.id}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 className="adm-h">{section.code && `${section.code} · `}{section.title}</h1>
@@ -45,65 +49,67 @@ export default async function SectionAdmin({ params }: P) {
         </div>
       </div>
 
+      <BoxMemory />
       {isConnect && (
-        <div className="c" style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
-          <i className="ti ti-info-circle" style={{ color: "var(--icon)" }} /> This section shows your social links (edit them in <a href="/admin/settings">Settings</a>),
-          the &ldquo;say hello&rdquo; form (messages arrive in your <a href="/admin/inbox">Inbox</a>) and the guest wall.
-          Entries you add here appear as testimonials: put the quote in the story and the person&apos;s name in the subtitle.
-        </div>
+        <Box name="about" title="About this section" icon="info-circle" open={open("about")}>
+          <div style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+            This section shows your social links (edit them in <a href="/admin/settings">Settings</a>),
+            the &ldquo;say hello&rdquo; form (messages arrive in your <a href="/admin/inbox">Inbox</a>) and the guest wall.
+            Entries you add here appear as testimonials: put the quote in the story and the person&apos;s name in the subtitle.
+          </div>
+        </Box>
       )}
 
       {items.length > 1 && (
-        <details className="c" id="order" style={{ marginBottom: 14 }}>
-          <summary><i className="ti ti-arrows-sort" style={{ color: "var(--icon)" }} />Order on the site: {items.length} entries<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
-          <div style={{ marginTop: 12 }}>
-            <OrderList sectionId={section.id} initial={items.map((it) => ({ id: it.id, title: it.title, pinned: it.pinned, visible: it.visible, kind: [it.type === "poll" ? "Poll" : "", it.category].filter(Boolean).join(" · ") }))} />
-          </div>
-        </details>
+        <Box name="order" id="order" title={`Order on the site: ${items.length} entries`} icon="arrows-sort" open={open("order", false)}>
+          <OrderList sectionId={section.id} initial={items.map((it) => ({ id: it.id, title: it.title, pinned: it.pinned, visible: it.visible, kind: [it.type === "poll" ? "Poll" : "", it.category].filter(Boolean).join(" · ") }))} />
+        </Box>
       )}
 
-      {groups.map((g) => (
-        <div key={g.name || "_none"}>
-          <div className="cat-h">
-            <h3>{g.name || "No subsection"}</h3><span className="n">{g.items.length}</span><span className="line" />
+      <Box name="entries" title={`Entries (${items.length})`} icon="list" open={open("entries")}>
+        {groups.map((g) => (
+          <div key={g.name || "_none"}>
+            <div className="cat-h">
+              <h3>{g.name || "No subsection"}</h3><span className="n">{g.items.length}</span><span className="line" />
+            </div>
+            {g.items.map((it) => <Row key={it.id} it={it} all={g.items} reactions={reactions[it.id]} />)}
+            <form action={createItem} className="add-row" style={{ marginBottom: 6 }}>
+              <input type="hidden" name="section_id" value={section.id} />
+              <input type="hidden" name="category" value={g.name} />
+              <input className="inp" name="title" placeholder={`Add to ${g.name || "this section"}…`} required />
+              <select name="type" defaultValue="post" aria-label="Type">
+                <option value="post">Post</option>
+                <option value="poll">Poll</option>
+              </select>
+              <button className="b-dark b-sm"><i className="ti ti-plus" />Add</button>
+            </form>
           </div>
-          {g.items.map((it) => <Row key={it.id} it={it} all={g.items} reactions={reactions[it.id]} />)}
-          <form action={createItem} className="add-row" style={{ marginBottom: 6 }}>
-            <input type="hidden" name="section_id" value={section.id} />
-            <input type="hidden" name="category" value={g.name} />
-            <input className="inp" name="title" placeholder={`Add to ${g.name || "this section"}…`} required />
-            <select name="type" defaultValue="post" aria-label="Type">
-              <option value="post">Post</option>
-              <option value="poll">Poll</option>
-            </select>
-            <button className="b-dark b-sm"><i className="ti ti-plus" />Add</button>
-          </form>
-        </div>
-      ))}
+        ))}
+      </Box>
 
-      <form action={saveLook} id="look">
-        <input type="hidden" name="kind" value="section" />
-        <input type="hidden" name="id" value={section.id} />
-        <details className="c" style={{ marginTop: 26 }} open={isCustom(section.style)}>
-          <summary><i className="ti ti-adjustments" style={{ color: "var(--icon)" }} />Size &amp; look for this section{isCustom(section.style) ? " (customised)" : ""}<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
-          <div className="f" style={{ marginTop: 12 }}>
+      <Box name="look" title={`Size & look for this section${isCustom(section.style) ? " (customised)" : ""}`} icon="adjustments" open={open("look", isCustom(section.style))}>
+        <form action={saveLook} id="look">
+          <input type="hidden" name="kind" value="section" />
+          <input type="hidden" name="id" value={section.id} />
+          <input type="hidden" name="boxes" />
+          <div className="f">
             <p className="c-desc" style={{ whiteSpace: "normal", margin: 0 }}>Overrides <a href="/admin/content">all content</a> for this section. One entry&apos;s own settings override this.</p>
             <LookControls initial={section.style} above={settings.contentStyle} sample={lookSample(sample, tripContext(settings, section))} layout={section.layout} level="this section" />
           </div>
-        </details>
-      </form>
-      {ownLooks > 0 && (
-        <form action={resetSectionLooks} className="c c-row" style={{ marginTop: 10 }}>
-          <input type="hidden" name="id" value={section.id} />
-          <div className="grow"><div className="c-desc">{ownLooks} {ownLooks === 1 ? "entry here has" : "entries here have"} their own size and look settings.</div></div>
-          <ConfirmSubmit title="Back to following the section?" message="Every entry here goes back to following the section's size and look. Their own settings are cleared." yes="Yes, set them back" className="b-out b-sm"><i className="ti ti-restore" />Default for all entries here</ConfirmSubmit>
         </form>
-      )}
+        {ownLooks > 0 && (
+          <form action={resetSectionLooks} className="c c-row" style={{ marginTop: 14, marginBottom: 0 }}>
+            <input type="hidden" name="id" value={section.id} />
+            <div className="grow"><div className="c-desc">{ownLooks} {ownLooks === 1 ? "entry here has" : "entries here have"} their own size and look settings.</div></div>
+            <ConfirmSubmit title="Back to following the section?" message="Every entry here goes back to following the section's size and look. Their own settings are cleared." yes="Yes, set them back" className="b-out b-sm"><i className="ti ti-restore" />Default for all entries here</ConfirmSubmit>
+          </form>
+        )}
+      </Box>
 
       <form action={updateSection} id="settings">
-        <details className="c" style={{ marginTop: 26 }}>
-          <summary><i className="ti ti-settings" style={{ color: "var(--icon)" }} />Section settings: titles, layout, subsections, emojis<i className="ti ti-chevron-down" /></summary>
-          <input type="hidden" name="id" value={section.id} />
+        <input type="hidden" name="id" value={section.id} />
+        <input type="hidden" name="boxes" />
+        <Box name="settings" title="Section settings: titles, layout, subsections, emojis" icon="settings" open={open("settings", false)}>
           <div className="f">
             <div className="f3">
               <div className="fl"><label>Code tag</label><input className="inp" name="code" defaultValue={section.code} placeholder="G1" /></div>
@@ -132,7 +138,7 @@ export default async function SectionAdmin({ params }: P) {
             <label className="switch"><input type="checkbox" name="visible" defaultChecked={section.visible} />Visible on the site</label>
             <label className="switch"><input type="checkbox" name="ribbon" defaultChecked={section.ribbon} />Show the sliding headline before this section</label>
           </div>
-        </details>
+        </Box>
         <SaveBox label="Save section">
           <a href={`/#${section.slug}`} target="_blank" className="b-out"><i className="ti ti-eye" />View on site</a>
         </SaveBox>

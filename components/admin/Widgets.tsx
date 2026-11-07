@@ -5,11 +5,10 @@ import { useSearchParams } from "next/navigation";
 /** Shows a short toast when the URL has ?saved=1 or ?deleted=1. */
 export function Toast() {
   const sp = useSearchParams();
-  const msg = sp.get("saved") ? "✅ Saved — it's live on your site" : sp.get("deleted") ? "🗑️ Deleted" : null;
-  const [key, setKey] = useState(0);
-  useEffect(() => { setKey((k) => k + 1); }, [msg]);
-  if (!msg) return null;
-  return <div key={key} className="adm-toast">{msg}</div>;
+  const saved = sp.get("saved"), deleted = sp.get("deleted");
+  if (!saved && !deleted) return null;
+  // each save's value is new, so a new key starts the message again, even on the second save in a row
+  return <div key={saved ?? deleted} className="adm-toast" role="status">{saved ? "✅ Saved — it's live on your site" : "🗑️ Deleted"}</div>;
 }
 
 /**
