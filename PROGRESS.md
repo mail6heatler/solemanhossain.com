@@ -13,7 +13,9 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - The Résumé button opens a PDF named `customer-wise-remaining-balance---24.1.2026.pdf`, which may not be meant for the public. Pointed out three times; it's the owner's to replace, and the old file's link keeps working until it's deleted.
 - G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
-- The wall shows a test message, "fds", from mail6heatler. G2 and G3 still hold placeholder text ("Describe what it does…", "dcxzfcvsdfzxcvzxvx"). These are the owner's content, so they weren't touched.
+- The wall shows a test message, "fds", from mail6heatler. G2 still holds placeholder text ("Describe what it does…"). These are the owner's content, so they weren't touched.
+
+- Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit. The logs available gave no answer; the owner was asked to confirm it was them.
 
 ## Section makeovers
 
@@ -23,7 +25,7 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 |---|---|---|---|
 | G1 Me | 5 notes | Good as it is, per the owner | none |
 | G2 Made | 2 projects (software) | **Done, kept** (they answered "go" when asked keep or undo, and were told it was taken as keep) | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
-| G3 Adventures | 3 entries: Cox's Bazar, Marathon, Somewhere next | **Built and live, waiting for keep or undo** | Chosen: boarding passes on a route with a vehicle travelling along it, then (their request) a frame for each subsection and Status buttons in the dashboard. Not chosen: a road-trip map, a passport with stamps |
+| G3 Adventures | 1 entry showing as of 2026-11-07: Cox's Bazar (Marathon and Somewhere next had gone by the time the frames went live) | **Built and live, waiting for keep or undo** | Chosen: boarding passes on a route with a vehicle travelling along it, then (their request) a frame for each subsection and Status buttons in the dashboard. Not chosen: a road-trip map, a passport with stamps |
 | G4 Influences | 1 person | Not started | A real shelf: book spines, records, framed people, ideas as light bulbs |
 | G5 Feed | 1 poll, 1 thought | Not started | A chat on a phone with bubbles and typing dots, or a corkboard of notes |
 | G6 Growth | 6 milestones | Not started | A tree that grows, with a branch per subsection and hard seasons shown bare; or a richer curved line (the owner's examples) |
@@ -55,7 +57,9 @@ The owner asked for the look to follow the dashboard's words, and for buttons fo
 
 **Tested on a throwaway copy with 7 entries across all 5 frames, with and without pictures:** the buttons (fill in, clear, own words, saved after a reload, none on other sections), the preview's frame and stamp, each frame's top, picture and text opening the entry, expand, reactions and Full view reachable on every frame, the bucket's expand opening the viewer, one height for all, no sideways scroll, no page errors. Flash, shutter and swing fire, the REC light blinks only on the camera the vehicle is at (64 of 64 samples at a camera, 0 of 45 elsewhere), and leaving a frame doesn't start them again. Reduced motion and a slow device: all frames show, none of this moves; no JavaScript: frames show. Size controls (large, small, show whole, hidden picture), long titles, a long typed status and a Bangla title. All 10 classic themes photographed, and phone sizes.
 
-**Quick comparison, old against new, same 7 entries, 2 rounds each.** A phone swiping the row: 96.7 and 98.0 fps, 2 and 3 stutters, following the finger 249 of 264px in both. A laptop's row gliding: 112.4 and 118.8 fps, 0 and 1 stutters. A phone at 4x slower scrolling the page: 20.2 and 20.5 fps, 54 and 49 stutters. No real difference; this PC's numbers swing more than these gaps. It wasn't a full run.
+**Quick comparison, old against new, same 7 entries, 2 rounds each.** A phone swiping the row: 96.7 and 98.0 fps, 2 and 3 stutters, following the finger 249 of 264px in both. A laptop's row gliding: 112.4 and 118.8 fps, 0 and 1 stutters. A phone at 4x slower scrolling the page: 20.2 and 20.5 fps, 54 and 49 stutters. No real difference; this PC's numbers swing more than these gaps. It wasn't a full run, and it came before the last adjustments to the stamp's width and the room under it, which don't move anything.
+
+**On the live site (`12c66a6`), one look at each size, nothing written:** Adventures holds only Cox's Bazar now, so it shows the ticket with its real photo and no stamp, as it has no date or status. No errors, no sideways scroll. The camera, bucket, polaroid and postcard haven't been seen on the live site, because no live entry uses those subsections yet. Check them when the owner adds one.
 
 ### 2026-11-07: G3 Adventures becomes boarding passes on a route (waiting for the owner's keep or undo)
 
