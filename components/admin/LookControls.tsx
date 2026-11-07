@@ -2,10 +2,11 @@
 import { TripFrame, type PassView } from "@/components/site/TripFrame";
 import { Vehicle } from "@/components/site/vehicles";
 import { StudyFrame, type StudyView } from "@/components/site/StudyFrame";
+import { ComicFrame, type ComicView } from "@/components/site/ComicFrame";
 import { useState } from "react";
 import { HIDE_LABELS, LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles, type ContentStyle, type HideKey } from "@/lib/contentStyle";
 
-export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView; study?: StudyView };
+export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView; study?: StudyView; comic?: ComicView; options?: string[] };
 
 const SIZES = [["", "Default"], ["s", SIZE_PRESETS.s.label], ["m", SIZE_PRESETS.m.label], ["l", SIZE_PRESETS.l.label], ["custom", "Custom"]] as const;
 
@@ -165,6 +166,15 @@ export default function LookControls({ initial, above, sample, layout, level }:
                       link={canFocus && sample.study.look === "book" ? <span className="tkt-link look-focus" onClick={focus} title="Click the part that must stay visible"><i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? 40}%` }} aria-hidden /></span> : undefined}
                       play={<span className="tv-play idle" aria-hidden><svg viewBox="0 0 14 16"><path d="M1 1 13 8 1 15Z" /></svg></span>}
                       body={({ above, showTitle }) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{showTitle && sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.study?.line && <p className="sty-line"><span>{sample.study.line}</span></p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
+                  </div>
+                </div>
+              ) : layout === "comic" && sample.comic ? (
+                <div className={`tkt-cell cm-cell${look.className}`} style={look.style}>
+                  <div className={`trip tkt cm${withText}`} style={look.style}>
+                    <ComicFrame view={look.hide("subtitle") ? { ...sample.comic, subtitle: "" } : sample.comic} first={sample.pic && !look.hide("pic") ? { url: sample.pic, type: "image" } : undefined} fixedPic={"--pic" in (look.style ?? {})}
+                      link={canFocus ? <span className="tkt-link look-focus" onClick={focus} title="Click the part that must stay visible"><i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? 30}%` }} aria-hidden /></span> : undefined}
+                      poll={sample.options && <div className="poll">{sample.options.map((o) => <button key={o} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}</div>}
+                      body={({ above, withPoll, text }) => box(<div className="tb">{above}{sample.comic?.subtitle && !look.hide("subtitle") && <p className="sub">{sample.comic.subtitle}</p>}{withPoll && sample.options && <div className="poll">{sample.options.map((o) => <button key={o} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}</div>}{text.trim() && <div className="cm-box"><div className="md ex"><p>{text}</p></div></div>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{sample.tags.length > 0 && !look.hide("tags") && <div className="tags">{sample.tags.map((t) => <span key={t}>{t}</span>)}</div>}</div>)} />
                   </div>
                 </div>
               ) : layout === "windows" ? (

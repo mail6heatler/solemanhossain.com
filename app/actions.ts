@@ -1,6 +1,7 @@
 "use server";
 
 import { cleanStudy } from "@/lib/studyItem";
+import { cleanComic } from "@/lib/comicItem";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -340,6 +341,7 @@ export async function updateItem(fd: FormData) {
   // only a Boarding passes entry's form sends this; any other form leaves what's stored alone
   if (fd.has("pass")) await query("UPDATE items SET pass=$1 WHERE id=$2", [JSON.stringify(cleanPass(String(fd.get("pass")))), id]);
   if (fd.has("study")) await query("UPDATE items SET study=$1 WHERE id=$2", [JSON.stringify(cleanStudy(String(fd.get("study")))), id]);
+  if (fd.has("comic")) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(String(fd.get("comic")))), id]);
   refresh();
   redirect(`/admin/items/${id}?saved=1`);
 }

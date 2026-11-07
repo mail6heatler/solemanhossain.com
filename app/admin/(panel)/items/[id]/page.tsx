@@ -11,6 +11,7 @@ import SaveBox from "@/components/admin/SaveBox";
 import TripStatus from "@/components/admin/TripStatus";
 import TripPanel from "@/components/admin/TripPanel";
 import StudyPanel from "@/components/admin/StudyPanel";
+import ComicPanel from "@/components/admin/ComicPanel";
 import { tripContext } from "@/components/site/TripFrame";
 
 type P = { params: Promise<{ id: string }> };
@@ -49,6 +50,7 @@ export default async function ItemEditor({ params }: P) {
               <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
               <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
               {section?.layout === "study" && <div className="hint">Its name picks the object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note. You can also choose under On the shelf.</div>}
+              {section?.layout === "comic" && <div className="hint">Its name picks the panel: hot takes get a shout and a burst; poems and sayings a thought cloud; a brain dump or chaos gets scribbles; and anything else a speech bubble. You can also choose one under In the comic, below.</div>}
               {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
             </div>
           </div>
@@ -113,6 +115,7 @@ export default async function ItemEditor({ params }: P) {
           </div>
         </div>
         {section?.layout === "study" && <StudyPanel initial={item.study} category={item.category} />}
+        {section?.layout === "comic" && <ComicPanel initial={item.comic} category={item.category} isPoll={isPoll} />}
         {section?.layout === "tickets" && <TripPanel initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
       </form>
 

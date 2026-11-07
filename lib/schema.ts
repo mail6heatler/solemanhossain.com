@@ -57,6 +57,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS pass TEXT NOT NULL DEFAULT '{}'`,
   // what a Study shelf entry looks like and shows beyond its usual fields (lib/studyItem.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS study TEXT NOT NULL DEFAULT '{}'`,
+  // which comic panel an entry gets and the word in its burst (lib/comicItem.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS comic TEXT NOT NULL DEFAULT '{}'`,
   `ALTER TABLE sections ADD COLUMN IF NOT EXISTS style TEXT NOT NULL DEFAULT '{}'`,
   `CREATE TABLE IF NOT EXISTS files (
     id TEXT PRIMARY KEY,
@@ -124,6 +126,9 @@ export const SCHEMA = [
   // G4's new look, agreed on 2026-11-07. The old flip cards stay a choice under Section settings.
   `WITH first AS (INSERT INTO done_once (key) VALUES ('influences-study') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'study' WHERE slug = 'influences' AND layout = 'list' AND EXISTS (SELECT 1 FROM first)`,
+  // G5's new look, agreed on 2026-11-07. The old feed stream stays a choice under Section settings.
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('feed-comic') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'comic' WHERE slug = 'feed' AND layout = 'stream' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {
@@ -196,7 +201,7 @@ const SECTIONS: SeedSection[] = [
     slug: "feed", code: "G5", nav_label: "Feed", nav_emoji: "🔥", eyebrow: "Brain chaos feed", eyebrow_emoji: "🔥",
     title: "Unfiltered, as it happens",
     subtitle: "Short thoughts, hot takes and polls. Newest at the top.",
-    layout: "stream", emojis: "💭 🔥 💬",
+    layout: "comic", emojis: "💭 🔥 💬",
     categories: "Poems I'm obsessed with, On repeat, Hot takes, This week's brain dump, Sayings that stuck, Creative chaos, Currently vibing with, Quick fire questions, Overrated or underrated, Would you rather",
     empty_text: "Nothing posted yet.",
     items: [

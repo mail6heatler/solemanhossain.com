@@ -14,6 +14,7 @@ import TicketRider from "./TicketRider";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
 import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./TripFrame";
 import { ShelfDecor, ShelfLamp, StudyFrame, studyView, type StudyBody } from "./StudyFrame";
+import { ComicFrame, ComicMore, comicView, FlyingBrain, type ComicBody } from "./ComicFrame";
 import TvPlay from "./TvPlay";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
@@ -475,6 +476,39 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       );
     });
     return row("grid3 tkt-row", <>{cells}{!grid && fx.tripfx && <TicketRider kinds={kinds} />}</>);
+  }
+
+  // short thoughts as a comic: each entry is a panel its subsection picks, and a brain flies along and pops the one it reaches
+  if (L === "comic") {
+    const cells = items.map((it, i) => {
+      const l = lookFor(it);
+      const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
+      const v = comicView(it, { code: section.code, fallback: section.nav_label || section.title, index: i, hideSubtitle: l.hide("subtitle"), hasPic: !!first });
+      const poll = it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : null;
+      const body: ComicBody = ({ above, withPoll, text }) => (
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+          <CardLink to={href(section, it)} label={it.title} />
+          <div className="tb">
+            {above}
+            {v.subtitle && <p className="sub">{v.subtitle}</p>}
+            {withPoll && poll}
+            {text.trim() && <div className="cm-box"><Markdown className="md ex">{text}</Markdown></div>}
+            <Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />
+            <LinkButtons it={it} />
+            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+          </div>
+        </Box>
+      );
+      return (
+        <div key={it.id} className={`tkt-cell cm-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
+          {!grid && fx.comicfx && <div className="cm-sky" aria-hidden />}
+          <div className={`trip tkt cm${it.body.trim() ? " with-text" : ""}`} style={l.style}>
+            <ComicFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} first={first} fixedPic={"--pic" in (l.style ?? {})} picStyle={vt(it.id)} zoom={first ? zoom(it) : null} poll={poll} body={body} />
+          </div>
+        </div>
+      );
+    });
+    return row("grid3 tkt-row cm-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <ComicMore sky={fx.comicfx} />}{!grid && fx.comicfx && <TicketRider className="cm-rider" count={items.length}><FlyingBrain /></TicketRider>}</>);
   }
 
   // what shaped the owner: each entry is the object its subsection names, standing on a shelf under a travelling lamp

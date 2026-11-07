@@ -1,4 +1,5 @@
 import { cleanStudy, type StudyInfo } from "./studyItem";
+import { cleanComic, type ComicInfo } from "./comicItem";
 import { cleanPass, type TripPass } from "./tripPass";
 import { query, queryOne, Row } from "./db";
 import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
@@ -25,6 +26,8 @@ export type Item = {
   pass: TripPass;
   /** what it looks like on a study shelf, and what it adds there */
   study: StudyInfo;
+  /** which panel it gets in a comic strip, and the word in its burst */
+  comic: ComicInfo;
 };
 
 export type Message = {
@@ -47,6 +50,7 @@ const toItem = (r: Row): Item => ({
   style: cleanStyle(r.style),
   pass: cleanPass(r.pass),
   study: cleanStudy(r.study),
+  comic: cleanComic(r.comic),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 
