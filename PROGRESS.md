@@ -25,7 +25,7 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 |---|---|---|---|
 | G1 Me | 5 notes | Good as it is, per the owner | none |
 | G2 Made | 4 projects as of 2026-11-07 (2 when it was built) | **Done, kept** (they answered "go" when asked keep or undo, and were told it was taken as keep) | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
-| G3 Adventures | 5 entries as of 2026-11-07, one in each frame (the owner keeps changing them) | **Built and live, waiting for keep or undo.** They said "all good" about the camera, polaroid, postcard and Status buttons, and asked for changes to the bucket and the pass, which were then built | Chosen: boarding passes on a route with a vehicle travelling along it, then (their requests) a frame for each subsection, Status buttons, a real boarding pass with its details entered in the dashboard, and a bucket-list note with ticks instead of a full bucket (option A: one note per entry). Not chosen: a road-trip map, a passport with stamps, one note listing every bucket entry |
+| G3 Adventures | 5 entries as of 2026-11-07, one in each frame (the owner keeps changing them) | **Done, kept** (they answered "good job, let's go for G4" when asked keep or undo, and were told it was taken as keep) | Chosen: boarding passes on a route with a vehicle travelling along it, then (their requests) a frame for each subsection, Status buttons, a real boarding pass with its details entered in the dashboard, and a bucket-list note with ticks instead of a full bucket (option A: one note per entry). Not chosen: a road-trip map, a passport with stamps, one note listing every bucket entry |
 | G4 Influences | 1 person | Not started | A real shelf: book spines, records, framed people, ideas as light bulbs |
 | G5 Feed | 1 poll, 1 thought | Not started | A chat on a phone with bubbles and typing dots, or a corkboard of notes |
 | G6 Growth | 6 milestones | Not started | A tree that grows, with a branch per subsection and hard seasons shown bare; or a richer curved line (the owner's examples) |
@@ -51,7 +51,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-07: G3 Adventures: a real boarding pass, and the bucket list as a note (waiting for the owner's keep or undo)
+### 2026-11-07: G3 Adventures: a real boarding pass, and the bucket list as a note (kept by the owner)
 
 The owner disliked the full bucket and said the pass didn't look like a real one. They saw drawings on a private preview page and chose my pick, one note per entry, then asked that From, To, reporting time, departure time, the time and the seat all be entered from the dashboard, and for two punched cuts on the sides. "The time" could mean the journey's length, so it became Journey time, and they were told. Beyond what they named, the panel also holds both codes, the passenger, the flight number, the pass's name and a Vehicle box. Tick lines moved from "lines starting with a dash", as drawn, to a small editor with a box per line, because they asked for everything to be in the dashboard. How it's built is in "Section looks" in `CLAUDE.md`. There's one new column, `items.pass`; old code ignores it, so undoing needs only the code.
 
@@ -61,7 +61,7 @@ The owner disliked the full bucket and said the pass didn't look like a real one
 
 **On the live site (`fc122a4`), one look at each size, nothing written:** all 5 frames show with the owner's own entries and real photos, the pass with both cuts and its barcode, no errors, no sideways scroll, and the pass on Cox's Bazar's own page. Its details are all automatic there so far, so the owner hasn't entered any yet.
 
-### 2026-11-07: G3 Adventures: each entry's frame follows its subsection (waiting for the owner's keep or undo)
+### 2026-11-07: G3 Adventures: each entry's frame follows its subsection (kept by the owner, except the full bucket, replaced above)
 
 The owner asked for the look to follow the dashboard's words, and for buttons for Visited, Next destination, Dream place and so on. How it's built is in "Section looks" in `CLAUDE.md`. No database change, so undoing needs only the code.
 
@@ -71,7 +71,7 @@ The owner asked for the look to follow the dashboard's words, and for buttons fo
 
 **On the live site (`12c66a6`), one look at each size, nothing written:** Adventures holds only Cox's Bazar now, so it shows the ticket with its real photo and no stamp, as it has no date or status. No errors, no sideways scroll. The camera, bucket, polaroid and postcard haven't been seen on the live site, because no live entry uses those subsections yet. Check them when the owner adds one.
 
-### 2026-11-07: G3 Adventures becomes boarding passes on a route (waiting for the owner's keep or undo)
+### 2026-11-07: G3 Adventures becomes boarding passes on a route (kept by the owner)
 
 The owner chose option A. How it's built is in "Section looks" in `CLAUDE.md`. The live section switched by itself on deploy through `done_once`, and a later switch back to Photo trail stays, including after a restart (tested). Tickets read From Dhaka (`settings.location`), since entries have no "from" field; adding one was offered.
 
