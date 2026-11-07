@@ -22,8 +22,8 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 | Section | Holds today | Status | Ideas to offer (not approved) |
 |---|---|---|---|
 | G1 Me | 5 notes | Good as it is, per the owner | none |
-| G2 Made | 2 projects (software) | **Built and live, waiting for keep or undo** | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
-| G3 Adventures | 3 trips | Not started | Boarding passes or tickets on a route, with a plane, car or boat travelling between stops (the owner's example) |
+| G2 Made | 2 projects (software) | **Done, kept** (they answered "go" when asked keep or undo, and were told it was taken as keep) | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
+| G3 Adventures | 3 entries: Cox's Bazar, Marathon, Somewhere next | **Proposed, waiting for go** | Boarding passes on a route with a vehicle travelling along it (recommended); a road-trip map with a car; a passport with stamps |
 | G4 Influences | 1 person | Not started | A real shelf: book spines, records, framed people, ideas as light bulbs |
 | G5 Feed | 1 poll, 1 thought | Not started | A chat on a phone with bubbles and typing dots, or a corkboard of notes |
 | G6 Growth | 6 milestones | Not started | A tree that grows, with a branch per subsection and hard seasons shown bare; or a richer curved line (the owner's examples) |
@@ -47,7 +47,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-07: G2 Made becomes app windows on a desktop (waiting for the owner's keep or undo)
+### 2026-11-07: G2 Made becomes app windows on a desktop (kept by the owner)
 
 The first section makeover; the owner chose option A. How it's built is in "Section looks" in `CLAUDE.md`. The live section switched by itself on deploy through `done_once`, and a later switch back to Cards under Section settings stays, including after a restart (tested).
 
@@ -57,7 +57,7 @@ The first section makeover; the owner chose option A. How it's built is in "Sect
 
 **On the live site after release:** both real projects show as windows, EyeHealth AI's screenshot loaded, Life Chronicle shows its code panel. The dock works, the title bar opens the project's page, the menu link lands at 0, and on a phone the windows fit and the row glides. No page errors, no sideways scroll. Not tried on a real phone.
 
-### 2026-11-07: Late pictures: menu links land, cards don't jump (waiting for the owner's keep or undo)
+### 2026-11-07: Late pictures: menu links land, cards don't jump (kept by the owner)
 
 The owner said go to both offers. They had one cause: a late picture makes its row taller after a link has already worked out where to stop. Adventures went from 669 to 822 tall (the 153px), Growth from 813 to 964. An earlier note said pictures weren't the cause, because the page still grew while pictures were blocked. That was wrong: tracing the live page named the Adventures picture. The earlier measurement was probably taken while only some pictures were blocked, though that wasn't checked.
 
