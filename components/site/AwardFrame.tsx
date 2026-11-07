@@ -3,7 +3,7 @@ import { awardFields, awardLookOf, EMPTY_AWARD, isCurrent, isNow, jobFromTitle, 
 /**
  * An achievement on the wall, chosen by the dashboard's own words: the Subsection picks the object, a job they still have is a staff ID, and a heavy Mood
  * cracks the frame. The site and the dashboard's Size & look preview both draw with this. It draws what's above the writing and takes the part that
- * scrolls as `body`, so everything a card must do stays the same. Each object hangs by a hook, which runs along the wall's rail as the row slides.
+ * scrolls as `body`, so everything a card must do stays the same.
  */
 const TITLE_LONG = 70; // a longer title is cut where the object shows it, and shown whole in the writing
 const RIBBONS = ["var(--pop2)", "var(--pop3)", "var(--mint)"];
@@ -75,11 +75,10 @@ const Medal = ({ ribbon }: { ribbon: string }) => (
   </svg>
 );
 
-/** What it hangs by: a hook on the rail and a wire, stretched to however far down this object hangs. */
-const Hanger = ({ lanyard }: { lanyard?: boolean }) => (
+const Hanger = () => (
   <>
-    <svg className={lanyard ? "aw-lanyard" : "aw-wire"} viewBox="0 0 130 31" preserveAspectRatio="none" aria-hidden="true"><path d="M2 31 65 0l63 31" vectorEffect="non-scaling-stroke" /></svg>
-    <i className="aw-hook" aria-hidden="true" />
+    <i className="aw-nail" aria-hidden="true" />
+    <svg className="aw-wire" viewBox="0 0 130 31" aria-hidden="true"><path d="M2 31 65 2l63 29" /></svg>
   </>
 );
 
@@ -97,7 +96,8 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
   const holdsPicture = v.look === "cert" || v.look === "id" || v.look === "crack";
   return (
     <>
-      <Hanger lanyard={v.look === "id"} />
+      {v.look === "id" && <svg className="aw-lanyard" viewBox="0 0 84 56" aria-hidden="true"><path d="M4 0 42 52 80 0" /></svg>}
+      {v.look !== "id" && v.look !== "trophy" && <Hanger />}
       <div className={`aw-art aw-a-${v.look}`} style={{ "--tw": v.word } as React.CSSProperties}>
         {link}
         {v.look === "trophy" && (

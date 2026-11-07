@@ -2485,30 +2485,18 @@ html.lite .cmp-pow { display: none; }
 /* --- G6: an achievement wall. Each entry hangs on a wall as the object its Subsection picks (AwardFrame.tsx), a museum spotlight travels along and wakes the one it
    reaches, and a rail and a floor run under the row, one piece per cell, so they move with it. Gold, parchment and wood are materials, the same in every theme, and what's
    on them uses --on-gold or --on-parch. Everything that moves does so by transform, rotate, scale or opacity only --- */
-:is(.aw-wall, .aw-row, .aw-cell) { --gold: #e8b93a; --gold-deep: #a97c0f; --on-gold: #2a2118; --parch: #fff8e6; --on-parch: #2a2118; --wood: #8f5e36; --wood-lite: #a97648; --wood-deep: #5f3b21; }
-/* the wall stays still, and the row slides in front of it. Plaster in the theme's own colours, with wood panelling below and a floor. One element with a few layers, painted once, so it costs nothing as the row moves */
-.aw-wall { --plaster: color-mix(in srgb, var(--bg) 88%, var(--fg)); --aw-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.03 .05' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .7 -.22'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); position: relative; isolation: isolate; background-color: var(--plaster); background-image: var(--aw-grain), linear-gradient(color-mix(in srgb, var(--fg) 15%, transparent), transparent 74px), radial-gradient(ellipse at 50% 26%, color-mix(in srgb, var(--card) 42%, transparent), transparent 72%); }
-html.lite .aw-wall { --aw-grain: none; }
-.aw-wall::before { content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: 12px; height: 14px; background: linear-gradient(var(--wood-lite), var(--wood) 45%, var(--wood-deep)); box-shadow: 0 5px 7px -2px color-mix(in srgb, var(--fg) 42%, transparent); }
-.aw-wall::after { content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: min(42%, 270px);
-  background:
-    repeating-linear-gradient(90deg, var(--wood-deep) 0 88px, color-mix(in srgb, var(--wood-deep) 76%, var(--fg)) 88px 90px) 0 100% / 100% 30px no-repeat,
-    linear-gradient(var(--wood), var(--wood)) 0 calc(100% - 30px) / 100% 22px no-repeat,
-    linear-gradient(var(--wood-lite), var(--wood-lite)) 0 calc(100% - 52px) / 100% 3px no-repeat,
-    linear-gradient(var(--wood-lite), var(--wood) 60%, var(--wood-deep)) 0 0 / 100% 12px no-repeat,
-    linear-gradient(var(--wood), var(--wood)) 0 12px / 100% 12px no-repeat,
-    repeating-linear-gradient(90deg, var(--wood) 0 13px, var(--wood-deep) 13px 15px, var(--wood-lite) 15px 187px, var(--wood-deep) 187px 189px, var(--wood) 189px 202px); }
-.side-track.aw-row { padding-top: 0; padding-bottom: 46px; }
-/* "See all" is a plain grid, so there's plaster and no rail to run along */
-.grid3:not(.side-track).aw-row { padding: 20px 18px; border-radius: 14px; background: color-mix(in srgb, var(--bg) 88%, var(--fg)); }
-/* each hangs from the rail at its own height: --aw-gap is how far it hangs below the rail's middle */
-.aw-cell { --aw-drop: 0px; --aw-gap: calc(41px + var(--aw-drop)); padding-top: calc(60px + var(--aw-drop)); }
+:is(.aw-row, .aw-cell) { --gold: #e8b93a; --gold-deep: #a97c0f; --on-gold: #2a2118; --parch: #fff8e6; --on-parch: #2a2118; --wood: #8f5e36; --wood-deep: #5f3b21; }
+.aw-cell { --aw-drop: 0px; padding-top: calc(52px + var(--aw-drop)); }
 .aw-cell:nth-child(3n + 2) { --aw-drop: 26px; }
 .aw-cell:nth-child(3n) { --aw-drop: 12px; }
-.grid3:not(.side-track) > .aw-cell { --aw-drop: 0px; --aw-gap: 30px; padding-top: 42px; }
+.grid3:not(.side-track) > .aw-cell { --aw-drop: 0px; padding-top: 42px; }
+.side-track :is(.aw-cell, .aw-more)::before { content: ""; position: absolute; z-index: -1; left: -10px; right: -10px; top: 0; height: 12px; background: var(--wood-deep); box-shadow: 0 3px 0 var(--wood); }
+.side-track .aw-cell::after { content: ""; position: absolute; z-index: -1; left: -10px; right: -10px; bottom: -24px; height: 12px; background: repeating-linear-gradient(90deg, var(--wood) 0 56px, var(--wood-deep) 56px 58px); }
+.side-track .aw-cell.first::before, .side-track .aw-cell.first::after { left: calc(var(--gutter, 7vw) * -1); }
+.side-track .aw-cell.last::before, .side-track .aw-cell.last::after { right: calc(var(--gutter, 7vw) * -1); }
 /* how wide the display font is per letter at its heaviest: Syne, the widest, is the default */
 html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-skin="paper"], [data-skin="techy"], [data-skin="retro"]) .site .trip.tkt.aw { --ch: .76; }
-.site .trip.tkt.aw { --ch: 1.06; --pic: .3; --ink: var(--fg); container: aw-card / inline-size; border: 2px solid var(--ink); border-radius: 10px; background: var(--card); transform-origin: 50% calc(var(--aw-gap) * -1); box-shadow: 0 18px 26px -12px rgba(0,0,0,.45); }
+.site .trip.tkt.aw { --ch: 1.06; --pic: .3; --ink: var(--fg); container: aw-card / inline-size; border: 2px solid var(--ink); border-radius: 10px; background: var(--card); transform-origin: 50% -34px; box-shadow: 0 16px 26px -14px color-mix(in srgb, var(--fg) 50%, transparent); }
 .site .trip.tkt.aw.on-crack { rotate: -1deg; }
 .aw :is(.scroll-wrap, .scrolly) { min-height: 0; }
 .aw .tb { padding: 11px 13px 13px; gap: 6px; }
@@ -2518,10 +2506,10 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 .aw .card-foot { border-radius: 0 0 8px 8px; background: var(--card); }
 .aw .flow .ph.has-pic :is(img, video) { max-height: calc(var(--row-h) * var(--pic)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
 .fit-whole .aw .flow .ph.has-pic :is(img, video) { max-height: none; object-fit: contain; }
-/* what it hangs by: a brass hook on the rail, and a wire or a lanyard stretched down to the object */
-.aw-hook { position: absolute; z-index: 4; left: 50%; top: calc(var(--aw-gap) * -1 - 12px); width: 20px; height: 24px; margin-left: -10px; border: 2px solid var(--fg); border-radius: 9px 9px 5px 5px; background: linear-gradient(var(--gold), var(--gold-deep)); pointer-events: none; }
-.aw-wire { position: absolute; left: 50%; top: calc(var(--aw-gap) * -1); width: 130px; height: var(--aw-gap); margin-left: -65px; overflow: visible; fill: none; stroke: var(--fg); stroke-width: 1.6; pointer-events: none; }
-.aw-lanyard { position: absolute; z-index: 3; left: 50%; top: calc(var(--aw-gap) * -1); width: 84px; height: calc(var(--aw-gap) + 14px); margin-left: -42px; overflow: visible; fill: none; stroke: var(--pop2); stroke-width: 7; pointer-events: none; }
+/* what it hangs by */
+.aw-nail { position: absolute; z-index: 2; left: 50%; top: -36px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--wood-deep); }
+.aw-wire { position: absolute; left: 50%; top: -31px; width: 130px; height: 31px; margin-left: -65px; overflow: visible; fill: none; stroke: var(--fg); stroke-width: 1.5; pointer-events: none; }
+.aw-lanyard { position: absolute; z-index: 3; left: 50%; top: -42px; width: 84px; height: 56px; margin-left: -42px; overflow: visible; fill: none; stroke: var(--pop2); stroke-width: 7; pointer-events: none; }
 .aw-art { position: relative; flex: none; border-radius: 8px 8px 0 0; }
 .aw-sub { font: 700 10.5px/1.25 var(--body); letter-spacing: .07em; text-transform: uppercase; }
 .aw-gleam { position: absolute; z-index: 2; inset: 0 auto 0 0; width: 34%; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--parch) 72%, transparent), transparent); transform: translateX(-180%) skewX(-18deg); pointer-events: none; }
@@ -2580,7 +2568,7 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 .aw-facts dt { color: var(--muted); font: 700 11px/1.3 var(--body); letter-spacing: .06em; text-transform: uppercase; }
 .aw-facts dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
 /* the end of a short row */
-.aw-more { --aw-gap: 41px; position: relative; flex: 0 0 auto; width: 230px; padding-top: 60px; }
+.aw-more { position: relative; isolation: isolate; flex: 0 0 auto; width: 230px; padding-top: 52px; }
 .aw-more-in { position: relative; display: grid; place-items: center; height: min(500px, 72vh); padding: 14px; border: 3px dashed color-mix(in srgb, var(--fg) 34%, transparent); border-radius: 10px; color: var(--muted); font: 700 17px/1.2 var(--display); text-align: center; }
 @media (max-width: 760px) { .aw-more { display: none; } }
 /* the spotlight */

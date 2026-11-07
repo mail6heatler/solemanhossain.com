@@ -58,6 +58,10 @@ Every box on an entry's page and a section's page now has a title and an arrow, 
 
 The Saved message was only showing the first time, because a second save in a row didn't change the address. It now shows on every save, at the top of the screen.
 
+### 2026-11-08: The plaster wall was undone
+
+They saw it live and said to undo the wall and keep the rest, so the Details boxes stay and the row is back to the rail and floor that move with it. They also asked for new cards next: an RFID card for career, a certificate for certificates, and the same for all four subsections, fun, dynamic and lively. Those are being drawn first.
+
 ### 2026-11-08: The wall became a real wall, and Details asks for a job's dates
 
 They asked for a wall that looks like a wall, with the milestones hanging and sliding, and for career start, end and position in the Details box. I offered brick or plaster and they chose plaster. The wall now stays still behind the row, and each object hangs from a hook that runs along a rail. Details also asks for a certificate's Issued by, dates and Credential ID and a medal's or trophy's Awarded by, which I added because they said "like", and told them. Built and published without tests, as they asked.

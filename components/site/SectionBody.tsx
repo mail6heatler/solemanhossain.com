@@ -140,9 +140,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   });
   const zoom = (it: Item) => (fx.lightbox && it.media.length > 0 ? <PicZoom media={it.media} title={it.title} /> : null);
   const rowFx: RowFx = { auto: fx.sideways, count: fx.rowcount };
-  const row = (className: string, children: React.ReactNode, after?: React.ReactNode, wall?: string) => grid
+  const row = (className: string, children: React.ReactNode, after?: React.ReactNode) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
-    : <SideRow className={`${className}${st}`} fx={rowFx} after={after} wall={wall}>{children}</SideRow>;
+    : <SideRow className={`${className}${st}`} fx={rowFx} after={after}>{children}</SideRow>;
 
   if (L === "connect") {
     const hasNotes = items.length > 0 || (wall?.length ?? 0) > 0;
@@ -514,7 +514,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
         </div>
       );
     });
-    return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>, undefined, "aw-wall");
+    return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>);
   }
 
   // short thoughts as a comic: each entry is a panel its subsection picks, and a brain flies along and pops the one it reaches

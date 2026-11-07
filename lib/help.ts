@@ -385,7 +385,7 @@ export const HELP: Record<string, Help> = {
   },
   awardfx: {
     title: "Achievement wall: a spotlight travels along, seals stamp down, trophies gleam",
-    what: "A section laid out as Achievement wall (like Growth) hangs each entry on a wall. Its Subsection picks the object: hall of fame gets a gold trophy on a shelf; skills, certificates, courses or degrees a gold frame with a seal; career, jobs or milestones a staff ID on a lanyard if you still work there, and a brass door plate if not; anything else a medal on a ribbon, or a cracked frame mended with tape if its Mood is heavy. The objects hang from a rail on a plaster wall, and slide along it. A museum spotlight travels with them and wakes each one: it swings on its hook, a seal or stamp thumps down, and gold gleams. Off, the objects stay and only the movement and the spotlight go.",
+    what: "A section laid out as Achievement wall (like Growth) hangs each entry on a wall. Its Subsection picks the object: hall of fame gets a gold trophy on a shelf; skills, certificates, courses or degrees a gold frame with a seal; career, jobs or milestones a staff ID on a lanyard if you still work there, and a brass door plate if not; anything else a medal on a ribbon, or a cracked frame mended with tape if its Mood is heavy. A museum spotlight travels along the wall and wakes each object: it swings on its nail, a seal or stamp thumps down, and gold gleams. Off, the objects stay and only the movement and the spotlight go.",
     how: ["Switch on and save.", "To use it on another section, choose “Achievement wall” as its layout, under Section settings."],
     preview: "/?demo=awardfx",
   },
