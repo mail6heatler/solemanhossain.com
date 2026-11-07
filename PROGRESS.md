@@ -5,7 +5,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-fit-belt-pdf` (before the bigger menu, thicker belts, pictures filling cards and PDFs on entries), `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-auto-rows` (before rows that glide by themselves with arrows, and before an entry's Save box moved above Delete), `before-fit-belt-pdf` (before the bigger menu, thicker belts, pictures filling cards and PDFs on entries), `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
@@ -13,13 +13,27 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
 - The wall shows a test message, "fds", from mail6heatler. G2 and G3 still hold placeholder text ("Describe what it does…", "dcxzfcvsdfzxcvzxvx"). These are the owner's content, so they weren't touched.
-- Rows with 2 or 3 cards stay still on a computer. Asked twice, not answered.
 
 ## Agreed for later
 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-07: Rows that glide by themselves, with arrows (waiting for the owner's keep or undo)
+
+The owner reported a huge blank space between a section's title and its cards, and asked for rows that don't fit to slide automatically on computers and phones, with direction arrows and no mouse wheel for rows on computers, and for an entry's Save box to sit above its Delete box. How it works is in "Rows that don't fit" in `CLAUDE.md`.
+
+- **Gap, title to first card, before:** laptop 275 to 354, big monitor 446 to 513, phone 118 to 190. **After, with every section overflowing on the test copy:** 87 to 90 on all three. The holding effect and the big counter caused it.
+- **Removed:** the row holding the page still, and with it the curve, fly-in and lean, including their three switches. The `sideways` switch now means "slide by themselves". The counter is small.
+- **Picked without asking, and told the owner:** a row turns back at each end instead of looping, because a loop needs duplicate cards and would make the counter meaningless. Wheel over a long card still scrolls its text first, as proposed.
+- **The entry page:** Save now comes after Size & look and Reactions, directly above Delete, and floats over all of them.
+
+**Old against new, taking turns, same content with every section overflowing.** A straight comparison isn't fair on computers: the old row spent much of the test holding the page still, which is cheap (108.6 and 95.1 fps look like a drop, but aren't). With the old holding effect switched off, so both scroll the same kind of page, 4 rounds: laptop 120.0 and 119.0 fps, 1 and 2 stutters; laptop 4x slower 29.8 and 28.8, 32 and 35. Slower phone 15.5 and 15.1, 90 and 89 (5 rounds, after phones stopped watching for something only computers use; this PC was busy, hence the low numbers). Phone 61.1 and 57.8, 3 and 4 (2 rounds). Swiping a row on a phone, old and new: 130.7 and 129.2 fps, 0 stutters, following the finger 249 of 264px both; 4x slower 58.9 and 60.7, 1 and 2.
+
+**A row gliding by itself, new build only:** laptop 131.1 fps, phone 132.0, 0 stutters. 4x slower: 66.8 and 44.2, 0 stutters.
+
+**Not tested:** a real phone, and how a slow glide looks on a real 1x laptop screen, which is the reason for moving computers' rows by transform.
 
 ### 2026-11-07: Bigger menu, thicker belts, uploads that fit (kept by the owner)
 

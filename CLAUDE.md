@@ -66,7 +66,7 @@ components/site/
   Split.tsx                server-rendered split text: <Split> for letters, <Words> for words
   Intro.tsx                opening curtain (CSS only)
   HeroFx.tsx               decoding/kinetic headline, avatar tilt, greeting, live counter
-  SideRow.tsx              the homepage's row of cards: never wraps; pins and slides sideways on computers with curve, fly-in and lean; on phones it's swiped, flat, with a counter
+  SideRow.tsx              the homepage's row of cards: never wraps; if it doesn't fit it glides by itself, with arrows and a small counter (see "Rows that don't fit")
   scrollBoxes.ts           cards that scroll inside themselves: the "more" hint and the wheel (text first, then page)
   ThemeSwitch.tsx          theme menu, shuffle, circular theme wipe
   Demo.tsx                 ?demo=<key> previews opened from dashboard pop-ups
@@ -111,13 +111,24 @@ Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `
 
 Show everything the entry holds that fits a card: subtitle, date, place, mood, status, tags and its buttons (`LinkButtons`). Open its full page when clicked (`CardLink`, inside `Box`'s `.flow`), while reactions, polls, the expand button, video controls and links in the text stay above that link with `z-index`. Pass `to` to `Box` for the "Full view" button in the card's bar, or use `FullView` in a `.card-foot.plain` outside `Box`; every card has it. "Scroll for more" shows on every scrollable card whenever it's at its top. Anything hover reveals needs another way on phones (see the flip cards' first tap, and `.ph-info` under photos). The dashboard's order list (`OrderList`) shows entries in the exact order visitors see.
 
+## Rows that don't fit
+
+All in `SideRow.tsx`; the owner asked for this on 2026-11-07, replacing the row that held the page still while the wheel moved it (that left a huge gap above the cards). If the cards fit, nothing moves. If not, the row glides by itself at about one card every 8 seconds while it's on screen, waits 1.6s at each end and turns back. Arrows go to the next card at once and keep going that way. **The plain mouse wheel only moves the page; don't make it move a row.** Rows are flat: no curve, fly-in or lean.
+
+- **Two ways of moving (`byHand`).** Computers use `transform` on the track, because a slow glide needs fractions of a pixel and the browser's scrolling snaps to whole ones on most laptop screens. Anything with a touch screen (`any-pointer: coarse`) and reduced motion use the browser's scrolling, because only that follows a finger. It rests on a whole pixel, or text stays soft.
+- **What makes it wait:** a mouse really moving over it, a finger, keyboard focus inside it, a wheel over it, the page scrolling (`html.scrolling`), the full-screen viewer or a `<dialog>`. It doesn't run at all with reduced motion, on `html.lite`, or with the `sideways` switch off; arrows then move one card and stop.
+- **The mouse pause needs real movement** (`movementX`/`movementY`). Chrome sends a pointer event when the page brings a row under a resting mouse, and without this check a mouse left mid-screen would stop every row as it arrives.
+- **Check "on screen" on `.side`, never the track.** The track moves and travels off the side of the screen, and the observer then calls the row off screen.
+- **Back and reload** restore the row's place from sessionStorage (`lc_row:<path>:<index>`).
+- **To test it:** keep the mouse on the menu bar when it should be away. A spot beside the cards is still inside the track, so the row correctly waits. `next start` serves a homepage made at build time, so after seeding a throwaway database, save any dashboard page to rebuild it. The live site has few cards, so seed enough to overflow every layout.
+
 ## Opening a card
 
 All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a click can come before the page's own code has loaded; the look is under "opening a page" in `site.css`. A click gives the card `.opening` (press and glow) and adds `.nav-progress`. On `pageswap` the card is named `open-card`; on `pagereveal` a full-screen `.vt-panel` takes that name, so the card grows to fill the screen, turns into the panel, and the panel fades onto the page. Back adds `html.vt-back`: the page shrinks away and, if the card is still on screen, it lands. Pages start loading on hover through speculation rules (a `prefetch` link in browsers without them), and entry pages are cached after their first visit (`revalidate` and an empty `generateStaticParams`; dashboard changes clear them). Firefox gets only the press and the bar. To see it, film with `Page.startScreencast`: screenshots are too slow to catch it and can hang.
 
 ## The dashboard's Save box
 
-`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. The Size & look panels keep theirs inside, because it saves only that panel. The hero page's box doesn't float (`still`): the owner wants it resting at the end of the page, above the Remove box.
+`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. On an entry's page it's outside the form altogether (`form="entry"` on the button), directly above the Delete box and after Size & look and Reactions, and it floats over all of them. While Size & look is open, that panel's own box (`.look-actions`) covers it at the same width. The Size & look panels keep theirs inside, because it saves only that panel. The hero page's box doesn't float (`still`): the owner wants it resting at the end of the page, above the Remove box.
 
 ## Asking before anything risky
 
@@ -152,7 +163,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Off-screen work must stop.** `Effects.tsx` puts `.sleep` on off-screen sections and ribbons, which pauses every animation inside and hides decorations. Scroll handlers should skip off-screen targets and read cached positions instead of measuring per frame.
 - **No `backdrop-filter` or `mix-blend-mode` on anything large or fixed.** Both force the browser to redraw what's behind on every scrolled frame.
 - **Scaling an element without `will-change: transform` re-draws its text at each size.** Set it only while moving, and clear it at rest (see chapter motion in `scrollFx.ts`).
-- **A swiped row stays flat.** Reshaping its cards every frame made phones redraw them: removing it took a swipe from 42 to 118 fps, and from 65 stutters to 3 on a slower device. Curve, fly-in and lean are for pinned rows only. Measure a swipe on its own (see `Input.dispatchTouchEvent` above), because scrolling past rows doesn't show this. Rows have no scroll snap: even `proximity` pulled a short swipe back to the card it left.
+- **Rows stay flat.** Reshaping cards every frame made phones redraw them: removing it took a swipe from 42 to 118 fps, and from 65 stutters to 3 on a slower device. Measure a swipe on its own (see `Input.dispatchTouchEvent` above), because scrolling past rows doesn't show this. Rows have no scroll snap: even `proximity` pulled a short swipe back to the card it left.
 - **Set `playbackRate` only when the value changes**, and only on what's on screen. Each write resynchronises the animation.
 - **Slow devices get `html.lite`.** `Effects.tsx` watches frame times while scrolling; under about 25 fps for several seconds it sets the class, stores `lc_lite` in sessionStorage and fires `lc-lite`. Anything heavy must check the class at start and stop on that event. To add to it, see `ThemeFx`, `HeroScene`, `Living` and the `html.lite` CSS.
 - **Anything that spawns things must have a cap.** `bannerFall.ts` once had splashes that made more splashes, and it froze the page.
@@ -163,7 +174,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Check a new CSS class name isn't already used.** The map's stops were `.stop`, the side menu's class, which stretched the menu to 300px and pushed its dots left. It looked like a different bug until someone looked. The map's stops are now `.mstop`.
 - **Nothing may be added inside `.site` before React has started,** or its start-up fails (error 418). Scripts in `<head>` add to `<body>` directly (see `.vt-panel`, `.nav-progress`), and copy the theme's colours over because those are set on `.site`.
 - **A view transition's new image covers its old one at once** unless the new one fades in. That blanked the clicked card as soon as it started growing.
-- **In a 3D row, a card's parent box can catch the mouse before the card,** and `elementsFromPoint` won't show it: only real mouse events do. Check with events, and give wrappers `pointer-events: none` (see `.mstop`). Anything fixed over the page must not catch the mouse with invisible parts either (see `#rail`).
+- **Anything fixed over the page must not catch the mouse with invisible parts** (see `#rail`).
 - **Don't read `scrollTop` back to animate it.** The browser rounds it, so small steps stall on fast screens and the loop never ends. Keep the exact position yourself (`gliding` in `scrollBoxes.ts`).
 - **Pictures fit the card.** Full width in their real shape, and only what's taller than 66% of the card's height is trimmed (`object-fit: cover`), so there are no empty bars. This was the owner's choice on 2026-11-07, replacing "never cut". "Show whole" (`.fit-whole`) never trims, and the expand viewer and entry page always show all of it.
 - **A photo wipe makes the picture its own layer,** so anything inside it sits under the card's link and can't be clicked. Put buttons beside it, in `.pic-box`.
@@ -172,9 +183,8 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Don't start animations while the page is scrolling.** Waving reaction bars as they came on screen cost about 10% of the frames; they now wait until scrolling rests.
 - **A card's 3D tilt moves what's on it.** Small buttons near a card's edge slide out from under the mouse, so `hoverFx.ts` skips tilt over `.card-foot` and `.reacts`. Anything small and clickable near a card's edge needs the same.
 - **`onAnimationEnd` hears animations from children too.** Check `ev.target === ev.currentTarget`, or an emoji's move ends the button's pop.
-- **Inside a 3D row, the browser's own scrolling and hit-testing can't be trusted.** Part of a turned card sits behind the row's flat surface, so the row caught clicks (hence `pointer-events` in the `pin` CSS) and the browser sent the wheel to the page (hence the hand-driven glide in `scrollBoxes.ts`).
 - **`.scrolly` is the exception to the rule below:** no `data-lenis-prevent` and no `overscroll-behavior: contain`, because the page must carry on once a card's text ends. A wheel already moving the page keeps moving it, so a row passing under the mouse doesn't catch on every long card.
-- **Rows add page height after loading,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back, re-checking for 4 seconds. A row's `reveal` is on its sticky stage, because a tall or moved element may never reach the reveal threshold and would stay invisible.
+- **Rows add a little page height after loading (counter and arrows), and late pictures add more,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back, re-checking for 4 seconds. A row's `reveal` is on its stage, because a moved element may never reach the reveal threshold and would stay invisible.
 
 - **Anything that scrolls inside the page needs `data-lenis-prevent` and `overscroll-behavior: contain`.** Otherwise smooth scrolling takes the wheel and the page moves instead (see the theme menu).
 
@@ -188,7 +198,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **Nothing may depend on JavaScript to become visible unless it has a way back.** Animate from a visible default, or add the hidden state from JS. CSS-hidden content needs entries in the `<noscript>` rule in `app/layout.tsx` and the reduced-motion block at the end of `site.css`.
 - **`IntersectionObserver` treats a fully `clip-path`-clipped element as off screen.** It never fires, so the element stays invisible. Watch the parent (see the photo wipe in `hoverFx.ts`).
 - **Mouse effects must set `transform` only through one owner.** Tilt and magnets write inline `transform`, which beats CSS `:hover` transforms. For entrances or 3D that must combine with those, use the separate `rotate` / `scale` / `translate` properties.
-- **Don't transform a section (`.chap`).** The sideways strip relies on `position: sticky` inside it. Keep sections `overflow: clip`, not `hidden`, for the same reason.
+- **Keep sections `overflow: clip`, not `hidden`.** A `hidden` box can still be scrolled by the browser, so keyboard focus on a card past the edge of the screen would push the whole section sideways.
 - **Don't make `#hero` sticky.** Scroll-spy and `#hero` anchors break; the sink-away effect is a transform on `.hero-inner`.
 - **Letters must not be split in scripts that join them.** Bangla and emoji sequences stay whole words: use `isSplittable` from `Split.tsx`.
 - **View-transition opt-in must be in `<head>`.** In the body it arrives too late and the browser aborts the transition.

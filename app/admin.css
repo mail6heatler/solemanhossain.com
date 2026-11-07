@@ -348,6 +348,9 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .save-btns .b-mint { font-size: 12.5px; font-weight: 700; padding: 0 20px; }
 .save-btns .b-mint:hover { transform: translateY(-1px); }
 .save-bar.still { position: static; }
+/* an entry's page floats two boxes in the same spot while Size & look is open: that panel's own box goes on top, at the same width so the other doesn't show around it */
+.look-actions.save-bar { z-index: 7; }
+#look .look-actions.save-bar { margin-inline: -15px; }
 @media (min-width: 761px) {
   /* the page scrolls inside a box with 60px of padding at the bottom: this brings the Save box down to a small gap above the screen's edge */
   .save-bar { bottom: -46px; }

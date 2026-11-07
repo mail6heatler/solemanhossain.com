@@ -136,9 +136,9 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=stagger",
   },
   sideways: {
-    title: "Rows that don't fit slide sideways",
-    what: "On the homepage, cards never wrap onto a new line. When a row doesn't fit on a computer, the section stays in place while scrolling down moves the cards sideways. On phones visitors swipe. With this off, computers get a scrollbar under the row instead.",
-    how: ["Switch on and save.", "Add enough entries to a section that they don't all fit across the screen.", "On the site, scroll down through that section."],
+    title: "Rows that don't fit slide by themselves",
+    what: "On the homepage, cards never wrap onto a new line. When a row doesn't fit the screen it glides slowly by itself while it's on screen, and turns back at each end. It waits while the mouse moves over it, a finger is on it, or the page is scrolling. Arrows above the row send it either way, and phones can swipe too. The mouse wheel only moves the page. With this off, the row moves only with its arrows and swipes.",
+    how: ["Switch on and save.", "Add enough entries to a section that they don't all fit across the screen.", "On the site, scroll to that section and watch it, or press its arrows."],
     preview: "/?demo=sideways",
   },
   timeline: {
@@ -187,34 +187,16 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "On the site, move your mouse slowly across a card."],
     preview: "/?demo=cardtilt",
   },
-  coverflow: {
-    title: "Sideways rows curve in 3D",
-    what: "While a row slides sideways, its cards turn and shrink as they move away from the middle of the screen, like a curved film strip. Computers only: on phones cards slide flat, so swiping stays smooth.",
-    how: ["Switch on and save (“Rows that don't fit slide sideways” must be on too).", "On the site, scroll through a row that doesn't fit on screen."],
-    preview: "/?demo=coverflow",
-  },
   milemap: {
     title: "Timeline sections become a lively map",
-    what: "Sections laid out as a timeline, like your milestones, become a journey: each entry is a stop on a winding trail, with a medal chosen from its subsection's name and a colour per subsection. The trail lights up as visitors travel sideways, and a pin marks where they are. It stays one screen tall however many entries you add. Photos on an entry, like a certificate, show on its stop. With this off, you get the plain vertical timeline.",
+    what: "Sections laid out as a timeline, like your milestones, become a journey: each entry is a stop on a winding trail, with a medal chosen from its subsection's name and a colour per subsection. The trail lights up as the row travels, and a pin marks where it has got to. It stays one screen tall however many entries you add. Photos on an entry, like a certificate, show on its stop. With this off, you get the plain vertical timeline.",
     how: ["Switch on and save.", "Give entries subsections with words like Certifications, Career or Wins to choose their medals.", "Add a certificate as the entry's photo."],
     preview: "/?demo=milemap",
   },
-  rowfly: {
-    title: "Sideways cards fly in tilted",
-    what: "A sideways row sweeps in from the edge of the screen as its section arrives. Each card comes in tilted and low, then straightens as it reaches the middle. Computers only: on phones cards slide flat, so swiping stays smooth.",
-    how: ["Switch on and save.", "On the site, scroll to a row that doesn't fit on screen."],
-    preview: "/?demo=rowfly",
-  },
-  rowlean: {
-    title: "Sideways rows lean when you scroll fast",
-    what: "The whole row leans and stretches a little with your scrolling speed, then springs back when you slow down. Computers only: on phones cards slide flat, so swiping stays smooth.",
-    how: ["Switch on and save.", "On the site, scroll quickly through a row that doesn't fit on screen."],
-    preview: "/?demo=rowlean",
-  },
   rowcount: {
-    title: "Big counter on sideways rows",
-    what: "A large number such as 03 / 12 shows which card visitors have reached in a sideways row.",
-    how: ["Switch on and save.", "On the site, scroll through a row that doesn't fit on screen."],
+    title: "Counter on sideways rows",
+    what: "A small number such as 3 / 12, on the line above a sideways row, shows which card it has reached.",
+    how: ["Switch on and save.", "On the site, go to a row that doesn't fit on screen."],
     preview: "/?demo=rowcount",
   },
 

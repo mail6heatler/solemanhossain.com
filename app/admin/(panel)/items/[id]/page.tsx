@@ -34,7 +34,7 @@ export default async function ItemEditor({ params }: P) {
         {section && <a href={`/s/${section.slug}/${item.id}`} target="_blank">open on site ↗</a>}
       </p>
 
-      <form action={updateItem}>
+      <form action={updateItem} id="entry">
         <input type="hidden" name="id" value={item.id} />
         <div className="c f">
           <div className="fl"><label>Title</label><input className="inp" name="title" defaultValue={item.title} required /></div>
@@ -105,11 +105,6 @@ export default async function ItemEditor({ params }: P) {
             <label className="switch"><input type="checkbox" name="pinned" defaultChecked={item.pinned} />Pin / feature at the top</label>
           </div>
         </div>
-
-        <SaveBox label="Save entry">
-          <a href={`/admin/s/${item.section_id}`} className="b-out"><i className="ti ti-arrow-left" />Back</a>
-          {section && <a href={`/s/${section.slug}/${item.id}`} target="_blank" className="b-out"><i className="ti ti-eye" />Open on site</a>}
-        </SaveBox>
       </form>
 
       <form action={saveLook} id="look">
@@ -139,7 +134,12 @@ export default async function ItemEditor({ params }: P) {
         </div>
       )}
 
-      <div className="c c-row" style={{ marginTop: 24 }}>
+      <SaveBox label="Save entry" form="entry">
+        <a href={`/admin/s/${item.section_id}`} className="b-out"><i className="ti ti-arrow-left" />Back</a>
+        {section && <a href={`/s/${section.slug}/${item.id}`} target="_blank" className="b-out"><i className="ti ti-eye" />Open on site</a>}
+      </SaveBox>
+
+      <div className="c c-row" style={{ marginTop: 14 }}>
         <div className="grow"><div className="c-title">Danger zone</div><div className="c-desc">Hiding is reversible. Deleting is not.</div></div>
         <div className="btns">
           {isPoll && (

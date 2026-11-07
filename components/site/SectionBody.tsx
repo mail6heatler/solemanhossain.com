@@ -102,7 +102,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     tags: l.hide("tags") ? [] : it.tags,
   });
   const zoom = (it: Item) => (fx.lightbox && it.media.length > 0 ? <PicZoom media={it.media} title={it.title} /> : null);
-  const rowFx: RowFx = { pin: fx.sideways, curve: fx.coverflow, fly: fx.rowfly, lean: fx.rowlean, count: fx.rowcount };
+  const rowFx: RowFx = { auto: fx.sideways, count: fx.rowcount };
   const row = (className: string, children: React.ReactNode) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
     : <SideRow className={`${className}${st}`} fx={rowFx}>{children}</SideRow>;
@@ -275,7 +275,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       </div>
     );
 
-  // milestones as a map: one screen tall however many there are, travelled sideways
+  // milestones as a map: stops on a trail that travels sideways, however many there are
   if (L === "timeline" && fx.milemap) {
     const zones = [...new Set(items.map((it) => it.category).filter(Boolean))];
     const zoneColor = (c: string) => ["var(--mint)", "var(--pop2)", "var(--pop3)"][Math.max(0, zones.indexOf(c)) % 3];
@@ -290,7 +290,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             ))}
           </div>
         )}
-        <SideRow className="mile-map" fx={{ ...rowFx, curve: false, fly: false, marks: true }}>
+        <SideRow className="mile-map" fx={{ ...rowFx, marks: true }}>
           {items.map((it, i) => {
             const l = lookFor(it), pic = it.media[0] && !l.hide("pic"), low = i % 2 === 1;
             return (

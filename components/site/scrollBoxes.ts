@@ -2,8 +2,8 @@
  * Cards with more text than fits scroll inside themselves (`.scrolly`). This adds what CSS can't:
  * - the "Scroll for more" hint: it says so and keeps moving, on cards on screen, whenever a card is at its top;
  * - a line on the card's edge showing how far through it the visitor is;
- * - the mouse wheel moves the card's text first, then the page carries on. It's done by hand because inside a 3D row
- *   the browser hands the wheel to the page, and smooth scrolling would otherwise take it anyway;
+ * - the mouse wheel moves the card's text first, then the page carries on. It's done by hand because smooth scrolling
+ *   would otherwise take the wheel;
  * - a wheel already moving the page keeps moving the page, so a row sliding past the mouse doesn't catch on every long card.
  * Only cards that really overflow get a wheel listener, so ordinary scrolling elsewhere stays off the main thread.
  * Touch needs none of this: a finger scrolls the card natively, then the page.

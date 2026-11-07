@@ -214,7 +214,7 @@ html.lenis, html.lenis body { height: auto; }
 #rail .stop.active .node { background: var(--mint); transform: scale(1.6); box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 22%, transparent), var(--glow); }
 @media (max-width: 1100px) { #rail { display: none; } }
 
-/* sections (overflow: clip, not hidden, so sticky children such as the sideways strip still work) */
+/* sections (overflow: clip, not hidden: it can't be scrolled by accident, and a row's cards pass under its edge) */
 .site section.chap { --gutter: 7vw; min-height: 72vh; display: flex; flex-direction: column; justify-content: center; padding: 110px var(--gutter) 90px; position: relative; overflow: clip; scroll-margin-top: 0; }
 .site section.chap.alt { background: var(--bg-2); }
 html[data-skin="techy"] .site section.chap { background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 32px 32px; background-position: -1px -1px; }
@@ -1404,7 +1404,7 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 /* --- the row reaches both edges of the screen, so cards come from outside it --- */
 .side { margin-top: 34px; margin-left: calc(var(--gutter, 7vw) * -1); width: 100vw; max-width: 100vw; position: relative; }
 .side-stage { display: flex; flex-direction: column; gap: 16px; }
-.side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gutter, 7vw) 16px; align-items: stretch; transform-origin: 0 50%; scroll-snap-type: none; scroll-padding-inline: var(--gutter, 7vw); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
+.side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gutter, 7vw) 16px; align-items: stretch; scroll-snap-type: none; scroll-padding-inline: var(--gutter, 7vw); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
 .side-track > * { flex: 0 0 auto; min-width: 0; }
 .side-track > .card, .side-track > .note { width: var(--cw, clamp(280px, 27vw, 340px)); }
 .side-track > .card.b-big, .side-track > .note.wide { width: var(--cw, clamp(300px, 36vw, 460px)); }
@@ -1419,36 +1419,36 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
   .side-track > :is(.trip, .flip-wrap, .ph-cell, .wall-note) { max-width: 82vw; }
 }
 
-/* --- counter, hint and progress bar: only when the row really moves --- */
+/* --- one slim line above the cards (small counter, arrows) and a progress bar below: only when the row really moves --- */
 .side-top, .side-bar { display: none; }
-.side[data-mode="pin"] .side-top, .side[data-mode="swipe"] .side-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-inline: var(--gutter, 7vw); }
-.side[data-mode="pin"] .side-bar, .side[data-mode="swipe"] .side-bar { display: block; margin-inline: var(--gutter, 7vw); height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; max-width: 420px; }
+.side[data-mode="slide"] { margin-top: 14px; }
+.side[data-mode="slide"] .side-stage { gap: 8px; }
+.side[data-mode="slide"] .side-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: var(--gutter, 7vw); }
+.side[data-mode="slide"] .side-bar { display: block; margin-inline: var(--gutter, 7vw); height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; max-width: 420px; }
 .side-bar i { display: block; height: 100%; background: var(--mint); box-shadow: var(--glow); transform-origin: left; transform: scaleX(0); }
-.side-count { display: flex; align-items: baseline; gap: 8px; font-family: var(--display); line-height: 1; overflow: hidden; }
-.side-count b { display: inline-block; min-width: 2ch; font-size: clamp(40px, 9vh, 76px); font-weight: 800; color: var(--mint-deep); letter-spacing: -.03em; }
-.side-count span { font-size: clamp(14px, 2.6vh, 20px); font-weight: 600; color: var(--muted); }
-@media (max-width: 760px) { .side-count b { font-size: 44px; } .side-count span { font-size: 15px; } }
-.side-hint { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; margin-left: auto; transition: opacity .3s; }
-.side-hint i { animation: hint-nudge 1.2s ease-in-out infinite; }
-@keyframes hint-nudge { 50% { translate: 5px 0; } }
-.side.moved .side-hint { opacity: 0; }
-.side-hint .h-swipe, .side[data-mode="swipe"] .side-hint .h-pin { display: none; }
-.side[data-mode="swipe"] .side-hint .h-swipe { display: inline; }
+.side-count { display: flex; align-items: baseline; gap: 5px; font-family: var(--body); line-height: 1.2; overflow: hidden; }
+.side-count b { display: inline-block; font-size: 18px; font-weight: 700; color: var(--mint-deep); } /* the body font: some display fonts' small digits don't read at this size */
+.side-count span { font-size: 13px; font-weight: 600; color: var(--muted); }
+.side-arrows { display: flex; gap: 8px; margin-left: auto; }
+.side-arrow { width: 38px; height: 38px; padding: 0; display: grid; place-items: center; font-size: 18px; line-height: 1; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; touch-action: manipulation; transition: background .2s, color .2s, border-color .2s, box-shadow .2s, opacity .2s, scale .15s; }
+.side-arrow:hover { border-color: var(--mint); scale: 1.08; }
+.side-arrow:active { scale: .9; }
+.side-arrow:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+/* lit: the way it's travelling. Dimmed: it can't go any further that way */
+.side-arrow.on { background: var(--mint); border-color: var(--mint); color: var(--on-mint); box-shadow: 0 6px 16px -8px var(--mint); }
+.side-arrow.off { opacity: .35; cursor: default; scale: 1; }
+html[data-skin="techy"] .site .side-arrow { border-radius: 3px; }
+@media (max-width: 760px) { .side-arrow { width: 40px; height: 40px; } }
 
-/* --- computers: the section holds still while the row slides --- */
-.side[data-mode="pin"] .side-stage { position: sticky; top: 0; height: 100vh; justify-content: center; padding-top: 52px; perspective: 1500px; }
-.side[data-mode="pin"] .side-track { overflow: visible; transform-style: preserve-3d; }
-/* in 3D, part of a turned card sits behind the row's flat surface, which would catch the mouse instead of the card */
-.side[data-mode="pin"] .side-track { pointer-events: none; }
-.side[data-mode="pin"] .side-track > * { pointer-events: auto; }
-/* each frame sets these from the script: a transition on them would drag behind the scroll, whatever the theme asks for */
+/* --- computers: moved by hand with a transform, so it can travel in fractions of a pixel (see SideRow) --- */
+.side[data-mode="slide"][data-drive="hand"] .side-track { overflow: visible; }
+/* a transition on these from a theme would slow what the mouse does to a passing card */
 .side[data-mode] .side-track > * { transition-property: transform, box-shadow, background, border-color !important; }
-/* kept as ready-made pictures only while the row is near the screen, so text isn't redrawn at every size */
-.side.live[data-mode="pin"] .side-track { will-change: transform; }
-.side.live[data-mode="pin"] .side-track > * { will-change: rotate, scale, translate, opacity; }
-/* a moving row flies its cards in itself, so they don't also wait to drop in */
-.side.flying .stagger.live > * { opacity: 1; animation: none; }
-html[data-skin="ocean"] .site.fx-themefx .side.flying .stagger.live > :is(.card, .note, .wall-note) { animation: ocean-bob 7s ease-in-out infinite; }
+/* kept as a ready-made picture only while the row is near the screen, so text isn't redrawn as it moves */
+.side.live[data-mode="slide"][data-drive="hand"] .side-track { will-change: transform; }
+/* cards come in from the side here, so they don't also wait to drop in: they'd be blank at the edge of the screen until then */
+.side[data-mode="slide"] .stagger.live > * { opacity: 1; animation: none; }
+html[data-skin="ocean"] .site.fx-themefx .side[data-mode="slide"] .stagger.live > :is(.card, .note, .wall-note) { animation: ocean-bob 7s ease-in-out infinite; }
 
 /* --- Say Hello: the form on top, the wall in its own row below --- */
 .connect-grid.solo { grid-template-columns: minmax(0, 620px); }
@@ -1456,17 +1456,13 @@ html[data-skin="ocean"] .site.fx-themefx .side.flying .stagger.live > :is(.card,
 .wall-row h3 { font-size: 15px; letter-spacing: .04em; text-transform: uppercase; font-family: var(--body); font-weight: 700; color: var(--muted); }
 .wall-row .side { margin-top: 12px; }
 
-html.lite .side .side-track, html.lite .side .side-track > * { will-change: auto; }
+html.lite .side .side-track { will-change: auto; }
 
 /* --- milestones as a map: stops on a winding trail. Stops step up and down by --step, and each draws the piece of trail to the next one.
    Lighting up is a class change when a stop reaches the middle of the screen, so nothing repaints per frame. --- */
 .mile-map.side-track { align-items: flex-start; --step: 54px; --stop-gap: 16px; --pin: 44px; }
-.side.live[data-mode="pin"] .mile-map > * { will-change: auto; }
 .mstop { position: relative; width: var(--cw, clamp(250px, 23vw, 300px)); display: flex; flex-direction: column; gap: 10px; }
 .mstop.low { margin-top: var(--step); }
-/* in a 3D row the stop's own box would catch the mouse before the card inside it */
-.side[data-mode="pin"] .mile-map.side-track > .mstop { pointer-events: none; }
-.side[data-mode="pin"] .stop-card, .side[data-mode="pin"] .stop-pin { pointer-events: auto; }
 @media (max-width: 760px) { .mstop { width: min(var(--cw, 300px), 78vw); } .mile-map.side-track { --step: 34px; } }
 .stop-head { position: relative; height: var(--pin); display: flex; align-items: center; gap: 10px; padding-left: 16px; }
 .stop-pin { position: relative; z-index: 2; flex: 0 0 var(--pin); height: var(--pin); border-radius: 50%; display: grid; place-items: center; font-size: 21px; background: var(--card); color: var(--muted); border: 2px solid var(--line); transition: background .3s, color .3s, border-color .3s, box-shadow .3s; }
@@ -1484,9 +1480,9 @@ html.lite .side .side-track, html.lite .side .side-track > * { will-change: auto
 .stop-zone { align-self: flex-start; background: color-mix(in srgb, var(--z, var(--mint)) 20%, transparent); }
 @media (max-width: 760px) { .stop-card { max-height: min(var(--row-h), 62svh); } }
 /* lit: reached, or everything if the row isn't moving (fits on screen, no JavaScript, reduced motion) */
-:is(.mstop.passed, .side:not([data-mode="pin"], [data-mode="swipe"]) .mstop) .stop-pin { background: var(--z, var(--mint)); border-color: var(--z, var(--mint)); color: var(--on-mint); box-shadow: 0 0 0 4px color-mix(in srgb, var(--z, var(--mint)) 25%, transparent), var(--glow); }
-:is(.mstop.passed, .side:not([data-mode="pin"], [data-mode="swipe"]) .mstop) .t-lit { opacity: 1; }
-:is(.mstop.passed, .side:not([data-mode="pin"], [data-mode="swipe"]) .mstop) .stop-card { opacity: 1; translate: 0 0; }
+:is(.mstop.passed, .side:not([data-mode="slide"]) .mstop) .stop-pin { background: var(--z, var(--mint)); border-color: var(--z, var(--mint)); color: var(--on-mint); box-shadow: 0 0 0 4px color-mix(in srgb, var(--z, var(--mint)) 25%, transparent), var(--glow); }
+:is(.mstop.passed, .side:not([data-mode="slide"]) .mstop) .t-lit { opacity: 1; }
+:is(.mstop.passed, .side:not([data-mode="slide"]) .mstop) .stop-card { opacity: 1; translate: 0 0; }
 .mstop.passed .stop-pin i { animation: medal-pop .55s cubic-bezier(.3,1.8,.5,1); }
 @keyframes medal-pop { 0% { transform: scale(.4) rotate(-30deg); } 60% { transform: scale(1.25) rotate(8deg); } 100% { transform: none; } }
 .mstop:hover .stop-pin i { animation: medal-wiggle .6s ease-in-out; }
@@ -1531,7 +1527,7 @@ html.scrolling .mstop.here .stop-pin::after { animation-play-state: paused; }
 
 /* --- while the page scrolls, decorative loops rest: nobody watches them then, and each running animation is restyled every frame.
    The scroll-linked motion and the moving headlines keep going. --- */
-html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .scrollcue i, .hang .stk-float, .side-hint i, #hero h1 .accent .kc, .hb-tag .ti, .hint-arrow),
+html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .scrollcue i, .hang .stk-float, #hero h1 .accent .kc, .hb-tag .ti, .hint-arrow),
 html.scrolling :is(.brand .dot, .pulse)::after,
 html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note, .hs) { animation-play-state: paused !important; }
 /* a title's letters waiting off screen stay flat: tipped back in 3D, every letter is its own layer for the browser to manage */
