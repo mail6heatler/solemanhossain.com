@@ -33,6 +33,12 @@ The owner reported a huge blank space between a section's title and its cards, a
 
 **A row gliding by itself, new build only:** laptop 131.1 fps, phone 132.0, 0 stutters. 4x slower: 66.8 and 44.2, 0 stutters.
 
+**On the live site after release:** gap 86 and 66 on the laptop rows that move (Me, Growth), and 87 to 90 and 68 on a phone. Page height on a laptop 7301. All 16 cards in rows open. Rows glide, arrows go both ways, hovering pauses, the wheel doesn't move a row, a finger moves it on a phone. Back returns to the same place on the page and about the same place in the row. Direct links to Me, Made, Adventures, Growth and Connect land right. No page errors, no sideways scroll. A tap during a swipe's momentum only stops the momentum, as in any browser, so arrows need the swipe to have settled.
+
+**Vercel's checkpoint:** after many runs, the picture host began answering this PC's automated Chrome with "Vercel Security Checkpoint", so live pictures were blank in the test browser. From another network and with curl the same picture comes back as a normal image. The project shows no attack alerts and has no firewall config. See the note in `CLAUDE.md`.
+
+**Menu links:** Me, Made, Adventures and Connect land right. Feed, Growth and Life still land 153px early; the page grows by that much during the glide, even with pictures blocked, so the earlier guess of a late picture is wrong and the cause isn't found. Offered to the owner as a separate fix, not answered.
+
 **Not tested:** a real phone, and how a slow glide looks on a real 1x laptop screen, which is the reason for moving computers' rows by transform.
 
 ### 2026-11-07: Bigger menu, thicker belts, uploads that fit (kept by the owner)
@@ -52,7 +58,7 @@ The owner asked for all three, plus control of the belt from the dashboard, and 
 
 **Found, not changed:**
 - "Reading this book" has its own saved "Show whole", so it keeps its grey sides until the owner sets it to Default.
-- Menu links to Growth, Life and Connect land 153px early, with the old-size belt too; Feed also did with the new belt in one run. The page grows 153px after loading, while the glide is under way, most likely from a lazy-loaded picture with no reserved height. Offered to the owner as a separate fix.
+- Menu links to Growth, Life and Connect landed 153px early, with the old-size belt too; Feed also did with the new belt in one run. Offered to the owner as a separate fix; see the newer entry above for where it stands.
 - `behave2.mjs` still expects the Made row to slide; it has two cards now, so three of its checks no longer apply.
 
 ### 2026-11-06: Rows dragging (waiting for the owner's keep or undo)

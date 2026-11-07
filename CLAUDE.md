@@ -16,6 +16,8 @@ npx tsc --noEmit # type-check only
 
 There is no test suite. On this PC (7.4 GB of memory, often under 2 free), one test browser opening many pages can crash or hang while the site is fine, so start a new browser per page in long runs and use `timeout`. Verify visually: drive the site with `playwright-core` from a scratch folder (never add it to this project) using the installed Chrome (`C:/Program Files/Google/Chrome/Application/chrome.exe`). Launch with `--use-angle=d3d11 --enable-gpu --ignore-gpu-blocklist --enable-gpu-rasterization` to use this PC's real graphics card; never judge smoothness in software mode. Stub `/api/track` and `/api/presence` when testing the live site so tests don't count as visitors.
 
+**Pictures blank in a test browser?** After many automated runs, Vercel's Blob host can answer the browser with "Vercel Security Checkpoint" (403, `x-vercel-mitigated: challenge`, shown as `ERR_BLOCKED_BY_ORB` on an `<img>`), though curl and other networks still get the image. It isn't the site. Open the picture's URL directly in the test browser to check, and don't read blank cards as a bug until that passes. Seed test data with a picture from `public/` rather than Blob, and go easy on repeat runs against the live site.
+
 **To measure scrolling:** record `requestAnimationFrame` gaps and CDP `Performance.getMetrics` during `page.mouse.wheel` steps, and turn effects off one at a time to attribute cost. Add `Emulation.setCPUThrottlingRate` (4x) for a weaker device. Re-measure after any change to motion; `PROGRESS.md` has the numbers to beat.
 
 ## Deploying
