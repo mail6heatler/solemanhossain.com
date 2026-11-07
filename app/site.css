@@ -1761,8 +1761,9 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .sty-plank { position: relative; z-index: 1; flex: none; height: 14px; margin-inline: -9px; border-radius: 2px; background: linear-gradient(var(--wood-hi), var(--wood)); box-shadow: 0 12px 14px -8px color-mix(in srgb, var(--fg) 55%, transparent); }
 .grid3:not(.side-track) > .sty-cell { padding-top: 36px; } /* "See all": room for antennas and picture wires under the shelf above. The homepage's row has .grid3 too */
 .grid3:not(.side-track) > .sty-cell .sty-plank { margin-inline: -8px; }
-@media (max-width: 760px) { .sty-rail::before { left: -7px; right: -7px; } .sty-plank { margin-inline: -7px; } .sty-decor { display: none; } }
+@media (max-width: 760px) { .sty-rail::before { left: -7px; right: -7px; } .sty-plank { margin-inline: -7px; } }
 .sty-decor { --row-h: min(500px, 72vh); flex: 0 0 auto; display: flex; flex-direction: column; width: 220px; }
+@media (max-width: 760px) { .sty-decor { display: none; } } /* a phone shows one object at a time, so nothing looks empty there */
 .sty-decor-row { display: flex; align-items: flex-end; justify-content: center; gap: 22px; height: var(--row-h); }
 .sty-books { display: flex; align-items: flex-end; gap: 2px; }
 .sty-books i { display: block; width: 22px; border-radius: 2px 2px 0 0; }
