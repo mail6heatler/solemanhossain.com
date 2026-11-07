@@ -15,6 +15,32 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 - G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
 - The wall shows a test message, "fds", from mail6heatler. G2 and G3 still hold placeholder text ("Describe what it does…", "dcxzfcvsdfzxcvzxvx"). These are the owner's content, so they weren't touched.
 
+## Section makeovers
+
+Agreed with the owner on 2026-11-07: each section should look like what it holds, not cards everywhere, so the whole site feels versatile. **One section at a time.** For each: propose 2 or 3 concrete looks with a recommendation, wait for their "go", set a restore point, build, test, publish, then keep or undo. Record the result here before proposing the next. Never start the next section unasked.
+
+| Section | Holds today | Status | Ideas to offer (not approved) |
+|---|---|---|---|
+| G1 Me | 5 notes | Good as it is, per the owner | none |
+| G2 Made | 2 projects (software) | **Proposed, waiting for go** | App windows on a desktop, with a dock (recommended); blueprints on a workbench; game cartridges |
+| G3 Adventures | 3 trips | Not started | Boarding passes or tickets on a route, with a plane, car or boat travelling between stops (the owner's example) |
+| G4 Influences | 1 person | Not started | A real shelf: book spines, records, framed people, ideas as light bulbs |
+| G5 Feed | 1 poll, 1 thought | Not started | A chat on a phone with bubbles and typing dots, or a corkboard of notes |
+| G6 Growth | 6 milestones | Not started | A tree that grows, with a branch per subsection and hard seasons shown bare; or a richer curved line (the owner's examples) |
+| G7 Life | Empty, "Coming soon" | Not started | Polaroids on a string, or a scrapbook. Needs their pictures to judge it |
+| G8 Connect | Form, links, wall | Not started | A postcard to fill in with a stamp, a mailbox, notes pinned up as postcards |
+
+**Every new look must keep:**
+- Everything in "What every card must do" in `CLAUDE.md`: all an entry holds, its page opening on click, reactions always visible, Full view, the expand button, "Scroll for more", nothing that only hover can reach.
+- Rows that don't fit keep gliding with arrows, or the look has its own equal way of moving. The plain wheel moves the page only.
+- Size & look controls, the dashboard's order list, the "See all" page, and the empty state.
+- All 10 classic themes plus Auto, using theme colours, never hard-coded ones. Check `paper`, `candy` and `techy`, which differ most.
+- Phones, reduced motion, `html.lite`, and no JavaScript.
+- A picture holds its place before it loads, and links to the section still land exactly.
+- Test with few entries and many, with and without pictures, using a throwaway database and pictures the test serves itself.
+- Add it as a new choice under Layout in section settings, so the old look stays available. Give new motion a switch on the Appearance page, with help text and a preview.
+- Compare scrolling old against new, and check the "Keeping scrolling smooth" rules. Use original art only.
+
 ## Agreed for later
 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
