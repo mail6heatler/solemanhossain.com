@@ -59,6 +59,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS study TEXT NOT NULL DEFAULT '{}'`,
   // which comic panel an entry gets and the word in its burst (lib/comicItem.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS comic TEXT NOT NULL DEFAULT '{}'`,
+  // which object an entry gets on an Achievement wall, if the owner chose one (lib/awardItem.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS award TEXT NOT NULL DEFAULT '{}'`,
   // which of the reaction bar's extra features this entry has switched on (lib/talk.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS talk TEXT NOT NULL DEFAULT '{}'`,
   // which boxes on its dashboard page are open, as last saved (lib/boxes.ts)
@@ -150,6 +152,8 @@ export const SCHEMA = [
   // G5's new look, agreed on 2026-11-07. The old feed stream stays a choice under Section settings.
   `WITH first AS (INSERT INTO done_once (key) VALUES ('feed-comic') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'comic' WHERE slug = 'feed' AND layout = 'stream' AND EXISTS (SELECT 1 FROM first)`,
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('growth-awards') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'awards' WHERE slug = 'growth' AND layout = 'timeline' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {
@@ -236,7 +240,7 @@ const SECTIONS: SeedSection[] = [
     slug: "growth", code: "G6", nav_label: "Growth", nav_emoji: "📈", eyebrow: "Achievements", eyebrow_emoji: "📈",
     title: "Milestones along the way",
     subtitle: "A running timeline of wins, certificates, lessons, and the hard seasons too.",
-    layout: "timeline", emojis: "🏆 📈 🎖️",
+    layout: "awards", emojis: "🏆 📈 🎖️",
     categories: "Career milestones, Skills & certifications, Wins & lessons, Hall of fame",
     empty_text: "No milestones yet.",
     items: [

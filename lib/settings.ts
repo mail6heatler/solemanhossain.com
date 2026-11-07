@@ -164,6 +164,7 @@ export const EFFECTS = [
   { key: "tripfx", group: "Layout", label: "Boarding passes: a vehicle travels the route, stamps thump" },
   { key: "studyfx", group: "Layout", label: "Study shelf: a lamp travels along, TVs power on, books and phones wake up" },
   { key: "comicfx", group: "Layout", label: "Comic strip: a brain flies along and pops each panel" },
+  { key: "awardfx", group: "Layout", label: "Achievement wall: a spotlight travels along, seals stamp down, trophies gleam" },
   { key: "windowfx", group: "Layout", label: "App windows pop open, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
   { key: "flip", group: "Layout", label: "Flip cards for list sections" },
@@ -358,6 +359,7 @@ export const LAYOUTS = [
   { value: "study", label: "Study shelf — books, players, portraits, phones" },
   { value: "list", label: "Shelf list — books, songs, people" },
   { value: "comic", label: "Comic strip — thoughts, hot takes, polls" },
+  { value: "awards", label: "Achievement wall — certificates, jobs, trophies" },
   { value: "stream", label: "Feed stream — thoughts, polls" },
   { value: "timeline", label: "Timeline — milestones" },
   { value: "photos", label: "Photo grid — life snapshots" },
@@ -405,6 +407,6 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
 }
 
 const LAYOUT_ICONS: Record<string, string> = {
-  notes: "user", cards: "tool", strip: "map-2", list: "book", stream: "bolt", timeline: "trending-up", photos: "camera", connect: "send",
+  notes: "user", cards: "tool", strip: "map-2", list: "book", stream: "bolt", timeline: "trending-up", awards: "trophy", photos: "camera", connect: "send",
 };
 export const layoutIcon = (l: string) => LAYOUT_ICONS[l] ?? "layout-grid";

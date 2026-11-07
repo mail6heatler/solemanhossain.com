@@ -15,6 +15,7 @@ import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
 import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./TripFrame";
 import { ShelfDecor, ShelfLamp, StudyFrame, studyView, type StudyBody } from "./StudyFrame";
 import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
+import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
 import { FlyingBrain } from "./comicArt";
 import ComicPoll from "./ComicPoll";
 import TvPlay from "./TvPlay";
@@ -480,6 +481,39 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       );
     });
     return row("grid3 tkt-row", <>{cells}{!grid && fx.tripfx && <TicketRider kinds={kinds} />}</>);
+  }
+
+  // achievements on a wall: each entry is the object its subsection names, and a spotlight travels along and wakes the one it reaches
+  if (L === "awards") {
+    const cells = items.map((it, i) => {
+      const l = lookFor(it);
+      const v = awardView(it, { fallback: section.nav_label || section.title, index: i, hideSubtitle: l.hide("subtitle"), owner: settings.fullName, avatar: settings.avatarUrl, initials: settings.initials });
+      const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
+      const picture = first ? <div className="pic-box"><div className="ph has-pic"><Cover m={first} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div> : null;
+      const body: AwardBody = ({ above, showTitle, showSubtitle, inBody }) => (
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+          <CardLink to={href(section, it)} label={it.title} />
+          {inBody}
+          <div className="tb">
+            {above}
+            {showTitle && <h3>{it.title}</h3>}
+            {showSubtitle && v.subtitle && <p className="sub">{v.subtitle}</p>}
+            {it.body.trim() && <Markdown className="md ex">{it.body}</Markdown>}
+            <Meta it={{ ...it, date_label: v.stampIsDate ? "" : it.date_label, status: v.stampIsStatus ? "" : it.status }} showCat={showTitle} hideDate={l.hide("date")} showStatus />
+            <LinkButtons it={it} />
+            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+          </div>
+        </Box>
+      );
+      return (
+        <div key={it.id} className={`tkt-cell aw-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
+          <div className={`trip tkt aw on-${v.look}`} style={l.style}>
+            <AwardFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} body={body} />
+          </div>
+        </div>
+      );
+    });
+    return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>);
   }
 
   // short thoughts as a comic: each entry is a panel its subsection picks, and a brain flies along and pops the one it reaches

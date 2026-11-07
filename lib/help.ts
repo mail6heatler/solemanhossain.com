@@ -383,6 +383,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "To use it on another section, choose “Boarding passes” as its layout, under Section settings."],
     preview: "/?demo=tripfx",
   },
+  awardfx: {
+    title: "Achievement wall: a spotlight travels along, seals stamp down, trophies gleam",
+    what: "A section laid out as Achievement wall (like Growth) hangs each entry on a wall. Its Subsection picks the object: hall of fame gets a gold trophy on a shelf; skills, certificates, courses or degrees a gold frame with a seal; career, jobs or milestones a staff ID on a lanyard if its Date says Now, and a brass door plate if not; anything else a medal on a ribbon, or a cracked frame mended with tape if its Mood is heavy. A museum spotlight travels along the wall and wakes each object: it swings on its nail, a seal or stamp thumps down, and gold gleams. Off, the objects stay and only the movement and the spotlight go.",
+    how: ["Switch on and save.", "To use it on another section, choose “Achievement wall” as its layout, under Section settings."],
+    preview: "/?demo=awardfx",
+  },
   comicfx: {
     title: "Comic strip: a brain flies along and pops each panel",
     what: "A section laid out as Comic strip (like Feed) shows each entry as a comic panel. Its Subsection picks the panel: hot takes get a jagged shout with flames, poems a night sky, sayings a fridge door with magnets, on repeat a spinning record, vibing waves in the Mood's colour, a brain dump a bin of thoughts, chaos words on scraps with paint flying, quick fire a quiz show, and anything else a speech bubble. Polls are voted on by tapping the art: overrated or underrated gets a balance scale that tips, quick fire gets buzzers, and any other poll goes by its options: 2 a face-off, 3 slashes, 4 small panels, 5 or more big buttons. With this on, a small brain flies along the row, and the panel it reaches comes alive. With it off, the panels stay and votes still work, without the brain or the movement. What each panel shows, and its sound effect, are on the entry's page in the dashboard.",
