@@ -58,6 +58,10 @@ Every box on an entry's page and a section's page now has a title and an arrow, 
 
 The Saved message was only showing the first time, because a second save in a row didn't change the address. It now shows on every save, at the top of the screen.
 
+### 2026-11-08: The wall became a real wall, and Details asks for a job's dates
+
+They asked for a wall that looks like a wall, with the milestones hanging and sliding, and for career start, end and position in the Details box. I offered brick or plaster and they chose plaster. The wall now stays still behind the row, and each object hangs from a hook that runs along a rail. Details also asks for a certificate's Issued by, dates and Credential ID and a medal's or trophy's Awarded by, which I added because they said "like", and told them. Built and published without tests, as they asked.
+
 ### 2026-11-08: G6 Growth becomes an achievement wall (waiting for the owner's keep or undo)
 
 They said Growth is about their career, certificates and everything else they've done, and suggested a career tree or a certificate wall. Drew four ideas on a private preview, with an object per subsection, and they chose B, the wall, sliding sideways like the other sections. Explained under "Achievement wall" in `CLAUDE.md`. The old timeline stays a choice under Section settings. Built and published without tests, as they asked. Their section's subtitle still says "A running timeline", which is their text.

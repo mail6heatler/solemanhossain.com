@@ -140,9 +140,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   });
   const zoom = (it: Item) => (fx.lightbox && it.media.length > 0 ? <PicZoom media={it.media} title={it.title} /> : null);
   const rowFx: RowFx = { auto: fx.sideways, count: fx.rowcount };
-  const row = (className: string, children: React.ReactNode, after?: React.ReactNode) => grid
+  const row = (className: string, children: React.ReactNode, after?: React.ReactNode, wall?: string) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
-    : <SideRow className={`${className}${st}`} fx={rowFx} after={after}>{children}</SideRow>;
+    : <SideRow className={`${className}${st}`} fx={rowFx} after={after} wall={wall}>{children}</SideRow>;
 
   if (L === "connect") {
     const hasNotes = items.length > 0 || (wall?.length ?? 0) > 0;
@@ -498,6 +498,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             {above}
             {showTitle && <h3>{it.title}</h3>}
             {showSubtitle && v.subtitle && <p className="sub">{v.subtitle}</p>}
+            {v.fields.length > 0 && <dl className="tkt-fields">{v.fields.map(([k, f]) => <div key={k}><dt>{k}</dt><dd>{f}</dd></div>)}</dl>}
             {it.body.trim() && <Markdown className="md ex">{it.body}</Markdown>}
             <Meta it={{ ...it, date_label: v.stampIsDate ? "" : it.date_label, status: v.stampIsStatus ? "" : it.status }} showCat={showTitle} hideDate={l.hide("date")} showStatus />
             <LinkButtons it={it} />
@@ -513,7 +514,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
         </div>
       );
     });
-    return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>);
+    return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>, undefined, "aw-wall");
   }
 
   // short thoughts as a comic: each entry is a panel its subsection picks, and a brain flies along and pops the one it reaches

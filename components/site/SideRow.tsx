@@ -60,7 +60,7 @@ function keepPlace() {
  * uses the browser's scrolling, because only that follows a finger properly. Either way the exact position is kept in `pos`
  * and never read back during a glide, and the loop sleeps whenever nothing moves.
  */
-export default function SideRow({ className, fx, children, after }: { className: string; fx: RowFx; children: React.ReactNode; after?: React.ReactNode }) {
+export default function SideRow({ className, fx, children, after, wall }: { className: string; fx: RowFx; children: React.ReactNode; after?: React.ReactNode; /** a class for something that stays still behind the row */ wall?: string }) {
   const outer = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLElement>(null);
@@ -393,7 +393,9 @@ export default function SideRow({ className, fx, children, after }: { className:
             <button ref={on} type="button" className="side-arrow" aria-label="Slide the cards forward" onClick={() => press.current(1)}><i className="ti ti-arrow-right" aria-hidden /></button>
           </div>
         </div>
-        <div ref={track} className={`side-track ${className}`}>{children}</div>
+        {wall
+          ? <div className={wall}><div ref={track} className={`side-track ${className}`}>{children}</div></div>
+          : <div ref={track} className={`side-track ${className}`}>{children}</div>}
         <div className="side-bar" aria-hidden><i ref={bar} /></div>
         {after}
       </div>

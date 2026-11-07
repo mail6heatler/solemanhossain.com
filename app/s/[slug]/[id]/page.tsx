@@ -8,6 +8,7 @@ import { Mood } from "@/components/site/SectionBody";
 import { EntryGallery } from "@/components/site/MediaView";
 import PollCard from "@/components/site/PollCard";
 import Reactions from "@/components/site/Reactions";
+import { awardFacts } from "@/lib/awardItem";
 import BackLink from "@/components/site/BackLink";
 import { Split } from "@/components/site/Split";
 
@@ -61,6 +62,7 @@ export default async function EntryPage({ params }: P) {
         </div>
         <h1 className={settings.effects.splittext ? "reveal split-host" : undefined}><Split text={item.title} on={settings.effects.splittext} /></h1>
         {item.subtitle && <p className="lead">{item.subtitle}</p>}
+        {section.layout === "awards" && awardFacts(item).length > 0 && <dl className="aw-facts">{awardFacts(item).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
         {line && <blockquote className="entry-line"><span>{line}</span></blockquote>}
         {trip?.frame === "ticket" && <PassCard view={trip} />}
         {trip?.frame === "bucket" && <TickList ticks={trip.ticks} />}

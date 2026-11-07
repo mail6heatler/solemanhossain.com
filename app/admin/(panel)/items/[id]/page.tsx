@@ -16,7 +16,7 @@ import TripStatus from "@/components/admin/TripStatus";
 import TripPanel from "@/components/admin/TripPanel";
 import StudyPanel from "@/components/admin/StudyPanel";
 import ComicPanel from "@/components/admin/ComicPanel";
-import AwardPanel from "@/components/admin/AwardPanel";
+import AwardDetails from "@/components/admin/AwardDetails";
 import { tripContext } from "@/components/site/TripFrame";
 
 type P = { params: Promise<{ id: string }> };
@@ -63,7 +63,7 @@ export default async function ItemEditor({ params }: P) {
                 <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
                 <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
                 {section?.layout === "study" && <div className="hint">Its name picks the object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note. You can also choose under On the shelf.</div>}
-                {section?.layout === "awards" && <div className="hint">Its name picks the object: hall of fame gets a trophy on a shelf; skills, certificates, courses or degrees a framed certificate; career, jobs or milestones a staff ID if its Date says Now, and a brass door plate if not; and anything else a medal on a ribbon, or a cracked frame if its Mood is heavy. You can also choose one under On the wall, below.</div>}
+                {section?.layout === "awards" && <div className="hint">Its name picks the object: hall of fame gets a trophy on a shelf; skills, certificates, courses or degrees a framed certificate; career, jobs or milestones a staff ID if you still work there, and a brass door plate if not; and anything else a medal on a ribbon, or a cracked frame if its Mood is heavy. You can also choose one under Details, below.</div>}
                 {section?.layout === "comic" && <div className="hint">Its name picks the panel: hot takes get a shout with flames; poems a night sky; sayings a fridge door; on repeat a spinning record; vibing waves in the Mood&apos;s colour; a brain dump a bin; chaos scraps of paper; quick fire a quiz show; and anything else a speech bubble. A poll under overrated or underrated gets a balance scale, and any other poll goes by how many options it has. You can also choose one under In the comic, below.</div>}
                 {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
               </div>
@@ -104,6 +104,7 @@ export default async function ItemEditor({ params }: P) {
 
         <Box name="details" title="Details" icon="list-details" open={open("details")}>
           <div className="f">
+            {section?.layout === "awards" && <AwardDetails initial={item.award} title={item.title} category={item.category} mood={item.mood} date={item.date_label} />}
             <div className="f3">
               <div className="fl"><label>Date (any text)</label><input className="inp" name="date_label" defaultValue={item.date_label} placeholder="March 2026, Last summer…" /></div>
               <div className="fl"><label>Place</label><input className="inp" name="location" defaultValue={item.location} placeholder="Cox's Bazar" /></div>
@@ -131,7 +132,6 @@ export default async function ItemEditor({ params }: P) {
           </div>
         </Box>
         {section?.layout === "study" && <StudyPanel open={open("panel")} initial={item.study} category={item.category} />}
-        {section?.layout === "awards" && <AwardPanel open={open("panel")} initial={item.award} category={item.category} mood={item.mood} date={item.date_label} />}
         {section?.layout === "comic" && <ComicPanel open={open("panel")} initial={item.comic} title={item.title} category={item.category} isPoll={isPoll} options={item.poll_options} hasPic={item.media.some((m) => m.type !== "audio")} />}
         {section?.layout === "tickets" && <TripPanel open={open("panel")} initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
       </form>

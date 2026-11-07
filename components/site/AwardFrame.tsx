@@ -1,9 +1,9 @@
-import { awardLookOf, EMPTY_AWARD, isNow, type AwardInfo } from "@/lib/awardItem";
+import { awardFields, awardLookOf, EMPTY_AWARD, isCurrent, isNow, jobFromTitle, jobSpan, type AwardInfo } from "@/lib/awardItem";
 
 /**
- * An achievement on the wall, chosen by the dashboard's own words: the Subsection picks the object, a Date saying Now makes a job a staff ID, and a
- * heavy Mood cracks the frame. The site and the dashboard's Size & look preview both draw with this. It draws what's above the writing and takes the
- * part that scrolls as `body`, so everything a card must do stays the same.
+ * An achievement on the wall, chosen by the dashboard's own words: the Subsection picks the object, a job they still have is a staff ID, and a heavy Mood
+ * cracks the frame. The site and the dashboard's Size & look preview both draw with this. It draws what's above the writing and takes the part that
+ * scrolls as `body`, so everything a card must do stays the same. Each object hangs by a hook, which runs along the wall's rail as the row slides.
  */
 const TITLE_LONG = 70; // a longer title is cut where the object shows it, and shown whole in the writing
 const RIBBONS = ["var(--pop2)", "var(--pop3)", "var(--mint)"];
@@ -14,18 +14,29 @@ type AwardEntry = { category: string; title: string; subtitle: string; status: s
 export type AwardView = ReturnType<typeof awardView>;
 
 export function awardView(it: AwardEntry, c: { fallback: string; index: number; hideSubtitle?: boolean; owner: string; avatar?: string; initials?: string }) {
-  const look = awardLookOf(it.category, it.mood ?? "", it.date_label, (it.award ?? EMPTY_AWARD).look);
+  const a = it.award ?? EMPTY_AWARD;
+  const look = awardLookOf(it.category, it.mood ?? "", it.date_label, a);
+  const isJob = look === "id" || look === "plate";
+  const current = isCurrent(it.date_label, a);
+  const job = jobFromTitle(it.title);
   const status = it.status.trim();
-  const fromDate = look === "id" && !status && isNow(it.date_label);
+  const fromDate = look === "id" && !status && current && isNow(it.date_label);
+  const heading = isJob ? a.position || job.position || it.title : it.title;
   return {
     look,
     title: it.title,
-    long: it.title.length > TITLE_LONG,
-    /** how many letters are in the title's longest word, which sets how big it can be without splitting a word */
-    word: Math.max(1, ...it.title.split(/\s+/).map(letters)),
+    heading,
+    /** the position was typed and the title says something else, so the title still needs showing */
+    titleToo: isJob && !!a.position && !it.title.toLowerCase().includes(a.position.toLowerCase()),
+    company: isJob ? a.company || job.company : "",
+    span: isJob ? jobSpan(a, look === "id") : "",
+    fields: awardFields(look, a),
+    long: heading.length > TITLE_LONG,
+    /** how many letters are in the heading's longest word, which sets how big it can be without splitting a word */
+    word: Math.max(1, ...heading.split(/\s+/).map(letters)),
     subtitle: c.hideSubtitle ? "" : it.subtitle,
     subsection: it.category || c.fallback,
-    stamp: look === "id" ? status || (fromDate ? "Now" : "") : "",
+    stamp: look === "id" ? status || (current ? "Now" : "") : "",
     /** what the stamp already says, so the rest of the card needn't */
     stampIsDate: fromDate,
     stampIsStatus: look === "id" && !!status,
@@ -64,10 +75,11 @@ const Medal = ({ ribbon }: { ribbon: string }) => (
   </svg>
 );
 
-const Hanger = () => (
+/** What it hangs by: a hook on the rail and a wire, stretched to however far down this object hangs. */
+const Hanger = ({ lanyard }: { lanyard?: boolean }) => (
   <>
-    <i className="aw-nail" aria-hidden="true" />
-    <svg className="aw-wire" viewBox="0 0 130 31" aria-hidden="true"><path d="M2 31 65 2l63 29" /></svg>
+    <svg className={lanyard ? "aw-lanyard" : "aw-wire"} viewBox="0 0 130 31" preserveAspectRatio="none" aria-hidden="true"><path d="M2 31 65 0l63 31" vectorEffect="non-scaling-stroke" /></svg>
+    <i className="aw-hook" aria-hidden="true" />
   </>
 );
 
@@ -85,8 +97,7 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
   const holdsPicture = v.look === "cert" || v.look === "id" || v.look === "crack";
   return (
     <>
-      {v.look === "id" && <svg className="aw-lanyard" viewBox="0 0 84 56" aria-hidden="true"><path d="M4 0 42 52 80 0" /></svg>}
-      {v.look !== "id" && v.look !== "trophy" && <Hanger />}
+      <Hanger lanyard={v.look === "id"} />
       <div className={`aw-art aw-a-${v.look}`} style={{ "--tw": v.word } as React.CSSProperties}>
         {link}
         {v.look === "trophy" && (
@@ -113,7 +124,12 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {picture ?? (v.avatar ? <img src={v.avatar} alt="" loading="lazy" /> : <span aria-hidden="true">{v.initials}</span>)}
               </div>
-              <div className="aw-idtext"><h3>{v.title}</h3>{v.subtitle && <p className="sub">{v.subtitle}</p>}</div>
+              <div className="aw-idtext">
+                <h3>{v.heading}</h3>
+                {v.company && <p className="aw-co">{v.company}</p>}
+                {v.span && <p className="aw-span">{v.span}</p>}
+                {v.subtitle && <p className="sub">{v.subtitle}</p>}
+              </div>
             </div>
             {v.stamp && <span className="aw-stamp">{v.stamp}</span>}
             <div className="aw-bars" aria-hidden="true" />
@@ -123,7 +139,9 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
           <>
             <i className="aw-screw l" aria-hidden="true" /><i className="aw-screw r" aria-hidden="true" />
             <span className="aw-sub">{v.subsection}</span>
-            <h3>{v.title}</h3>
+            <h3>{v.heading}</h3>
+            {v.company && <span className="aw-co">{v.company}</span>}
+            {v.span && <span className="aw-span">{v.span}</span>}
             <i className="aw-gleam" aria-hidden="true" />
           </>
         )}
@@ -133,7 +151,7 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
             <div className="aw-glass">
               {picture}
               <span className="aw-sub">{v.subsection}</span>
-              <h3>{v.title}</h3>
+              <h3>{v.heading}</h3>
               <svg className="aw-cracks" viewBox="0 0 300 180" preserveAspectRatio="none" aria-hidden="true"><path d="M190 60 300 10M190 60l60 120M190 60 90 0M190 60 40 180M190 60 300 110M140 34l-30 60M238 86l-52 30" vectorEffect="non-scaling-stroke" /></svg>
             </div>
             <i className="aw-tape" aria-hidden="true" />
@@ -141,8 +159,8 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
         )}
       </div>
       {body({
-        above: titled && v.long ? <h3 className="aw-whole">{v.title}</h3> : undefined,
-        showTitle: !titled,
+        above: titled && v.long ? <h3 className="aw-whole">{v.heading}</h3> : undefined,
+        showTitle: !titled || v.titleToo,
         showSubtitle: v.look !== "id",
         inBody: holdsPicture ? undefined : picture ?? undefined,
       })}
