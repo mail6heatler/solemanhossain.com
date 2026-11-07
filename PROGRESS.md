@@ -58,6 +58,10 @@ Every box on an entry's page and a section's page now has a title and an arrow, 
 
 The Saved message was only showing the first time, because a second save in a row didn't change the address. It now shows on every save, at the top of the screen.
 
+### 2026-11-08: The hero's boxes too, and the white part when scrolling
+
+They said good job and asked for the same boxes on the hero's page, for the Section settings button at the top of a section's page to go, and for the white part below an entry's page to be fixed. That was the dashboard's entry page: the whole document scrolled 358px past its end, because something absolutely placed had no positioned parent and stuck out of `.adm-shell`, which now clips it. Built and published without tests, as they asked.
+
 ### 2026-11-08: G5: a comic panel for every subsection, and voting in the art (kept)
 
 They answered the first version with "not good": the drawing had lots of variation and the live section didn't. They asked for the dashboard's subsections to decide the comic panels, for voting to happen in the strip, and for more creative ideas like the face-off, and said the dashboard could change. Drew twelve panels at real size on the private preview with working votes (https://claude.ai/artifact/5fFvbLX1SC2nHktbKoApdh), and they said go. Explained under "Comic strip" and the paragraphs after it in `CLAUDE.md`.

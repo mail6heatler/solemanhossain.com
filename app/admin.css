@@ -22,7 +22,8 @@
 .adm * { scrollbar-width: thin; scrollbar-color: rgba(126,232,162,.4) transparent; }
 
 /* shell */
-.adm-shell { display: flex; height: 100vh; overflow: hidden; }
+/* positioned, so that anything absolutely placed inside it is clipped here: otherwise it sticks out below and the whole document scrolls into white. clip, because a hidden box can still be scrolled */
+.adm-shell { position: relative; display: flex; height: 100vh; overflow: clip; }
 .adm-side { width: 214px; flex-shrink: 0; background: #1a1a1a; padding: 16px 10px; display: flex; flex-direction: column; height: 100%; }
 .adm-logo { display: flex; align-items: center; gap: 9px; padding: 4px 10px 16px; text-decoration: none; }
 .adm-logo .sq { width: 28px; height: 28px; border-radius: 8px; background: var(--mint); display: flex; align-items: center; justify-content: center; font-family: "Syne"; font-weight: 800; font-size: 12px; color: #1a1a1a; flex-shrink: 0; }

@@ -45,7 +45,6 @@ export default async function SectionAdmin({ params }: P) {
         </div>
         <div className="btns">
           <a href={`/#${section.slug}`} target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a>
-          <a href="#settings" className="b-out b-sm"><i className="ti ti-settings" />Section settings</a>
         </div>
       </div>
 

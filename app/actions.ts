@@ -137,6 +137,7 @@ export async function saveHero(fd: FormData) {
     ctaSecondaryUrl: safeUrl(str(fd, "ctaSecondaryUrl", 300)) || "#connect",
     heroEmojis: str(fd, "heroEmojis", 80),
     scrollCue: str(fd, "scrollCue", 60),
+    heroBoxes: cleanBoxes(str(fd, "boxes", 2000)),
   });
   refresh();
   redirect(`/admin/hero?${saved()}`);
