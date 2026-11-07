@@ -11,6 +11,7 @@ const FIRST_LOOK_MS = 1200; // a row waits this long the first time it comes on 
 const AT_END_MS = 1600; // the pause at each end before it turns back
 const AFTER_MOUSE_MS = 1500; // how soon it carries on after the mouse leaves
 const AFTER_FINGER_MS = 4000; // and after a finger, a wheel on a card or a sideways swipe: someone may be reading
+const PICTURES_AHEAD = 1; // how many screens' worth of cards past the edge already have their pictures
 
 /**
  * Rows add a little page height once they start (their counter and arrows), and late pictures add more, which would strand
@@ -87,6 +88,7 @@ export default function SideRow({ className, fx, children }: { className: string
     let hold = 0, overlay = false, overlayAt = 0;
     let shown = -1, barAt = -1, arrowsAt = "";
     let cards: { el: HTMLElement; left: number; right: number; mid: number; on: boolean }[] = [];
+    let closeBy = false, nextPicture = 0;
     let stops: number[] = [];
     let here: HTMLElement | null = null;
 
@@ -114,7 +116,16 @@ export default function SideRow({ className, fx, children }: { className: string
       else t.scrollLeft = pos;
     };
 
+    // The browser's lazy loading only looks up and down the page, so on its own a picture starts loading as its card
+    // comes onto the screen. Once the row is close by, the next cards' pictures start early, a few at a time.
+    const loadAhead = () => {
+      while (closeBy && nextPicture < cards.length && cards[nextPicture].left - pos < half * 2 * (1 + PICTURES_AHEAD)) {
+        cards[nextPicture++].el.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((i) => { i.loading = "eager"; });
+      }
+    };
+
     const show = () => {
+      loadAhead();
       const p = over > 0 ? clamp(pos / over, 0, 1) : 0;
       if (marks) mark(-pos, light || p > 0.995);
       if (bar.current && p !== barAt) { barAt = p; bar.current.style.transform = `scaleX(${p.toFixed(4)})`; }
@@ -288,6 +299,13 @@ export default function SideRow({ className, fx, children }: { className: string
     // a computer's row is kept as a ready-made picture only while it's near the screen, so text isn't redrawn as it moves
     const near = new IntersectionObserver(([e]) => o.classList.toggle("live", e.isIntersecting), { rootMargin: "20% 0px" });
     if (!still && !touchy.matches) near.observe(o);
+    const soon = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      soon.disconnect();
+      closeBy = true;
+      loadAhead();
+    }, { rootMargin: "0px 0px 50% 0px" }); // starting a whole screen away, in both directions, made phones stutter while scrolling
+    soon.observe(o);
     const inView = new IntersectionObserver(([e]) => {
       onScreen = e.isIntersecting;
       if (!onScreen) return;
@@ -323,6 +341,7 @@ export default function SideRow({ className, fx, children }: { className: string
       cancelAnimationFrame(raf);
       clearTimeout(nap);
       near.disconnect();
+      soon.disconnect();
       inView.disconnect();
       press.current = () => {};
       t.removeEventListener("pointermove", mouseMoved);

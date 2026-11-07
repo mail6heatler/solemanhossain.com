@@ -1370,9 +1370,9 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 
 /* --- pictures fit the card: always full width in their own shape, and only what's taller than the limit is trimmed, so no empty bars.
    "Show whole" (.fit-whole) never trims, and the expand button and the entry page always show all of it --- */
-:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; max-height: calc(var(--row-h) * var(--pic, .66)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); background: color-mix(in srgb, var(--fg) 5%, transparent); }
+:is(.card-img, .note-media, .trip .ph.has-pic img, .trip .ph.has-pic video) { display: block; width: 100%; height: auto; aspect-ratio: auto 4 / 3; /* holds its place until it loads, then takes its real shape: without this a late picture makes the row jump, and everything below it */ max-height: calc(var(--row-h) * var(--pic, .66)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); background: color-mix(in srgb, var(--fg) 5%, transparent); }
 .trip .ph.has-pic { height: auto; display: block; background: none; flex-shrink: 0; }
-.post-media { height: auto; max-height: var(--post-h, min(70vh, 560px)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
+.post-media { height: auto; aspect-ratio: auto 4 / 3; max-height: var(--post-h, min(70vh, 560px)); object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
 .ph-tile img, .ph-tile video { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); background: color-mix(in srgb, var(--fg) 5%, transparent); }
 /* a PDF's first page is a picture like any other; without one (a locked file) it gets a drawn tile that fits the same way */
 .pdf-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; aspect-ratio: 4 / 3; padding: 14px; color: var(--mint-deep); background: color-mix(in srgb, var(--fg) 5%, transparent); text-align: center; }

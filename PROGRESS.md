@@ -5,13 +5,12 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 ## Current state
 
 - **Live:** https://solemanhossain.vercel.app, including the Lively Update (below), which the owner chose to keep on 2026-11-04.
-- **Restore points:** git tags `before-auto-rows` (before rows that glide by themselves with arrows, and before an entry's Save box moved above Delete), `before-fit-belt-pdf` (before the bigger menu, thicker belts, pictures filling cards and PDFs on entries), `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
+- **Restore points:** git tags `before-pic-links` (before pictures held their place, rows loaded ahead and links kept aiming), `before-auto-rows` (before rows that glide by themselves with arrows, and before an entry's Save box moved above Delete), `before-fit-belt-pdf` (before the bigger menu, thicker belts, pictures filling cards and PDFs on entries), `before-row-feel` (before phone rows went flat, snapping eased and the wheel glide shortened), `before-hero-remove` (before the hero's Save box stopped floating and the Remove box arrived), `before-confirm-box` (before section Save moved above the Delete box and risky buttons got a confirmation box), `before-savebox` (before the floating Save box and moving Inbox in the menu), `before-plain-save` (before the dashboard's Save buttons went back to a plain row), `before-four` (before the side menu, card opening, Full view and action bar fixes), `before-final`, `before-g7-g8`, `before-g6`, `before-g5`, `before-g4`, `before-g3`, `before-g2`, `before-g1` (each section's work, G7 and G8 together), `before-controls` (before the size and look controls), `before-smooth` (before uncut pictures and the smoothness work), `before-reactbar` (before the always-visible, lively reaction bar), `before-rows` (before cards that fit and sideways rows), `before-banner-themes` (before each theme got its own hanging banner), `before-hanging` (before the hanging photo and maintenance), `before-themes` (commit `16898bc`, before the 20 fan themes), `before-update-3` (commit `58fecd5`, before Update 3), `before-update-2` (commit `0d20e6a`) and `before-lively-update` (commit `1c9f3c7`).
 - **Deploys:** pushing to `main` deploys to production automatically, in about 30 seconds.
 - **Live settings:** the owner changes the default theme and the visitors' theme button often (Techy, then Paper, then Playful with the button on, as of 2026-11-05). Check the site's `<head>` script (`"d":`, `"sw":`) before relying on them. Techy and Paper have straight-edged chapters.
 
 ## Decisions for the owner
 
-- Two fixes offered after the rows were kept, no go yet: load a row's pictures once it's near the screen, so phone cards don't arrive without one; and menu links to Feed, Growth and Life stopping about 153px early.
 - The Résumé button opens a PDF named `customer-wise-remaining-balance---24.1.2026.pdf`, which may not be meant for the public. Pointed out three times; it's the owner's to replace, and the old file's link keeps working until it's deleted.
 - G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
 - The wall shows a test message, "fds", from mail6heatler. G2 and G3 still hold placeholder text ("Describe what it does…", "dcxzfcvsdfzxcvzxvx"). These are the owner's content, so they weren't touched.
@@ -21,6 +20,18 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-07: Late pictures: menu links land, cards don't jump (waiting for the owner's keep or undo)
+
+The owner said go to both offers. They had one cause: a late picture makes its row taller after a link has already worked out where to stop. Adventures went from 669 to 822 tall (the 153px), Growth from 813 to 964. An earlier note said pictures weren't the cause, because the page still grew while pictures were blocked. That was wrong: tracing the live page named the Adventures picture. The earlier measurement was probably taken while only some pictures were blocked, though that wasn't checked.
+
+- **A picture holds its place** before it loads, as a soft grey box. Card text starts at 261 and ends at 240 where it used to go from 41 to 240.
+- **A row loads ahead:** on arrival, pictures just past the screen edge are loaded and those far along the row aren't, so phones don't download a whole row at once.
+- **A link keeps aiming** until the page settles, and any click, wheel, touch or key ends that.
+
+**Local stress test, a page with every section overflowing and pictures delayed 0.9s, old and new:** laptop link to Growth stopped 1566px early, Life and Connect 1834px; now 0. Phone Growth and Connect 1279px early; now 0. All five links tested land at 0 on both. The page grows by 0 to 60 on a laptop where it grew 1834, and at most 392 on a phone where it grew 1302 (one row of mixed tall pictures). Also lands at 0 with reduced motion and on slow devices, from the side menu's dots and the phone's bottom bar. Scrolling during the glide isn't pulled back.
+
+**Smoothness, the previous release against this, taking turns, same content:** laptop 103.4 and 104.5 fps, 2 and 3 stutters; 4x slower 15.5 and 16.1, 64 and 61. Phone 82.5 and 81.5, 0 both; 4x slower 23.8 and 23.9, 47 both. Phone swipe 118.7 and 126.1, 0 both. The laptop and swipe numbers were taken before the phone's start was moved later.
 
 ### 2026-11-07: Rows that glide by themselves, with arrows (kept by the owner)
 
@@ -41,7 +52,7 @@ The owner reported a huge blank space between a section's title and its cards, a
 
 **Noticed, not changed:** on a phone a row is the browser's own scroller, and the next card's picture hadn't started loading even 100px past the screen edge. So it should load only as the card arrives, and the card's text should shift down when it does. Swiped rows already worked this way, but gliding may make it more noticeable. Offered to the owner: load a row's pictures once the row is near the screen.
 
-**Menu links:** Me, Made, Adventures and Connect land right. Feed, Growth and Life still land 153px early; the page grows by that much during the glide, even with pictures blocked, so the earlier guess of a late picture is wrong and the cause isn't found. Offered to the owner as a separate fix, not answered.
+**Menu links:** Me, Made, Adventures and Connect land right. Feed, Growth and Life still land 153px early; fixed in the entry above.
 
 **Not tested:** a real phone, and how a slow glide looks on a real 1x laptop screen, which is the reason for moving computers' rows by transform.
 

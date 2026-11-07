@@ -69,6 +69,40 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       cleanups.push(toNative);
     }
 
+    // A link to a section works out where to stop when it's clicked. Anything that changes the page's height during the glide
+    // (a picture arriving, mostly) moves the section, so it aims again until the page settles or the visitor takes over.
+    let stopAiming = () => {};
+    const aimAtLink = (e: MouseEvent) => {
+      stopAiming(); // any click ends the last link's aim, or "Home" could be pulled back to where that link was heading
+      const id = (e.target as Element).closest?.('a[href^="#"]')?.getAttribute("href")?.slice(1);
+      const target = id && id !== "hero" ? document.getElementById(decodeURIComponent(id)) : null;
+      if (!target) return;
+      let height = document.body.offsetHeight, timer = 0;
+      const ro = new ResizeObserver(([entry]) => {
+        const h = entry.target.getBoundingClientRect().height;
+        if (Math.abs(h - height) < 1) return;
+        height = h;
+        clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          const l = (window as unknown as { __lenis?: { scrollTo(t: HTMLElement): void } }).__lenis;
+          if (l) l.scrollTo(target); else target.scrollIntoView({ block: "start" });
+        }, 60);
+      });
+      const inputs = ["wheel", "touchstart", "keydown", "pointerdown"];
+      const giveUp = window.setTimeout(() => stopAiming(), 5000);
+      stopAiming = () => {
+        ro.disconnect();
+        clearTimeout(timer);
+        clearTimeout(giveUp);
+        inputs.forEach((ev) => window.removeEventListener(ev, stopAiming));
+        stopAiming = () => {};
+      };
+      ro.observe(document.body);
+      inputs.forEach((ev) => window.addEventListener(ev, stopAiming, { passive: true }));
+    };
+    document.addEventListener("click", aimAtLink);
+    cleanups.push(() => { document.removeEventListener("click", aimAtLink); stopAiming(); });
+
     // A device that stays under about 25 frames per second while scrolling gets the lighter version for this visit.
     // Needs several seconds of slow scrolling to trigger, so one busy moment or a fast device never sets it off.
     if (fx.autolite && !reduced && !html.classList.contains("lite")) {
