@@ -11,6 +11,8 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 ## Decisions for the owner
 
+- Two fixes offered after the rows were kept, no go yet: load a row's pictures once it's near the screen, so phone cards don't arrive without one; and menu links to Feed, Growth and Life stopping about 153px early.
+- The Résumé button opens a PDF named `customer-wise-remaining-balance---24.1.2026.pdf`, which may not be meant for the public. Pointed out three times; it's the owner's to replace, and the old file's link keeps working until it's deleted.
 - G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
 - The wall shows a test message, "fds", from mail6heatler. G2 and G3 still hold placeholder text ("Describe what it does…", "dcxzfcvsdfzxcvzxvx"). These are the owner's content, so they weren't touched.
 
@@ -20,7 +22,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-07: Rows that glide by themselves, with arrows (waiting for the owner's keep or undo)
+### 2026-11-07: Rows that glide by themselves, with arrows (kept by the owner)
 
 The owner reported a huge blank space between a section's title and its cards, and asked for rows that don't fit to slide automatically on computers and phones, with direction arrows and no mouse wheel for rows on computers, and for an entry's Save box to sit above its Delete box. How it works is in "Rows that don't fit" in `CLAUDE.md`.
 
