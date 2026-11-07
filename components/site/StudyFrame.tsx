@@ -1,6 +1,7 @@
 import { EMPTY_STUDY, STUDY_MEDIA, studyLookOf, studyMediaOf, type StudyInfo } from "@/lib/studyItem";
 import type { Media } from "@/lib/settings";
 import { Cover } from "./Media";
+import CoverFit from "./CoverFit";
 
 /**
  * What a Study shelf entry looks like, chosen by the dashboard's own words: its Subsection picks the object (a book, a TV player, a framed
@@ -114,25 +115,48 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
   canPlay?: boolean;
   body: StudyBody;
 }) {
-  if (v.look === "book") return (
-    <>
-      <span className="bk-edge" aria-hidden />
-      <span className="bk-spine" aria-hidden><b>{v.title}</b></span>
-      {v.status && <span className="bk-ribbon"><span>{v.status}</span></span>}
-      <span className="bk-turn" aria-hidden><i /><i /><i /></span>
-      <div className="bk-in">
-        <div className={`bk-cover${first ? " has-pic" : ""}`}>
+  if (v.look === "book") {
+    const band = <div className="bk-band"><span>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>;
+    const ribbon = v.status && <span className="bk-ribbon"><span>{v.status}</span></span>;
+    const words = <span className="bk-words" aria-hidden><i>a</i><i>“</i><i>?</i><i>&amp;</i><i>”</i></span>;
+    const shine = <i className="bk-shine" aria-hidden />;
+    // an uploaded cover is the whole book, with the writing on its lower part. The title goes in the part that scrolls, so a card of any size can show everything
+    if (first) return (
+      <>
+        <span className="bk-edge" aria-hidden />
+        <span className="bk-back" aria-hidden>{(first.type === "image" || (first.type === "pdf" && first.thumb)) && <Cover m={first} className="bk-fill" />}</span>
+        <span className="bk-spine" aria-hidden><b>{v.title}</b></span>
+        {ribbon}
+        <div className="bk-in bk-full">
+          <Cover m={first} className="bk-pic" />
+          <CoverFit />
           {link}
-          {first && <Cover m={first} className="bk-pic" />}
-          <div className="bk-band"><span>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
-          <h3>{v.title}</h3>
-          {v.subtitle && <p>{v.subtitle}</p>}
+          {words}
           {zoom}
+          <div className="bk-panel">{body({ above: <div className="bk-head">{band}<h3>{v.title}</h3>{v.subtitle && <p>{v.subtitle}</p>}</div> })}</div>
+          {shine}
         </div>
-        {body({})}
-      </div>
-    </>
-  );
+      </>
+    );
+    return (
+      <>
+        <span className="bk-edge" aria-hidden />
+        <span className="bk-spine" aria-hidden><b>{v.title}</b></span>
+        {ribbon}
+        <div className="bk-in">
+          <div className="bk-cover">
+            {link}
+            {words}
+            {band}
+            <h3>{v.title}</h3>
+            {v.subtitle && <p>{v.subtitle}</p>}
+            {shine}
+          </div>
+          {body({})}
+        </div>
+      </>
+    );
+  }
   if (v.look === "player") return (
     <>
       <div className={`tv-head${canPlay ? " can-play" : ""}`}>
@@ -177,14 +201,21 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
   if (v.look === "phone") return (
     <div className="pn-screen">
       <span className="pn-notch" aria-hidden />
-      <span className="pn-turn" aria-hidden><i /><i /></span>
+      <i className="pn-wake" aria-hidden />
+      <i className="pn-load" aria-hidden />
       <span className="pn-fly" aria-hidden><i>♥</i><i>♥</i><i>♥</i></span>
       <div className="pn-top">
         {link}
-        <div className="pn-status" aria-hidden><span>9:41</span><em><i /><i /><i /></em></div>
+        <div className="pn-status" aria-hidden><span>9:41</span><span className="pn-sig"><span className="pn-wifi"><i /><i /><i /></span><em><i /><i /><i /></em></span></div>
         <div className="pn-note"><span className="pn-ping" aria-hidden /><b>{v.subsection}</b>{v.status || v.no}</div>
+        <span className="pn-spin" aria-hidden />
       </div>
-      {body({ showTitle: true, above: picture ?? <div className="pn-art" aria-hidden /> })}
+      {body({ showTitle: true, above: (
+        <div className="pn-shot">
+          {picture ?? <div className="pn-art" aria-hidden />}
+          <i className="pn-skel" aria-hidden /><i className="pn-shim" aria-hidden /><i className="pn-tap" aria-hidden /><span className="pn-big" aria-hidden>♥</span>
+        </div>
+      ) })}
     </div>
   );
   return (

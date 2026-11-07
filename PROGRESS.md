@@ -26,7 +26,7 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 | G1 Me | 5 notes | Good as it is, per the owner | none |
 | G2 Made | 4 projects as of 2026-11-07 (2 when it was built) | **Done, kept** (they answered "go" when asked keep or undo, and were told it was taken as keep) | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
 | G3 Adventures | 5 entries as of 2026-11-07, one in each frame (the owner keeps changing them) | **Done, kept** (they answered "good job, let's go for G4" when asked keep or undo, and were told it was taken as keep) | Chosen: boarding passes on a route with a vehicle travelling along it, then (their requests) a frame for each subsection, Status buttons, a real boarding pass with its details entered in the dashboard, and a bucket-list note with ticks instead of a full bucket (option A: one note per entry). Not chosen: a road-trip map, a passport with stamps, one note listing every bucket entry |
-| G4 Influences | 1 person (Nicola Tesla) | **Built and live, waiting for keep or undo** | Chosen: a study shelf, with a travelling lamp, books, a TV player for songs, music, podcasts, radio and video (their change to my record), framed portraits and phones. Not chosen: a corkboard with a red thread, a nerve line with thought bubbles |
+| G4 Influences | 1 person (Nicola Tesla) | **Built and live, their changes made, waiting for keep or undo** | Chosen: a study shelf, with a travelling lamp, books, a TV player for songs, music, podcasts, radio and video (their change to my record), framed portraits and phones. Not chosen: a corkboard with a red thread, a nerve line with thought bubbles |
 | G5 Feed | 1 poll, 1 thought | Not started | A chat on a phone with bubbles and typing dots, or a corkboard of notes |
 | G6 Growth | 6 milestones | Not started | A tree that grows, with a branch per subsection and hard seasons shown bare; or a richer curved line (the owner's examples) |
 | G7 Life | Empty, "Coming soon" | Not started | Polaroids on a string, or a scrapbook. Needs their pictures to judge it |
@@ -50,6 +50,23 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
+
+### 2026-11-07: G4 changes after the owner saw it: a whole-book cover, and new movement instead of page turns
+
+The owner said the phone's page animation looked weird, and asked for something that goes with phones and the internet. They said the book was good, but an uploaded front cover should become the whole book with the writing kept on it, fitted automatically whatever its size. They saw both on the private preview, said go, and asked for the page turn to go from the book as well, with some other animation, which they left to me. So a book now lifts off the shelf, the light crosses it, its ribbon swings and letters drift up, and a phone wakes, connects, loads, refreshes, pings and gets a double-tap. It's explained under "A book with a cover" in `CLAUDE.md`. The fit changed slightly from the preview: a normal cover now loses nothing instead of a sliver at its sides, because the writing hides what's below it anyway.
+
+Tested on throwaway copies: 149 new checks on 19 kinds of book at computer and phone width (covers of every shape, a video, PDFs, a long title, Bangla, a poll, sizes, Picture fit, clicks, the wheel, the dashboard's preview), and the shelf's older 67. Text contrast measured in all 10 themes. Measured with covers first on the shelf, the worst case for the blur, against the build before this change:
+
+| What | Before | After |
+|---|---|---|
+| Phone, swiping a row of covers | 120.2 fps, 3 stutters | 113.9 fps, 2 stutters |
+| Phone 4x slower, swiping the covers | 48.8 fps, 5 stutters | 44.0 fps, 9 stutters |
+| Laptop, the row gliding | 143.7 fps, 0 stutters, 564ms of work per second | 143.4 fps, 0 stutters, 639ms |
+| Phone 4x slower, scrolling the page | 26.7 fps, 25 stutters | 24.8 fps, 26 stutters |
+| Phone 4x slower, a phone's show | 91.7 fps, 0 stutters | 87.0 fps, 1 stutter |
+| Phone 4x slower, a book's show | 43.0 fps, 12 stutters | 69.9 fps, 0 stutters |
+
+Two rounds each, on 19 covers in a row, which the real shelf doesn't have. A slow phone swiping them loses a little. The blur isn't the cause: hiding it gave 22.8 fps against 24.3 with it, in three runs each while the PC was busier, and those runs ranged from 20.6 to 26.2. What's left is probably the picture now covering the whole book instead of 42% of it, which is what was asked for; that wasn't measured separately.
 
 ### 2026-11-07: G4 Influences becomes a study shelf, with sound (waiting for the owner's keep or undo)
 

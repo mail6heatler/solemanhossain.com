@@ -1790,29 +1790,58 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .entry-sound audio { flex: 1 1 260px; max-width: 100%; min-width: 0; }
 .entry > .bkl-ticks + .entry-sounds { margin-top: 0; }
 
-/* a book, with pages that turn */
-.trip.tkt.st-book { --pic: .42; border: 0; border-radius: 3px 9px 2px 2px; background: var(--card); }
+/* a book. An uploaded cover is the whole book (.bk-full), with the writing on its lower part (.bk-panel). Whatever the cover's shape it's never
+   stretched: CoverFit.tsx decides whether it fills the book, otherwise it keeps its shape, from the top, over a blurred copy of itself (.bk-fill).
+   That copy colours the spine too, so none of the cover's own letters end up on it */
+.trip.tkt.st-book { --pic: .42; border: 0; border-radius: 3px 9px 2px 2px; background: var(--card); transform-origin: 50% 100%; }
 .bk-edge { position: absolute; z-index: 0; right: -5px; top: 7px; bottom: 7px; width: 5px; border-radius: 0 2px 2px 0; background: repeating-linear-gradient(to right, var(--card) 0 1px, color-mix(in srgb, var(--fg) 26%, var(--card)) 1px 2px); }
+.bk-back { position: absolute; z-index: 0; inset: 0; overflow: hidden; border-radius: inherit; background: var(--inv-bg); pointer-events: none; }
+.bk-fill { position: absolute; left: -30px; top: -30px; display: block; width: calc(100% + 60px); max-width: none; height: calc(100% + 60px); object-fit: cover; filter: blur(22px) saturate(1.25) brightness(.82); }
 .bk-spine { position: absolute; z-index: 2; left: 0; top: 0; bottom: 0; width: 26px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 3px 0 0 2px; background: var(--mint-deep); color: var(--bg); box-shadow: inset -3px 0 4px -2px color-mix(in srgb, var(--fg) 45%, transparent); pointer-events: none; }
-.bk-spine b { max-height: 92%; overflow: hidden; writing-mode: vertical-rl; rotate: 180deg; white-space: nowrap; text-overflow: ellipsis; font: 700 10.5px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.bk-spine b { position: relative; z-index: 1; max-height: 92%; overflow: hidden; writing-mode: vertical-rl; rotate: 180deg; white-space: nowrap; text-overflow: ellipsis; font: 700 10.5px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.bk-back ~ .bk-spine { background: none; color: var(--inv-fg); box-shadow: inset -3px 0 4px -2px color-mix(in srgb, var(--inv-bg) 60%, transparent); }
+.bk-back ~ .bk-spine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--inv-bg) 50%, transparent), color-mix(in srgb, var(--inv-bg) 70%, transparent)); }
 .bk-ribbon { position: absolute; z-index: 5; right: 18px; top: -5px; width: 30px; min-height: 96px; max-height: 148px; padding: 12px 0 18px; display: flex; justify-content: center; background: var(--pop2); color: var(--bg); transform-origin: 50% 0; pointer-events: none; font: 800 10px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; }
 .bk-ribbon span { max-height: 118px; overflow: hidden; writing-mode: vertical-rl; white-space: nowrap; }
 .bk-ribbon::after { content: ""; position: absolute; left: 0; right: 0; bottom: -9px; border-left: 15px solid var(--pop2); border-right: 15px solid var(--pop2); border-bottom: 10px solid transparent; }
 .bk-in { position: relative; z-index: 1; flex: 1; min-height: 0; display: flex; flex-direction: column; margin-left: 26px; border-radius: 0 9px 2px 0; background: var(--card); }
 .bk-cover { position: relative; flex: none; height: calc(var(--row-h) * var(--pic)); overflow: hidden; padding: 13px 16px; border-radius: 0 9px 0 0; background: var(--mint); color: var(--on-mint); }
-.bk-cover:not(.has-pic)::before { content: ""; position: absolute; right: -70px; bottom: -70px; width: 240px; height: 240px; border-radius: 50%; background: repeating-radial-gradient(circle, color-mix(in srgb, var(--on-mint) 22%, transparent) 0 8px, transparent 8px 19px); }
-.bk-cover.has-pic { background: var(--inv-bg); color: var(--inv-fg); }
-.bk-pic { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
-.bk-cover.has-pic::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(color-mix(in srgb, var(--inv-bg) 82%, transparent), color-mix(in srgb, var(--inv-bg) 34%, transparent) 62%, transparent); }
+.bk-cover::before { content: ""; position: absolute; right: -70px; bottom: -70px; width: 240px; height: 240px; border-radius: 50%; background: repeating-radial-gradient(circle, color-mix(in srgb, var(--on-mint) 22%, transparent) 0 8px, transparent 8px 19px); }
 .bk-band, .bk-cover h3, .bk-cover > p { position: relative; z-index: 2; pointer-events: none; }
 .bk-band { display: flex; justify-content: space-between; gap: 8px; padding-right: 40px; font: 700 10px/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; }
 .bk-band .tkt-no { color: inherit; opacity: .75; letter-spacing: 0; }
 .trip .bk-cover h3 { margin: 20px 40px 0 0; overflow-wrap: break-word; font: 800 calc(26px * var(--fs, 1))/1.08 var(--display); color: inherit; }
 .bk-cover > p { margin: 7px 40px 0 0; font: 600 13px/1.2 var(--body); opacity: .88; }
-.bk-cover .pic-zoom { z-index: 3; }
-.bk-turn { position: absolute; z-index: 6; inset: 0 0 0 26px; pointer-events: none; }
-.bk-turn i, .pn-turn i { position: absolute; inset: 0; opacity: 0; transform-origin: 0 50%; border-radius: 0 6px 6px 0; box-shadow: 3px 0 8px -3px color-mix(in srgb, var(--fg) 45%, transparent);
-  background: repeating-linear-gradient(to bottom, color-mix(in srgb, var(--fg) 12%, transparent) 0 2px, transparent 2px 17px) 18px 26px / calc(100% - 36px) calc(100% - 52px) no-repeat, linear-gradient(90deg, color-mix(in srgb, var(--fg) 16%, var(--card)), var(--card) 16%); }
+:is(.st-book, .st-phone) .card-foot { padding-inline: 9px; gap: 4px; }
+:is(.st-book, .st-phone) .card-foot .reacts.mini button { padding: 3px 4px; }
+.bk-full { overflow: hidden; background: none; color: var(--inv-fg); }
+.bk-pic { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: 50% 0; }
+.bk-full.snug .bk-pic, .fit-fill .bk-full .bk-pic { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
+.fit-whole .bk-full .bk-pic { object-fit: contain; object-position: 50% 0; }
+.bk-pic.pdf-tile { display: flex; justify-content: flex-start; padding-top: 52px; aspect-ratio: auto; background: none; --fg: var(--inv-fg); --mint-deep: var(--mint); }
+.bk-full > .pic-zoom { left: 8px; right: auto; top: 8px; bottom: auto; }
+.bk-panel { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; max-height: 66%; padding-top: 46px; background: linear-gradient(transparent, color-mix(in srgb, var(--inv-bg) 88%, transparent) 46px, color-mix(in srgb, var(--inv-bg) 96%, transparent)); pointer-events: none; }
+.bk-panel > * { pointer-events: auto; }
+/* the panel is dark, so what's in it takes the dark surface's colours. Only the names change here, so links, tags, polls and the "more" hint all follow */
+.bk-panel .scroll-wrap { --fg: var(--inv-fg); --text-2: var(--inv-fg); --muted: var(--inv-muted); --muted-2: var(--inv-muted); --line: var(--inv-line); --card: var(--inv-bg); --bg: color-mix(in srgb, var(--inv-fg) 10%, var(--inv-bg)); --mint-deep: color-mix(in srgb, var(--mint) 62%, var(--inv-fg)); color: var(--fg); }
+.bk-panel .tb { padding-top: 8px; }
+.bk-head { padding: 0 15px; color: var(--inv-fg); }
+.bk-head .bk-band { padding-right: 0; opacity: .88; }
+.trip .bk-head h3 { margin: 5px 0 0; overflow-wrap: break-word; font: 800 calc(21px * var(--fs, 1))/1.12 var(--display); color: inherit; }
+.bk-head > p { margin: 2px 0 0; font: 500 13px/1.25 var(--body); opacity: .85; }
+.bk-panel .card-foot { background: none; border-top-color: var(--inv-line); }
+.bk-panel .full-view:not(:hover, :focus-visible) { background: var(--card); }
+.bk-panel .reacts-as { color: var(--inv-muted); }
+.bk-words { position: absolute; z-index: 1; left: 10%; right: 10%; bottom: 0; height: 0; pointer-events: none; }
+.bk-full > .bk-words { bottom: 30%; }
+.bk-words i { position: absolute; bottom: -34px; opacity: 0; font: 700 30px/1 var(--display); font-style: normal; text-shadow: 0 0 2px var(--inv-bg), 0 1px 5px color-mix(in srgb, var(--inv-bg) 80%, transparent); }
+.bk-cover .bk-words i { text-shadow: none; }
+.bk-words i:nth-child(1) { left: 4%; }
+.bk-words i:nth-child(2) { left: 26%; font-size: 38px; }
+.bk-words i:nth-child(3) { left: 48%; font-size: 26px; }
+.bk-words i:nth-child(4) { left: 68%; font-size: 32px; }
+.bk-words i:nth-child(5) { left: 88%; font-size: 36px; }
+.bk-shine { position: absolute; z-index: 3; top: -12%; bottom: -12%; left: 0; width: 42%; opacity: 0; rotate: 14deg; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--inv-fg) 62%, transparent), transparent); }
 
 /* a TV player */
 .trip.tkt.st-player { --pic: .33; --tv: color-mix(in srgb, var(--pop3) 78%, var(--card)); --tv-ink: var(--inv-bg); padding: 11px 11px 0; border: 0; border-radius: min(var(--r-card), 22px); background: var(--tv); }
@@ -1831,7 +1860,7 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .tv-on { z-index: 4; opacity: 0; background: var(--inv-fg); }
 .tv-word { position: absolute; z-index: 2; left: 11px; top: 9px; display: flex; align-items: center; gap: 5px; max-width: calc(100% - 22px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 700 11px/1 ui-monospace, "JetBrains Mono", Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 0 7px color-mix(in srgb, var(--inv-fg) 70%, transparent); }
 .tv-pic, .tv-video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 30%); }
-.fit-whole .tv-pic, .fit-whole .tv-video, .fit-whole .bk-pic { object-fit: contain; }
+.fit-whole .tv-pic, .fit-whole .tv-video { object-fit: contain; }
 .tv-test { position: absolute; inset: 0; background: linear-gradient(90deg, var(--inv-fg) 0 14.3%, var(--pop3) 0 28.6%, var(--mint) 0 42.9%, var(--pop2) 0 57.2%, color-mix(in srgb, var(--pop2) 55%, var(--inv-bg)) 0 71.5%, color-mix(in srgb, var(--pop3) 55%, var(--inv-bg)) 0 85.8%, var(--inv-bg) 0) 0 0 / 100% 72% no-repeat, linear-gradient(90deg, var(--inv-bg) 0 25%, var(--inv-fg) 0 50%, color-mix(in srgb, var(--inv-fg) 45%, var(--inv-bg)) 0 75%, var(--inv-bg) 0); }
 .tv-big { position: absolute; z-index: 2; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--inv-bg) 62%, transparent); color: var(--inv-fg); box-shadow: 0 0 0 2px color-mix(in srgb, var(--inv-fg) 70%, transparent); pointer-events: none; transition: opacity .25s; }
 .tv-big svg { width: 20px; height: 20px; margin-left: 3px; fill: currentColor; }
@@ -1890,16 +1919,24 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .pt-tag { position: absolute; z-index: 3; right: 8px; top: 8px; max-width: 62%; padding: 6px 9px; rotate: 4deg; background: color-mix(in srgb, var(--mint) 55%, var(--card)); color: var(--fg); pointer-events: none; font: 700 11.5px/1.15 var(--body); box-shadow: 0 5px 8px -5px color-mix(in srgb, var(--fg) 65%, transparent); }
 .st-portrait .card-foot { background: var(--card); }
 
-/* a phone, which turns its page */
+/* a phone on the internet: when the lamp arrives it wakes, connects, loads its page, gets pulled to refresh, gets a notification and a double-tap */
 .trip.tkt.st-phone { padding: 10px; border: 0; border-radius: 34px; background: color-mix(in srgb, var(--inv-bg) 84%, var(--inv-fg)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--inv-fg) 22%, transparent), 0 2px 10px -5px color-mix(in srgb, var(--fg) 55%, transparent); }
 .pn-screen { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: 26px; background: var(--card); color: var(--fg); }
-.pn-notch { position: absolute; z-index: 5; left: 50%; top: 0; width: 92px; height: 19px; margin-left: -46px; border-radius: 0 0 12px 12px; background: color-mix(in srgb, var(--inv-bg) 84%, var(--inv-fg)); pointer-events: none; }
-.pn-turn { position: absolute; z-index: 4; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.pn-notch { position: absolute; z-index: 6; left: 50%; top: 0; width: 92px; height: 19px; margin-left: -46px; border-radius: 0 0 12px 12px; background: color-mix(in srgb, var(--inv-bg) 84%, var(--inv-fg)); pointer-events: none; }
+.pn-wake { position: absolute; z-index: 5; inset: 0; opacity: 0; background: var(--inv-bg); pointer-events: none; }
+.pn-load { position: absolute; z-index: 5; left: 0; right: 0; top: 0; height: 3px; opacity: 0; background: var(--mint-deep); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
 .pn-top { position: relative; flex: none; }
+.pn-spin { position: absolute; left: 50%; top: 100%; width: 22px; height: 22px; margin: 8px 0 0 -11px; border: 3px solid color-mix(in srgb, var(--fg) 18%, transparent); border-top-color: var(--mint-deep); border-radius: 50%; opacity: 0; pointer-events: none; }
 .pn-status { display: flex; justify-content: space-between; align-items: center; padding: 7px 22px 3px; font: 700 10.5px/1.2 ui-monospace, "JetBrains Mono", Consolas, monospace; }
+.pn-sig { display: flex; align-items: flex-end; gap: 6px; }
 .pn-status em { display: flex; align-items: flex-end; gap: 2px; height: 11px; }
 .pn-status em i { width: 3.5px; border-radius: 1px; background: currentColor; transform-origin: 50% 100%; }
 .pn-status em i:nth-child(1) { height: 5px; } .pn-status em i:nth-child(2) { height: 8px; } .pn-status em i:nth-child(3) { height: 11px; }
+.pn-wifi { position: relative; width: 16px; height: 11px; }
+.pn-wifi i { position: absolute; left: 50%; bottom: 0; border: 2px solid currentColor; border-bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform-origin: 50% 100%; }
+.pn-wifi i:nth-child(1) { width: 4px; height: 2px; margin-left: -2px; background: currentColor; }
+.pn-wifi i:nth-child(2) { width: 10px; height: 6px; margin-left: -5px; }
+.pn-wifi i:nth-child(3) { width: 16px; height: 11px; margin-left: -8px; }
 .pn-fly { position: absolute; z-index: 3; right: 22px; bottom: 64px; width: 34px; height: 1px; pointer-events: none; }
 .pn-fly i { position: absolute; right: 0; bottom: 0; opacity: 0; font: 400 20px/1 system-ui, sans-serif; font-style: normal; color: var(--pop2); }
 .pn-fly i:nth-child(2) { right: 18px; font-size: 15px; color: var(--mint-deep); }
@@ -1908,8 +1945,15 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .pn-ping::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--mint-deep); opacity: 0; }
 .pn-note { position: relative; margin: 5px 9px 9px; padding: 9px 11px 9px 31px; border-radius: 14px; background: color-mix(in srgb, var(--pop3) 20%, var(--card)); box-shadow: 0 6px 14px -9px color-mix(in srgb, var(--fg) 70%, transparent); pointer-events: none; font-size: 12.5px; line-height: 1.3; }
 .pn-note b { display: block; font-size: 11px; letter-spacing: .03em; color: var(--mint-deep); }
-.pn-art { flex: none; height: calc(var(--row-h) * .28); margin: 0 9px; border-radius: 12px; background: radial-gradient(circle at 22% 30%, var(--pop2) 0 26px, transparent 27px), radial-gradient(circle at 78% 62%, var(--mint) 0 38px, transparent 39px), linear-gradient(135deg, color-mix(in srgb, var(--pop3) 42%, var(--card)), color-mix(in srgb, var(--mint) 20%, var(--card))); }
-.st-phone .pic-box { margin: 0 9px; overflow: hidden; border-radius: 12px; }
+.pn-shot { position: relative; flex: none; margin: 0 9px; overflow: hidden; border-radius: 12px; }
+.pn-shot .pic-box { margin: 0; }
+.pn-art { height: calc(var(--row-h) * .28); background: radial-gradient(circle at 22% 30%, var(--pop2) 0 26px, transparent 27px), radial-gradient(circle at 78% 62%, var(--mint) 0 38px, transparent 39px), linear-gradient(135deg, color-mix(in srgb, var(--pop3) 42%, var(--card)), color-mix(in srgb, var(--mint) 20%, var(--card))); }
+.pn-skel, .pn-shim, .pn-tap, .pn-big { position: absolute; z-index: 2; opacity: 0; pointer-events: none; }
+.pn-skel, .pn-shim { inset: 0; }
+.pn-skel { background: color-mix(in srgb, var(--fg) 12%, var(--card)); }
+.pn-shim { background: linear-gradient(100deg, transparent 15%, color-mix(in srgb, var(--inv-fg) 70%, transparent) 50%, transparent 85%); }
+.pn-tap { left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border: 3px solid color-mix(in srgb, var(--inv-fg) 85%, transparent); border-radius: 50%; }
+.pn-big { left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; display: grid; place-items: center; font: 400 70px/1 system-ui, sans-serif; color: var(--pop2); text-shadow: 0 4px 14px color-mix(in srgb, var(--inv-bg) 55%, transparent); }
 .trip.tkt.st-phone { --pic: .3; }
 .st-phone .card-foot { background: var(--card); }
 
@@ -1925,19 +1969,36 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .site.fx-studyfx .side .sty-row.stagger.live > .sty-cell.seen { opacity: 1; animation: tkt-in .6s cubic-bezier(.2,1,.3,1) backwards; animation-delay: calc(var(--si, 0) * 85ms); }
 .site.fx-studyfx .tkt-cell.here .trip.tkt.st-portrait { rotate: 0deg; }
 .site.fx-studyfx .tkt-cell.here .pt-tag { animation: sty-pop .5s cubic-bezier(.3,1.6,.5,1) .35s backwards; }
-.site.fx-studyfx .tkt-cell.here .bk-ribbon { animation: bk-swing 1.3s ease-out; }
-.site.fx-studyfx .tkt-cell.here :is(.bk-turn, .pn-turn) i { animation: st-flip 1s cubic-bezier(.4,.1,.35,1) backwards; }
-.site.fx-studyfx .tkt-cell.here :is(.bk-turn, .pn-turn) i:nth-child(2) { animation-delay: .24s; }
-.site.fx-studyfx .tkt-cell.here :is(.bk-turn, .pn-turn) i:nth-child(3) { animation-delay: .48s; }
+/* a book's movement. .here is set when the lamp sets off, and it stays at a stop for 4.5 seconds, so both shows end before that */
+.site.fx-studyfx .tkt-cell.here .st-book { animation: bk-lift 1.5s cubic-bezier(.3,.7,.3,1) .15s; }
+.site.fx-studyfx .tkt-cell.here .bk-ribbon { animation: bk-swing 1.3s ease-out .25s; }
+.site.fx-studyfx .tkt-cell.here .bk-shine { animation: bk-shine 1.1s ease-in-out .55s; }
+.site.fx-studyfx .tkt-cell.here .bk-words i { animation: bk-word 1.7s ease-out .9s backwards; }
+.site.fx-studyfx .tkt-cell.here .bk-words i:nth-child(2) { animation-name: bk-word2; animation-delay: 1.15s; }
+.site.fx-studyfx .tkt-cell.here .bk-words i:nth-child(3) { animation-delay: 1.4s; }
+.site.fx-studyfx .tkt-cell.here .bk-words i:nth-child(4) { animation-name: bk-word2; animation-delay: 1.65s; }
+.site.fx-studyfx .tkt-cell.here .bk-words i:nth-child(5) { animation-delay: 1.9s; }
+/* a phone's movement */
 .site.fx-studyfx .tkt-cell.here .st-phone { animation: pn-buzz .55s linear; }
-.site.fx-studyfx .tkt-cell.here .pn-note { animation: pn-drop .55s cubic-bezier(.3,1.4,.5,1) .3s backwards; }
-.site.fx-studyfx .tkt-cell.here .pn-ping::after { animation: pn-ring 1s ease-out .6s 2; }
-.site.fx-studyfx .tkt-cell.here .pn-status em i { animation: pn-signal .4s cubic-bezier(.3,1.5,.5,1) .15s backwards; }
-.site.fx-studyfx .tkt-cell.here .pn-status em i:nth-child(2) { animation-delay: .3s; }
-.site.fx-studyfx .tkt-cell.here .pn-status em i:nth-child(3) { animation-delay: .45s; }
-.site.fx-studyfx .tkt-cell.here .pn-fly i { animation: pn-fly 1.6s ease-out .8s backwards; }
-.site.fx-studyfx .tkt-cell.here .pn-fly i:nth-child(2) { animation-delay: 1.1s; }
-.site.fx-studyfx .tkt-cell.here .pn-fly i:nth-child(3) { animation-delay: 1.4s; }
+.site.fx-studyfx .tkt-cell.here .pn-wake { animation: pn-wake .6s ease-out; }
+.site.fx-studyfx .tkt-cell.here .pn-status em i { animation: pn-signal .35s cubic-bezier(.3,1.5,.5,1) .15s backwards; }
+.site.fx-studyfx .tkt-cell.here .pn-status em i:nth-child(2) { animation-delay: .25s; }
+.site.fx-studyfx .tkt-cell.here .pn-status em i:nth-child(3) { animation-delay: .35s; }
+.site.fx-studyfx .tkt-cell.here .pn-wifi i { animation: pn-arc .3s ease-out .2s backwards; }
+.site.fx-studyfx .tkt-cell.here .pn-wifi i:nth-child(2) { animation-delay: .32s; }
+.site.fx-studyfx .tkt-cell.here .pn-wifi i:nth-child(3) { animation-delay: .44s; }
+.site.fx-studyfx .tkt-cell.here .pn-load { animation: pn-load .85s ease-in-out .2s; }
+.site.fx-studyfx .tkt-cell.here .pn-skel { animation: pn-skel 1.1s ease-out; }
+.site.fx-studyfx .tkt-cell.here .pn-shim { animation: pn-shim .85s ease-in-out .15s; }
+.site.fx-studyfx .tkt-cell.here .pn-spin { animation: pn-spin .8s ease-in-out 1.1s; }
+.site.fx-studyfx .tkt-cell.here .st-phone .scroll-wrap { animation: pn-pull .8s cubic-bezier(.3,1.2,.4,1) 1.1s; }
+.site.fx-studyfx .tkt-cell.here .pn-note { animation: pn-drop .45s cubic-bezier(.3,1.4,.5,1) 1.55s backwards; }
+.site.fx-studyfx .tkt-cell.here .pn-ping::after { animation: pn-ring .7s ease-out 1.95s 2; }
+.site.fx-studyfx .tkt-cell.here .pn-tap { animation: pn-tap .24s ease-out 2.05s, pn-tap .24s ease-out 2.3s; }
+.site.fx-studyfx .tkt-cell.here .pn-big { animation: pn-big .9s cubic-bezier(.2,1.5,.4,1) 2.4s; }
+.site.fx-studyfx .tkt-cell.here .pn-fly i { animation: pn-fly 1.5s ease-out 2.5s backwards; }
+.site.fx-studyfx .tkt-cell.here .pn-fly i:nth-child(2) { animation-delay: 2.7s; }
+.site.fx-studyfx .tkt-cell.here .pn-fly i:nth-child(3) { animation-delay: 2.9s; }
 .site.fx-studyfx .tkt-cell.here .tv-on { animation: tv-power .55s ease-out; }
 .site.fx-studyfx .tkt-cell.here .tv-sticker, .site.fx-studyfx .tkt-cell.here .tv-big { animation: sty-pop .5s cubic-bezier(.3,1.6,.5,1) .3s backwards; }
 .site.fx-studyfx .tkt-cell.here .tv-knob.b { animation: tv-turn .8s ease-out; }
@@ -1952,11 +2013,23 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .st-player.playing .tv-air { animation: blink 1.1s step-end infinite; }
 @keyframes sty-pop { 0% { scale: .6; } 60% { scale: 1.16; } 100% { scale: 1; } }
 @keyframes bk-swing { 20% { rotate: 9deg; } 50% { rotate: -6deg; } 78% { rotate: 2deg; } }
-@keyframes st-flip { 0% { opacity: 0; transform: perspective(1200px) rotateY(0deg); } 7% { opacity: 1; } 86% { opacity: 1; } 100% { opacity: 0; transform: perspective(1200px) rotateY(-168deg); } }
+@keyframes bk-lift { 30% { translate: 0 -4px; rotate: -.9deg; scale: 1.028; } 58% { translate: 0 -1px; rotate: .4deg; scale: 1.008; } 80% { translate: 0 0; rotate: -.1deg; scale: .998; } }
+@keyframes bk-shine { 0% { opacity: 0; translate: -130% 0; } 14%, 84% { opacity: 1; } 100% { opacity: 0; translate: 300% 0; } }
+@keyframes bk-word { 0% { opacity: 0; transform: translateY(0) scale(.7); } 18% { opacity: 1; transform: translateY(-28px) scale(1); } 68% { opacity: .95; } 100% { opacity: 0; transform: translate(16px, -170px) rotate(14deg) scale(1.08); } }
+@keyframes bk-word2 { 0% { opacity: 0; transform: translateY(0) scale(.7); } 18% { opacity: 1; transform: translateY(-28px) scale(1); } 68% { opacity: .95; } 100% { opacity: 0; transform: translate(-16px, -170px) rotate(-14deg) scale(1.08); } }
 @keyframes pn-buzz { 0%, 100% { translate: 0 0; } 15%, 55% { translate: -3px 0; } 35%, 75% { translate: 3px 0; } }
-@keyframes pn-drop { from { opacity: 0; translate: 0 -46px; } }
-@keyframes pn-ring { from { opacity: .7; transform: scale(1); } to { opacity: 0; transform: scale(3); } }
+@keyframes pn-wake { 0% { opacity: .94; } 100% { opacity: 0; } }
 @keyframes pn-signal { from { transform: scaleY(0); } }
+@keyframes pn-arc { from { opacity: 0; transform: scale(.6); } }
+@keyframes pn-load { 0% { opacity: 1; transform: scaleX(0); } 70% { opacity: 1; transform: scaleX(.86); } 92% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(1); } }
+@keyframes pn-skel { 0%, 72% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pn-shim { 0% { opacity: 1; transform: translateX(-100%); } 100% { opacity: 1; transform: translateX(100%); } }
+@keyframes pn-spin { 0% { opacity: 0; rotate: 0deg; } 20%, 75% { opacity: 1; } 100% { opacity: 0; rotate: 540deg; } }
+@keyframes pn-pull { 0%, 100% { translate: 0 0; } 25%, 60% { translate: 0 40px; } }
+@keyframes pn-drop { from { opacity: 0; translate: 0 -60px; } }
+@keyframes pn-ring { from { opacity: .7; transform: scale(1); } to { opacity: 0; transform: scale(3); } }
+@keyframes pn-tap { 0% { opacity: .95; transform: scale(.35); } 100% { opacity: 0; transform: scale(1.1); } }
+@keyframes pn-big { 0% { opacity: 0; transform: scale(.2); } 28% { opacity: 1; transform: scale(1.18); } 45% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: scale(1.05); } }
 @keyframes pn-fly { 0% { opacity: 0; transform: translateY(0) scale(.4); } 16% { opacity: 1; transform: translateY(-22px) scale(1.15); } 100% { opacity: 0; transform: translateY(-150px) rotate(14deg) scale(1); } }
 @keyframes tv-power { 0% { opacity: .95; transform: scaleY(.02); } 45% { opacity: .9; transform: scaleY(1); } 100% { opacity: 0; transform: scaleY(1); } }
 @keyframes tv-turn { 40% { rotate: 170deg; } }
@@ -1965,11 +2038,11 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 @keyframes tv-drift { to { transform: scale(1.08); } }
 @keyframes tv-band { 0% { opacity: .9; transform: translateY(0); } 100% { opacity: .9; transform: translateY(560%); } }
 @keyframes tv-eq { from { transform: scaleY(.42); } to { transform: scaleY(1); } }
-html.lite :is(.pn-fly i, .pn-ping::after, .pn-status em i, .bk-turn i, .pn-turn i, .bk-ribbon, .st-phone, .pn-note, .pt-tag, .tv-on, .tv-sticker, .tv-big, .tv-knob, .tv-needle, .tv-freq, .tv-air, .tv-pic, .tv-band, .tv-bars svg) { animation: none !important; }
-html.lite .sty-cone { display: none; }
+html.lite :is(.st-book, .bk-shine, .bk-words i, .bk-ribbon, .st-phone, .pn-wake, .pn-load, .pn-skel, .pn-shim, .pn-spin, .st-phone .scroll-wrap, .pn-tap, .pn-big, .pn-wifi i, .pn-fly i, .pn-status em i, .pn-note, .pt-tag, .tv-on, .tv-sticker, .tv-big, .tv-knob, .tv-needle, .tv-freq, .tv-air, .tv-pic, .tv-band, .tv-bars svg), html.lite .pn-ping::after { animation: none !important; }
+html.lite .sty-cone, html.lite .bk-fill { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .sty-lamp { transition: none !important; }
-  .pn-fly i, .pn-ping::after, .pn-status em i, .bk-turn i, .pn-turn i, .bk-ribbon, .st-phone, .pn-note, .pt-tag, .tv-on, .tv-sticker, .tv-big, .tv-knob, .tv-needle, .tv-freq, .tv-air, .tv-pic, .tv-band, .tv-bars svg { animation: none !important; }
+  .st-book, .bk-shine, .bk-words i, .bk-ribbon, .st-phone, .pn-wake, .pn-load, .pn-skel, .pn-shim, .pn-spin, .st-phone .scroll-wrap, .pn-tap, .pn-big, .pn-wifi i, .pn-fly i, .pn-ping::after, .pn-status em i, .pn-note, .pt-tag, .tv-on, .tv-sticker, .tv-big, .tv-knob, .tv-needle, .tv-freq, .tv-air, .tv-pic, .tv-band, .tv-bars svg { animation: none !important; }
   .trip.tkt.st-portrait { transition: none; }
 }
 

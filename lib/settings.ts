@@ -161,7 +161,7 @@ export const EFFECTS = [
   { key: "visitors", group: "Fun", label: "“People here now” counter" },
   { key: "game404", group: "Fun", label: "404 page mini game" },
   { key: "tripfx", group: "Layout", label: "Boarding passes: a vehicle travels the route, stamps thump" },
-  { key: "studyfx", group: "Layout", label: "Study shelf: a lamp travels along, TVs power on, pages turn" },
+  { key: "studyfx", group: "Layout", label: "Study shelf: a lamp travels along, TVs power on, books and phones wake up" },
   { key: "windowfx", group: "Layout", label: "App windows pop open, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
   { key: "flip", group: "Layout", label: "Flip cards for list sections" },

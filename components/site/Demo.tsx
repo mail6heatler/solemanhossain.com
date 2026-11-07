@@ -50,7 +50,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       cardtilt: { on: fx.cardtilt, target: inLayout("cards", ".grid3"), tip: "Move your mouse across a card: it tilts toward you and catches the light." },
       milemap: { on: fx.milemap, target: ".mile-map", tip: "Watch the trail: it lights up as the row travels, and each stop's medal pops as it's reached." },
       tripfx: { on: fx.tripfx, target: inLayout("tickets", ".side"), tip: "Watch the little vehicle travel the route. Point at an entry and it comes to you: a pass's barcode gets scanned, a camera's shutter flashes, a note's tick pops on." },
-      studyfx: { on: fx.studyfx, target: inLayout("study", ".side"), tip: "Watch the lamp travel along the shelf. A TV powers on and its screen comes alive, a book's pages turn, a phone buzzes, turns its page, pings and sends up hearts, and a portrait straightens." },
+      studyfx: { on: fx.studyfx, target: inLayout("study", ".side"), tip: "Watch the lamp travel along the shelf. A TV powers on and its screen comes alive, a book lifts off the shelf as the light crosses its cover and letters drift up from it, a phone wakes, connects, loads its page, refreshes, pings and gets a double-tap with hearts, and a portrait straightens." },
       windowfx: { on: fx.windowfx, target: inLayout("windows", ".side"), tip: "Each project is an app window. Point at one to bring it to the front, and use the dock below to jump between them." },
       rowcount: { on: fx.rowcount, target: ".side", tip: "The small number above the row counts the cards as it travels." },
       kinetic: { on: fx.kinetic, target: "#hero h1", tip: "Move your mouse along the headline: each letter rises and leans away from it." },

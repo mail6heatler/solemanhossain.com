@@ -32,6 +32,7 @@ export default function StudyPanel({ initial, category }: { initial: StudyInfo; 
               <option value="">Automatic, from its subsection: {autoName}</option>
               {STUDY_LOOKS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
             </select>
+            {look === "book" && <div className="hint">Add a picture under Photos and it becomes the whole book, whatever its shape, with the writing on it.</div>}
           </div>
           {look === "player" && (
             <div className="fl"><label htmlFor="study-screen">On the screen</label>

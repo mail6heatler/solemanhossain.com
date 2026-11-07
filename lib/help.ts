@@ -384,8 +384,8 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=tripfx",
   },
   studyfx: {
-    title: "Study shelf: a lamp travels along, TVs power on, pages turn",
-    what: "A section laid out as Study shelf (like Influences) shows each entry as the object its Subsection names, standing on a shelf: a book, a TV player, a framed portrait, a phone or a note. With this on, a small lamp travels along the shelf. Whatever it reaches wakes up: a TV powers on and its screen comes alive, a book's pages turn, a phone buzzes, turns its page, pings and sends up hearts, and a portrait straightens. With it off, the objects and the shelf stay, without the lamp or the movement. Sound and video you add still play when you press Play. What each object shows is on the entry's page in the dashboard.",
+    title: "Study shelf: a lamp travels along, TVs power on, books and phones wake up",
+    what: "A section laid out as Study shelf (like Influences) shows each entry as the object its Subsection names, standing on a shelf: a book, a TV player, a framed portrait, a phone or a note. With this on, a small lamp travels along the shelf. Whatever it reaches wakes up: a TV powers on and its screen comes alive, a book lifts off the shelf as the light crosses its cover and letters drift up from it, a phone wakes, connects, loads its page, refreshes, pings and gets a double-tap with hearts, and a portrait straightens. A picture added to a book becomes its whole cover, whatever its shape, with the writing on it. With it off, the objects and the shelf stay, without the lamp or the movement. Sound and video you add still play when you press Play. What each object shows is on the entry's page in the dashboard.",
     how: ["Switch on and save.", "To use it on another section, choose “Study shelf” as its layout, under Section settings."],
     preview: "/?demo=studyfx",
   },

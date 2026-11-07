@@ -162,6 +162,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
                 <div className={`tkt-cell sty-cell${look.className}`} style={look.style}>
                   <div className={`trip tkt st-${sample.study.look}${withText}`} style={look.style}>
                     <StudyFrame view={look.hide("subtitle") ? { ...sample.study, subtitle: "" } : sample.study} picture={picBlock} first={sample.pic && !look.hide("pic") ? { url: sample.pic, type: "image" } : undefined}
+                      link={canFocus && sample.study.look === "book" ? <span className="tkt-link look-focus" onClick={focus} title="Click the part that must stay visible"><i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? 40}%` }} aria-hidden /></span> : undefined}
                       play={<span className="tv-play idle" aria-hidden><svg viewBox="0 0 14 16"><path d="M1 1 13 8 1 15Z" /></svg></span>}
                       body={({ above, showTitle }) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{showTitle && sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.study?.line && <p className="sty-line"><span>{sample.study.line}</span></p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
                   </div>
