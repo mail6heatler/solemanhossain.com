@@ -109,6 +109,11 @@ export const SCHEMA = [
     visitor TEXT PRIMARY KEY,
     last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`,
+  // Changes to live content that must happen only once, however many times this list runs, so a later choice in the dashboard stands.
+  `CREATE TABLE IF NOT EXISTS done_once (key TEXT PRIMARY KEY)`,
+  // G2's new look, agreed with the owner on 2026-11-07. The old cards stay a choice under Section settings.
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('made-windows') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'windows' WHERE slug = 'made' AND layout = 'cards' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {
@@ -143,7 +148,7 @@ const SECTIONS: SeedSection[] = [
     slug: "made", code: "G2", nav_label: "Made", nav_emoji: "⚡", eyebrow: "Things I made", eyebrow_emoji: "⚡",
     title: "Projects, builds, experiments",
     subtitle: "Each one with a title, a short note, and a link.",
-    layout: "cards", emojis: "🛠️ 🔧 💻",
+    layout: "windows", emojis: "🛠️ 🔧 💻",
     categories: "Data storytelling, Code & problem solving, Brain dumps, Side quests",
     empty_text: "No projects yet. Add your first build from the dashboard.",
     items: [

@@ -9,6 +9,7 @@ import PhotoGrid, { PhotoInfo } from "./PhotoGrid";
 import { Cover, MediaBadges } from "./Media";
 import PicZoom from "./PicZoom";
 import FullView from "./FullView";
+import Dock from "./Dock";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
@@ -80,6 +81,30 @@ function medalFor(it: Item) {
   return "flag";
 }
 
+const fileName = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "project";
+const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+
+/** A project with no picture still fills its window: its own details, written as a few lines of code. */
+function CodeView({ it, hideSubtitle, hideTags, hideDate }: { it: Item; hideSubtitle: boolean; hideTags: boolean; hideDate: boolean }) {
+  const str = (v: string) => <span className="cd-str">&quot;{v}&quot;</span>;
+  const link = it.links.find((x) => /^https?:/.test(x.url));
+  const fields: [string, React.ReactNode][] = [];
+  if (it.status) fields.push(["status", str(it.status.toLowerCase())]);
+  if (it.tags.length && !hideTags) fields.push(["stack", <>[{it.tags.map((t, i) => <span key={t}>{i > 0 && ", "}{str(t)}</span>)}]</>]);
+  if (it.date_label && !hideDate) fields.push(["when", str(it.date_label)]);
+  if (it.location && !hideDate) fields.push(["where", str(it.location)]);
+  if (link) fields.push(["link", str(shortUrl(link.url))]);
+  const call = <><span className="cd-fn">build</span>({str(fileName(it.title))}</>;
+  const lines: React.ReactNode[] = [
+    ...(it.subtitle && !hideSubtitle ? [<span key="c" className="cd-note">{`// ${it.subtitle}`}</span>] : []),
+    ...(fields.length
+      ? [<>{call}, {"{"}</>, ...fields.map(([k, v]) => <>{"  "}<span className="cd-key">{k}</span>: {v},</>), <>{"});"}</>]
+      : [<>{call});</>]),
+    <i key="end" className="blink-cursor" />,
+  ];
+  return <pre className="win-code">{lines.map((line, i) => <span key={i} className="cd-line" style={{ ["--l" as string]: i }}>{line}</span>)}</pre>;
+}
+
 function Empty({ text }: { text: string }) {
   const shown = !text || /dashboard/i.test(text) ? "Coming soon." : text;
   return <div className="empty reveal r3"><i className="ti ti-pencil" />{shown}</div>;
@@ -103,9 +128,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   });
   const zoom = (it: Item) => (fx.lightbox && it.media.length > 0 ? <PicZoom media={it.media} title={it.title} /> : null);
   const rowFx: RowFx = { auto: fx.sideways, count: fx.rowcount };
-  const row = (className: string, children: React.ReactNode) => grid
+  const row = (className: string, children: React.ReactNode, after?: React.ReactNode) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
-    : <SideRow className={`${className}${st}`} fx={rowFx}>{children}</SideRow>;
+    : <SideRow className={`${className}${st}`} fx={rowFx} after={after}>{children}</SideRow>;
 
   if (L === "connect") {
     const hasNotes = items.length > 0 || (wall?.length ?? 0) > 0;
@@ -395,6 +420,54 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
         ); })}
       </>
     ));
+
+  // projects as app windows on a desktop, with a dock of icons below
+  if (L === "windows") {
+    const windows = items.map((it) => {
+      const l = lookFor(it);
+      const pic = it.media[0] && !l.hide("pic");
+      const link = it.links.find((x) => /^https?:/.test(x.url));
+      const code = !it.media[0] && !l.hide("pic") && it.type !== "poll"; // its tags are then in the code
+      const status = it.status && !(it.pinned && /feature/i.test(it.status)) ? it.status : "";
+      return (
+        <div key={it.id} className={`card win${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
+          <div className="win-head">
+            <a className="win-chrome" href={href(section, it)} tabIndex={-1} aria-hidden />
+            <div className="win-bar">
+              <span className="win-dots" aria-hidden><i /><i /><i /></span>
+              <span className="win-name">{it.category || section.nav_label || section.title}</span>
+              {it.pinned && <span className="win-flag">★ featured</span>}
+              {status && <span className={`win-status${/progress|build|work|doing|wip|soon/i.test(status) ? " busy" : ""}`}><i aria-hidden />{status}</span>}
+            </div>
+            <div className="win-url">
+              <i className={`ti ti-${link ? "lock" : "folder"}`} aria-hidden />
+              {link
+                ? <a href={link.url} target="_blank" rel="noopener noreferrer"><span>{shortUrl(link.url)}</span><i className="ti ti-arrow-up-right" aria-hidden /></a>
+                : <span>{`~/${section.slug}/${fileName(it.title)}`}</span>}
+            </div>
+          </div>
+          <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+            <CardLink to={href(section, it)} label={it.title} />
+            {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
+            {code && <CodeView it={it} hideSubtitle={l.hide("subtitle")} hideTags={l.hide("tags")} hideDate={l.hide("date")} />}
+            <div className="card-body">
+              <h3>{it.title}</h3>
+              {it.subtitle && !l.hide("subtitle") && !code && <p className="sub">{it.subtitle}</p>}
+              <Meta it={it} showCat={false} hideDate={l.hide("date") || code} />
+              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+              <LinkButtons it={it} />
+              {it.tags.length > 0 && !l.hide("tags") && !code && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+            </div>
+          </Box>
+        </div>
+      );
+    });
+    const dock = items.map((it) => {
+      const m = lookFor(it).hide("pic") ? undefined : it.media[0];
+      return { title: it.title, href: href(section, it), pic: m?.type === "image" ? m.url : m?.thumb ?? "" };
+    });
+    return row("grid3 win-row", <>{windows}</>, <Dock items={dock} />);
+  }
 
   // cards (default); as a bento grid the first (featured) card gets the big tile
   const bento = fx.bento && items.length >= 3 && !grid;

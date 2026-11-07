@@ -65,7 +65,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
         ? <div className="ph has-pic"><img src={sample.pic} alt="" /></div>
         : layout === "notes" ? <img className="note-media" src={sample.pic} alt="" />
         : <div className="card-media"><img className="card-img" src={sample.pic} alt="" /></div>}
-      {canFocus && <i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? (merged.fit === "fill" ? 50 : 40)}%` }} aria-hidden />}
+      {canFocus && <i className="look-dot" style={{ left: `${merged.fx ?? 50}%`, top: `${merged.fy ?? (merged.fit === "fill" ? 50 : layout === "windows" ? 0 : 40)}%` }} aria-hidden />}
     </div>
   ) : null;
   const reacts = (
@@ -146,6 +146,14 @@ export default function LookControls({ initial, above, sample, layout, level }:
                 <div className={`trip${look.className}`} style={look.style}>{box(<>{picBlock ?? (look.hide("pic") ? null : <div className="pic-box"><div className="ph"><i className="ti ti-map-pin" /></div></div>)}<div className="tb">{text}</div></>)}</div>
               ) : layout === "notes" ? (
                 <div className={`note${withText}${look.className}`} style={look.style}>{box(<>{head}{picBlock}{rest}</>)}</div>
+              ) : layout === "windows" ? (
+                <div className={`card win${withText}${look.className}`} style={look.style}>
+                  <div className="win-head">
+                    <div className="win-bar"><span className="win-dots" aria-hidden><i /><i /><i /></span><span className="win-name">{sample.title}</span></div>
+                    <div className="win-url"><i className="ti ti-world" aria-hidden /><span>your-project.com</span></div>
+                  </div>
+                  {box(<>{picBlock}<div className="card-body">{text}</div></>)}
+                </div>
               ) : (
                 <div className={`card${withText}${look.className}`} style={look.style}>{box(<>{picBlock}<div className="card-body">{text}</div></>)}</div>
               )}

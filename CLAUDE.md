@@ -49,7 +49,8 @@ app/
   admin.css                dashboard design
 components/site/
   Chrome.tsx               SiteShell (wrapper for every public page), Nav, Rail, BottomBar, Footer
-  SectionBody.tsx          the 8 section layouts, including the milestones map (`milemap`, a timeline as stops on a trail)
+  SectionBody.tsx          the 9 section layouts, including the milestones map (`milemap`, a timeline as stops on a trail) and app windows (`windows`)
+  Dock.tsx                 the icons under a desktop of app windows; a click sends "row-go" to its SideRow, which answers with "row-at"
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
@@ -83,7 +84,7 @@ app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in sett
 
 `settings.ribbonSize` (Appearance page, `RibbonSize.tsx`) sets how thick the sliding belts are: a percentage that becomes `--rib` on each belt, multiplying its screen-based `--rib-fs` and `--rib-pad`. A theme changing the belt's size sets those two tokens, never `font-size` or `padding`, or the slider stops working there.
 
-A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN IF NOT EXISTS`; it runs by itself on the first request after a deploy. `sections.ribbon` controls the sliding headline per section; `reactions.name` is who reacted.
+A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN IF NOT EXISTS`; it runs by itself on the first request after a deploy. That list runs again on every deploy, so a change to live content that must happen once (a section's new look) goes through `done_once`: copy the `made-windows` statement, or it will undo the owner's later choice in the dashboard. `sections.ribbon` controls the sliding headline per section; `reactions.name` is who reacted.
 
 `settings.heroHidden` takes the hero off the homepage. Nothing is deleted, because the name and photo are also used on other pages. Effects must cope with `#hero` being missing, and the first chapter's ribbon is skipped because it would hide under the menu bar. `LivePill` still runs, hidden, because the dashboard's "people here now" number depends on it.
 
@@ -112,6 +113,12 @@ Add the key to `FAN_THEME_KEYS`, `SKIN_LABELS`, `SKIN_INFO`, `SKIN_GROUPS` and `
 ## What every card must do
 
 Show everything the entry holds that fits a card: subtitle, date, place, mood, status, tags and its buttons (`LinkButtons`). Open its full page when clicked (`CardLink`, inside `Box`'s `.flow`), while reactions, polls, the expand button, video controls and links in the text stay above that link with `z-index`. Pass `to` to `Box` for the "Full view" button in the card's bar, or use `FullView` in a `.card-foot.plain` outside `Box`; every card has it. "Scroll for more" shows on every scrollable card whenever it's at its top. Anything hover reveals needs another way on phones (see the flip cards' first tap, and `.ph-info` under photos). The dashboard's order list (`OrderList`) shows entries in the exact order visitors see.
+
+## Section looks
+
+The owner wants each section to look like what it holds, one section at a time (see "Section makeovers" in `PROGRESS.md`, which has the checklist). A new look is a new value in `LAYOUTS`, so the old look stays a choice under Section settings; `lookOf`, `Box` and `SideRow` still do the work.
+
+**App windows (`windows`, G2):** each project is a `.card.win`, so it keeps everything a card does. Its title bar and address bar (`.win-head`) sit above `Box`, so they don't scroll. A window `isolation: isolate`s itself, or a window behind would paint its scroll line over the one in front. A project with no picture gets `CodeView`, its own details written as code; its subtitle, tags, date and place are then in the code, not repeated below. The `windowfx` switch only controls motion: the pop on arrival (the `.stagger` machinery), the address bar filling, the dock's swell and bounce. New classes here are prefixed (`cd-`, `win-`, `dock-`), because `.c`, `.f` and `.k` are already taken.
 
 ## Rows that don't fit
 

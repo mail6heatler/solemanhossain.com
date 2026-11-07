@@ -377,6 +377,12 @@ export const HELP: Record<string, Help> = {
   },
 
   // ----- layout -----
+  windowfx: {
+    title: "App windows pop open, with a bouncing dock",
+    what: "A section laid out as App windows (like Made) shows each project as a small app window on a desktop, with a dock of icons below. With this on, windows pop open as they arrive, their address bar fills like a page loading, and the dock's icons grow under the mouse and bounce when clicked. With it off they look the same but stay still.",
+    how: ["Switch on and save.", "To use it on another section, choose “App windows” as its layout, under Section settings."],
+    preview: "/?demo=windowfx",
+  },
   bento: {
     title: "Bento grid for card sections",
     what: "Card sections (like Made) with 3 or more entries get mixed tile sizes: the first (featured) entry gets a big tile, every 4th a wide one.",

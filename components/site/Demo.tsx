@@ -49,6 +49,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       hero3d: { on: fx.hero3d, target: "#hero", tip: "Move your mouse over the particles: they part around it. Click an empty spot for a shock wave and a new shape.", run: async () => { await sleep(1800); window.dispatchEvent(new Event("lc-hero-next")); } },
       cardtilt: { on: fx.cardtilt, target: inLayout("cards", ".grid3"), tip: "Move your mouse across a card: it tilts toward you and catches the light." },
       milemap: { on: fx.milemap, target: ".mile-map", tip: "Watch the trail: it lights up as the row travels, and each stop's medal pops as it's reached." },
+      windowfx: { on: fx.windowfx, target: inLayout("windows", ".side"), tip: "Each project is an app window. Point at one to bring it to the front, and use the dock below to jump between them." },
       rowcount: { on: fx.rowcount, target: ".side", tip: "The small number above the row counts the cards as it travels." },
       kinetic: { on: fx.kinetic, target: "#hero h1", tip: "Move your mouse along the headline: each letter rises and leans away from it." },
       splittext: { on: fx.splittext, target: ".split-host", tip: "Titles rise letter by letter. Hover one for a ripple.", run: async () => { await sleep(500); const t = document.querySelector(".split-host"); if (t) { t.classList.remove("in", "done"); void (t as HTMLElement).offsetWidth; t.classList.add("in"); setTimeout(() => t.classList.add("done"), 1500); } } },

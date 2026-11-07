@@ -60,7 +60,7 @@ function keepPlace() {
  * uses the browser's scrolling, because only that follows a finger properly. Either way the exact position is kept in `pos`
  * and never read back during a glide, and the loop sleeps whenever nothing moves.
  */
-export default function SideRow({ className, fx, children }: { className: string; fx: RowFx; children: React.ReactNode }) {
+export default function SideRow({ className, fx, children, after }: { className: string; fx: RowFx; children: React.ReactNode; after?: React.ReactNode }) {
   const outer = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLElement>(null);
@@ -129,13 +129,16 @@ export default function SideRow({ className, fx, children }: { className: string
       const p = over > 0 ? clamp(pos / over, 0, 1) : 0;
       if (marks) mark(-pos, light || p > 0.995);
       if (bar.current && p !== barAt) { barAt = p; bar.current.style.transform = `scaleX(${p.toFixed(4)})`; }
-      if (now.current && cards.length) {
+      if (cards.length) {
         const i = Math.round(p * (cards.length - 1));
         if (i !== shown) {
           const first = shown < 0;
           shown = i;
-          now.current.textContent = String(i + 1);
-          if (!light && !still && !first) now.current.animate?.([{ translate: "0 35%", opacity: 0 }, { translate: "0 0", opacity: 1 }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
+          o.dispatchEvent(new CustomEvent("row-at", { detail: i })); // for the dock
+          if (now.current) {
+            now.current.textContent = String(i + 1);
+            if (!light && !still && !first) now.current.animate?.([{ translate: "0 35%", opacity: 0 }, { translate: "0 0", opacity: 1 }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
+          }
         }
       }
       // the arrow it's travelling towards is lit, and the one it can't go any further towards is dimmed
@@ -243,6 +246,18 @@ export default function SideRow({ className, fx, children }: { className: string
       kick();
     };
 
+    // the dock asks for a card by number, and the row then waits there so it can be looked at
+    const goTo = (e: Event) => {
+      const to = stops[(e as CustomEvent<number>).detail];
+      if (mode !== "slide" || to === undefined) return;
+      waitAtLeast(AFTER_FINGER_MS);
+      if (still) { pos = to; write(); show(); return; }
+      if (to !== pos) dir = to > pos ? 1 : -1;
+      velocity = 0;
+      burst = to - pos;
+      kick();
+    };
+
     // the mouse pauses the row only by really moving over it: a mouse left resting on a row the page brought under it doesn't count
     const mouseMoved = (e: PointerEvent) => {
       if (hover || e.pointerType !== "mouse" || (!e.movementX && !e.movementY)) return;
@@ -319,6 +334,7 @@ export default function SideRow({ className, fx, children }: { className: string
     measure();
     document.fonts?.ready.then(measure).catch(() => {});
 
+    o.addEventListener("row-go", goTo);
     t.addEventListener("pointermove", mouseMoved, { passive: true });
     t.addEventListener("pointerleave", mouseLeft, { passive: true });
     t.addEventListener("touchstart", fingerDown, { passive: true });
@@ -344,6 +360,7 @@ export default function SideRow({ className, fx, children }: { className: string
       soon.disconnect();
       inView.disconnect();
       press.current = () => {};
+      o.removeEventListener("row-go", goTo);
       t.removeEventListener("pointermove", mouseMoved);
       t.removeEventListener("pointerleave", mouseLeft);
       t.removeEventListener("touchstart", fingerDown);
@@ -378,6 +395,7 @@ export default function SideRow({ className, fx, children }: { className: string
         </div>
         <div ref={track} className={`side-track ${className}`}>{children}</div>
         <div className="side-bar" aria-hidden><i ref={bar} /></div>
+        {after}
       </div>
     </div>
   );
