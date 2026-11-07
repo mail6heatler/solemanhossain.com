@@ -391,7 +391,7 @@ export function startHoverFx(fx: HoverFxFlags) {
         [".avatar-tilt", "c-big", "Click me"],
         ["button.ph-tile, .g-tile, .hero-img-btn", "c-big", "View"],
         [".flip", "c-big", "Read"],
-        [".trip", "c-big", "Explore"],
+        [".trip:not(.entry-pass)", "c-big", "Explore"],
         [".shelf-row, .tl-row", "c-big", "Read"],
         [".win-url a", "c-link", "Visit"],
         [".dock-i", "c-link", "Jump"],

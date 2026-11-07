@@ -3,7 +3,9 @@
  * the v-* classes in site.css, so they suit every theme. An entry's vehicle comes from a tag if it has one (`car`, `boat`...),
  * otherwise from the words on it.
  */
-export type VehicleKind = "plane" | "car" | "bus" | "train" | "boat" | "bike" | "shoe" | "balloon";
+import type { TripPass, VehicleKind } from "@/lib/tripPass";
+
+export type { VehicleKind };
 
 const WORDS: [VehicleKind, RegExp][] = [
   ["balloon", /\b(balloon|bucket list|bucket|someday|wish|dream|next|to be decided)\b/],
@@ -16,9 +18,10 @@ const WORDS: [VehicleKind, RegExp][] = [
   ["plane", /\b(plane|flight|flew|fly|airport)\b/],
 ];
 
-type Trip = { tags: string[]; category: string; title: string; subtitle: string; location: string };
+type Trip = { tags: string[]; category: string; title: string; subtitle: string; location: string; pass?: Pick<TripPass, "vehicle"> };
 
 export function vehicleFor(it: Trip): VehicleKind {
+  if (it.pass?.vehicle) return it.pass.vehicle; // the dashboard's Vehicle box, when it isn't on Automatic
   const tags = it.tags.join(" ").toLowerCase();
   for (const [kind, words] of WORDS) if (words.test(tags)) return kind;
   const text = `${it.category} ${it.title} ${it.subtitle} ${it.location}`.toLowerCase();

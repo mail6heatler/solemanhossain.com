@@ -12,7 +12,7 @@ import FullView from "./FullView";
 import Dock from "./Dock";
 import TicketRider from "./TicketRider";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
-import { frameFor, stampFor, TripFrame } from "./TripFrame";
+import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./TripFrame";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
@@ -44,7 +44,7 @@ function Meta({ it, showCat = true, hideDate = false, showStatus = false }: { it
  * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
  * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible.
  */
-function Box({ children, foot, to, label = "" }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string }) {
+function Box({ children, foot, to, label = "", stub }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string; stub?: React.ReactNode }) {
   return (
     <>
       <div className={`scroll-wrap${foot || to ? " has-foot" : ""}`}>
@@ -52,6 +52,7 @@ function Box({ children, foot, to, label = "" }: { children: React.ReactNode; fo
         <span className="more-hint" aria-hidden><span className="more-pill"><span className="more-word">Scroll for more</span><i className="ti ti-chevrons-down hint-arrow" /></span></span>
         <i className="scroll-line" aria-hidden><b /></i>
       </div>
+      {stub}
       {(foot || to) && <div className="card-foot">{foot}{to && <FullView to={to} label={label} />}</div>}
     </>
   );
@@ -426,32 +427,35 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
 
   // trips as boarding passes on a route, with a little vehicle travelling along it
   if (L === "tickets") {
-    const home = settings.location.split(",")[0].trim() || "Home";
+    const trip = tripContext(settings, section);
     const kinds = items.map(vehicleFor);
     const cells = items.map((it, i) => {
       const l = lookFor(it);
       const pic = it.media[0] && !l.hide("pic");
       const next = isNextTrip(it);
       const frame = frameFor(it.category);
-      const stamp = stampFor(it, frame);
+      const view = passView(it, { ...trip, index: i, hideDate: l.hide("date") });
       const picture = pic
         ? <div className="pic-box"><div className="ph has-pic"><Cover m={it.media[0]} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>
         : !l.hide("pic") && !it.media[0] ? <div className="tkt-art" aria-hidden><Vehicle kind={kinds[i]} /></div> : null;
-      // `above` sits at the top of the part that scrolls; the title goes in the text unless the frame already shows it
-      const body = (above: React.ReactNode, title: boolean) => (
-        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+      const date = frame !== "ticket" && it.date_label && !l.hide("date"); // a pass shows its date at the top
+      const place = it.location && !l.hide("date");
+      const body: FrameBody = ({ above, showTitle, inText, list, stub }) => (
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title} stub={stub}>
           <CardLink to={href(section, it)} label={it.title} />
           {above}
           <div className="tb">
-            {title && <h3>{it.title}</h3>}
+            {showTitle && <h3>{it.title}</h3>}
+            {inText}
             {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
-            {(it.date_label || it.location || it.mood) && (
+            {(date || place || it.mood) && (
               <dl className="tkt-fields">
-                {it.date_label && !l.hide("date") && <div><dt>Date</dt><dd>{it.date_label}</dd></div>}
-                {it.location && !l.hide("date") && <div><dt>Place</dt><dd>{it.location}</dd></div>}
+                {date && <div><dt>Date</dt><dd>{it.date_label}</dd></div>}
+                {place && <div><dt>Place</dt><dd>{it.location}</dd></div>}
                 {it.mood && <div><dt>Mood</dt><dd><Mood mood={it.mood} /></dd></div>}
               </dl>
             )}
+            {list}
             {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
             <LinkButtons it={it} />
             {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
@@ -459,11 +463,11 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
         </Box>
       );
       return (
-        <div key={it.id} className={`tkt-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${next ? " next" : ""}${!picture && stamp ? " tkt-nopic" : ""}${l.className}`} style={l.style}>
+        <div key={it.id} className={`tkt-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${next ? " next" : ""}${!picture && view.stamp ? " tkt-nopic" : ""}${l.className}`} style={l.style}>
           {!grid && <div className="tkt-stop" aria-hidden><i /></div>}
-          <div className={`trip tkt fr-${frame}${it.body.trim() ? " with-text" : ""}`}>
-            <TripFrame frame={frame} subsection={it.category || section.nav_label || section.title} no={`${section.code || "TR"}-${String(i + 1).padStart(2, "0")}`} home={home} title={it.title} date={l.hide("date") ? "" : it.date_label} kind={kinds[i]} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} drawn={!pic} body={body} />
-            {stamp && <span className="tkt-stamp">{stamp}</span>}
+          {/* the size and look settings go here too, because a frame's own picture size would otherwise win over the owner's */}
+          <div className={`trip tkt fr-${frame}${view.report || view.depart || view.journey ? " timed" : ""}${it.body.trim() ? " with-text" : ""}`} style={l.style}>
+            <TripFrame view={view} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} drawn={!pic} body={body} />
           </div>
         </div>
       );

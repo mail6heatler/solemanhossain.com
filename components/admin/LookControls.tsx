@@ -1,10 +1,10 @@
 "use client";
-import { TripFrame, type FrameKind } from "@/components/site/TripFrame";
-import { Vehicle, type VehicleKind } from "@/components/site/vehicles";
+import { TripFrame, type PassView } from "@/components/site/TripFrame";
+import { Vehicle } from "@/components/site/vehicles";
 import { useState } from "react";
 import { HIDE_LABELS, LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles, type ContentStyle, type HideKey } from "@/lib/contentStyle";
 
-export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; subsection?: string; date?: string; frame?: FrameKind; kind?: VehicleKind; stamp?: string };
+export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView };
 
 const SIZES = [["", "Default"], ["s", SIZE_PRESETS.s.label], ["m", SIZE_PRESETS.m.label], ["l", SIZE_PRESETS.l.label], ["custom", "Custom"]] as const;
 
@@ -90,9 +90,10 @@ export default function LookControls({ initial, above, sample, layout, level }:
   );
   const text = <>{head}{rest}</>;
   const withText = sample.body ? " with-text" : "";
-  const box = (inner: React.ReactNode) => (
+  const box = (inner: React.ReactNode, stub?: React.ReactNode) => (
     <>
       <div className="scroll-wrap has-foot"><div className="scrolly"><div className="flow">{inner}</div></div></div>
+      {stub}
       {reacts}
     </>
   );
@@ -149,12 +150,11 @@ export default function LookControls({ initial, above, sample, layout, level }:
               ) : layout === "notes" ? (
                 <div className={`note${withText}${look.className}`} style={look.style}>{box(<>{head}{picBlock}{rest}</>)}</div>
               ) : layout === "tickets" ? (
-                <div className={`tkt-cell${look.hide("pic") && sample.stamp ? " tkt-nopic" : ""}${look.className}`} style={look.style}>
-                  <div className={`trip tkt fr-${sample.frame ?? "ticket"}${withText}`}>
-                    <TripFrame frame={sample.frame ?? "ticket"} subsection={sample.subsection || "Your subsection"} no="G3-01" home="Home" title={sample.title} date={look.hide("date") ? "" : sample.date ?? ""} kind={sample.kind ?? "plane"}
-                      picture={picBlock ?? (!look.hide("pic") && <div className="tkt-art" aria-hidden><Vehicle kind={sample.kind ?? "plane"} /></div>)} drawn={!picBlock}
-                      body={(above, showTitle) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
-                    {sample.stamp && <span className="tkt-stamp">{sample.stamp}</span>}
+                <div className={`tkt-cell${look.hide("pic") && sample.trip?.stamp ? " tkt-nopic" : ""}${look.className}`} style={look.style}>
+                  <div className={`trip tkt fr-${sample.trip?.frame ?? "ticket"}${sample.trip?.report || sample.trip?.depart || sample.trip?.journey ? " timed" : ""}${withText}`} style={look.style}>
+                    {sample.trip && <TripFrame view={look.hide("date") ? { ...sample.trip, date: "", passDate: "" } : sample.trip}
+                      picture={picBlock ?? (!look.hide("pic") && <div className="tkt-art" aria-hidden><Vehicle kind={sample.trip.kind} /></div>)} drawn={!picBlock}
+                      body={({ above, showTitle, inText, list, stub }) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{inText}{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{list}{rest}</div></>, stub)} />}
                   </div>
                 </div>
               ) : layout === "windows" ? (

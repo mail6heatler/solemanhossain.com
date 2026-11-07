@@ -1544,31 +1544,56 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 /* --- G3: trips as boarding passes on a route (layout "tickets", SectionBody + TicketRider + vehicles). A ticket is a .trip inside a cell that also
    holds its stretch of the route. The notches are two circles in the page's colour, not a mask: a mask makes the browser do extra work around
    anything that moves inside it, and it would cut off the ticket's shadow too --- */
-.tkt-cell { --pic: .42; --row-h: min(480px, 70vh); position: relative; isolation: isolate; display: flex; flex-direction: column; width: var(--cw, 320px); }
-@media (max-width: 760px) { .tkt-cell { --row-h: min(470px, 70svh); } }
-.trip.tkt { --tear: 98px; flex: none; width: 100%; height: var(--row-h); max-height: var(--row-h); display: flex; flex-direction: column; overflow: visible; box-shadow: 0 14px 26px -14px color-mix(in srgb, var(--fg) 48%, transparent); }
+.tkt-cell { --pic: .42; --row-h: min(500px, 72vh); position: relative; isolation: isolate; display: flex; flex-direction: column; width: var(--cw, 320px); }
+@media (max-width: 760px) { .tkt-cell { --row-h: min(490px, 72svh); } }
+.trip.tkt { flex: none; width: 100%; height: var(--row-h); max-height: var(--row-h); display: flex; flex-direction: column; overflow: visible; box-shadow: 0 14px 26px -14px color-mix(in srgb, var(--fg) 48%, transparent); }
 .tkt-cell.sized > .tkt { height: var(--row-h); }
-.trip.tkt :is(.scroll-wrap, .scrolly) { border-radius: 0; } /* they start at the tear line, not at the ticket's corner */
-.tkt-head { position: relative; flex: none; height: var(--tear); overflow: hidden; border-radius: var(--r-card) var(--r-card) 0 0; background: color-mix(in srgb, var(--mint) 15%, var(--card)); }
+.grid3 > .tkt-cell { width: auto; min-width: 0; } /* "See all": each follows its column whatever its own size, or a large one spreads under the next */
+.trip.tkt :is(.scroll-wrap, .scrolly) { border-radius: 0; } /* they start below the frame's top, not at its corner */
 .tkt-link { position: absolute; inset: 0; z-index: 1; }
-.tkt-band { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px 0; font: 700 10.5px/1.3 var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--mint-deep); }
-.tkt-carrier { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tkt-no { flex: none; color: var(--muted); font-family: ui-monospace, "JetBrains Mono", Consolas, monospace; }
-.tkt-route { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 9px 16px 0; } /* From takes what it needs, so a short name never breaks */
-.tkt-end small { display: block; margin-bottom: 2px; font: 600 9.5px/1.2 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.tkt-end { min-width: 0; }
-.tkt-end:not(.to) { max-width: 120px; }
-.tkt-end b, .trip .tkt-end h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; margin: 0; font: 800 calc(16px * var(--fs, 1))/1.15 var(--body); /* not the display font: some are too wide for a ticket and would split a word */ text-transform: uppercase; letter-spacing: -.005em; color: var(--fg); }
+/* --- a boarding pass: coloured band, big codes, details, then a tear line with a punched cut at each side and a stub with a barcode --- */
+.trip.tkt.fr-ticket { --pic: .3; }
+.trip.tkt.fr-ticket.timed { --pic: .24; } /* the times take a row, so the photo gives up the same room */
+.tkt-head { position: relative; flex: none; }
+.tkt-band { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 16px; border-radius: var(--r-card) var(--r-card) 0 0; background: var(--mint); color: var(--on-mint); }
+.tkt-carrier { display: flex; align-items: center; gap: 7px; min-width: 0; font: 700 11px/1.2 var(--body); letter-spacing: .07em; text-transform: uppercase; }
+.tkt-carrier span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tkt-ink { flex: none; width: 21px; height: 15px; }
+.tkt-ink * { fill: currentColor; stroke: currentColor; }
+.tkt-kind { flex: none; max-width: 62%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 11.5px/1.2 var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.tkt-route { display: grid; grid-template-columns: auto minmax(30px, 1fr) auto; align-items: center; gap: 8px; padding: 12px 16px 8px; }
+.tkt-end { min-width: 0; max-width: 126px; }
 .tkt-end.to { text-align: right; }
-.tkt-path { position: relative; width: 40px; height: 26px; display: grid; place-items: center; }
-.tkt-path::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed color-mix(in srgb, var(--fg) 24%, transparent); }
-.tkt-path svg { position: relative; height: 22px; width: auto; max-width: 100%; }
-.tkt-path svg[data-k="balloon"] { height: 28px; }
-.tkt-tear { position: relative; z-index: 4; flex: none; height: 0; margin-inline: 16px; border-top: 2px dashed color-mix(in srgb, var(--fg) 22%, transparent); }
-.tkt-tear::before, .tkt-tear::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg); }
+.tkt-end b { display: block; font: 800 calc(30px * var(--fs, 1))/1 var(--display); letter-spacing: .01em; }
+.tkt-end span, .trip .tkt-end h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; margin: 3px 0 0; font: 600 calc(12.5px * var(--fs, 1))/1.2 var(--body); color: var(--text-2); }
+.tkt-end.nocode span, .trip .tkt-end.nocode h3 { margin: 0; font: 800 calc(16px * var(--fs, 1))/1.25 var(--body); color: var(--fg); } /* a name in a script without capitals has no code, so it stands in for one */
+.tkt-path { position: relative; height: 40px; }
+.tkt-path::before { content: ""; position: absolute; inset: 8px 0 7px; border: 1.8px dashed color-mix(in srgb, var(--fg) 34%, transparent); border-bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.tkt-path svg { position: absolute; left: 50%; top: -3px; width: 36px; height: 25px; translate: -50% 0; }
+.tkt-path svg[data-k="balloon"] { top: -8px; height: 32px; }
+.tkt-grid { display: grid; grid-template-columns: 1.8fr .8fr 1fr .55fr; gap: 0 10px; margin: 0 16px; padding: 8px 0 9px; border-top: 1px solid var(--line); }
+.tkt-grid.tkt-times { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 0; border-top: 0; }
+.tkt-grid > div { min-width: 0; }
+.tkt-grid dt { font: 600 8.5px/1.2 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.tkt-grid dd { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; margin: 3px 0 0; font: 700 calc(12.5px * var(--fs, 1))/1.2 var(--body); }
+.tkt-grid dd.m { font: 700 calc(11.5px * var(--fs, 1))/1.3 ui-monospace, "JetBrains Mono", Consolas, monospace; }
+.fr-ticket .tkt-art { height: calc(var(--row-h) * var(--pic)); }
+.tkt-tear { position: relative; z-index: 4; flex: none; height: 0; margin-inline: 16px; border-top: 2px dashed color-mix(in srgb, var(--fg) 24%, transparent); }
+/* the two punched cuts. They're circles in the page's colour, not a mask, which would also cut off the pass's shadow; the inset shadow shows only on the side inside the pass */
+.tkt-tear::before, .tkt-tear::after { content: ""; position: absolute; top: -13px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); }
 .chap.alt .tkt-tear::before, .chap.alt .tkt-tear::after { background: var(--bg-2); }
-.tkt-tear::before { left: -25.5px; }
-.tkt-tear::after { right: -25.5px; }
+.tkt-tear::before { left: -28px; box-shadow: inset -2px 0 2px -1px color-mix(in srgb, var(--fg) 30%, transparent); }
+.tkt-tear::after { right: -28px; box-shadow: inset 2px 0 2px -1px color-mix(in srgb, var(--fg) 30%, transparent); }
+.tkt-stub { position: relative; flex: none; overflow: hidden; padding: 9px 16px 5px; }
+/* two sets of stripes of different widths, so the pattern doesn't visibly repeat, moved a little for each entry */
+.tkt-bars { display: block; height: 26px; background-image: repeating-linear-gradient(90deg, var(--fg) 0 2px, transparent 2px 5px, var(--fg) 5px 6px, transparent 6px 9px, var(--fg) 9px 12px, transparent 12px 14px, var(--fg) 14px 15px, transparent 15px 19px), repeating-linear-gradient(90deg, transparent 0 3px, var(--fg) 3px 4px, transparent 4px 11px, var(--fg) 11px 12px, transparent 12px 17px, var(--fg) 17px 19px, transparent 19px 23px, var(--fg) 23px 24px, transparent 24px 29px); background-position: var(--bx, 0) 0; }
+.tkt-scan { position: absolute; left: 16px; right: 16px; top: 6px; height: 32px; opacity: 0; pointer-events: none; background: linear-gradient(90deg, transparent calc(100% - 28px), color-mix(in srgb, var(--pop2) 28%, transparent) calc(100% - 3px), var(--pop2) 0); }
+.tkt-stub small { display: block; margin-top: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 500 8.5px/1.2 ui-monospace, "JetBrains Mono", Consolas, monospace; letter-spacing: .14em; text-align: center; color: var(--muted); }
+@media (max-height: 560px) { .tkt-stub small { display: none; } .tkt-bars { height: 14px; } .tkt-scan { height: 20px; } }
+.trip.tkt.entry-pass { width: min(440px, 100%); height: auto; max-height: none; margin: 20px 0 8px; }
+.entry-pass .tkt-stub { padding-bottom: 12px; }
+.entry > .bkl-ticks { margin: 18px 0; font-size: 16px; }
 .tkt-art { flex: none; height: calc(var(--row-h) * var(--pic) * .68); display: grid; place-items: center; overflow: hidden;
   background: radial-gradient(38px 15px at 22% 30%, color-mix(in srgb, var(--inv-fg) 62%, transparent) 60%, transparent 62%), radial-gradient(28px 11px at 78% 58%, color-mix(in srgb, var(--inv-fg) 62%, transparent) 60%, transparent 62%), linear-gradient(color-mix(in srgb, var(--pop3) 30%, var(--card)), color-mix(in srgb, var(--mint) 12%, var(--card))); }
 .tkt-art svg { height: 66%; width: auto; max-width: 70%; }
@@ -1576,11 +1601,9 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 .tkt-fields dt { font: 600 9.5px/1.2 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .tkt-fields dd { margin: 2px 0 0; font: 600 calc(12.5px * var(--fs, 1))/1.3 var(--body); color: var(--text-2); }
 .tkt .tb { padding-top: 12px; }
-.tkt-stamp { position: absolute; z-index: 3; right: 12px; top: calc(var(--tear) + 12px); max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; rotate: -9deg; padding: 3px 9px; border: 2.5px solid currentColor; border-radius: 7px; background: color-mix(in srgb, var(--card) 72%, transparent); color: var(--pop3); font: 800 12px/1.2 var(--display); letter-spacing: .07em; text-transform: uppercase; pointer-events: none; }
+.tkt-stamp { position: absolute; z-index: 3; right: 12px; top: 12px; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; rotate: -9deg; padding: 3px 9px; border: 2.5px solid currentColor; border-radius: 7px; background: color-mix(in srgb, var(--card) 72%, transparent); color: var(--pop3); font: 800 12px/1.2 var(--display); letter-spacing: .07em; text-transform: uppercase; pointer-events: none; }
 .tkt-cell:not(.next) .tkt-stamp { color: color-mix(in srgb, var(--pop2) 72%, var(--fg)); }
 .tkt-cell.next .tkt-stamp { color: var(--mint-deep); border-style: dashed; }
-.tkt-cell.next .fr-ticket { border: 1.5px dashed color-mix(in srgb, var(--mint-deep) 60%, var(--line)); }
-.tkt-cell.next .tkt-head { background: color-mix(in srgb, var(--mint) 7%, transparent); }
 /* --- each entry's frame comes from its Subsection (frameFor in vehicles.tsx). All are drawn: no clip-path or mask, which make the browser do extra work
    around whatever moves inside them. Whatever a frame draws over its picture ignores the mouse, so a click still reaches the entry's link --- */
 /* quests: a camera */
@@ -1606,28 +1629,50 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 .fr-camera .tb { flex: 1; margin: 0 10px; background: var(--card); color: var(--fg); box-shadow: 0 0 0 1px var(--inv-line); }
 .fr-camera .card-foot { margin: 0 10px 10px; border-radius: 0 0 8px 8px; background: var(--card); color: var(--fg); }
 .fr-camera .tkt-art { height: calc(var(--row-h) * var(--pic) * .78); }
-/* bucket lists: a real bucket, with the picture or drawing poking out of the top */
-.trip.tkt.fr-bucket { --rim: calc(var(--row-h) * .26); --bkt: color-mix(in srgb, var(--pop3) 16%, var(--card)); background: none !important; border: 0 !important; box-shadow: none !important; }
-.fr-bucket::before, .fr-bucket::after { display: none !important; }
-.bkt-shape { position: absolute; z-index: 0; left: 0; top: var(--rim); width: 100%; height: calc(100% - var(--rim)); overflow: visible; pointer-events: none; }
-.bkt-fill { fill: var(--bkt); stroke: color-mix(in srgb, var(--fg) 30%, transparent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.bkt-shade { fill: color-mix(in srgb, var(--fg) 7%, transparent); }
-.bkt-base { fill: color-mix(in srgb, var(--pop3) 46%, var(--card)); }
-.bkt-handle { position: absolute; z-index: 0; left: 8%; right: 8%; top: 4px; height: var(--rim); transform-origin: 50% 100%; pointer-events: none; }
-.bkt-handle i { display: block; height: 100%; border: 4px solid color-mix(in srgb, var(--fg) 34%, transparent); border-bottom: 0; border-radius: 999px 999px 0 0; transform-origin: 50% 100%; }
-.bkt-rim { position: absolute; z-index: 2; left: -1%; right: -1%; top: calc(var(--rim) - 6px); height: 12px; border: 1px solid color-mix(in srgb, var(--fg) 30%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--pop3) 42%, var(--card)); pointer-events: none; }
-.bkt-top { position: relative; z-index: 1; flex: none; height: var(--rim); display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
-.bkt-photo { position: relative; z-index: 2; width: 64%; height: calc(var(--rim) + 8px); margin-bottom: -22px; rotate: -4deg; overflow: hidden; border-radius: 9px; pointer-events: none; box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--fg) 60%, transparent); }
-.bkt-photo .pic-box, .bkt-photo .ph.has-pic { height: 100%; }
-.trip.tkt .bkt-photo .ph.has-pic :is(img, video) { height: 100%; max-height: none; aspect-ratio: auto; }
-.bkt-photo .pic-zoom { pointer-events: auto; bottom: 30px; left: 8px; right: auto; }
-.bkt-photo .tkt-art { height: 100%; background: none; align-items: start; padding-top: 6px; }
-.bkt-photo .tkt-art svg { height: 88%; max-width: none; }
-.bkt-photo.drawn { box-shadow: none; rotate: none; overflow: visible; }
-.fr-bucket .scroll-wrap { position: relative; z-index: 1; margin: 8px 10% 0; }
-.fr-bucket .tb { padding: 10px 4px 8px; }
-.fr-bucket .more-hint { background: linear-gradient(transparent, var(--bkt)); }
-.fr-bucket .card-foot { position: relative; z-index: 1; margin: 0 11% calc((var(--row-h) - var(--rim)) * .05 + 5px); padding-inline: 0; background: none; }
+/* bucket lists: a page from a notepad, with tick boxes in its margin and a little bucket on its corner */
+.trip.tkt.fr-bucket { --pic: .28; border-radius: min(var(--r-card), 10px); }
+.bkl-margin { position: absolute; z-index: 1; top: 0; bottom: 0; left: 44px; width: 1.5px; background: color-mix(in srgb, var(--pop2) 50%, transparent); pointer-events: none; }
+.bkl-rings { --hole: var(--bg); position: absolute; z-index: 3; left: 12px; right: 92px; top: -7px; height: 22px; pointer-events: none; background: radial-gradient(circle at 10px 16px, var(--hole) 0 3.5px, transparent 4px) 0 0 / 22px 22px repeat-x; }
+.chap.alt .bkl-rings { --hole: var(--bg-2); }
+.bkl-rings::before { content: ""; position: absolute; inset: 0 0 7px 8.5px; background: repeating-linear-gradient(90deg, var(--muted-2) 0 3px, transparent 3px 22px); }
+.bkl-pail { position: absolute; z-index: 5; right: 8px; top: -18px; width: 78px; height: 84px; rotate: 7deg; pointer-events: none; }
+.bkl-pail svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.bkl-handle { position: absolute; inset: 0; transform-origin: 50% 42%; }
+.bkl-handle svg { transform-origin: 50% 42%; }
+.bkl-handle path { fill: none; stroke: color-mix(in srgb, var(--fg) 58%, transparent); stroke-width: 3.5; stroke-linecap: round; }
+.bkl-paper { fill: var(--card); stroke: color-mix(in srgb, var(--fg) 35%, transparent); stroke-width: 1; }
+.bkl-line { fill: none; stroke: color-mix(in srgb, var(--fg) 40%, transparent); stroke-width: 1.5; stroke-linecap: round; }
+.bkl-shade { fill: var(--fg); opacity: .14; }
+.bkl-rim { fill: color-mix(in srgb, var(--pop3) 58%, var(--card)); stroke: color-mix(in srgb, var(--fg) 35%, transparent); stroke-width: 1; }
+.bkl-mark { fill: none; stroke: var(--card); stroke-width: 6.5; stroke-linecap: round; stroke-linejoin: round; }
+.bkl-head { position: relative; flex: none; padding: 21px 14px 9px 52px; }
+.bkl-sub { display: flex; gap: 10px; padding-right: 62px; font: 700 10.5px/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--mint-deep); }
+.bkl-sub span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bkl-sub .tkt-no { letter-spacing: 0; }
+.bkl-title { display: flex; align-items: flex-start; gap: 18px; margin: 7px 0 0 -38px; padding-right: 54px; }
+.trip .bkl-title h3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-width: 0; margin: 0; overflow-wrap: break-word; font: 700 calc(19px * var(--fs, 1))/1.2 var(--display); }
+.bkl-box { position: relative; flex: none; width: 20px; height: 20px; border: 2px solid color-mix(in srgb, var(--fg) 58%, transparent); border-radius: 5px; rotate: -3deg; background: var(--card); }
+.bkl-box svg { position: absolute; left: -2px; bottom: -2px; width: 27px; height: 27px; overflow: visible; transform-origin: 30% 80%; }
+.bkl-box path { fill: none; stroke: var(--mint-deep); stroke-width: 3.8; stroke-linecap: round; stroke-linejoin: round; }
+.bkl-photo { position: relative; z-index: 2; flex: none; margin: 7px 14px 11px 52px; rotate: -1.2deg; pointer-events: none; } /* turned, so it's its own layer: clicks pass through it to the entry's link, and only its button catches them */
+.bkl-photo .pic-zoom { pointer-events: auto; }
+.bkl-photo .ph.has-pic { box-shadow: 0 5px 12px -7px color-mix(in srgb, var(--fg) 60%, transparent); }
+.bkl-tape { position: absolute; z-index: 2; left: 50%; top: -8px; width: 74px; height: 18px; translate: -50% 0; rotate: 2deg; background: color-mix(in srgb, var(--pop3) 42%, transparent); }
+.fr-bucket .tb { flex: 1; padding: 0 14px 12px 52px; font-size: calc(14px * var(--fs, 1)); line-height: 26px; background: repeating-linear-gradient(to bottom, transparent 0 25px, color-mix(in srgb, var(--pop3) 32%, transparent) 25px 26px); }
+.fr-bucket .tb :is(p, .sub, ul, ol, dl, dd) { margin-block: 0; line-height: 26px; }
+.fr-bucket .tb .md { margin: 0; line-height: 26px; }
+.fr-bucket .tkt-fields { flex-wrap: wrap; gap: 0 14px; }
+.fr-bucket .tkt-fields > div { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.fr-bucket .tkt-fields dt { line-height: 26px; }
+.fr-bucket .tags { margin-top: 0; }
+.fr-bucket .card-foot { background: var(--card); border-radius: 0 0 min(var(--r-card), 10px) min(var(--r-card), 10px); }
+.bkl-ticks { margin: 0; padding: 0; list-style: none; }
+.bkl-ticks li { display: flex; align-items: flex-start; gap: 20px; line-height: 26px; }
+.bkl-ticks .bkl-box { width: 16px; height: 16px; margin: 4px 0 0 2px; border-radius: 4px; }
+.bkl-ticks .bkl-box svg { width: 22px; height: 22px; }
+.bkl-ticks .bkl-box path { stroke-width: 3.4; }
+.fr-bucket .bkl-ticks { margin-left: -38px; }
+.entry > .bkl-ticks li { gap: 12px; }
 /* through my eyes: a polaroid */
 .trip.tkt.fr-polaroid { --pic: .52; padding: 12px 12px 0; border-radius: 4px; rotate: -1.1deg; box-shadow: 0 16px 28px -14px color-mix(in srgb, var(--fg) 55%, transparent); }
 .pol-tape { position: absolute; z-index: 3; left: 50%; top: -9px; width: 86px; height: 22px; translate: -50% 0; rotate: -3deg; background: color-mix(in srgb, var(--pop3) 42%, transparent); pointer-events: none; }
@@ -1647,7 +1692,8 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 /* where each frame's stamp sits; with its picture hidden, the text moves down to leave the stamp a place of its own */
 .tkt-nopic .tkt:not(.fr-bucket) .tb { padding-top: 62px; }
 .fr-camera .tkt-stamp { top: 72px; right: 20px; }
-.fr-bucket .tkt-stamp { top: calc(var(--rim) - 38px); right: 2%; }
+.bkl-stamp { margin: 0; }
+.fr-bucket .tkt-stamp { position: static; display: inline-block; max-width: 100%; rotate: -4deg; padding-block: 1px; line-height: 16px; vertical-align: 2px; }
 .fr-polaroid .tkt-stamp { top: 20px; right: 20px; }
 .fr-postcard .tkt-stamp { top: 96px; }
 /* the vehicles' colours */
@@ -1691,14 +1737,20 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 @keyframes cam-flash { 0% { opacity: 0; } 15% { opacity: .85; } 100% { opacity: 0; } }
 @keyframes cam-press { 30% { translate: 0 4px; } }
 .site.fx-tripfx .tkt-cell.here .cam-rec i { animation: blink 1.1s step-end infinite; }
-.site.fx-tripfx .tkt-cell.seen .bkt-handle { animation: bkt-swing 1.1s ease-out; animation-delay: calc(.4s + var(--si, 0) * 85ms); }
-.site.fx-tripfx .tkt-cell.here .bkt-handle i { animation: bkt-swing 1.1s ease-out; }
+.site.fx-tripfx .tkt-cell.here .tkt-scan { animation: tkt-scan 1.05s ease-in-out .35s; }
+.site.fx-tripfx .tkt-cell.here .tkt-path svg { animation: tkt-fly .9s cubic-bezier(.2,.8,.3,1); }
+@keyframes tkt-scan { 0% { opacity: 0; transform: translateX(-100%); } 12%, 88% { opacity: 1; } 100% { opacity: 0; transform: translateX(0); } }
+@keyframes tkt-fly { from { translate: -170% 12px; } }
+.site.fx-tripfx .tkt-cell.here .bkl-box.on > svg { animation: bkl-tick .5s cubic-bezier(.3,1.6,.5,1) .5s backwards; }
+@keyframes bkl-tick { from { opacity: 0; scale: 0; } }
+.site.fx-tripfx .tkt-cell.seen .bkl-handle { animation: bkl-swing 1.15s ease-out; animation-delay: calc(.4s + var(--si, 0) * 85ms); }
+.site.fx-tripfx .tkt-cell.here .bkl-handle svg { animation: bkl-swing 1.15s ease-out; }
 /* a handle tips towards you and back, which looks like it getting shorter, with a little sideways sway */
-@keyframes bkt-swing { 20% { scale: 1 .78; rotate: -4deg; } 50% { scale: 1 .93; rotate: 3deg; } 78% { scale: 1 .98; rotate: -1deg; } }
-html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-shot::after, .cam-shutter, .bkt-handle, .bkt-handle i) { animation: none !important; }
+@keyframes bkl-swing { 20% { scale: 1 .74; rotate: -5deg; } 50% { scale: 1 .92; rotate: 4deg; } 78% { scale: 1 .98; rotate: -1deg; } }
+html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-shot::after, .cam-shutter, .tkt-scan, .tkt-path svg, .bkl-box svg, .bkl-handle, .bkl-handle svg) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .tkt-rider { transition: none !important; }
-  .tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-shot::after, .cam-shutter, .bkt-handle, .bkt-handle i { animation: none !important; }
+  .tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-shot::after, .cam-shutter, .tkt-scan, .tkt-path svg, .bkl-box svg, .bkl-handle, .bkl-handle svg { animation: none !important; }
 }
 
 /* --- Say Hello: the form on top, the wall in its own row below --- */

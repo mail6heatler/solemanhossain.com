@@ -1,3 +1,4 @@
+import { cleanPass, type TripPass } from "./tripPass";
 import { query, queryOne, Row } from "./db";
 import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
@@ -19,6 +20,8 @@ export type Item = {
   media: Media[];
   /** size and look for this entry */
   style: ContentStyle;
+  /** what its boarding pass says, and its note's tick lines */
+  pass: TripPass;
 };
 
 export type Message = {
@@ -39,6 +42,7 @@ const toItem = (r: Row): Item => ({
   created_at: new Date(r.created_at).toISOString(),
   media: parseMedia(r.media, String(r.image_url ?? "")),
   style: cleanStyle(r.style),
+  pass: cleanPass(r.pass),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 

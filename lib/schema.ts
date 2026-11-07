@@ -53,6 +53,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS media TEXT NOT NULL DEFAULT '[]'`,
   // size and look controls (lib/contentStyle.ts); empty means it follows the level above
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS style TEXT NOT NULL DEFAULT '{}'`,
+  // what a Boarding passes entry's pass says, and its note's tick lines (lib/tripPass.ts); empty means it's worked out
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS pass TEXT NOT NULL DEFAULT '{}'`,
   `ALTER TABLE sections ADD COLUMN IF NOT EXISTS style TEXT NOT NULL DEFAULT '{}'`,
   `CREATE TABLE IF NOT EXISTS files (
     id TEXT PRIMARY KEY,

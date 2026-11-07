@@ -9,6 +9,8 @@ import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
 import TripStatus from "@/components/admin/TripStatus";
+import TripPanel from "@/components/admin/TripPanel";
+import { tripContext } from "@/components/site/TripFrame";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -25,6 +27,7 @@ export default async function ItemEditor({ params }: P) {
   const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN; // big videos go to Vercel Blob when it's connected
   const total = counts.reduce((a, b) => a + b, 0);
   const cats = Array.from(new Set([...(section?.categories ?? []), item.category].filter(Boolean)));
+  const trip = tripContext(settings, section);
 
   return (
     <div className="adm-page">
@@ -44,7 +47,7 @@ export default async function ItemEditor({ params }: P) {
             <div className="fl"><label>Subsection</label>
               <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
               <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
-              {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a bucket, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
+              {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
             </div>
           </div>
         </div>
@@ -107,6 +110,7 @@ export default async function ItemEditor({ params }: P) {
             <label className="switch"><input type="checkbox" name="pinned" defaultChecked={item.pinned} />Pin / feature at the top</label>
           </div>
         </div>
+        {section?.layout === "tickets" && <TripPanel initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
       </form>
 
       <form action={saveLook} id="look">
@@ -116,7 +120,7 @@ export default async function ItemEditor({ params }: P) {
           <summary><i className="ti ti-adjustments" style={{ color: "var(--icon)" }} />Size &amp; look for this {isPoll ? "poll" : "entry"}{isCustom(item.style) ? " (customised)" : ""}<i className="ti ti-chevron-down" style={{ marginLeft: "auto" }} /></summary>
           <div className="f" style={{ marginTop: 12 }}>
             <p className="c-desc" style={{ whiteSpace: "normal", margin: 0 }}>Overrides its section and <a href="/admin/content">all content</a>, for this one only.</p>
-            <LookControls initial={item.style} above={mergeStyles(settings.contentStyle, section?.style)} sample={lookSample(item)} layout={section?.layout ?? "cards"} level="this entry" />
+            <LookControls initial={item.style} above={mergeStyles(settings.contentStyle, section?.style)} sample={lookSample(item, trip)} layout={section?.layout ?? "cards"} level="this entry" />
           </div>
         </details>
       </form>

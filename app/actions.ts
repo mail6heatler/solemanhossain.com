@@ -1,5 +1,6 @@
 "use server";
 
+import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -335,6 +336,8 @@ export async function updateItem(fd: FormData) {
      mood, str(fd, "location", 160), str(fd, "category", 100), JSON.stringify(poll), bool(fd, "pinned"),
      bool(fd, "visible"), int(fd, "section_id"), JSON.stringify(media), id]
   );
+  // only a Boarding passes entry's form sends this; any other form leaves what's stored alone
+  if (fd.has("pass")) await query("UPDATE items SET pass=$1 WHERE id=$2", [JSON.stringify(cleanPass(String(fd.get("pass")))), id]);
   refresh();
   redirect(`/admin/items/${id}?saved=1`);
 }

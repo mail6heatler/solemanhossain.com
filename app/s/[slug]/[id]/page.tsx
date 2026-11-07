@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getSettings, getSections, getSection, getItem } from "@/lib/data";
+import { getSettings, getSections, getSection, getItem, getItems } from "@/lib/data";
+import { PassCard, passView, TickList, tripContext } from "@/components/site/TripFrame";
 import { SiteShell } from "@/components/site/Chrome";
 import Markdown, { excerpt } from "@/components/site/Markdown";
 import { Mood } from "@/components/site/SectionBody";
@@ -40,6 +41,10 @@ export default async function EntryPage({ params }: P) {
   if (!d) notFound();
   const { section, item } = d;
   const [settings, sections] = await Promise.all([getSettings(), getSections({ visibleOnly: true })]);
+  // an entry of a Boarding passes section shows the same pass, with the same number, as its frame
+  const trip = section.layout === "tickets"
+    ? passView(item, { ...tripContext(settings, section), index: (await getItems(section.id, { visibleOnly: true })).findIndex((x) => x.id === item.id) })
+    : null;
 
   return (
     <SiteShell settings={settings} sections={sections} onHome={false}>
@@ -55,6 +60,8 @@ export default async function EntryPage({ params }: P) {
         </div>
         <h1 className={settings.effects.splittext ? "reveal split-host" : undefined}><Split text={item.title} on={settings.effects.splittext} /></h1>
         {item.subtitle && <p className="lead">{item.subtitle}</p>}
+        {trip?.frame === "ticket" && <PassCard view={trip} />}
+        {trip?.frame === "bucket" && <TickList ticks={trip.ticks} />}
         <EntryGallery media={item.media} title={item.title} morphName={settings.effects.morph ? `entry-${item.id}` : undefined} />
         {item.type === "poll" ? <div style={{ maxWidth: 520, marginTop: 20 }}><PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} /></div> : null}
         <Markdown>{item.body}</Markdown>

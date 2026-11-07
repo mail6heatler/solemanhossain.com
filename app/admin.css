@@ -306,6 +306,11 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .rib-preview { margin-top: 10px; padding: 18px 0; border-radius: 12px; overflow: hidden; background: var(--page-bg); border: .5px dashed var(--input-border); }
 .rib-preview .site { min-height: 0; background: transparent; overflow: visible; }
 .rib-preview .ribbon { margin: 0 -3%; }
+.trip-pair { display: grid; grid-template-columns: minmax(0, 1fr) 74px; gap: 7px; }
+.trip-pair input:last-child { text-transform: uppercase; }
+.trip-tick { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.trip-tick input[type="checkbox"] { flex: none; width: 18px; height: 18px; accent-color: var(--mint); }
+.trip-tick .inp { flex: 1; min-width: 0; }
 .status-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .status-btn { padding: 4px 11px; border: 1px solid var(--input-border); border-radius: 99px; background: none; color: var(--text-muted); font: 600 11.5px "Space Grotesk"; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
 .status-btn:hover { border-color: var(--mint); color: var(--text-strong); }
@@ -322,7 +327,7 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-preview { border-radius: 14px; background: var(--page-bg); border: .5px dashed var(--input-border); padding: 14px; overflow: auto; max-height: 72vh; }
 .look-preview .tkt-cell { width: var(--cw, 310px); max-width: 100%; }
 .look-preview .tkt-cell .trip { width: 100%; }
-.look-preview .bkt-photo { pointer-events: auto; }
+.look-preview .bkl-photo { pointer-events: auto; }
 .look-preview .site { min-height: 0; background: transparent; width: max-content; max-width: 100%; margin: 0 auto; --row-h: min(440px, 62vh); }
 .look-preview :is(.card, .note, .trip) { width: var(--cw, 340px); max-height: var(--row-h); }
 .look-focus { cursor: crosshair; }
