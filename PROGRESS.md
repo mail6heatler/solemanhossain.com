@@ -13,9 +13,9 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - The Résumé button opens a PDF named `customer-wise-remaining-balance---24.1.2026.pdf`, which may not be meant for the public. Pointed out three times; it's the owner's to replace, and the old file's link keeps working until it's deleted.
 - G4 and G7 are empty on the live site and now say "Coming soon". Hide them from the menu until they have content?
-- The wall shows a test message, "fds", from mail6heatler. G2 still holds placeholder text ("Describe what it does…"). These are the owner's content, so they weren't touched.
+- The wall shows a test message, "fds", from mail6heatler. It's the owner's content, so it wasn't touched. The placeholder text in G2 and G3 had gone from the live homepage by 2026-11-07.
 
-- Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit. The logs available gave no answer; the owner was asked to confirm it was them.
+- Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer; the owner was asked to confirm it was them.
 
 ## Section makeovers
 
@@ -24,7 +24,7 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 | Section | Holds today | Status | Ideas to offer (not approved) |
 |---|---|---|---|
 | G1 Me | 5 notes | Good as it is, per the owner | none |
-| G2 Made | 2 projects (software) | **Done, kept** (they answered "go" when asked keep or undo, and were told it was taken as keep) | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
+| G2 Made | 4 projects as of 2026-11-07 (2 when it was built) | **Done, kept** (they answered "go" when asked keep or undo, and were told it was taken as keep) | Chosen: app windows on a desktop, with a dock. Not chosen: blueprints, game cartridges |
 | G3 Adventures | 1 entry showing as of 2026-11-07: Cox's Bazar (Marathon and Somewhere next had gone by the time the frames went live) | **Built and live, waiting for keep or undo** | Chosen: boarding passes on a route with a vehicle travelling along it, then (their request) a frame for each subsection and Status buttons in the dashboard. Not chosen: a road-trip map, a passport with stamps |
 | G4 Influences | 1 person | Not started | A real shelf: book spines, records, framed people, ideas as light bulbs |
 | G5 Feed | 1 poll, 1 thought | Not started | A chat on a phone with bubbles and typing dots, or a corkboard of notes |
