@@ -174,7 +174,7 @@ export function startHoverFx(fx: HoverFxFlags) {
     on("pointermove", (e) => {
       if (e.pointerType !== "mouse") return;
       // on the reaction bar the card settles flat: tilting would slide the small buttons out from under the mouse
-      const el = (e.target as Element).closest?.(".card-foot, .reacts, .win-url a") ? null : (e.target as Element).closest?.(TILT) as HTMLElement | null;
+      const el = (e.target as Element).closest?.(".card-foot, .reacts, .win-url a, .tv-panel") ? null : (e.target as Element).closest?.(TILT) as HTMLElement | null;
       if (cur && cur.el !== el) { cur.trx = cur.try_ = cur.tlift = 0; cur = null; }
       if (!el) { kick(); return; }
       let t = live.get(el);
@@ -391,6 +391,7 @@ export function startHoverFx(fx: HoverFxFlags) {
         [".avatar-tilt", "c-big", "Click me"],
         ["button.ph-tile, .g-tile, .hero-img-btn", "c-big", "View"],
         [".flip", "c-big", "Read"],
+        [".can-play .tv-bezel", "c-big", "Play"],
         [".trip:not(.entry-pass)", "c-big", "Explore"],
         [".shelf-row, .tl-row", "c-big", "Read"],
         [".win-url a", "c-link", "Visit"],

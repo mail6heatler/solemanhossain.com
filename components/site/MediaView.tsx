@@ -42,7 +42,9 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
       onPointerUp={(e) => { if (startX.current !== null && Math.abs(e.clientX - startX.current) > 50) go(e.clientX < startX.current ? 1 : -1); startX.current = null; }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="lb-stage" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        {cur.type === "video"
+        {cur.type === "audio"
+          ? <audio key={cur.url} src={cur.url} controls autoPlay />
+          : cur.type === "video"
           ? <video key={cur.url} src={cur.url} controls autoPlay playsInline />
           : cur.type === "pdf"
             ? <a key={cur.url} className="lb-pdf" href={cur.url} target="_blank" rel="noopener" aria-label={`Open PDF: ${cur.caption}`}><Cover m={cur} alt={cur.caption} /></a>
@@ -63,13 +65,27 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
 }
 
 /** Entry page: the cover shown big, the rest as a grid; tap any to view full screen. */
-export function EntryGallery({ media, title, morphName }: { media: Media[]; title: string; morphName?: string }) {
+export function EntryGallery({ media: all, title, morphName }: { media: Media[]; title: string; morphName?: string }) {
   const [open, setOpen] = useState(-1);
-  if (!media.length) return null;
+  const sounds = all.filter((m) => m.type === "audio");
+  const media = all.filter((m) => m.type !== "audio");
+  const listen = sounds.length > 0 && (
+    <div className="entry-sounds">
+      {sounds.map((m) => (
+        <div key={m.url} className="entry-sound">
+          <i className="ti ti-music" aria-hidden />
+          {m.name && <span>{m.name}</span>}
+          <audio src={m.url} controls preload="metadata" aria-label={m.name || title} />
+        </div>
+      ))}
+    </div>
+  );
+  if (!media.length) return listen || null;
   const slides: Slide[] = media.map((m, i) => ({ ...m, caption: `${title}${media.length > 1 ? ` (${i + 1})` : ""}` }));
   const [first, ...rest] = media;
   return (
     <>
+      {listen}
       {first.type === "pdf" ? (
         <a className="pdf-hero" href={first.url} target="_blank" rel="noopener" aria-label={`Open PDF: ${title}`}>
           <Cover m={first} className="hero-img" style={morphName ? { viewTransitionName: morphName } : undefined} />

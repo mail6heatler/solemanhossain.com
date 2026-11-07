@@ -55,6 +55,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS style TEXT NOT NULL DEFAULT '{}'`,
   // what a Boarding passes entry's pass says, and its note's tick lines (lib/tripPass.ts); empty means it's worked out
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS pass TEXT NOT NULL DEFAULT '{}'`,
+  // what a Study shelf entry looks like and shows beyond its usual fields (lib/studyItem.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS study TEXT NOT NULL DEFAULT '{}'`,
   `ALTER TABLE sections ADD COLUMN IF NOT EXISTS style TEXT NOT NULL DEFAULT '{}'`,
   `CREATE TABLE IF NOT EXISTS files (
     id TEXT PRIMARY KEY,
@@ -119,6 +121,9 @@ export const SCHEMA = [
   // G3's new look, agreed on 2026-11-07. The old photo trail stays a choice under Section settings.
   `WITH first AS (INSERT INTO done_once (key) VALUES ('adventures-tickets') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'tickets' WHERE slug = 'adventures' AND layout = 'strip' AND EXISTS (SELECT 1 FROM first)`,
+  // G4's new look, agreed on 2026-11-07. The old flip cards stay a choice under Section settings.
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('influences-study') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'study' WHERE slug = 'influences' AND layout = 'list' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {
@@ -182,7 +187,7 @@ const SECTIONS: SeedSection[] = [
     slug: "influences", code: "G4", nav_label: "Influences", nav_emoji: "🧠", eyebrow: "Influences", eyebrow_emoji: "🧠",
     title: "What shaped the way I think",
     subtitle: "Books, songs, people, ideas: short notes on what stuck with me and why.",
-    layout: "list", emojis: "📚 🎯 🧠",
+    layout: "study", emojis: "📚 🎯 🧠",
     categories: "Books that broke me open, Songs that get it, People who made me think, The internet thinks I should know",
     empty_text: "No influences logged yet. Add a few from the dashboard to fill this shelf.",
     items: [],

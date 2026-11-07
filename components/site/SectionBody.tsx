@@ -13,6 +13,8 @@ import Dock from "./Dock";
 import TicketRider from "./TicketRider";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
 import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./TripFrame";
+import { ShelfDecor, ShelfLamp, StudyFrame, studyView, type StudyBody } from "./StudyFrame";
+import TvPlay from "./TvPlay";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
@@ -473,6 +475,53 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       );
     });
     return row("grid3 tkt-row", <>{cells}{!grid && fx.tripfx && <TicketRider kinds={kinds} />}</>);
+  }
+
+  // what shaped the owner: each entry is the object its subsection names, standing on a shelf under a travelling lamp
+  if (L === "study") {
+    const cells = items.map((it, i) => {
+      const l = lookFor(it);
+      const v = studyView(it, { code: section.code, fallback: section.nav_label || section.title, index: i, hideSubtitle: l.hide("subtitle") });
+      const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
+      const sound = it.media.find((m) => m.type === "audio");
+      const movie = first?.type === "video" && v.media === "video";
+      const out = it.links.find((x) => /^https?:/.test(x.url));
+      const picture = first ? <div className="pic-box"><div className="ph has-pic"><Cover m={first} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div> : null;
+      const date = it.date_label && !l.hide("date");
+      const place = it.location && !l.hide("date");
+      const body: StudyBody = ({ above, showTitle }) => (
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+          <CardLink to={href(section, it)} label={it.title} />
+          {above}
+          <div className="tb">
+            {showTitle && <h3>{it.title}</h3>}
+            {showTitle && v.subtitle && <p className="sub">{v.subtitle}</p>}
+            {v.line && <p className="sty-line"><span>{v.line}</span></p>}
+            {(date || place || it.mood) && (
+              <dl className="tkt-fields">
+                {date && <div><dt>Date</dt><dd>{it.date_label}</dd></div>}
+                {place && <div><dt>Place</dt><dd>{it.location}</dd></div>}
+                {it.mood && <div><dt>Mood</dt><dd><Mood mood={it.mood} /></dd></div>}
+              </dl>
+            )}
+            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+            <LinkButtons it={it} />
+            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+          </div>
+        </Box>
+      );
+      return (
+        <div key={it.id} className={`tkt-cell sty-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
+          {!grid && <div className="sty-rail" aria-hidden />}
+          <div className={`trip tkt st-${v.look}${it.body.trim() || v.line ? " with-text" : ""}`} style={l.style}>
+            <StudyFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} first={first} zoom={first ? zoom(it) : null} canPlay={!!sound || movie}
+              play={<TvPlay audio={movie ? undefined : sound?.url} video={movie} href={out?.url} title={it.title} />} body={body} />
+          </div>
+          <div className="sty-plank" aria-hidden />
+        </div>
+      );
+    });
+    return row("grid3 tkt-row sty-row", <>{cells}{!grid && items.length <= 2 && <ShelfDecor />}{!grid && fx.studyfx && <TicketRider className="sty-lamp" count={items.length}><ShelfLamp /></TicketRider>}</>);
   }
 
   // projects as app windows on a desktop, with a dock of icons below

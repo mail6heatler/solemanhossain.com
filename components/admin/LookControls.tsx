@@ -1,10 +1,11 @@
 "use client";
 import { TripFrame, type PassView } from "@/components/site/TripFrame";
 import { Vehicle } from "@/components/site/vehicles";
+import { StudyFrame, type StudyView } from "@/components/site/StudyFrame";
 import { useState } from "react";
 import { HIDE_LABELS, LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles, type ContentStyle, type HideKey } from "@/lib/contentStyle";
 
-export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView };
+export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView; study?: StudyView };
 
 const SIZES = [["", "Default"], ["s", SIZE_PRESETS.s.label], ["m", SIZE_PRESETS.m.label], ["l", SIZE_PRESETS.l.label], ["custom", "Custom"]] as const;
 
@@ -63,7 +64,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
   const picBlock = sample.pic && !look.hide("pic") ? (
     <div className={`pic-box${canFocus ? " look-focus" : ""}`} onClick={canFocus ? focus : undefined} title={canFocus ? "Click the part that must stay visible" : undefined}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {layout === "strip" || layout === "tickets"
+      {layout === "strip" || layout === "tickets" || layout === "study"
         ? <div className="ph has-pic"><img src={sample.pic} alt="" /></div>
         : layout === "notes" ? <img className="note-media" src={sample.pic} alt="" />
         : <div className="card-media"><img className="card-img" src={sample.pic} alt="" /></div>}
@@ -155,6 +156,14 @@ export default function LookControls({ initial, above, sample, layout, level }:
                     {sample.trip && <TripFrame view={look.hide("date") ? { ...sample.trip, date: "", passDate: "" } : sample.trip}
                       picture={picBlock ?? (!look.hide("pic") && <div className="tkt-art" aria-hidden><Vehicle kind={sample.trip.kind} /></div>)} drawn={!picBlock}
                       body={({ above, showTitle, inText, list, stub }) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{inText}{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{list}{rest}</div></>, stub)} />}
+                  </div>
+                </div>
+              ) : layout === "study" && sample.study ? (
+                <div className={`tkt-cell sty-cell${look.className}`} style={look.style}>
+                  <div className={`trip tkt st-${sample.study.look}${withText}`} style={look.style}>
+                    <StudyFrame view={look.hide("subtitle") ? { ...sample.study, subtitle: "" } : sample.study} picture={picBlock} first={sample.pic && !look.hide("pic") ? { url: sample.pic, type: "image" } : undefined}
+                      play={<span className="tv-play idle" aria-hidden><svg viewBox="0 0 14 16"><path d="M1 1 13 8 1 15Z" /></svg></span>}
+                      body={({ above, showTitle }) => box(<>{above}<div className="tb">{showTitle && <h3>{sample.title}</h3>}{showTitle && sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.study?.line && <p className="sty-line"><span>{sample.study.line}</span></p>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
                   </div>
                 </div>
               ) : layout === "windows" ? (

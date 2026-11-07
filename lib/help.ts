@@ -383,6 +383,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "To use it on another section, choose “Boarding passes” as its layout, under Section settings."],
     preview: "/?demo=tripfx",
   },
+  studyfx: {
+    title: "Study shelf: a lamp travels along, TVs power on, pages turn",
+    what: "A section laid out as Study shelf (like Influences) shows each entry as the object its Subsection names, standing on a shelf: a book, a TV player, a framed portrait, a phone or a note. With this on, a small lamp travels along the shelf. Whatever it reaches wakes up: a TV powers on and its screen comes alive, a book's pages turn, a phone buzzes, turns its page, pings and sends up hearts, and a portrait straightens. With it off, the objects and the shelf stay, without the lamp or the movement. Sound and video you add still play when you press Play. What each object shows is on the entry's page in the dashboard.",
+    how: ["Switch on and save.", "To use it on another section, choose “Study shelf” as its layout, under Section settings."],
+    preview: "/?demo=studyfx",
+  },
   windowfx: {
     title: "App windows pop open, with a bouncing dock",
     what: "A section laid out as App windows (like Made) shows each project as a small app window on a desktop, with a dock of icons below. With this on, windows pop open as they arrive, their address bar fills like a page loading, and the dock's icons grow under the mouse and bounce when clicked. With it off they look the same but stay still.",

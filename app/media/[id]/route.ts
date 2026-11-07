@@ -1,6 +1,6 @@
 import { queryOne } from "@/lib/db";
 
-// Serves files uploaded from the dashboard (photos, videos, résumé).
+// Serves files uploaded from the dashboard (photos, videos, sound, résumé).
 // Supports "Range" requests so videos can be scrubbed (and play at all in Safari).
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -9,7 +9,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   if (!f) return new Response("Not found", { status: 404 });
   const body = new Uint8Array(f.data as Uint8Array);
   const mime = String(f.mime);
-  const inline = mime.startsWith("image/") || mime.startsWith("video/") || mime === "application/pdf";
+  const inline = mime.startsWith("image/") || mime.startsWith("video/") || mime.startsWith("audio/") || mime === "application/pdf";
   const headers: Record<string, string> = {
     "Content-Type": mime,
     "Cache-Control": "public, max-age=31536000, immutable",

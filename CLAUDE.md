@@ -49,9 +49,11 @@ app/
   admin.css                dashboard design
 components/site/
   Chrome.tsx               SiteShell (wrapper for every public page), Nav, Rail, BottomBar, Footer
-  SectionBody.tsx          the 10 section layouts, including the milestones map (`milemap`, a timeline as stops on a trail), app windows (`windows`) and boarding passes (`tickets`)
+  SectionBody.tsx          the section layouts, including the milestones map (`milemap`, a timeline as stops on a trail), app windows (`windows`) and boarding passes (`tickets`)
   Dock.tsx                 the icons under a desktop of app windows; a click sends "row-go" to its SideRow, which answers with "row-at"
-  TicketRider.tsx          the vehicle travelling the route above boarding passes; it rides inside the row's track (`data-rider`, so SideRow doesn't count it)
+  TicketRider.tsx          the vehicle travelling the route above boarding passes, and the study shelf's lamp; it rides inside the row's track (`data-rider`, so SideRow doesn't count it)
+  StudyFrame.tsx           a Study shelf entry's object (book, TV player, portrait, phone, note) and what a player's screen shows
+  TvPlay.tsx               the player's Play button: plays uploaded sound or video on the card, one at a time, or opens the entry's web link
   vehicles.tsx             the drawn vehicles, and which one an entry gets from its tags or words
   TripFrame.tsx            a Boarding passes entry's frame (real pass, camera, bucket-list note, polaroid, postcard) from its Subsection, its stamp, and what a pass says; the entry's page and the dashboard's preview draw with it too
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
@@ -82,6 +84,7 @@ lib/
   data.ts, db.ts, schema.ts   queries, connection, tables + starter content
   auth.ts                  login
   contentStyle.ts          size and look controls: types, limits, how the three levels merge, what goes on a card
+  studyItem.ts             what a Study shelf entry stores (items.study), and which object and screen its words pick
   tripPass.ts              what a Boarding passes entry stores (items.pass): the pass's details, its vehicle, a note's tick lines
 app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in settings.banner)
 ```
@@ -133,6 +136,10 @@ The owner wants each section to look like what it holds, one section at a time (
 **The bucket-list note (`.bkl-`).** The frame is still called `bucket`. Tick boxes sit in the margin, and text keeps to 26px lines so it sits on the ruled lines. The box beside the title ticks itself from Status (`done` in `passView`); the tick lines are `pass.ticks`, edited in the panel with a box per line, rather than typed into the story, because the owner wants everything controlled from the dashboard. The photo is turned, which makes it its own layer under the entry's link, so it takes `pointer-events: none` and only its expand button catches clicks. The handle is a separate `<svg>`, because only a whole `<svg>` moves without redrawing.
  Arriving (`.seen`) and the vehicle reaching a frame (`.here`) animate separate boxes (`.cam-shot::before` and `::after`, `.bkl-handle` and its `svg`), because losing `.here` would otherwise start the arrival's animation again. The REC light blinks only at `.here`, so one at most is running.
 
+**Study shelf (`study`, G4):** each entry is the object its Subsection names, standing on a plank (`.sty-plank`, one per cell, so the shelf moves with the row) under a rail and a travelling lamp. `studyLookOf` in `lib/studyItem.ts` picks a book, TV player, framed portrait, phone or note by the words in the name; the entry's Looks like box (`components/admin/StudyPanel.tsx`) overrides it, and that panel follows the Subsection box as it's typed. It reuses the tickets' row, cell and `Box` (`tkt-row`, `tkt-cell`, `.trip.tkt`), so what those give, including arrows and gliding, is the same. New classes are prefixed `sty-`, `st-`, `bk-`, `tv-`, `pt-`, `pn-`, `nt-`. The lamp is `TicketRider` with `children`, and `.here` is what wakes an object: only that one moves, so one object's loops at most are running. A book and a phone turn pages with leaves (`.bk-turn i`, `.pn-turn i`) that stay flat and invisible at rest and use a 3D transform only during the turn, because a 3D transform makes an element its own layer. Music bars and the sound wave are three drawings each holding every third bar (`Bars`), so three layers move however many bars there are; a whole `<svg>` moves without redrawing, a shape inside one doesn't. `tv-head.can-play` shrinks the entry's link to the panel so that a click on the screen plays instead of opening the page. A shelf of two entries or fewer gets `ShelfDecor` at its end. It has `data-rider`, so it isn't counted as a card. The movement is under the `studyfx` switch, but bars dancing while something really plays aren't.
+
+**Sound on entries.** `Media.type` can be `"audio"`. `MediaField` only takes it with `allowAudio`, which only a Study shelf entry's page passes. `parseMedia` always sorts sound last, so `media[0]` stays a picture wherever there is one, and it never gets the Cover badge. `Cover` draws a tile if sound is all an entry has, `PicZoom` leaves it out, and the entry's page shows it with the browser's own player (`EntryGallery`). `TvPlay` only fetches it when Play is pressed. Only one thing plays on the page at a time. Headless Chrome plays it fine after a real click, so a test can check `.tv-time` and `.tv-fill` move.
+
 ## Rows that don't fit
 
 All in `SideRow.tsx`; the owner asked for this on 2026-11-07, replacing the row that held the page still while the wheel moved it (that left a huge gap above the cards). If the cards fit, nothing moves. If not, the row glides by itself at about one card every 8 seconds while it's on screen, waits 1.6s at each end and turns back. Arrows go to the next card at once and keep going that way. **The plain mouse wheel only moves the page; don't make it move a row.** Rows are flat: no curve, fly-in or lean.
@@ -182,7 +189,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 
 - **Animate only `transform`, `translate`, `rotate`, `scale` and `opacity`.** Anything else (box-shadow, background-position, mask-position, text-shadow, filter, custom properties) runs on the main thread every frame.
 - **Never write an inherited custom property or a style on many elements per frame.** One `--skew` on a band recalculated over a hundred text pieces. Transform the one parent instead.
-- **Off-screen work must stop.** `Effects.tsx` puts `.sleep` on off-screen sections and ribbons, which pauses every animation inside and hides decorations. Scroll handlers should skip off-screen targets and read cached positions instead of measuring per frame.
+- **Off-screen work must stop.** `Effects.tsx` puts `.sleep` on off-screen sections and ribbons, which pauses every animation inside and hides decorations, but nothing stops a `<video>`: anything that starts one must stop it off screen too (see `TvPlay`). One left running after the page scrolled away cost a weak phone about a tenth of its frames, and hiding it is how that was found. Scroll handlers should skip off-screen targets and read cached positions instead of measuring per frame.
 - **No `backdrop-filter` or `mix-blend-mode` on anything large or fixed.** Both force the browser to redraw what's behind on every scrolled frame.
 - **Scaling an element without `will-change: transform` re-draws its text at each size.** Set it only while moving, and clear it at rest (see chapter motion in `scrollFx.ts`).
 - **Rows stay flat.** Reshaping cards every frame made phones redraw them: removing it took a swipe from 42 to 118 fps, and from 65 stutters to 3 on a slower device. Measure a swipe on its own (see `Input.dispatchTouchEvent` above), because scrolling past rows doesn't show this. Rows have no scroll snap: even `proximity` pulled a short swipe back to the card it left.
@@ -193,6 +200,7 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 ## Rules learned the hard way
 
 - **The menu bar must fit at every width from 961px, in every theme, with the longest name.** Fonts differ a lot between themes. Below 1300px the links drop their emojis, and the name shortens (`.brand-text` clips) before the links would run off the edge. Don't test the name by changing its text: React crashes. Set it with CSS (`::after`).
+- **The homepage's row and the "See all" grid share `.grid3`.** A rule meant only for "See all" needs `.grid3:not(.side-track)`, or it moves the row as well.
 - **Check a new CSS class name isn't already used.** The map's stops were `.stop`, the side menu's class, which stretched the menu to 300px and pushed its dots left. It looked like a different bug until someone looked. The map's stops are now `.mstop`.
 - **Nothing may be added inside `.site` before React has started,** or its start-up fails (error 418). Scripts in `<head>` add to `<body>` directly (see `.vt-panel`, `.nav-progress`), and copy the theme's colours over because those are set on `.site`.
 - **A view transition's new image covers its old one at once** unless the new one fades in. That blanked the clicked card as soon as it started growing.

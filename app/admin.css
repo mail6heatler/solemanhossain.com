@@ -328,6 +328,9 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-preview .tkt-cell { width: var(--cw, 310px); max-width: 100%; }
 .look-preview .tkt-cell .trip { width: 100%; }
 .look-preview .bkl-photo { pointer-events: auto; }
+.look-preview .st-player { margin-top: 40px; }
+.mt-audio { padding: 8px; gap: 6px; }
+.mt-audio audio { align-self: stretch; width: 100%; min-width: 0; height: 32px; }
 .look-preview .site { min-height: 0; background: transparent; width: max-content; max-width: 100%; margin: 0 auto; --row-h: min(440px, 62vh); }
 .look-preview :is(.card, .note, .trip) { width: var(--cw, 340px); max-height: var(--row-h); }
 .look-focus { cursor: crosshair; }

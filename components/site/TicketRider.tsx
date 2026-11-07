@@ -9,8 +9,9 @@ const TOUR_MS = 4500; // how long it stays at a stop when a row of tickets all f
  * The vehicle travelling the route above a row of boarding passes. It lives inside the row's track, so it moves with the row, and it
  * only ever moves by a CSS transition on `transform`, so it costs nothing between stops. It follows the row as it slides ("row-at"),
  * goes to a ticket the mouse is really on, and if nothing is moving it tours the tickets by itself, there and back.
+ * A study shelf's lamp is the same thing with something else inside (`children`), and it glides without the vehicle's hop.
  */
-export default function TicketRider({ kinds }: { kinds: VehicleKind[] }) {
+export default function TicketRider({ kinds, className = "tkt-rider", children, count }: { kinds?: VehicleKind[]; className?: string; children?: React.ReactNode; count?: number }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export default function TicketRider({ kinds }: { kinds: VehicleKind[] }) {
     if (!el || !inner || !track || !side) return;
     const root = document.documentElement;
     const still = prefersReducedMotion();
-    const cells = Array.from(track.children).filter((c) => c !== el) as HTMLElement[];
+    const cells = (Array.from(track.children) as HTMLElement[]).filter((c) => !c.hasAttribute("data-rider"));
     if (!cells.length) return;
     const icons = Array.from(inner.children) as HTMLElement[];
     let xs: number[] = [], lastW = 0, here = -1, wanted = 0, onScreen = false, pointing = false, timer = 0, heading = 1;
@@ -41,9 +42,9 @@ export default function TicketRider({ kinds }: { kinds: VehicleKind[] }) {
       const light = root.classList.contains("lite");
       const ms = still || light ? 0 : Math.max(700, Math.min(1800, Math.abs(xs[i] - from) * 3));
       el.classList.toggle("going-back", xs[i] < from);
-      icons.forEach((s) => s.classList.toggle("on", s.dataset.k === kinds[i]));
+      if (kinds) icons.forEach((s) => s.classList.toggle("on", s.dataset.k === kinds[i]));
       set(xs[i], ms);
-      if (ms) inner.animate?.([{ translate: "0 0" }, { translate: "0 -12px" }, { translate: "0 0" }], { duration: ms, easing: "ease-in-out" });
+      if (ms && kinds) inner.animate?.([{ translate: "0 0" }, { translate: "0 -12px" }, { translate: "0 0" }], { duration: ms, easing: "ease-in-out" });
       cells.forEach((c, k) => { c.classList.toggle("passed", k < i); c.classList.toggle("here", k === i); });
       here = i;
     };
@@ -64,7 +65,7 @@ export default function TicketRider({ kinds }: { kinds: VehicleKind[] }) {
       lastTarget = e.target;
       let c = e.target as HTMLElement | null;
       while (c && c.parentElement !== track) c = c.parentElement;
-      if (!c || c === el) return;
+      if (!c || !cells.includes(c)) return;
       pointing = true;
       go(cells.indexOf(c));
     };
@@ -72,7 +73,7 @@ export default function TicketRider({ kinds }: { kinds: VehicleKind[] }) {
     const focused = (e: FocusEvent) => {
       let c = e.target as HTMLElement | null;
       while (c && c.parentElement !== track) c = c.parentElement;
-      if (c && c !== el) go(cells.indexOf(c));
+      if (c && cells.includes(c)) go(cells.indexOf(c));
     };
     const resized = () => { if (window.innerWidth !== lastW) measure(); };
 
@@ -100,12 +101,12 @@ export default function TicketRider({ kinds }: { kinds: VehicleKind[] }) {
       track.removeEventListener("focusin", focused);
       window.removeEventListener("resize", resized);
     };
-  }, [kinds]);
+  }, [kinds, count]);
 
-  const distinct = kinds.filter((k, i) => kinds.indexOf(k) === i);
+  const distinct = kinds?.filter((k, i) => kinds.indexOf(k) === i);
   return (
-    <div ref={ref} className="tkt-rider" data-rider aria-hidden>
-      <div className="tkt-rider-in">{distinct.map((k) => <Vehicle key={k} kind={k} className={k === kinds[0] ? "on" : undefined} />)}</div>
+    <div ref={ref} className={className} data-rider aria-hidden>
+      <div className={`${className}-in`}>{children ?? distinct?.map((k) => <Vehicle key={k} kind={k} className={k === kinds?.[0] ? "on" : undefined} />)}</div>
     </div>
   );
 }

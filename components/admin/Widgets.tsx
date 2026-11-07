@@ -144,10 +144,11 @@ export async function uploadFile(f: File, useBlob: boolean, onProgress?: (pct: n
   });
 }
 
-type MediaItem = { url: string; type: "image" | "video" | "pdf"; thumb?: string; name?: string };
+type MediaItem = { url: string; type: "image" | "video" | "pdf" | "audio"; thumb?: string; name?: string };
 type Job = { key: string; name: string; pct: number; err?: string };
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u);
 const isPdfUrl = (u: string) => /\.pdf(\?|#|$)/i.test(u);
+const isAudioUrl = (u: string) => /\.(mp3|m4a|aac|wav|ogg|oga|flac)(\?|#|$)/i.test(u);
 /** A PDF's first page as a picture of its own, stored next to it; "" if the file can't be read (a locked PDF). */
 const pdfThumb = async (src: File | string, base: string, useBlob: boolean) => {
   const { pdfFirstPage } = await import("./pdfThumb");
@@ -157,7 +158,7 @@ const pdfThumb = async (src: File | string, base: string, useBlob: boolean) => {
 };
 
 /** Photos, videos and PDFs for an entry: upload several at once, drag files in, reorder, choose the cover (first), remove. */
-export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: string; initial: MediaItem[]; useBlob: boolean; maxVideoMb: number }) {
+export function MediaField({ name, initial, useBlob, maxVideoMb, allowAudio = false }: { name: string; initial: MediaItem[]; useBlob: boolean; maxVideoMb: number; allowAudio?: boolean }) {
   const [items, setItems] = useState<MediaItem[]>(initial);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [link, setLink] = useState("");
@@ -175,14 +176,15 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
       const key = Math.random().toString(36).slice(2);
       const video = f.type.startsWith("video/");
       const pdf = f.type === "application/pdf";
+      const sound = allowAudio && f.type.startsWith("audio/");
       setJobs((j) => [...j, { key, name: f.name, pct: 0 }]);
       try {
-        if (!video && !pdf && !f.type.startsWith("image/")) throw new Error(`${f.name}: only photos, videos and PDFs`);
-        if ((video || pdf) && f.size > maxVideoMb * 1024 * 1024) throw new Error(`${f.name}: ${video ? "videos" : "PDFs"} can be up to ${maxVideoMb} MB here`);
+        if (!video && !pdf && !sound && !f.type.startsWith("image/")) throw new Error(`${f.name}: only photos, videos${allowAudio ? ", sound files" : ""} and PDFs`);
+        if ((video || pdf || sound) && f.size > maxVideoMb * 1024 * 1024) throw new Error(`${f.name}: ${video ? "videos" : sound ? "sound files" : "PDFs"} can be up to ${maxVideoMb} MB here`);
         const base = f.name.replace(/\.\w+$/, "");
         const thumb = pdf ? await pdfThumb(f, base, useBlob) : "";
         const url = await uploadFile(f, useBlob, (pct) => setJobs((j) => j.map((x) => (x.key === key ? { ...x, pct } : x))));
-        setItems((m) => [...m, pdf ? { url, type: "pdf", name: base, ...(thumb ? { thumb } : {}) } : { url, type: video ? "video" : "image" }]);
+        setItems((m) => [...m, sound ? { url, type: "audio", name: base } : pdf ? { url, type: "pdf", name: base, ...(thumb ? { thumb } : {}) } : { url, type: video ? "video" : "image" }]);
         setJobs((j) => j.filter((x) => x.key !== key));
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Upload failed";
@@ -193,9 +195,15 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
   };
   const move = (i: number, d: number) => setItems((m) => { const j = i + d; if (j < 0 || j >= m.length) return m; const c = [...m]; [c[i], c[j]] = [c[j], c[i]]; return c; });
   const cover = (i: number) => setItems((m) => [m[i], ...m.filter((_, k) => k !== i)]);
+  const coverAt = items.findIndex((m) => m.type !== "audio");
   const addLink = () => {
     const u = link.trim();
     if (!/^(https?:\/\/|\/)/i.test(u)) return;
+    if (allowAudio && isAudioUrl(u)) {
+      setItems((m) => [...m, { url: u, type: "audio", name: decodeURIComponent(u.split(/[?#]/)[0].split("/").pop() ?? "").replace(/\.\w+$/, "") }]);
+      setLink("");
+      return;
+    }
     if (isPdfUrl(u)) {
       const base = decodeURIComponent(u.split(/[?#]/)[0].split("/").pop() ?? "").replace(/\.\w+$/, "") || "PDF";
       setItems((m) => [...m, { url: u, type: "pdf", name: base }]);
@@ -214,16 +222,18 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
         onDrop={(e) => { e.preventDefault(); setOver(false); onFiles(e.dataTransfer.files); }}>
         {items.map((m, i) => (
           <div key={m.url + i} className="media-tile">
-            {m.type === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" />
+            {m.type === "audio" ? <div className="mt-pdf mt-audio"><i className="ti ti-music" /><span>{m.name || "Sound"}</span><audio src={m.url} controls preload="none" /></div>
+              : m.type === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" />
               : m.type === "pdf" && !m.thumb ? <div className="mt-pdf"><i className="ti ti-file-type-pdf" /><span>{m.name || "PDF"}</span></div>
               : <img src={m.type === "pdf" ? m.thumb : m.url} alt="" style={m.type === "pdf" ? { objectPosition: "top" } : undefined} />}
-            {i === 0 && <span className="mt-badge cover">Cover</span>}
+            {i === coverAt && <span className="mt-badge cover">Cover</span>}
+            {m.type === "audio" && <span className="mt-badge vid"><i className="ti ti-music" />Sound</span>}
             {m.type === "video" && <span className="mt-badge vid"><i className="ti ti-player-play-filled" />Video</span>}
             {m.type === "pdf" && <span className="mt-badge pdf">PDF</span>}
             <div className="mt-actions">
               <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move earlier" title="Move earlier"><i className="ti ti-arrow-left" /></button>
               <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} aria-label="Move later" title="Move later"><i className="ti ti-arrow-right" /></button>
-              {i > 0 && <button type="button" onClick={() => cover(i)} aria-label="Make this the cover" title="Make this the cover"><i className="ti ti-star" /></button>}
+              {i !== coverAt && m.type !== "audio" && <button type="button" onClick={() => cover(i)} aria-label="Make this the cover" title="Make this the cover"><i className="ti ti-star" /></button>}
               <a href={m.url} target="_blank" aria-label="Open" title="Open"><i className="ti ti-eye" /></a>
               <button type="button" onClick={() => setItems((x) => x.filter((_, k) => k !== i))} aria-label="Remove" title="Remove"><i className="ti ti-x" /></button>
             </div>
@@ -239,20 +249,20 @@ export function MediaField({ name, initial, useBlob, maxVideoMb }: { name: strin
         ))}
         {items.length + jobs.length < 30 && (
           <button type="button" className="media-add" onClick={() => input.current?.click()}>
-            <i className="ti ti-photo-plus" /><b>Add photos, videos or PDFs</b><small>or drop files here</small>
+            <i className="ti ti-photo-plus" /><b>{allowAudio ? "Add photos, videos, sound or PDFs" : "Add photos, videos or PDFs"}</b><small>or drop files here</small>
           </button>
         )}
       </div>
       <div className="media-link">
-        <input className="inp" value={link} onChange={(e) => setLink(e.target.value)} placeholder="…or paste a photo, video or PDF link (https://…)"
+        <input className="inp" value={link} onChange={(e) => setLink(e.target.value)} placeholder={allowAudio ? "…or paste a photo, video, sound or PDF link (https://…)" : "…or paste a photo, video or PDF link (https://…)"}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }} />
         <button type="button" className="b-out b-sm" onClick={addLink} disabled={!link.trim()}><i className="ti ti-link" />Add link</button>
       </div>
       <div className="hint">
-        <b className="media-count">{items.length} of 30</b> · The first one is the cover, and it&apos;s fitted to the card for you. Photos are resized automatically. Videos (MP4, WebM, MOV) and PDFs up to {maxVideoMb} MB
+        <b className="media-count">{items.length} of 30</b> · The first one is the cover, and it&apos;s fitted to the card for you. Photos are resized automatically. {allowAudio && "Sound files (MP3, M4A, WAV, OGG, FLAC) play on the card. "}Videos (MP4, WebM, MOV) and PDFs up to {maxVideoMb} MB
         {useBlob ? "." : " here. Bigger files need Vercel Blob storage."}{busy && " · Uploading… wait before saving."}
       </div>
-      <input ref={input} type="file" hidden multiple accept="image/*,video/mp4,video/webm,video/quicktime,application/pdf" onChange={(e) => onFiles(e.target.files)} />
+      <input ref={input} type="file" hidden multiple accept={`image/*,video/mp4,video/webm,video/quicktime,application/pdf${allowAudio ? ",audio/*" : ""}`} onChange={(e) => onFiles(e.target.files)} />
     </div>
   );
 }

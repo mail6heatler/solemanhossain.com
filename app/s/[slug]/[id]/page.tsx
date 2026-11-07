@@ -41,6 +41,7 @@ export default async function EntryPage({ params }: P) {
   if (!d) notFound();
   const { section, item } = d;
   const [settings, sections] = await Promise.all([getSettings(), getSections({ visibleOnly: true })]);
+  const line = section.layout === "study" ? item.study.line : "";
   // an entry of a Boarding passes section shows the same pass, with the same number, as its frame
   const trip = section.layout === "tickets"
     ? passView(item, { ...tripContext(settings, section), index: (await getItems(section.id, { visibleOnly: true })).findIndex((x) => x.id === item.id) })
@@ -60,6 +61,7 @@ export default async function EntryPage({ params }: P) {
         </div>
         <h1 className={settings.effects.splittext ? "reveal split-host" : undefined}><Split text={item.title} on={settings.effects.splittext} /></h1>
         {item.subtitle && <p className="lead">{item.subtitle}</p>}
+        {line && <blockquote className="entry-line"><span>{line}</span></blockquote>}
         {trip?.frame === "ticket" && <PassCard view={trip} />}
         {trip?.frame === "bucket" && <TickList ticks={trip.ticks} />}
         <EntryGallery media={item.media} title={item.title} morphName={settings.effects.morph ? `entry-${item.id}` : undefined} />

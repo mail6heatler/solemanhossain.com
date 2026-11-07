@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getItem, getSection, getSections, getSettings, getPollCounts, getReactionCounts } from "@/lib/data";
-import { MOODS, REACTION_EMOJIS } from "@/lib/settings";
+import { MOODS, REACTION_EMOJIS, STUDY_STATUSES } from "@/lib/settings";
 import { deleteItem, resetPoll, resetReactions, saveLook, updateItem } from "@/app/actions";
 import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
 import LookControls from "@/components/admin/LookControls";
@@ -10,6 +10,7 @@ import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
 import TripStatus from "@/components/admin/TripStatus";
 import TripPanel from "@/components/admin/TripPanel";
+import StudyPanel from "@/components/admin/StudyPanel";
 import { tripContext } from "@/components/site/TripFrame";
 
 type P = { params: Promise<{ id: string }> };
@@ -47,6 +48,7 @@ export default async function ItemEditor({ params }: P) {
             <div className="fl"><label>Subsection</label>
               <input className="inp" name="category" defaultValue={item.category} list="cats" placeholder="Pick or type a new one" />
               <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+              {section?.layout === "study" && <div className="hint">Its name picks the object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note. You can also choose under On the shelf.</div>}
               {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
             </div>
           </div>
@@ -79,8 +81,8 @@ export default async function ItemEditor({ params }: P) {
             <label>Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…)</label>
             <textarea name="body" className="tall" defaultValue={item.body} />
           </div>
-          <div className="fl"><span className="lab">Photos, videos &amp; PDFs</span>
-            <MediaField name="media" initial={item.media} useBlob={useBlob} maxVideoMb={useBlob ? 200 : process.env.VERCEL ? 4 : 60} /></div>
+          <div className="fl"><span className="lab">{section?.layout === "study" ? "Photos, videos, sound & PDFs" : "Photos, videos & PDFs"}</span>
+            <MediaField name="media" initial={item.media} useBlob={useBlob} maxVideoMb={useBlob ? 200 : process.env.VERCEL ? 4 : 60} allowAudio={section?.layout === "study"} /></div>
         </div>
 
         <div className="adm-label">Details</div>
@@ -88,7 +90,7 @@ export default async function ItemEditor({ params }: P) {
           <div className="f3">
             <div className="fl"><label>Date (any text)</label><input className="inp" name="date_label" defaultValue={item.date_label} placeholder="March 2026, Last summer…" /></div>
             <div className="fl"><label>Place</label><input className="inp" name="location" defaultValue={item.location} placeholder="Cox's Bazar" /></div>
-            <div className="fl"><label htmlFor="status">Status</label>{section?.layout === "tickets" ? <TripStatus initial={item.status} /> : <input className="inp" id="status" name="status" defaultValue={item.status} placeholder="Reading, Done, In progress…" />}</div>
+            <div className="fl"><label htmlFor="status">Status</label>{section?.layout === "tickets" ? <TripStatus initial={item.status} /> : section?.layout === "study" ? <TripStatus initial={item.status} options={STUDY_STATUSES} hint="Shows on the book's ribbon, the player's sticker or the phone's notification." /> : <input className="inp" id="status" name="status" defaultValue={item.status} placeholder="Reading, Done, In progress…" />}</div>
           </div>
           <div className="f2">
             <div className="fl"><label>Mood</label>
@@ -110,6 +112,7 @@ export default async function ItemEditor({ params }: P) {
             <label className="switch"><input type="checkbox" name="pinned" defaultChecked={item.pinned} />Pin / feature at the top</label>
           </div>
         </div>
+        {section?.layout === "study" && <StudyPanel initial={item.study} category={item.category} />}
         {section?.layout === "tickets" && <TripPanel initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
       </form>
 

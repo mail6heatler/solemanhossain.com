@@ -1,3 +1,4 @@
+import { cleanStudy, type StudyInfo } from "./studyItem";
 import { cleanPass, type TripPass } from "./tripPass";
 import { query, queryOne, Row } from "./db";
 import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
@@ -22,6 +23,8 @@ export type Item = {
   style: ContentStyle;
   /** what its boarding pass says, and its note's tick lines */
   pass: TripPass;
+  /** what it looks like on a study shelf, and what it adds there */
+  study: StudyInfo;
 };
 
 export type Message = {
@@ -43,6 +46,7 @@ const toItem = (r: Row): Item => ({
   media: parseMedia(r.media, String(r.image_url ?? "")),
   style: cleanStyle(r.style),
   pass: cleanPass(r.pass),
+  study: cleanStudy(r.study),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 

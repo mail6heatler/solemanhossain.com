@@ -8,11 +8,13 @@ export type Social = { label: string; url: string; icon: string };
 
 export const REACTION_EMOJIS = ["❤️", "🔥", "😂", "🤯", "👏"] as const;
 
-/** One photo, video or PDF attached to an entry. The first one is the cover. A PDF carries a picture of its first page (`thumb`) when one could be made. */
-export type Media = { url: string; type: "image" | "video" | "pdf"; thumb?: string; name?: string };
+/** One photo, video, PDF or sound file attached to an entry. The first picture or video is the cover, and sound always comes last. A PDF carries a picture of its first page (`thumb`) when one could be made. */
+export type Media = { url: string; type: "image" | "video" | "pdf" | "audio"; thumb?: string; name?: string };
 export const MAX_MEDIA = 30;
 export const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+export const AUDIO_TYPES = ["audio/mpeg", "audio/mp3", "audio/mp4", "audio/x-m4a", "audio/m4a", "audio/aac", "audio/wav", "audio/x-wav", "audio/wave", "audio/ogg", "audio/webm", "audio/flac"];
+const looksLikeAudio = (url: string) => /\.(mp3|m4a|aac|wav|ogg|oga|flac)(\?|#|$)/i.test(url);
 const looksLikeVideo = (url: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
 const looksLikePdf = (url: string) => /\.pdf(\?|#|$)/i.test(url);
 
@@ -28,8 +30,10 @@ export function parseMedia(raw: unknown, fallbackImage = ""): Media[] {
         const thumb = typeof m.thumb === "string" && isSafeUrl(m.thumb) ? m.thumb.trim().slice(0, 600) : "";
         return { url, type: "pdf", name: String(m.name ?? "").slice(0, 120), ...(thumb ? { thumb } : {}) };
       }
+      if (m.type === "audio" || (m.type !== "image" && m.type !== "video" && looksLikeAudio(url))) return { url, type: "audio", name: String(m.name ?? "").slice(0, 120) };
       return { url, type: m.type === "video" || (m.type !== "image" && looksLikeVideo(m.url)) ? "video" : "image" };
     })
+    .sort((a, b) => Number(a.type === "audio") - Number(b.type === "audio")) // sound is never the cover
     .slice(0, MAX_MEDIA);
   if (!list.length && fallbackImage && isSafeUrl(fallbackImage)) list.push({ url: fallbackImage, type: looksLikeVideo(fallbackImage) ? "video" : "image" });
   return list;
@@ -157,6 +161,7 @@ export const EFFECTS = [
   { key: "visitors", group: "Fun", label: "“People here now” counter" },
   { key: "game404", group: "Fun", label: "404 page mini game" },
   { key: "tripfx", group: "Layout", label: "Boarding passes: a vehicle travels the route, stamps thump" },
+  { key: "studyfx", group: "Layout", label: "Study shelf: a lamp travels along, TVs power on, pages turn" },
   { key: "windowfx", group: "Layout", label: "App windows pop open, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
   { key: "flip", group: "Layout", label: "Flip cards for list sections" },
@@ -336,12 +341,15 @@ export function parseLinks(raw: unknown): Link[] {
 
 /** One-click choices for Status on a Boarding passes entry. It shows on the frame as the stamp. */
 export const TRIP_STATUSES = ["Visited", "Next destination", "Dream place", "On the way", "Done"] as const;
+/** The same for a Study shelf entry: the book's ribbon, the player's sticker, the phone's notification. */
+export const STUDY_STATUSES = ["Reading", "Finished", "On repeat", "Still thinking", "Changed my mind"] as const;
 
 export const LAYOUTS = [
   { value: "windows", label: "App windows — projects on a desktop" },
   { value: "cards", label: "Cards grid — projects" },
   { value: "tickets", label: "Boarding passes — trips on a route" },
   { value: "strip", label: "Photo trail — trips (scrolls sideways)" },
+  { value: "study", label: "Study shelf — books, players, portraits, phones" },
   { value: "list", label: "Shelf list — books, songs, people" },
   { value: "stream", label: "Feed stream — thoughts, polls" },
   { value: "timeline", label: "Timeline — milestones" },
