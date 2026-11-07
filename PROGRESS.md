@@ -55,6 +55,8 @@ The first section makeover; the owner chose option A. How it's built is in "Sect
 
 **Cards against windows, same build, same content with 6 projects, taking turns:** laptop page scroll 114.7 and 108.7 fps, 1 and 2 stutters (3 rounds); laptop 4x slower 29.4 and 27.4, 42 and 46 (2 rounds); phone 80.1 and 82.3, 1 and 0 (3 rounds); phone 4x slower 27.5 and 25.5, 27 and 34 (3 rounds); phone swipe 129.6 and 127.8, 0 stutters, following the finger 249 of 264px both (2 rounds). A row gliding by itself, 2 rounds: laptop 143.9 and 143.8, 0 stutters; laptop 4x slower 51.6 and 55.8; phone 143.9 and 144.0. Phone 4x slower gave 44.7 and 107.8, 1 stutter both, too far apart to trust. So there's a small cost while scrolling on slow devices; `html.lite` now drops the wallpaper, which wasn't measured.
 
+**On the live site after release:** both real projects show as windows, EyeHealth AI's screenshot loaded, Life Chronicle shows its code panel. The dock works, the title bar opens the project's page, the menu link lands at 0, and on a phone the windows fit and the row glides. No page errors, no sideways scroll. Not tried on a real phone.
+
 ### 2026-11-07: Late pictures: menu links land, cards don't jump (waiting for the owner's keep or undo)
 
 The owner said go to both offers. They had one cause: a late picture makes its row taller after a link has already worked out where to stop. Adventures went from 669 to 822 tall (the 153px), Growth from 813 to 964. An earlier note said pictures weren't the cause, because the page still grew while pictures were blocked. That was wrong: tracing the live page named the Adventures picture. The earlier measurement was probably taken while only some pictures were blocked, though that wasn't checked.
