@@ -1,4 +1,4 @@
-import { getMessages, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
+import { getCommentTotals, getMessages, getRecentComments, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
 import { messageAction } from "@/app/actions";
 import { ConfirmSubmit, CopyButton } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
@@ -24,15 +24,15 @@ function gmailReply(m: Message, timeZone: string) {
 export default async function Inbox({ searchParams }: P) {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { f } = await searchParams;
-  const filter = f === "unread" || f === "public" || f === "reactions" ? f : "all";
-  const [msgs, settings, totals] = await Promise.all([filter === "reactions" ? Promise.resolve([]) : getMessages(filter), getSettings(), getReactionTotals()]);
+  const filter = f === "unread" || f === "public" || f === "reactions" || f === "comments" ? f : "all";
+  const [msgs, settings, totals, talks] = await Promise.all([filter === "reactions" || filter === "comments" ? Promise.resolve([]) : getMessages(filter), getSettings(), getReactionTotals(), getCommentTotals()]);
   const tz = settings.timezone || "UTC";
-  const tabs: [string, string][] = [["all", "All"], ["unread", "Unread"], ["public", "On the wall"], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`]];
+  const tabs: [string, string][] = [["all", "All"], ["unread", "Unread"], ["public", "On the wall"], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`], ["comments", `Comments${talks.fresh ? ` · ${talks.fresh} new` : ""}`]];
 
   return (
     <div className="adm-page">
       <h1 className="adm-h">Inbox</h1>
-      <p className="adm-sub">Messages from the &ldquo;say hello&rdquo; form, and reactions people leave on your entries.</p>
+      <p className="adm-sub">Messages from the &ldquo;say hello&rdquo; form, and the reactions and comments people leave on your entries.</p>
       <div className="btns" style={{ marginBottom: 16 }}>
         {tabs.map(([k, l]) => (
           <a key={k} href={k === "all" ? "/admin/inbox" : `/admin/inbox?f=${k}`} className={filter === k ? "b-dark b-sm" : "b-out b-sm"}>{l}</a>
@@ -40,12 +40,23 @@ export default async function Inbox({ searchParams }: P) {
         {filter === "reactions" ? (
           totals.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="reactions-seen" /><input type="hidden" name="id" value="0" />
             <button className="b-out b-sm"><i className="ti ti-checks" />Mark all seen</button></form>
+        ) : filter === "comments" ? (
+          talks.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="comments-seen" /><input type="hidden" name="id" value="0" />
+            <button className="b-out b-sm"><i className="ti ti-checks" />Mark all seen</button></form>
         ) : (
           <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="allread" /><input type="hidden" name="id" value="0" />
             <button className="b-out b-sm"><i className="ti ti-checks" />Mark all read</button></form>
         )}
       </div>
       {filter === "reactions" && <ReactionList tz={tz} total={totals.total} fresh={totals.fresh} />}
+      {filter === "comments" && <CommentList tz={tz} />}
+      {filter === "all" && talks.fresh > 0 && (
+        <a href="/admin/inbox?f=comments" className="c hov c-row" style={{ textDecoration: "none" }}>
+          <span className="chipi"><i className="ti ti-message-circle" /></span>
+          <div className="grow"><div className="c-title">{talks.fresh} new comment{talks.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who said what →</div></div>
+          <span className="tagx red">new</span>
+        </a>
+      )}
       {filter === "all" && totals.fresh > 0 && (
         <a href="/admin/inbox?f=reactions" className="c hov c-row" style={{ textDecoration: "none" }}>
           <span className="chipi"><i className="ti ti-heart" /></span>
@@ -53,7 +64,7 @@ export default async function Inbox({ searchParams }: P) {
           <span className="tagx red">new</span>
         </a>
       )}
-      {filter !== "reactions" && msgs.length === 0 && <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>No messages here yet.</div>}
+      {filter !== "reactions" && filter !== "comments" && msgs.length === 0 && <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>No messages here yet.</div>}
       {msgs.map((m) => (
         <div key={m.id} className={`c msg ${m.read ? "" : "unread"}`}>
           <span className="chipi"><i className="ti ti-user" /></span>
@@ -90,6 +101,35 @@ export default async function Inbox({ searchParams }: P) {
 }
 
 /** Newest reactions, with the name each person typed. Older ones from before names show a tag like Visitor #3f9a. */
+async function CommentList({ tz }: { tz: string }) {
+  const list = await getRecentComments(200);
+  if (list.length === 0) return <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>No comments yet. They show up here the moment someone posts one. An entry takes comments once you turn on Let people comment on its page.</div>;
+  return (
+    <>
+      {list.map((c) => (
+        <div key={c.id} className={`c msg ${c.seen ? "" : "unread"}${c.hidden ? " off" : ""}`}>
+          <span className="chipi"><i className="ti ti-message-circle" /></span>
+          <div className="grow" style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span className="who">{c.name}</span>
+              <span className="when">commented on</span>
+              <a href={`/admin/items/${c.item_id}#comments`} className="who" style={{ textDecoration: "underline" }}>{c.title}</a>
+              <span className="when">· {c.section_title} · {fmt(c.created_at, tz)}</span>
+              {!c.seen && <span className="tagx red">new</span>}
+              {c.hidden && <span className="tagx amber">hidden from visitors</span>}
+            </div>
+            <p>{c.body}</p>
+            <div className="btns" style={{ marginTop: 8 }}>
+              <a href={`/admin/items/${c.item_id}#comments`} className="b-dark b-sm"><i className="ti ti-corner-down-left" />Reply, pin, hide or delete</a>
+              <a href={`/s/${c.section_slug}/${c.item_id}`} target="_blank" className="b-out b-sm"><i className="ti ti-external-link" />View on site</a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 async function ReactionList({ tz, total, fresh }: { tz: string; total: number; fresh: number }) {
   const [list, byEmoji] = await Promise.all([getRecentReactions(200), getReactionTotalsByEmoji()]);
   return (

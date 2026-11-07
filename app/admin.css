@@ -194,6 +194,14 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .box > summary .ti:first-child { color: var(--icon); }
 .box > summary span { min-width: 0; }
 .box > div:first-of-type > .cat-h { margin-top: 0; }
+/* an entry's Reactions & comments box */
+.talk-switches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px 18px; }
+.talk-switches .switch { align-items: flex-start; }
+.talk-switches small { display: block; margin-top: 2px; font-size: 10.5px; line-height: 1.35; color: var(--text-faint); }
+.talk-people { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; }
+.talk-people span { padding: 3px 9px; border: .5px solid var(--card-border); border-radius: 99px; }
+.talk-admin { margin: 8px 0 0; }
+.talk-admin:first-of-type { margin-top: 2px; }
 
 /* messages */
 .msg { display: flex; gap: 12px; align-items: flex-start; }

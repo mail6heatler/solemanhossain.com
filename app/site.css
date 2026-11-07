@@ -487,6 +487,66 @@ html[data-skin="playful"] .site .card:hover { transform: translateY(-4px) rotate
 .ph-cell { display: grid; gap: 4px; align-content: start; min-width: 0; }
 .ph-cell .reacts.mini { margin-top: 0; }
 .lb-reacts .reacts.mini { margin-top: 0; }
+/* what a reaction bar offers beyond its emojis: each has its own switch on the entry's dashboard page (lib/talk.ts) */
+.reacts .r-total { font: 700 12.5px var(--body); color: var(--muted); white-space: nowrap; }
+.reacts.mini .r-total { font-size: 11px; }
+.reacts button.top { position: relative; border-color: var(--mint); background: var(--tint); }
+.reacts button.top::after { content: "👑"; position: absolute; top: -9px; right: -3px; font-size: 11px; line-height: 1; rotate: 14deg; pointer-events: none; }
+.reacts .r-share { position: relative; }
+.r-said { position: absolute; z-index: 5; left: 50%; bottom: calc(100% + 6px); translate: -50% 0; padding: 3px 8px; border-radius: var(--r-pill); background: var(--inv-bg); color: var(--inv-fg); font: 700 11px var(--body); white-space: nowrap; pointer-events: none; animation: r-said 1.5s ease both; }
+@keyframes r-said { 0% { opacity: 0; transform: translateY(6px) scale(.8); } 15%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }
+/* comments. On a card a line sits under the emojis, in the foot, so the card stays its size and its text part gives way */
+.card-foot:has(> .talk-row) { flex-wrap: wrap; }
+.talk-row { order: 9; flex: 1 0 100%; position: relative; z-index: 3; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.talk-count { flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 5px 9px; border: .5px solid var(--line); border-radius: var(--r-pill); background: var(--card); color: var(--fg); font: 700 12px var(--body); cursor: pointer; transition: translate .15s, border-color .15s; }
+.talk-count:hover, .talk-count:focus-visible { border-color: var(--mint); translate: 0 -1px; }
+.talk-say { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; }
+.talk-say :is(input, textarea) { flex: 1; min-width: 0; padding: 5px 11px; border: .5px solid var(--line); border-radius: var(--r-pill); background: var(--bg); color: var(--fg); font: 500 12.5px/1.35 var(--body); }
+.talk-say textarea { padding: 9px 13px; border-radius: 14px; font-size: 14px; resize: vertical; }
+.talk-say :is(input, textarea):focus { outline: none; border-color: var(--mint); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mint) 24%, transparent); }
+.talk-say.big { flex-wrap: wrap; align-items: flex-end; }
+.talk-say.big textarea { flex: 1 1 calc(100% - 44px); }
+.talk-send { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--mint); color: var(--on-mint); font-size: 14px; cursor: pointer; transition: scale .15s, opacity .15s; }
+.talk-say.big .talk-send { width: 36px; height: 36px; font-size: 17px; }
+.talk-send:hover:not(:disabled) { scale: 1.12; }
+.talk-send:active:not(:disabled) { scale: .92; }
+.talk-send:disabled { opacity: .45; cursor: default; }
+.talk-as { order: 5; flex-basis: 100%; padding: 0; border: 0; background: none; color: var(--muted); font: 500 12px var(--body); text-align: left; cursor: pointer; }
+.talk-as:hover { color: var(--fg); }
+.talk-note { position: absolute; z-index: 5; left: 6px; bottom: calc(100% + 5px); max-width: calc(100% - 12px); padding: 3px 9px; border-radius: 10px; background: var(--inv-bg); color: var(--inv-fg); font: 700 11px/1.3 var(--body); pointer-events: none; }
+/* a new comment rises from the box */
+.talk-fly { position: absolute; z-index: 5; left: 8px; bottom: 100%; max-width: calc(100% - 16px); padding: 5px 11px; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; border-radius: 14px 14px 14px 3px; background: var(--mint); color: var(--on-mint); font: 700 12px/1.3 var(--body); pointer-events: none; animation: talk-fly 1.7s cubic-bezier(.2,.8,.3,1) forwards; }
+@keyframes talk-fly { 0% { opacity: 0; transform: translateY(14px) scale(.7); } 15% { opacity: 1; transform: scale(1.05); } 70% { opacity: 1; transform: translateY(-70px) rotate(-2deg); } 100% { opacity: 0; transform: translateY(-120px) rotate(2deg) scale(.95); } }
+.talk-panel { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.entry .talk-panel { max-width: 640px; margin-top: 16px; }
+.talk-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.talk-none { padding: 10px 2px; color: var(--muted); font-size: 13.5px; }
+.talk-c { padding: 10px 13px; border: .5px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--fg) 4%, var(--card)); animation: talk-in .45s cubic-bezier(.2,1.4,.4,1) backwards; animation-delay: calc(var(--i, 0) * 55ms); }
+@keyframes talk-in { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+.talk-c.pinned { border-color: var(--mint); }
+.talk-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; color: var(--muted); font-size: 12px; }
+.talk-who b { color: var(--fg); font-size: 13.5px; overflow-wrap: anywhere; }
+.talk-pin { color: var(--mint-deep); font-weight: 700; }
+.talk-c p { margin: 4px 0 0; color: var(--fg); font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.talk-reply { margin-top: 8px; padding: 7px 11px; border-left: 3px solid var(--mint); border-radius: 0 10px 10px 0; background: var(--tint); }
+.talk-reply b { color: var(--mint-deep); font-size: 12px; }
+.talk-reply p { margin-top: 2px; font-size: 13.5px; }
+/* all of an entry's comments, opened from a card */
+.talk-dlg { width: min(460px, 94vw); max-width: none; max-height: 84vh; margin: auto; padding: 0; overflow: visible; border: 0; background: none; color: var(--fg); }
+.talk-dlg::backdrop { background: rgba(0,0,0,.55); animation: fade-in .2s; }
+.talk-dlg-in { display: flex; flex-direction: column; gap: 12px; max-height: 84vh; padding: 16px; background: var(--card); border: .5px solid var(--line); border-radius: min(var(--r-card), 20px); box-shadow: 0 30px 70px rgba(0,0,0,.45), var(--glow); font-family: var(--body); animation: name-in .45s cubic-bezier(.2,1.5,.4,1); }
+.talk-dlg-top { display: flex; align-items: center; justify-content: space-between; font: 800 18px/1.2 var(--display); }
+.talk-x { display: grid; place-items: center; width: 32px; height: 32px; border: .5px solid var(--line); border-radius: 50%; background: var(--bg); color: var(--fg); cursor: pointer; }
+.talk-dlg .talk-panel { flex: 1; }
+.talk-dlg .talk-list { flex: 1; min-height: 90px; overflow-y: auto; overscroll-behavior: contain; align-content: start; padding-right: 2px; }
+/* a phone zooms in on any box under 16px */
+@media (any-pointer: coarse) { .talk-say :is(input, textarea) { font-size: 16px; } }
+html.lite :is(.talk-c, .talk-dlg-in, .r-said) { animation: none; }
+html.lite .talk-fly { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .talk-c, .talk-dlg-in, .r-said { animation: none; }
+  .talk-fly { display: none; }
+}
 
 /* timeline (growth) */
 .tline { margin-top: 30px; max-width: 680px; }

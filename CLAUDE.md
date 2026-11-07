@@ -73,6 +73,7 @@ components/site/
   HangingBanner.tsx        the pull-down announcement and its physics (falls, jolts, swings, breeze); opens on every visit
   bannerFall.ts            what falls from the banner in each theme; its canvas exists only while something falls
   askName.ts               the "who's reacting?" box; the name is remembered in localStorage (lc_name)
+  Talk.tsx                 comments under the emojis (a line on a card, a list on an entry's page, a pop-up from a card) and the Share button
   HeroScene.tsx            decides if/when the 3D runs, wires events and theme colours
   heroEngine.ts            three.js particle sculpture (separate download)
   Split.tsx                server-rendered split text: <Split> for letters, <Words> for words
@@ -88,6 +89,7 @@ lib/
   data.ts, db.ts, schema.ts   queries, connection, tables + starter content
   auth.ts                  login
   contentStyle.ts          size and look controls: types, limits, how the three levels merge, what goes on a card
+  talk.ts                  what an entry's reaction bar offers beyond its emojis (items.talk), each with its own switch: TALK_FEATURES
   studyItem.ts             what a Study shelf entry stores (items.study), and which object and screen its words pick
   tripPass.ts              what a Boarding passes entry stores (items.pass): the pass's details, its vehicle, a note's tick lines
   comicItem.ts             what a Comic strip entry stores (items.comic): its chosen panel and its sound effect; which panel a Subsection's words pick, which poll panels a poll's options fit, and the options a title already names
@@ -100,7 +102,7 @@ A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN 
 
 `settings.heroHidden` takes the hero off the homepage. Nothing is deleted, because the name and photo are also used on other pages. Effects must cope with `#hero` being missing, and the first chapter's ribbon is skipped because it would hide under the menu bar. `LivePill` still runs, hidden, because the dashboard's "people here now" number depends on it.
 
-Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`, `votes`, `reactions`, `stats_daily`, `section_views`, `presence`. Created automatically on first use. New settings fields need no migration because `mergeSettings` fills in defaults.
+Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`, `votes`, `reactions`, `comments`, `stats_daily`, `section_views`, `presence`. Created automatically on first use. New settings fields need no migration because `mergeSettings` fills in defaults.
 
 ## PDFs on entries
 
@@ -177,6 +179,14 @@ All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a cl
 ## The dashboard's Save box
 
 `SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. On an entry's page it's outside the form altogether (`form="entry"` on the button), directly above the Delete box and after Size & look and Reactions, and it floats over all of them. While Size & look is open, that panel's own box (`.look-actions`) covers it at the same width. The Size & look panels keep theirs inside, because it saves only that panel. The hero page's box doesn't float (`still`): the owner wants it resting at the end of the page, above the Remove box.
+
+## Reactions and comments
+
+The reaction bar (`Reactions.tsx`) is the same on every card, poll and entry page, so what's added to it reaches them all. **The owner's rule: every feature has its own switch**, in the entry's Reactions & comments box. `TALK_FEATURES` in `lib/talk.ts` lists them (comments, comments floating up, the total, the crown, Share, the owner's replies and pinned comment, who reacted, being told about new comments); a new one goes there and the box picks it up. Comments start off and the others on. The switches sit outside the entry's form, so they use `form="entry"`, and `talk_sent` says they were sent. The owner earlier ruled out a switch for the emojis themselves, so the bar is always there. Spam limits have no switch, because they protect the owner.
+
+On a card the comment line goes in the foot, under the emojis (`.talk-row`, with `order` and the foot's `flex-wrap`), so the card stays its size and its text part gives way, as a card must. `Reactions` returns it beside its bar for that reason. The 💬 button opens a native `<dialog>` portalled into `.site`, so the card's colours don't reach it. On an entry's page the list sits under the emojis. Lists are only fetched when shown; the count comes with the reaction bars' batch (`/api/react`), and `lc-talk` keeps bars for the same entry in step.
+
+Comments appear straight away, which was the owner's choice over approving them first, and are plain text. `/api/comments` allows one per browser or address every 20 seconds, 30 a day and no repeats, and keeps only a scrambled address. It never sends the browser id back. A reaction's name is private ("only I can see it") but a comment's is public, so `askName` gets different words for a comment and the box says who you're commenting as. New comments reach the bell and the Inbox's Comments tab. Replying, pinning (one per entry), hiding and deleting are on the entry's page (`commentAction`).
 
 ## The dashboard's boxes
 

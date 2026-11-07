@@ -1,6 +1,7 @@
 import { cleanStudy, type StudyInfo } from "./studyItem";
 import { cleanComic, type ComicInfo } from "./comicItem";
 import { cleanBoxes, type BoxState } from "./boxes";
+import { cleanTalk, type TalkInfo } from "./talk";
 import { cleanPass, type TripPass } from "./tripPass";
 import { query, queryOne, Row } from "./db";
 import { mergeSettings, parseLinks, parseMedia, type Link, type Media, type SiteSettings } from "./settings";
@@ -33,6 +34,8 @@ export type Item = {
   comic: ComicInfo;
   /** which boxes on its dashboard page are open, as last saved */
   boxes: BoxState;
+  /** which of the reaction bar's extra features it has switched on, comments among them */
+  talk: TalkInfo;
 };
 
 export type Message = {
@@ -57,6 +60,7 @@ const toItem = (r: Row): Item => ({
   study: cleanStudy(r.study),
   comic: cleanComic(r.comic),
   boxes: cleanBoxes(r.boxes),
+  talk: cleanTalk(r.talk),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 
@@ -188,6 +192,49 @@ export async function getRecentReactions(limit = 200, onlyNew = false): Promise<
 }
 
 export const visitorTag = (voter: string) => `Visitor #${voter.slice(0, 4)}`;
+
+/** Who gave which emoji on one entry, newest first. Only the owner ever sees names. */
+export async function getReactionPeople(itemId: number, limit = 100) {
+  const rows = await query("SELECT emoji, voter, name, created_at FROM reactions WHERE item_id=$1 ORDER BY created_at DESC LIMIT $2", [itemId, limit]);
+  return rows.map((r) => ({ emoji: String(r.emoji), name: String(r.name || "") || visitorTag(String(r.voter)), created_at: new Date(r.created_at).toISOString() }));
+}
+
+// ---------- comments ----------
+export type Comment = { id: number; item_id: number; name: string; body: string; reply: string; pinned: boolean; hidden: boolean; seen: boolean; created_at: string };
+const toComment = (r: Row): Comment => ({
+  id: Number(r.id), item_id: Number(r.item_id), name: String(r.name), body: String(r.body), reply: String(r.reply ?? ""),
+  pinned: !!r.pinned, hidden: !!r.hidden, seen: !!r.seen, created_at: new Date(r.created_at).toISOString(),
+});
+
+/** One entry's comments, pinned first and then newest first. Hidden ones are only for the owner's page. */
+export async function getComments(itemId: number, withHidden = false) {
+  const rows = await query(`SELECT * FROM comments WHERE item_id=$1 ${withHidden ? "" : "AND NOT hidden"} ORDER BY pinned DESC, created_at DESC LIMIT 200`, [itemId]);
+  return rows.map(toComment);
+}
+
+/** How many visitors can see, for many entries at once. */
+export async function getCommentCountsFor(ids: number[]) {
+  const out: Record<number, number> = {};
+  if (!ids.length) return out;
+  const rows = await query(`SELECT item_id, COUNT(*)::int AS n FROM comments WHERE NOT hidden AND item_id IN (${placeholders(ids.length)}) GROUP BY item_id`, ids);
+  for (const r of rows) out[Number(r.item_id)] = Number(r.n);
+  return out;
+}
+
+export async function getCommentTotals() {
+  const r = await queryOne("SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE NOT seen)::int AS fresh FROM comments");
+  return { total: Number(r?.total ?? 0), fresh: Number(r?.fresh ?? 0) };
+}
+
+export type CommentEvent = Comment & { title: string; section_title: string; section_slug: string };
+/** Newest comments for the inbox and the bell. */
+export async function getRecentComments(limit = 200, onlyNew = false): Promise<CommentEvent[]> {
+  const rows = await query(
+    `SELECT c.*, i.title, s.title AS section_title, s.slug AS section_slug
+     FROM comments c JOIN items i ON i.id = c.item_id JOIN sections s ON s.id = i.section_id
+     ${onlyNew ? "WHERE NOT c.seen" : ""} ORDER BY c.created_at DESC LIMIT $1`, [limit]);
+  return rows.map((r) => ({ ...toComment(r), title: String(r.title), section_title: String(r.section_title), section_slug: String(r.section_slug) }));
+}
 
 // ---------- people here now ----------
 export const LIVE_WINDOW_SECONDS = 75;

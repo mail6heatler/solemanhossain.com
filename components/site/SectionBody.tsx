@@ -126,8 +126,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   const fx = settings.effects;
   const st = fx.stagger ? " stagger" : "";
   const vt = (id: number) => morphName(fx.morph, id);
-  const R = ({ id }: { id: number }) => (fx.reactions ? <Reactions id={id} compact /> : null);
-  const foot = (id: number) => (fx.reactions ? <Reactions id={id} compact /> : undefined);
+  const talkOf = new Map(items.map((it) => [it.id, it.talk]));
+  const bar = (id: number) => <Reactions id={id} compact talk={talkOf.get(id)} href={`/s/${section.slug}/${id}`} />;
+  const R = ({ id }: { id: number }) => (fx.reactions ? bar(id) : null);
+  const foot = (id: number) => (fx.reactions ? bar(id) : undefined);
   const lookFor = (it: Item) => lookOf(mergeStyles(settings.contentStyle, section.style, it.style));
   const photoInfo = (it: Item, l: ReturnType<typeof lookFor>) => ({
     subtitle: l.hide("subtitle") ? "" : it.subtitle,
@@ -387,7 +389,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "photos") {
     if (fx.lightbox)
       return <PhotoGrid className={grid ? `photogrid reveal r3${st}` : `photogrid${st}`} reactions={fx.reactions} row={grid ? undefined : rowFx}
-        items={items.map((it) => { const l = lookFor(it); return { id: it.id, title: it.title, media: l.hide("pic") ? [] : it.media, href: href(section, it), className: l.className, style: l.style, info: photoInfo(it, l) }; })} />;
+        items={items.map((it) => { const l = lookFor(it); return { id: it.id, talk: it.talk, title: it.title, media: l.hide("pic") ? [] : it.media, href: href(section, it), className: l.className, style: l.style, info: photoInfo(it, l) }; })} />;
     return row("photogrid", (
       <>
         {items.map((it) => { const l = lookFor(it); return (

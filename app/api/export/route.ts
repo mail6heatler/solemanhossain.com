@@ -11,6 +11,7 @@ export async function GET() {
     sections: await query("SELECT * FROM sections ORDER BY sort"),
     items: await query("SELECT * FROM items ORDER BY section_id, sort"),
     messages: await query("SELECT * FROM messages ORDER BY created_at"),
+    comments: await query("SELECT id, item_id, name, body, reply, pinned, hidden, created_at FROM comments ORDER BY created_at"),
     files: await query("SELECT id, name, mime, size, created_at FROM files ORDER BY created_at"),
   };
   return new Response(JSON.stringify(data, null, 2), {

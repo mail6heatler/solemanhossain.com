@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { getItem, getSection, getSections, getSettings, getPollCounts, getReactionCounts } from "@/lib/data";
+import { getComments, getItem, getReactionPeople, getSection, getSections, getSettings, getPollCounts, getReactionCounts } from "@/lib/data";
 import { MOODS, REACTION_EMOJIS, STUDY_STATUSES } from "@/lib/settings";
-import { deleteItem, resetPoll, resetReactions, saveLook, updateItem } from "@/app/actions";
+import { commentAction, deleteItem, resetPoll, resetReactions, saveLook, updateItem } from "@/app/actions";
 import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
 import LookControls from "@/components/admin/LookControls";
 import { lookSample } from "@/components/admin/lookSample";
@@ -11,6 +11,7 @@ import SaveBox from "@/components/admin/SaveBox";
 import { Box } from "@/components/admin/Box";
 import BoxMemory from "@/components/admin/BoxMemory";
 import { boxOpen } from "@/lib/boxes";
+import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import TripStatus from "@/components/admin/TripStatus";
 import TripPanel from "@/components/admin/TripPanel";
 import StudyPanel from "@/components/admin/StudyPanel";
@@ -27,13 +28,17 @@ export default async function ItemEditor({ params }: P) {
   const [section, sections, settings] = await Promise.all([getSection({ id: item.section_id }), getSections(), getSettings()]);
   const isPoll = item.type === "poll";
   const counts = isPoll ? await getPollCounts(item.id, item.poll_options.length) : [];
-  const reactions = isPoll ? {} : await getReactionCounts(item.id);
+  const [reactions, people, comments] = await Promise.all([getReactionCounts(item.id), getReactionPeople(item.id), getComments(item.id, true)]);
   const reactionTotal = Object.values(reactions).reduce((a, b) => a + b, 0);
   const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN; // big videos go to Vercel Blob when it's connected
   const total = counts.reduce((a, b) => a + b, 0);
   const cats = Array.from(new Set([...(section?.categories ?? []), item.category].filter(Boolean)));
   const trip = tripContext(settings, section);
   const open = (name: string, first = true) => boxOpen(item.boxes, name, first);
+  const when = (iso: string) => {
+    try { return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: settings.timezone || "UTC" }); }
+    catch { return new Date(iso).toLocaleString("en-GB"); }
+  };
 
   return (
     <div className="adm-page" key={item.id}>
@@ -140,8 +145,18 @@ export default async function ItemEditor({ params }: P) {
         </Box>
       </form>
 
-      {!isPoll && (
-        <Box name="reactions" title="Reactions" icon="mood-smile" open={open("reactions")}>
+      <Box name="reactions" title="Reactions & comments" icon="mood-smile" open={open("reactions")}>
+        <div className="f">
+          <div className="fl"><span className="lab">What this entry offers beyond its emojis</span>
+            <input type="hidden" form="entry" name="talk_sent" value="1" />
+            <div className="talk-switches">
+              {TALK_FEATURES.map(([k, , label, hint]) => (
+                <label key={k} className="switch"><input type="checkbox" form="entry" name="talk" value={k} defaultChecked={item.talk[k]} /><span>{label}<small>{hint}</small></span></label>
+              ))}
+            </div>
+            <div className="hint">Press Save entry to keep these.</div>
+          </div>
+
           <div className="c-row">
             <div className="grow">
               <div className="c-desc" style={{ whiteSpace: "normal", fontSize: 15 }}>
@@ -153,8 +168,47 @@ export default async function ItemEditor({ params }: P) {
                 <ConfirmSubmit title="Reset reactions?" message="This clears all reactions on this entry. It can't be undone." yes="Yes, reset" className="b-out b-sm"><i className="ti ti-refresh" />Reset reactions</ConfirmSubmit></form>
             )}
           </div>
-        </Box>
-      )}
+
+          {item.talk.who && people.length > 0 && (
+            <div className="fl"><span className="lab">Who reacted (only you see this)</span>
+              <div className="talk-people">
+                {people.map((p, i) => <span key={i} title={when(p.created_at)}>{p.emoji} {p.name}</span>)}
+              </div>
+            </div>
+          )}
+
+          <div className="fl" id="comments"><span className="lab">Comments ({comments.length})</span>
+            {comments.length === 0 && <div className="c-desc" style={{ whiteSpace: "normal" }}>{item.talk.comments ? "No comments yet. They show up here the moment someone posts one." : "Comments are off for this entry. Turn on Let people comment above, then press Save entry."}</div>}
+            {comments.map((c) => (
+              <div key={c.id} className={`c msg talk-admin${c.seen ? "" : " unread"}${c.hidden ? " off" : ""}`}>
+                <div className="grow" style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <span className="who">{c.name}</span>
+                    <span className="when">· {when(c.created_at)}</span>
+                    {!c.seen && <span className="tagx red">new</span>}
+                    {c.pinned && <span className="tagx">pinned</span>}
+                    {c.hidden && <span className="tagx amber">hidden from visitors</span>}
+                  </div>
+                  <p>{c.body}</p>
+                  <form action={commentAction} className="add-row" style={{ marginTop: 10 }}>
+                    <input type="hidden" name="id" value={c.id} /><input type="hidden" name="op" value="reply" />
+                    <input className="inp" name="reply" defaultValue={c.reply} maxLength={COMMENT_MAX} placeholder="Write a reply. Visitors see it marked as yours." aria-label="Your reply" />
+                    <button className="b-out b-sm"><i className="ti ti-corner-down-left" />Save reply</button>
+                  </form>
+                  <div className="btns" style={{ marginTop: 8 }}>
+                    <form action={commentAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="op" value="pin" />
+                      <button className="b-out b-sm"><i className="ti ti-pin" />{c.pinned ? "Unpin" : "Pin to the top"}</button></form>
+                    <form action={commentAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="op" value="hide" />
+                      <button className="b-out b-sm"><i className={`ti ${c.hidden ? "ti-eye" : "ti-eye-off"}`} />{c.hidden ? "Show it" : "Hide it"}</button></form>
+                    <form action={commentAction}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="op" value="delete" />
+                      <ConfirmSubmit title="Delete this comment?" message="It's removed for good. This can't be undone. Tip: hiding it keeps it, and only you can see it." yes="Yes, delete" className="b-danger b-sm"><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Box>
 
       <SaveBox label="Save entry" form="entry">
         <a href={`/admin/s/${item.section_id}`} className="b-out"><i className="ti ti-arrow-left" />Back</a>

@@ -58,6 +58,10 @@ Every box on an entry's page and a section's page now has a title and an arrow, 
 
 The Saved message was only showing the first time, because a second save in a row didn't change the address. It now shows on every save, at the top of the screen.
 
+### 2026-11-08: Comments and more on the reaction bar, each with its own switch
+
+They asked for a comment box under the emojis, turned on per entry, with animation, and for me to fill the reaction box with more features. I listed them, they chose comments that appear straight away (with hide and delete) over approving them first, and asked for a toggle for each feature. Built and published without tests, as they asked. Explained under "Reactions and comments" in `CLAUDE.md`. Polls now have the Reactions & comments box too, which they didn't before. Not given a switch: the spam limits, and the emojis themselves, which they'd earlier asked to always be visible. Because Share, the total and the crown start on, every card's bar changes as soon as this is live. The first real comment will be theirs or a visitor's, and nothing has run this code yet.
+
 ### 2026-11-08: The hero's boxes too, and the white part when scrolling
 
 They said good job and asked for the same boxes on the hero's page, for the Section settings button at the top of a section's page to go, and for the white part below an entry's page to be fixed. That was the dashboard's entry page: the whole document scrolled 358px past its end, because something absolutely placed had no positioned parent and stuck out of `.adm-shell`, which now clips it. Built and published without tests, as they asked.

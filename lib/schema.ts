@@ -59,6 +59,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS study TEXT NOT NULL DEFAULT '{}'`,
   // which comic panel an entry gets and the word in its burst (lib/comicItem.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS comic TEXT NOT NULL DEFAULT '{}'`,
+  // which of the reaction bar's extra features this entry has switched on (lib/talk.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS talk TEXT NOT NULL DEFAULT '{}'`,
   // which boxes on its dashboard page are open, as last saved (lib/boxes.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS boxes TEXT NOT NULL DEFAULT '{}'`,
   `ALTER TABLE sections ADD COLUMN IF NOT EXISTS boxes TEXT NOT NULL DEFAULT '{}'`,
@@ -99,6 +101,22 @@ export const SCHEMA = [
     PRIMARY KEY (day, slug)
   )`,
   // emoji reactions: one row per visitor per emoji per entry (random visitor id, like poll votes)
+  // comments visitors leave on entries; voter and ip are only for slowing down spam, and are never sent back
+  `CREATE TABLE IF NOT EXISTS comments (
+    id SERIAL PRIMARY KEY,
+    item_id INT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    voter TEXT NOT NULL,
+    ip TEXT NOT NULL DEFAULT '',
+    name TEXT NOT NULL,
+    body TEXT NOT NULL,
+    reply TEXT NOT NULL DEFAULT '',
+    pinned BOOLEAN NOT NULL DEFAULT FALSE,
+    hidden BOOLEAN NOT NULL DEFAULT FALSE,
+    seen BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS comments_item_idx ON comments(item_id, created_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS comments_recent_idx ON comments(created_at DESC)`,
   `CREATE TABLE IF NOT EXISTS reactions (
     item_id INT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
     voter TEXT NOT NULL,

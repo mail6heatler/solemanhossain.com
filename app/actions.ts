@@ -3,6 +3,7 @@
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
 import { cleanBoxes } from "@/lib/boxes";
+import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -356,6 +357,11 @@ export async function updateItem(fd: FormData) {
   if (fd.has("comic")) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(String(fd.get("comic")))), id]);
   // a Comic strip's plain entry can become a poll; without at least two options it stays plain
   if (str(fd, "make_poll") === "1" && poll.length >= 2) await query("UPDATE items SET type='poll' WHERE id=$1", [id]);
+  // each feature's switch in the Reactions & comments box
+  if (fd.has("talk_sent")) {
+    const on = new Set(fd.getAll("talk").map(String));
+    await query("UPDATE items SET talk=$1 WHERE id=$2", [JSON.stringify(Object.fromEntries(TALK_FEATURES.map(([k]) => [k, on.has(k)]))), id]);
+  }
   await saveBoxes("items", id, fd);
   refresh();
   redirect(`/admin/items/${id}?${saved()}`);
@@ -411,7 +417,25 @@ export async function messageAction(fd: FormData) {
   if (op === "delete") await query("DELETE FROM messages WHERE id=$1", [id]);
   if (op === "allread") await query("UPDATE messages SET read = TRUE");
   if (op === "reactions-seen") await query("UPDATE reactions SET seen = TRUE WHERE NOT seen");
+  if (op === "comments-seen") await query("UPDATE comments SET seen = TRUE WHERE NOT seen");
   refresh();
+}
+
+// ---------- comments (admin) ----------
+export async function commentAction(fd: FormData) {
+  await requireAdmin();
+  const id = int(fd, "id"), op = str(fd, "op");
+  const row = await queryOne("SELECT item_id, pinned FROM comments WHERE id=$1", [id]);
+  if (!row) return;
+  const itemId = Number(row.item_id);
+  if (op === "reply") await query("UPDATE comments SET reply=$1, seen=TRUE WHERE id=$2", [str(fd, "reply", COMMENT_MAX), id]);
+  if (op === "hide") await query("UPDATE comments SET hidden = NOT hidden, seen=TRUE WHERE id=$1", [id]);
+  if (op === "delete") await query("DELETE FROM comments WHERE id=$1", [id]);
+  if (op === "pin") { // one at a time: pinning another replaces it
+    await query("UPDATE comments SET pinned=FALSE WHERE item_id=$1", [itemId]);
+    if (!row.pinned) await query("UPDATE comments SET pinned=TRUE, seen=TRUE WHERE id=$1", [id]);
+  }
+  redirect(`/admin/items/${itemId}?${saved()}#comments`);
 }
 
 // ---------- visitor: say hello ----------
