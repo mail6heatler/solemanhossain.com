@@ -50,6 +50,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-11: Dashboard editors, step 1: three options for the G1 editor (waiting for the owner's choice)
+
+They asked for live, labelled, full-width editors for every section, starting with G1, with a new design for an entry's full view, and listed what to remove or rework (the Order box, Size & look, Section settings, Reactions & comments, the Save and Delete boxes). Drew three working options on a private preview with placeholder entries (https://claude.ai/artifact/RrLSwQoKn4KkLgpEKjyLYA): A Studio (three columns, a list of parts; full view as a magazine page), B Labelled diagram (entries in a strip, card and full view side by side, labels with lines; full view where the card unfolds), recommended, and C Edit on the page (the homepage row itself, edit in place, a dock; full view as a story). All three share one save bar that appears only when something changed (Undo, Discard, Save, Ctrl+S), delete and reset in each entry's ⋯ menu with the usual confirmation, and drag-to-reorder in the Entries box. The page lists every control on today's G1 pages and where it goes. Nothing on the site changed. G0 and G8 ideas come after G1 to G7, as they asked.
+
 ### 2026-11-08: The dashboard's boxes can be closed, and the Saved message always shows
 
 They asked for this before going on to G6, and for no extra checking from now on: do the task, push, and they check it themselves. Built and published without tests, as they asked. Explained under "The dashboard's boxes" in `CLAUDE.md`.
