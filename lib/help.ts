@@ -334,8 +334,8 @@ export const HELP: Record<string, Help> = {
     preview: "/?demo=confetti",
   },
   plane: {
-    title: "Paper plane on “Say hello”",
-    what: "After a visitor sends the Say hello form, their message flies away as a ✈️ paper plane.",
+    title: "Paper plane on “Say hello”, and the chat's sending animation",
+    what: "After a visitor sends the Say hello form, their message flies away as a ✈️ paper plane. In a Connect section laid out as Chat window, it's the sending animation instead: the message lifts out of the box into the chat, a paper plane takes off from the send button, the ticks turn blue and a tag pops up saying whether it waits for your approval to go on the wall. Off, the message still appears in the chat with its ticks, without the movement.",
     how: ["Switch on and save.", "On the site, send a message from the Connect section (it arrives in your Inbox)."],
     preview: "/?demo=plane",
   },
@@ -388,6 +388,12 @@ export const HELP: Record<string, Help> = {
     what: "A section laid out as Achievement wall (like Growth) hangs each entry on a wall, and the whole card looks like the thing itself. Its Subsection picks the card: hall of fame gets a star on the red carpet; skills, certificates, courses or degrees a certificate; career, jobs or milestones an RFID staff card, bright if you still work there and faded if not; anything else a newspaper front page, or a card mended in gold if its Mood is heavy. A museum spotlight travels along the wall and wakes each one: a staff card taps a reader and says Access granted, a certificate signs itself and its seal thumps down, a front page spins in, a mended card cracks apart and heals, and a star spins down as cameras flash. Off, the cards stay and only the movement and the spotlight go.",
     how: ["Switch on and save.", "To use it on another section, choose “Achievement wall” as its layout, under Section settings."],
     preview: "/?demo=awardfx",
+  },
+  scrapfx: {
+    title: "Scrapbook pages: a pencil travels along and each page comes alive",
+    what: "A section laid out as Scrapbook pages (like Life) shows each entry as a page torn from a scrapbook, chosen by its Subsection: a photo diary gets a diary page with a taped photo and the date in the corner; where you've lived a scrap of map with a pin and the place on a red label; rituals a habit tracker with its days ticked; random snapshots a pile of photos under a paperclip. Tags are stickers, and the tape takes the colour of the entry's Mood. With this on, a pencil travels along the bottom of the row, and the page it reaches comes alive: it lifts, its tape gets pressed down, the pin drops onto the map, the ticks pop on one by one and the photos fan out. With it off, the pages stay, without the pencil or the movement. Which page an entry gets, and a ritual's ticked days, are on the entry's page in the dashboard.",
+    how: ["Switch on and save.", "To use it on another section, choose “Scrapbook pages” as its layout, under Section settings."],
+    preview: "/?demo=scrapfx",
   },
   comicfx: {
     title: "Comic strip: a brain flies along and pops each panel",

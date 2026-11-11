@@ -61,6 +61,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS comic TEXT NOT NULL DEFAULT '{}'`,
   // which object an entry gets on an Achievement wall, if the owner chose one (lib/awardItem.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS award TEXT NOT NULL DEFAULT '{}'`,
+  // which page an entry is in a Scrapbook, if the owner chose one, and a ritual's ticked days (lib/scrapItem.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS scrap TEXT NOT NULL DEFAULT '{}'`,
   // which of the reaction bar's extra features this entry has switched on (lib/talk.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS talk TEXT NOT NULL DEFAULT '{}'`,
   // which boxes on its dashboard page are open, as last saved (lib/boxes.ts)
@@ -154,6 +156,11 @@ export const SCHEMA = [
    UPDATE sections SET layout = 'comic' WHERE slug = 'feed' AND layout = 'stream' AND EXISTS (SELECT 1 FROM first)`,
   `WITH first AS (INSERT INTO done_once (key) VALUES ('growth-awards') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'awards' WHERE slug = 'growth' AND layout = 'timeline' AND EXISTS (SELECT 1 FROM first)`,
+  // G7 and G8's new looks, agreed on 2026-11-11. The photo grid and the old Connect stay choices under Section settings.
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('life-scrapbook') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'scrapbook' WHERE slug = 'life' AND layout = 'photos' AND EXISTS (SELECT 1 FROM first)`,
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('connect-chat') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE sections SET layout = 'chat' WHERE slug = 'connect' AND layout = 'connect' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {
@@ -253,7 +260,7 @@ const SECTIONS: SeedSection[] = [
     slug: "life", code: "G7", nav_label: "Life", nav_emoji: "📸", eyebrow: "Unfiltered life", eyebrow_emoji: "🌟",
     title: "Life outside the work",
     subtitle: "A photo grid, updated whenever something's worth keeping.",
-    layout: "photos", emojis: "📸 🌟 🎨",
+    layout: "scrapbook", emojis: "📸 🌟 🎨",
     categories: "Photo diary, Where I've lived, My rituals, Random snapshots",
     empty_text: "No photos yet. Upload your first one from the dashboard.",
     items: [],
@@ -262,7 +269,7 @@ const SECTIONS: SeedSection[] = [
     slug: "connect", code: "G8", nav_label: "Connect", nav_emoji: "💬", eyebrow: "Let's connect", eyebrow_emoji: "💬",
     title: "Find me elsewhere",
     subtitle: "Say hello, leave a note on the wall, or find me on the links below.",
-    layout: "connect", emojis: "🤝 ✉️ 🌐",
+    layout: "chat", emojis: "🤝 ✉️ 🌐",
     categories: "Testimonials",
     empty_text: "",
     items: [],

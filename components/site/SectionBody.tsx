@@ -16,6 +16,8 @@ import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./Tr
 import { ShelfDecor, ShelfLamp, StudyFrame, studyView, type StudyBody } from "./StudyFrame";
 import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
 import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
+import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
+import ChatWall from "./ChatWall";
 import { FlyingBrain } from "./comicArt";
 import ComicPoll from "./ComicPoll";
 import TvPlay from "./TvPlay";
@@ -93,6 +95,7 @@ function medalFor(it: Item) {
 
 const fileName = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "project";
 const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+const linkHint = (url: string) => (url.startsWith("mailto:") ? url.slice(7).split("?")[0] : url.startsWith("tel:") ? url.slice(4) : shortUrl(url));
 
 /** A project with no picture still fills its window: its own details, written as a few lines of code. */
 function CodeView({ it, hideSubtitle, hideTags, hideDate }: { it: Item; hideSubtitle: boolean; hideTags: boolean; hideDate: boolean }) {
@@ -143,6 +146,51 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   const row = (className: string, children: React.ReactNode, after?: React.ReactNode) => grid
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
     : <SideRow className={`${className}${st}`} fx={rowFx} after={after}>{children}</SideRow>;
+
+  // Connect as one chat window: the approved notes are the history, the links are contacts on the left, testimonials are pinned under them,
+  // and the box at the bottom is the same Say hello form (ChatWall.tsx)
+  if (L === "chat") {
+    const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "me";
+    const notes = (wall ?? []).slice().reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) }));
+    return (
+      <div className={`cw reveal r3${items.length ? " has-pins" : ""}`}>
+        <div className="cw-who">
+          <div className="cw-me">
+            <i className="cw-face">{settings.avatarUrl ? <img src={settings.avatarUrl} alt="" loading="lazy" /> : settings.initials || owner.slice(0, 1)}</i>
+            <div><b>{owner}</b>{settings.fullName && settings.fullName !== owner && <small>{settings.fullName}</small>}<span className="cw-online">reads every message</span></div>
+          </div>
+          {settings.socials.length > 0 && (
+            <>
+              <h3 className="cw-h">Other ways to reach me</h3>
+              <div className="cw-links">
+                {settings.socials.map((s, i) => (
+                  <a key={i} className="cw-link" href={s.url} {...(s.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                    <i className={`ti ti-${s.icon}`} aria-hidden /><span><b>{s.label}</b><small>{linkHint(s.url)}</small></span>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        {items.length > 0 && (
+          <div className="cw-pins" data-lenis-prevent>
+            {items.map((it) => { const l = lookFor(it); return (
+              <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
+                <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+                  <CardLink to={href(section, it)} label={it.title} />
+                  <span className="cw-pin-lab">⭐ Pinned{it.category ? ` · ${it.category}` : ""}</span>
+                  <p className="cw-quote">{it.body || it.title}</p>
+                  <div className="by">— {it.subtitle || it.title}</div>
+                  <LinkButtons it={it} />
+                </Box>
+              </div>
+            ); })}
+          </div>
+        )}
+        <ChatWall title={settings.connectFormTitle} owner={owner} avatar={settings.avatarUrl} initials={settings.initials || owner.slice(0, 1)} notes={notes} plane={fx.plane} />
+      </div>
+    );
+  }
 
   if (L === "connect") {
     const hasNotes = items.length > 0 || (wall?.length ?? 0) > 0;
@@ -520,6 +568,38 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   }
 
   // short thoughts as a comic: each entry is a panel its subsection picks, and a brain flies along and pops the one it reaches
+  // life outside work: each entry is a page torn from a scrapbook, the one its subsection names, and a pencil travels along the row
+  if (L === "scrapbook") {
+    const cells = items.map((it, i) => {
+      const l = lookFor(it);
+      const v = scrapView(it, { fallback: section.nav_label || section.title, hideDate: l.hide("date") });
+      const media = l.hide("pic") ? [] : it.media.filter((m) => m.type !== "audio").slice(0, v.look === "snaps" ? 3 : 1);
+      const pics = media.map((m, n) => <div key={n} className="ph has-pic"><Cover m={m} alt={n === 0 ? it.title : ""} style={n === 0 ? vt(it.id) : undefined} />{n === 0 && <MediaBadges media={it.media} />}</div>);
+      const style = v.tape ? ({ ...l.style, "--tape": v.tape } as React.CSSProperties) : l.style;
+      return (
+        <div key={it.id} className={`tkt-cell sb-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
+          <div className={`trip tkt sb on-${v.look}`} style={style}>
+            <ScrapFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} pics={pics} zoom={pics.length ? zoom(it) : null} fixedPic={"--pic" in (l.style ?? {})}>
+              <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+                <CardLink to={href(section, it)} label={it.title} />
+                <div className="tb">
+                  <h3>{it.title}</h3>
+                  {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
+                  {it.type === "poll" && <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />}
+                  {it.body.trim() && <Markdown className="md ex">{it.body}</Markdown>}
+                  <Meta it={{ ...it, date_label: v.dateInArt ? "" : it.date_label, location: v.placeInArt ? "" : it.location }} showCat={false} hideDate={l.hide("date")} showStatus />
+                  <LinkButtons it={it} />
+                  {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+                </div>
+              </Box>
+            </ScrapFrame>
+          </div>
+        </div>
+      );
+    });
+    return row("grid3 tkt-row sb-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <ScrapMore />}{!grid && fx.scrapfx && <TicketRider className="sb-rider" count={items.length}><Pencil /></TicketRider>}</>);
+  }
+
   if (L === "comic") {
     const cells = items.map((it, i) => {
       const l = lookFor(it);

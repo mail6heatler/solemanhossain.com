@@ -4,6 +4,7 @@ import { getSettings, getSections, getSection, getItems, getMessages } from "@/l
 import { SiteShell } from "@/components/site/Chrome";
 import SectionBody from "@/components/site/SectionBody";
 import { Split, Words } from "@/components/site/Split";
+import { isConnectLayout } from "@/lib/settings";
 
 type P = { params: Promise<{ slug: string }>; searchParams: Promise<{ c?: string }> };
 
@@ -20,7 +21,7 @@ export default async function SectionPage({ params, searchParams }: P) {
   const [settings, sections, all] = await Promise.all([getSettings(), getSections({ visibleOnly: true }), getItems(section.id, { visibleOnly: true })]);
   const cats = Array.from(new Set(all.map((i) => i.category).filter(Boolean)));
   const items = c ? all.filter((i) => i.category === c) : all;
-  const wall = section.layout === "connect" ? await getMessages("public") : undefined;
+  const wall = isConnectLayout(section.layout) ? await getMessages("public") : undefined;
 
   return (
     <SiteShell settings={settings} sections={sections} onHome={false}>

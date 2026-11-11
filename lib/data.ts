@@ -1,6 +1,7 @@
 import { cleanStudy, type StudyInfo } from "./studyItem";
 import { cleanComic, type ComicInfo } from "./comicItem";
 import { cleanAward, type AwardInfo } from "./awardItem";
+import { cleanScrap, type ScrapInfo } from "./scrapItem";
 import { cleanBoxes, type BoxState } from "./boxes";
 import { cleanTalk, type TalkInfo } from "./talk";
 import { cleanPass, type TripPass } from "./tripPass";
@@ -39,6 +40,8 @@ export type Item = {
   talk: TalkInfo;
   /** which object it is on an Achievement wall, if the owner chose one */
   award: AwardInfo;
+  /** which page it is in a Scrapbook, if the owner chose one, and a ritual's ticked days */
+  scrap: ScrapInfo;
 };
 
 export type Message = {
@@ -65,6 +68,7 @@ const toItem = (r: Row): Item => ({
   boxes: cleanBoxes(r.boxes),
   talk: cleanTalk(r.talk),
   award: cleanAward(r.award),
+  scrap: cleanScrap(r.scrap),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 

@@ -3,6 +3,7 @@
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
 import { cleanAward } from "@/lib/awardItem";
+import { cleanScrap } from "@/lib/scrapItem";
 import { cleanBoxes } from "@/lib/boxes";
 import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import { cleanPass } from "@/lib/tripPass";
@@ -357,6 +358,7 @@ export async function updateItem(fd: FormData) {
   if (fd.has("study")) await query("UPDATE items SET study=$1 WHERE id=$2", [JSON.stringify(cleanStudy(String(fd.get("study")))), id]);
   if (fd.has("comic")) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(String(fd.get("comic")))), id]);
   if (fd.has("award")) await query("UPDATE items SET award=$1 WHERE id=$2", [JSON.stringify(cleanAward(String(fd.get("award")))), id]);
+  if (fd.has("scrap")) await query("UPDATE items SET scrap=$1 WHERE id=$2", [JSON.stringify(cleanScrap(String(fd.get("scrap")))), id]);
   // a Comic strip's plain entry can become a poll; without at least two options it stays plain
   if (str(fd, "make_poll") === "1" && poll.length >= 2) await query("UPDATE items SET type='poll' WHERE id=$1", [id]);
   // each feature's switch in the Reactions & comments box

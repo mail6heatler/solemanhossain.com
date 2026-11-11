@@ -8,7 +8,7 @@ import { AvatarTilt, DecodeText, Greeting, LivePill, Sticker } from "@/component
 import HeroScene from "@/components/site/HeroScene";
 import Intro from "@/components/site/Intro";
 import { Split, Words } from "@/components/site/Split";
-import { MOODS } from "@/lib/settings";
+import { MOODS, isConnectLayout } from "@/lib/settings";
 
 export const revalidate = 300;
 
@@ -18,7 +18,7 @@ export default async function Home() {
     sections.map(async (s) => ({
       section: s,
       items: await getItems(s.id, { visibleOnly: true, limit: s.home_limit }),
-      wall: s.layout === "connect" ? (await getMessages("public")).slice(0, 8) : undefined,
+      wall: isConnectLayout(s.layout) ? (await getMessages("public")).slice(0, s.layout === "chat" ? 30 : 8) : undefined,
     }))
   );
   const s = settings;
@@ -30,7 +30,7 @@ export default async function Home() {
   const showReactions = fx.reactions && reactions.total > 0;
   const stats = [
     ...sections
-      .filter((sec) => sec.layout !== "connect" && (counts.get(sec.id) ?? 0) > 0)
+      .filter((sec) => !isConnectLayout(sec.layout) && (counts.get(sec.id) ?? 0) > 0)
       .map((sec) => ({ key: sec.slug, n: counts.get(sec.id) ?? 0, label: sec.nav_label || sec.title, emoji: sec.nav_emoji, to: `#${sec.slug}` }))
       .slice(0, showReactions ? 3 : 4),
     ...(showReactions ? [{ key: "reactions", n: reactions.total, label: "Reactions", emoji: "❤️", to: "" }] : []),
@@ -135,7 +135,7 @@ export default async function Home() {
                   <h2 className={`stitle reveal ${fx.splittext ? "split-host" : ""}`}><Split text={section.title} on={fx.splittext} /></h2>
                   {section.subtitle && <p className="ssub reveal r2"><Words text={section.subtitle} on={fx.wordscrub} /></p>}
                 </div>
-                {section.layout !== "connect" && total > items.length && (
+                {!isConnectLayout(section.layout) && total > items.length && (
                   <a className="see-all reveal r2" href={`/s/${section.slug}`}>See all {total} <i className="ti ti-arrow-right" /></a>
                 )}
               </div>

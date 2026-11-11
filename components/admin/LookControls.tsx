@@ -4,11 +4,12 @@ import { Vehicle } from "@/components/site/vehicles";
 import { StudyFrame, type StudyView } from "@/components/site/StudyFrame";
 import { ComicFrame, type ComicView } from "@/components/site/ComicFrame";
 import { AwardFrame, type AwardView } from "@/components/site/AwardFrame";
+import { ScrapFrame, type ScrapView } from "@/components/site/ScrapFrame";
 import ComicPoll from "@/components/site/ComicPoll";
 import { useState } from "react";
 import { HIDE_LABELS, LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles, type ContentStyle, type HideKey } from "@/lib/contentStyle";
 
-export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView; study?: StudyView; comic?: ComicView; award?: AwardView; options?: string[] };
+export type LookSample = { title: string; subtitle: string; body: string; pic: string; tags: string[]; meta: string; trip?: PassView; study?: StudyView; comic?: ComicView; award?: AwardView; scrap?: ScrapView; options?: string[] };
 
 const SIZES = [["", "Default"], ["s", SIZE_PRESETS.s.label], ["m", SIZE_PRESETS.m.label], ["l", SIZE_PRESETS.l.label], ["custom", "Custom"]] as const;
 
@@ -67,7 +68,7 @@ export default function LookControls({ initial, above, sample, layout, level }:
   const picBlock = sample.pic && !look.hide("pic") ? (
     <div className={`pic-box${canFocus ? " look-focus" : ""}`} onClick={canFocus ? focus : undefined} title={canFocus ? "Click the part that must stay visible" : undefined}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {layout === "strip" || layout === "tickets" || layout === "study" || layout === "awards"
+      {layout === "strip" || layout === "tickets" || layout === "study" || layout === "awards" || layout === "scrapbook"
         ? <div className="ph has-pic"><img src={sample.pic} alt="" /></div>
         : layout === "notes" ? <img className="note-media" src={sample.pic} alt="" />
         : <div className="card-media"><img className="card-img" src={sample.pic} alt="" /></div>}
@@ -176,6 +177,14 @@ export default function LookControls({ initial, above, sample, layout, level }:
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <AwardFrame view={look.hide("subtitle") ? { ...sample.award, subtitle: "" } : sample.award} picture={picBlock} back={picBlock ? <img className="arf-fill" src={sample.pic} alt="" /> : undefined}
                       body={({ above, showTitle, showSubtitle, inBody }) => box(<>{inBody}<div className="tb">{above}{showTitle && <h3>{sample.title}</h3>}{showSubtitle && sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.award && sample.award.fields.length > 0 && <dl className="tkt-fields">{sample.award.fields.map(([k, f]) => <div key={k}><dt>{k}</dt><dd>{f}</dd></div>)}</dl>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
+                  </div>
+                </div>
+              ) : layout === "scrapbook" && sample.scrap ? (
+                <div className={`tkt-cell sb-cell${look.className}`} style={look.style}>
+                  <div className={`trip tkt sb on-${sample.scrap.look}${withText}`} style={look.style}>
+                    <ScrapFrame view={look.hide("date") ? { ...sample.scrap, date: "", place: "", dateInArt: false, placeInArt: false } : sample.scrap} pics={picBlock ? [picBlock] : []}>
+                      {box(<div className="tb"><h3>{sample.title}</h3>{sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.meta && !look.hide("date") && !sample.scrap.dateInArt && <div className="meta">{sample.meta}</div>}{rest}</div>)}
+                    </ScrapFrame>
                   </div>
                 </div>
               ) : layout === "comic" && sample.comic ? (

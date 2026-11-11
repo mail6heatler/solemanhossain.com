@@ -154,7 +154,7 @@ export const EFFECTS = [
   { key: "reactions", group: "Fun", label: "Emoji reactions on entries" },
   { key: "reactfx", group: "Fun", label: "Reaction emojis come alive" },
   { key: "confetti", group: "Fun", label: "Confetti on poll votes" },
-  { key: "plane", group: "Fun", label: "Paper plane on “Say hello”" },
+  { key: "plane", group: "Fun", label: "Paper plane on “Say hello”, and the chat's sending animation" },
   { key: "surprise", group: "Fun", label: "🎲 Surprise me button" },
   { key: "explorer", group: "Fun", label: "Explorer badge" },
   { key: "party", group: "Fun", label: "Secret party mode" },
@@ -165,6 +165,7 @@ export const EFFECTS = [
   { key: "studyfx", group: "Layout", label: "Study shelf: a lamp travels along, TVs power on, books and phones wake up" },
   { key: "comicfx", group: "Layout", label: "Comic strip: a brain flies along and pops each panel" },
   { key: "awardfx", group: "Layout", label: "Achievement wall: a spotlight travels along and each card comes alive" },
+  { key: "scrapfx", group: "Layout", label: "Scrapbook pages: a pencil travels along and each page comes alive" },
   { key: "windowfx", group: "Layout", label: "App windows pop open, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
   { key: "flip", group: "Layout", label: "Flip cards for list sections" },
@@ -362,10 +363,15 @@ export const LAYOUTS = [
   { value: "awards", label: "Achievement wall — staff cards, certificates, front pages, stars" },
   { value: "stream", label: "Feed stream — thoughts, polls" },
   { value: "timeline", label: "Timeline — milestones" },
+  { value: "scrapbook", label: "Scrapbook pages — diary, places lived, rituals, snapshots" },
   { value: "photos", label: "Photo grid — life snapshots" },
   { value: "notes", label: "Notes — bio, beliefs, facts (full text)" },
+  { value: "chat", label: "Chat window — links, say hello, the wall as a chat" },
   { value: "connect", label: "Connect — links, hello form, guest wall" },
 ] as const;
+
+/** Layouts that hold the links, the hello form and the guest wall. */
+export const isConnectLayout = (layout: string) => layout === "connect" || layout === "chat";
 
 /** color = the accent itself; deep = a darker shade that stays readable as text on light backgrounds. */
 export const MOODS: Record<string, { label: string; emoji: string; color: string; deep: string }> = {
@@ -393,7 +399,7 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
     // photo morph + page glide: browsers that support cross-page view transitions animate, others just navigate
     `if(c.vt){var st=document.createElement("style");st.textContent="@view-transition{navigation:auto}";document.head.appendChild(st)}if(c.gl)h.classList.add("vt-glide");` +
     // opening a card: it answers the click at once, a bar shows the page is coming, and the page starts loading on hover (see "opening a page" in site.css)
-    `if(c.gl&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var CK=".card,.note,.trip,.post,.tl-row,.flip-wrap,.ph-cell,.wall-note,.shelf-row",clear=function(){h.classList.remove("navigating");var b=document.querySelector(".nav-progress");if(b)b.remove();document.querySelectorAll(".opening").forEach(function(x){x.classList.remove("opening");x.style.viewTransitionName=""})};` +
+    `if(c.gl&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var CK=".card,.note,.trip,.post,.tl-row,.flip-wrap,.ph-cell,.wall-note,.shelf-row,.cw-pin",clear=function(){h.classList.remove("navigating");var b=document.querySelector(".nav-progress");if(b)b.remove();document.querySelectorAll(".opening").forEach(function(x){x.classList.remove("opening");x.style.viewTransitionName=""})};` +
     `addEventListener("click",function(e){if(e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||!e.target.closest)return;var a=e.target.closest("a[href]");if(!a||a.target==="_blank"||a.hasAttribute("download"))return;var u;try{u=new URL(a.href)}catch(x){return}if(u.origin!==location.origin||(u.pathname===location.pathname&&u.search===location.search))return;var k=a.closest(CK);window.__lcCard=k||null;h.classList.add("navigating");if(k)k.classList.add("opening");var s=document.querySelector(".site");if(s&&!document.querySelector(".nav-progress")){var cs=getComputedStyle(s),i=document.createElement("i");i.className="nav-progress";i.style.background="linear-gradient(90deg,"+cs.getPropertyValue("--mint")+","+cs.getPropertyValue("--pop2")+")";document.body.appendChild(i)}});` +
     `addEventListener("pageshow",function(e){if(e.persisted)clear()});` +
     // the clicked card grows to fill the screen and becomes the new page; Back shrinks the page away and the card lands again
@@ -407,6 +413,6 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
 }
 
 const LAYOUT_ICONS: Record<string, string> = {
-  notes: "user", cards: "tool", strip: "map-2", list: "book", stream: "bolt", timeline: "trending-up", awards: "trophy", photos: "camera", connect: "send",
+  notes: "user", cards: "tool", strip: "map-2", list: "book", stream: "bolt", timeline: "trending-up", awards: "trophy", photos: "camera", connect: "send", scrapbook: "notebook", chat: "message-circle",
 };
 export const layoutIcon = (l: string) => LAYOUT_ICONS[l] ?? "layout-grid";

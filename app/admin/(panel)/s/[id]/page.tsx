@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getLookCounts, getSampleItem, getSection, getSettings, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
-import { LAYOUTS, MOODS } from "@/lib/settings";
+import { LAYOUTS, MOODS, isConnectLayout } from "@/lib/settings";
 import { createItem, deleteSection, moveItem, resetSectionLooks, saveLook, toggleItem, updateSection } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
 import LookControls from "@/components/admin/LookControls";
@@ -33,7 +33,7 @@ export default async function SectionAdmin({ params }: P) {
   const groups = names.map((n) => ({ name: n, items: items.filter((i) => i.category === n) }));
   const loose = items.filter((i) => !i.category);
   if (loose.length || names.length === 0) groups.push({ name: "", items: loose });
-  const isConnect = section.layout === "connect";
+  const isConnect = isConnectLayout(section.layout);
   const open = (name: string, first = true) => boxOpen(section.boxes, name, first);
 
   return (
@@ -55,6 +55,7 @@ export default async function SectionAdmin({ params }: P) {
             This section shows your social links (edit them in <a href="/admin/settings">Settings</a>),
             the &ldquo;say hello&rdquo; form (messages arrive in your <a href="/admin/inbox">Inbox</a>) and the guest wall.
             Entries you add here appear as testimonials: put the quote in the story and the person&apos;s name in the subtitle.
+            {section.layout === "chat" && <> As a Chat window, the notes you approve are the chat&apos;s history, your links are the contacts on its left, testimonials are pinned under them, and your hero photo and nickname are the chat&apos;s face.</>}
           </div>
         </Box>
       )}
@@ -129,7 +130,7 @@ export default async function SectionAdmin({ params }: P) {
               <div className="fl"><label>Entries shown on the homepage</label><input className="inp" type="number" name="home_limit" min={1} max={60} defaultValue={section.home_limit} />
                 <div className="hint">More than this adds a &ldquo;See all&rdquo; button.</div></div>
             </div>
-            <div className="fl"><label>Subsections (one per line)</label><textarea name="categories" defaultValue={section.categories.join("\n")} />{section.layout === "study" && <div className="hint">With Study shelf, a subsection&apos;s name picks its entries&apos; object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note.</div>}{section.layout === "awards" && <div className="hint">With Achievement wall, a subsection&apos;s name picks its entries&apos; card: hall of fame gets a star on the red carpet; skills, certificates, courses or degrees a certificate; career, jobs or milestones an RFID staff card, bright if you still work there and faded if not; and anything else a newspaper front page, or a card mended in gold if the Mood is heavy.</div>}{section.layout === "tickets" && <div className="hint">With Boarding passes, a subsection&apos;s name picks its entries&apos; frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}</div>
+            <div className="fl"><label>Subsections (one per line)</label><textarea name="categories" defaultValue={section.categories.join("\n")} />{section.layout === "study" && <div className="hint">With Study shelf, a subsection&apos;s name picks its entries&apos; object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note.</div>}{section.layout === "awards" && <div className="hint">With Achievement wall, a subsection&apos;s name picks its entries&apos; card: hall of fame gets a star on the red carpet; skills, certificates, courses or degrees a certificate; career, jobs or milestones an RFID staff card, bright if you still work there and faded if not; and anything else a newspaper front page, or a card mended in gold if the Mood is heavy.</div>}{section.layout === "scrapbook" && <div className="hint">With Scrapbook pages, a subsection&apos;s name picks its entries&apos; page: a photo diary gets a diary page with a taped photo; where you&apos;ve lived a scrap of map with a pin; rituals or habits a habit tracker; random snapshots a pile of photos under a paperclip; and anything else a diary page.</div>}{section.layout === "tickets" && <div className="hint">With Boarding passes, a subsection&apos;s name picks its entries&apos; frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}</div>
             <div className="f2">
               <div className="fl"><label>Floating emojis (separate with spaces)</label><input className="inp" name="emojis" defaultValue={section.emojis} /></div>
               <div className="fl"><label>Message when empty</label><input className="inp" name="empty_text" defaultValue={section.empty_text} /></div>
