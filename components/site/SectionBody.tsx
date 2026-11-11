@@ -510,7 +510,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       return (
         <div key={it.id} className={`tkt-cell aw-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
           <div className={`trip tkt aw on-${v.look}`} style={l.style}>
-            <AwardFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} body={body} />
+            <AwardFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} body={body}
+              back={first && (first.type === "image" || (first.type === "pdf" && first.thumb)) ? <Cover m={first} className="arf-fill" /> : undefined} />
           </div>
         </div>
       );

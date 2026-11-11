@@ -2486,10 +2486,8 @@ html.lite .cmp-pow { display: none; }
    one it reaches, and a rail and a floor run under the row, one piece per cell, so they move with it. Gold, parchment, wood and the red carpet are materials, the same in every
    theme, and what's on them uses --on-parch or --parch. Everything that moves does so by transform, rotate, scale or opacity only, and every state at rest is the finished one --- */
 :is(.aw-row, .aw-cell) { --gold: #e8b93a; --gold-deep: #a97c0f; --parch: #fff8e6; --on-parch: #2a2118; --wood: #8f5e36; --wood-deep: #5f3b21; --carpet: #8e1537; --carpet-lite: #c8264f; --press: #c8201f; --serif: Georgia, "Times New Roman", serif; }
-.aw-cell { --aw-drop: 0px; padding-top: calc(52px + var(--aw-drop)); }
-.aw-cell:nth-child(3n + 2) { --aw-drop: 26px; }
-.aw-cell:nth-child(3n) { --aw-drop: 12px; }
-.grid3:not(.side-track) > .aw-cell { --aw-drop: 0px; padding-top: 42px; }
+.aw-cell { padding-top: 52px; } /* every card hangs at the same height: the owner found staggered ones crooked */
+.grid3:not(.side-track) > .aw-cell { padding-top: 42px; }
 .side-track :is(.aw-cell, .aw-more)::before { content: ""; position: absolute; z-index: -1; left: -10px; right: -10px; top: 0; height: 12px; background: var(--wood-deep); box-shadow: 0 3px 0 var(--wood); }
 .side-track .aw-cell::after { content: ""; position: absolute; z-index: -1; left: -10px; right: -10px; bottom: -24px; height: 12px; background: repeating-linear-gradient(90deg, var(--wood) 0 56px, var(--wood-deep) 56px 58px); }
 .side-track .aw-cell.first::before, .side-track .aw-cell.first::after { left: calc(var(--gutter, 7vw) * -1); }
@@ -2500,6 +2498,7 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 /* the drawing takes whatever the writing leaves, so a card with no story is all card */
 .aw-art { position: relative; flex: 1 1 200px; min-height: 0; overflow: clip; border-radius: 11px 11px 0 0; }
 .aw-art + .scroll-wrap { flex: 0 1 auto; max-height: 40%; }
+:is(.on-id, .on-plate) .aw-art + .scroll-wrap { max-height: 32%; } /* the staff card's photo needs the room */
 .aw .tb { padding: 10px 13px 12px; gap: 6px; }
 .aw .tb:empty { display: none; }
 .trip .aw-whole, .aw .tb > h3 { margin: 0; overflow-wrap: break-word; font: 700 calc(16px * var(--fs, 1))/1.2 var(--display); text-wrap: balance; }
@@ -2523,33 +2522,36 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 :is(.arf-photo, .anw-photo, .ace-photo, .akg-pic) > .pic-box { position: absolute; inset: 0; }
 :is(.arf-photo, .anw-photo, .ace-photo, .akg-pic) .ph { width: 100%; height: 100%; }
 .trip :is(.arf-photo, .anw-photo, .ace-photo, .akg-pic) .ph.has-pic :is(img, video) { display: block; width: 100%; height: 100%; max-height: none; aspect-ratio: auto; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 30%); }
-.trip .ace-photo .ph.has-pic :is(img, video), .fit-whole .trip :is(.arf-photo, .anw-photo, .akg-pic) .ph.has-pic :is(img, video) { object-fit: contain; object-position: 50% 50%; }
-.fit-fill .trip .ace-photo .ph.has-pic :is(img, video) { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 30%); }
+.trip :is(.ace-photo, .arf-photo) .ph.has-pic :is(img, video), .fit-whole .trip :is(.anw-photo, .akg-pic) .ph.has-pic :is(img, video) { object-fit: contain; object-position: 50% 50%; }
+.fit-fill .trip :is(.ace-photo, .arf-photo) .ph.has-pic :is(img, video) { object-fit: cover; object-position: var(--fx, 50%) var(--fy, 30%); }
 /* career: an RFID staff card, which taps a reader. Faded for a job they've left */
 .aw-art.arf { --face: color-mix(in srgb, var(--mint) 82%, var(--card)); --on-face: var(--on-mint); display: flex; flex-direction: column; }
 .on-plate .aw-art.arf { --face: color-mix(in srgb, var(--muted) 34%, var(--card)); --on-face: var(--fg); }
-.arf-face { position: relative; flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; overflow: clip; padding: 26px 14px 11px; color: var(--on-face); background: repeating-radial-gradient(circle at 92% 8%, transparent 0 10px, color-mix(in srgb, var(--on-face) 9%, transparent) 10px 11px), var(--face); }
-.arf-slot { position: absolute; left: 50%; top: 8px; width: 46px; height: 10px; margin-left: -23px; border-radius: 9px; background: var(--fg); }
+.arf-face { position: relative; flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; overflow: clip; padding: 22px 14px 10px; color: var(--on-face); background: repeating-radial-gradient(circle at 92% 8%, transparent 0 10px, color-mix(in srgb, var(--on-face) 9%, transparent) 10px 11px), var(--face); }
+.arf-slot { position: absolute; left: 50%; top: 6px; width: 46px; height: 10px; margin-left: -23px; border-radius: 9px; background: var(--fg); }
 .arf-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .arf-co { min-width: 0; overflow: hidden; font: 800 14.5px/1.15 var(--display); letter-spacing: .03em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
-.arf-waves { flex: none; width: 30px; height: 30px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
-.arf-mid { flex: 1 1 auto; display: flex; align-items: stretch; gap: 12px; min-height: 0; margin-top: 11px; }
-.arf-photo { position: relative; flex: none; display: grid; place-items: center; width: 46%; overflow: clip; border: 2px solid var(--fg); border-radius: 8px; background: color-mix(in srgb, var(--pop3) 40%, var(--card)); font: 800 28px var(--display); }
-.arf-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
+.arf-waves { flex: none; width: 26px; height: 26px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+/* the photo runs across the card and takes all the height the words leave. It's shown whole (unless Picture fit says Fill), over a blurred copy of itself */
+.arf-photo { position: relative; flex: 1 1 0; display: grid; place-items: center; min-height: 64px; margin-top: 9px; overflow: clip; border: 2px solid var(--fg); border-radius: 9px; background: color-mix(in srgb, var(--pop3) 40%, var(--card)); }
+.arf-back { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.arf-fill { position: absolute; left: -30px; top: -30px; display: block; width: calc(100% + 60px); max-width: none; height: calc(100% + 60px); object-fit: cover; filter: blur(18px) saturate(1.2) brightness(.85); }
+.arf-own { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.arf-ini { font: 800 clamp(30px, 16cqw, 60px)/1 var(--display); }
 .on-plate .arf-photo { opacity: .82; }
-.arf-photo .pic-zoom { right: 3px; bottom: 3px; width: 24px; height: 24px; font-size: 12px; }
-.arf-who { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-.trip .arf-who h3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; margin: 0 0 6px; overflow: hidden; overflow-wrap: break-word; color: inherit; font: 700 max(13px, min(calc(23px * var(--fs, 1)), calc((54cqw - 24px) / (var(--tw, 1) * .76))))/1.1 var(--display); }
+.arf-photo .pic-zoom { right: 4px; bottom: 4px; width: 26px; height: 26px; font-size: 13px; }
+.arf-who { flex: none; min-width: 0; display: flex; flex-direction: column; gap: 2px; margin-top: 9px; }
+.trip .arf-who h3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; margin: 0 0 4px; overflow: hidden; overflow-wrap: break-word; color: inherit; font: 700 max(13px, min(calc(21px * var(--fs, 1)), calc((100cqw - 36px) / (var(--tw, 1) * .76))))/1.1 var(--display); }
 .arf-when { font: 700 calc(12.5px * var(--fs, 1))/1.25 var(--body); }
-.trip .arf-who .sub { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin: 2px 0 0; overflow: hidden; color: inherit; opacity: .8; }
-.arf-chips { position: relative; flex: none; display: flex; align-items: center; gap: 11px; margin-top: 11px; }
-.arf-chip { flex: none; width: 44px; height: 34px; }
-.arf-no { font: 700 12px ui-monospace, "JetBrains Mono", Consolas, monospace; letter-spacing: .08em; }
-.arf-rip { position: absolute; left: 22px; top: 17px; width: 40px; height: 40px; margin: -20px 0 0 -20px; border: 3px solid currentColor; border-radius: 50%; opacity: 0; pointer-events: none; }
-.arf-holo { position: relative; flex: none; height: 13px; margin-top: 10px; overflow: hidden; border-radius: 4px; background: linear-gradient(90deg, #ff9ecb, #ffe08a, #9df3c4, #8fd8ff, #c6a8ff, #ff9ecb); }
+.trip .arf-who .sub { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; margin: 2px 0 0; overflow: hidden; color: inherit; opacity: .8; }
+.arf-chips { position: relative; flex: none; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.arf-chip { flex: none; width: 36px; height: 28px; }
+.arf-no { min-width: 0; overflow: hidden; font: 700 12px ui-monospace, "JetBrains Mono", Consolas, monospace; letter-spacing: .08em; text-overflow: ellipsis; white-space: nowrap; }
+.arf-rip { position: absolute; left: 18px; top: 14px; width: 40px; height: 40px; margin: -20px 0 0 -20px; border: 3px solid currentColor; border-radius: 50%; opacity: 0; pointer-events: none; }
+.arf-holo { position: relative; flex: none; width: 52px; height: 24px; margin-left: auto; overflow: hidden; border-radius: 5px; background: linear-gradient(90deg, #ff9ecb, #ffe08a, #9df3c4, #8fd8ff, #c6a8ff, #ff9ecb); }
 .arf-holo i { position: absolute; inset: 0 auto 0 0; width: 30%; background: linear-gradient(90deg, transparent, #fff, transparent); transform: translateX(-120%); }
 .on-plate .arf-holo { opacity: .45; }
-.aw-stamp { position: absolute; z-index: 2; right: 11px; top: 56px; max-width: 42%; overflow: hidden; padding: 1px 8px; border: 2.5px solid currentColor; border-radius: 6px; background: color-mix(in srgb, var(--card) 76%, transparent); color: color-mix(in srgb, var(--pop2) 72%, var(--fg)); font: 800 12.5px/1.35 var(--display); text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; rotate: -9deg; pointer-events: none; }
+.aw-stamp { position: absolute; z-index: 2; right: 18px; top: 62px; max-width: 42%; overflow: hidden; padding: 1px 8px; border: 2.5px solid currentColor; border-radius: 6px; background: color-mix(in srgb, var(--card) 76%, transparent); color: color-mix(in srgb, var(--pop2) 72%, var(--fg)); font: 800 12.5px/1.35 var(--display); text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; rotate: -9deg; pointer-events: none; }
 .arf-reader { position: relative; flex: none; display: flex; align-items: center; gap: 8px; height: 33px; overflow: hidden; padding: 0 13px; background: var(--inv-bg); color: var(--inv-fg); font: 700 12px ui-monospace, "JetBrains Mono", Consolas, monospace; letter-spacing: .02em; }
 .arf-led { position: relative; flex: none; width: 11px; height: 11px; border-radius: 50%; background: #39d67c; box-shadow: 0 0 7px #39d67c; }
 .arf-led::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #f5b83d; box-shadow: 0 0 7px #f5b83d; opacity: 0; }
@@ -2619,8 +2621,8 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 .ast-rope { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 26px; fill: none; stroke: var(--gold); stroke-width: 5; vector-effect: non-scaling-stroke; pointer-events: none; }
 /* a short card has no room for the extras, so they step aside and the main thing stays */
 @container aw-card (max-height: 379px) {
-  .arf-chips, .arf-holo, .arf-rip { display: none; }
-  .arf-face { padding-top: 22px; }
+  .arf-chips, .arf-holo, .arf-rip, .trip .arf-who .sub { display: none; }
+  .arf-face { padding-top: 20px; }
   .ace-burst, .ace-sign, .ace-sm { display: none; }
   .anw-extra, .anw-mast span { display: none; }
   .ast-star { flex-basis: 0; max-height: 70px; }
@@ -2701,7 +2703,7 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 @keyframes ast-pop { 0% { opacity: 0; transform: scale(.2); } 30% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(.9); } }
 @keyframes ast-blink { 0% { opacity: .5; } 100% { opacity: 0; } }
 html.lite :is(.aw, .aw *) { animation: none !important; }
-html.lite .aw-cone { display: none; }
+html.lite .aw-cone, html.lite .arf-fill { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .aw-rider { transition: none !important; }
   .aw, .aw * { animation: none !important; }

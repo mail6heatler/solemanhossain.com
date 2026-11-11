@@ -99,7 +99,7 @@ export type AwardBody = (parts: {
   inBody?: React.ReactNode;
 }) => React.ReactNode;
 
-export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; link?: React.ReactNode; picture?: React.ReactNode; body: AwardBody }) {
+export function AwardFrame({ view: v, link, picture, back, body }: { view: AwardView; link?: React.ReactNode; picture?: React.ReactNode; /** a blurred copy of the picture, behind a staff card's photo */ back?: React.ReactNode; body: AwardBody }) {
   const isJob = v.look === "id" || v.look === "plate";
   return (
     <>
@@ -111,24 +111,25 @@ export function AwardFrame({ view: v, link, picture, body }: { view: AwardView; 
           <div className="arf-face">
             <i className="arf-slot" aria-hidden="true" />
             <div className="arf-top"><b className="arf-co">{v.company || v.subsection}</b><Waves /></div>
-            <div className="arf-mid">
-              <div className="arf-photo">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {picture ?? (v.avatar ? <img src={v.avatar} alt="" loading="lazy" /> : <span aria-hidden="true">{v.initials}</span>)}
-              </div>
-              <div className="arf-who">
-                <span className="aw-lab">Position</span>
-                <h3>{v.heading}</h3>
-                {v.span && <span className="arf-when">{v.span}</span>}
-                {v.subtitle && <p className="sub">{v.subtitle}</p>}
-              </div>
+            {/* the whole photo, never cut, over a blurred copy of itself that fills what its shape leaves */}
+            <div className="arf-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <span className="arf-back" aria-hidden="true">{picture ? back : v.avatar ? <img className="arf-fill" src={v.avatar} alt="" loading="lazy" /> : null}</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {picture ?? (v.avatar ? <img className="arf-own" src={v.avatar} alt="" loading="lazy" /> : <span className="arf-ini" aria-hidden="true">{v.initials}</span>)}
+            </div>
+            <div className="arf-who">
+              <span className="aw-lab">Position</span>
+              <h3>{v.heading}</h3>
+              {v.span && <span className="arf-when">{v.span}</span>}
+              {v.subtitle && <p className="sub">{v.subtitle}</p>}
             </div>
             <div className="arf-chips">
               <Chip />
               <i className="arf-rip" aria-hidden="true" /><i className="arf-rip b" aria-hidden="true" /><i className="arf-rip c" aria-hidden="true" />
               <span className="arf-no">{v.no}</span>
+              <div className="arf-holo" aria-hidden="true"><i /></div>
             </div>
-            <div className="arf-holo" aria-hidden="true"><i /></div>
             {v.stamp && <span className="aw-stamp">{v.stamp}</span>}
           </div>
           <div className="arf-reader" aria-hidden="true">

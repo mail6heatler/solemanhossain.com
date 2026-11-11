@@ -173,7 +173,8 @@ export default function LookControls({ initial, above, sample, layout, level }:
               ) : layout === "awards" && sample.award ? (
                 <div className={`tkt-cell aw-cell${look.className}`} style={look.style}>
                   <div className={`trip tkt aw on-${sample.award.look}${withText}`} style={look.style}>
-                    <AwardFrame view={look.hide("subtitle") ? { ...sample.award, subtitle: "" } : sample.award} picture={picBlock}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <AwardFrame view={look.hide("subtitle") ? { ...sample.award, subtitle: "" } : sample.award} picture={picBlock} back={picBlock ? <img className="arf-fill" src={sample.pic} alt="" /> : undefined}
                       body={({ above, showTitle, showSubtitle, inBody }) => box(<>{inBody}<div className="tb">{above}{showTitle && <h3>{sample.title}</h3>}{showSubtitle && sample.subtitle && !look.hide("subtitle") && <p className="sub">{sample.subtitle}</p>}{sample.award && sample.award.fields.length > 0 && <dl className="tkt-fields">{sample.award.fields.map(([k, f]) => <div key={k}><dt>{k}</dt><dd>{f}</dd></div>)}</dl>}{sample.meta && !look.hide("date") && <div className="meta">{sample.meta}</div>}{rest}</div></>)} />
                   </div>
                 </div>
