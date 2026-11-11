@@ -1,11 +1,11 @@
 /** What an Achievement wall entry stores (items.award): the object it's chosen to be, if the owner chose one, and the details its Details box asks for. */
 export const AWARD_LOOKS = [
-  ["trophy", "Trophy on a shelf"],
-  ["cert", "Framed certificate with a seal"],
-  ["id", "Staff ID on a lanyard"],
-  ["plate", "Brass door plate"],
-  ["medal", "Medal on a ribbon"],
-  ["crack", "Cracked frame, mended with tape"],
+  ["trophy", "Star on the red carpet"],
+  ["cert", "Certificate with a gold seal"],
+  ["id", "RFID staff card, bright"],
+  ["plate", "RFID staff card, faded"],
+  ["medal", "Newspaper front page"],
+  ["crack", "Mended in gold"],
 ] as const;
 
 export type AwardLook = (typeof AWARD_LOOKS)[number][0];

@@ -487,8 +487,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "awards") {
     const cells = items.map((it, i) => {
       const l = lookFor(it);
-      const v = awardView(it, { fallback: section.nav_label || section.title, index: i, hideSubtitle: l.hide("subtitle"), owner: settings.fullName, avatar: settings.avatarUrl, initials: settings.initials });
       const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
+      const v = awardView(it, { fallback: section.nav_label || section.title, index: i, code: section.code, hideSubtitle: l.hide("subtitle"), hideDate: l.hide("date"), hasPic: !!first, owner: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials });
       const picture = first ? <div className="pic-box"><div className="ph has-pic"><Cover m={first} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div> : null;
       const body: AwardBody = ({ above, showTitle, showSubtitle, inBody }) => (
         <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
@@ -499,8 +499,9 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             {showTitle && <h3>{it.title}</h3>}
             {showSubtitle && v.subtitle && <p className="sub">{v.subtitle}</p>}
             {v.fields.length > 0 && <dl className="tkt-fields">{v.fields.map(([k, f]) => <div key={k}><dt>{k}</dt><dd>{f}</dd></div>)}</dl>}
+            {it.type === "poll" && <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />}
             {it.body.trim() && <Markdown className="md ex">{it.body}</Markdown>}
-            <Meta it={{ ...it, date_label: v.stampIsDate ? "" : it.date_label, status: v.stampIsStatus ? "" : it.status }} showCat={showTitle} hideDate={l.hide("date")} showStatus />
+            <Meta it={{ ...it, date_label: v.dateInArt ? "" : it.date_label, status: v.statusInArt ? "" : it.status }} showCat={false} hideDate={l.hide("date")} showStatus />
             <LinkButtons it={it} />
             {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
           </div>

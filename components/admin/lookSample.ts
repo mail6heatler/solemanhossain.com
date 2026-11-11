@@ -19,7 +19,7 @@ export function lookSample(it: Item | null | undefined, trip?: ReturnType<typeof
     comic: comicView({ category: "", type: "post", title: "A sample card", subtitle: "A subtitle", body: "Your text appears here.", poll_options: [], comic: EMPTY_COMIC }, { code: context.code, fallback: context.fallback, index: 0 }) };
   const pic = it.media.find((m) => m.type === "image")?.url ?? it.media.find((m) => m.thumb)?.thumb ?? "";
   return {
-    award: awardView(it, { fallback: context.fallback, index: 0, owner: context.passenger }),
+    award: awardView(it, { fallback: context.fallback, index: 0, code: context.code, hasPic: !!pic, owner: context.passenger }),
     title: it.title,
     subtitle: it.subtitle,
     body: excerpt(it.body, 600),

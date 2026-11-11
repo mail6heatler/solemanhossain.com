@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { AWARD_LOOKS, AWARD_TEXT_MAX, awardLookOf, jobFromTitle, type AwardInfo, type AwardLook } from "@/lib/awardItem";
 
 const HINTS: Record<AwardLook, string> = {
-  trophy: "A gold trophy on a shelf, for the very best ones. Its story goes under the shelf.",
-  cert: "Add a picture under Photos and it becomes the certificate, whatever its shape. With no picture, one with your name is drawn.",
+  trophy: "A star on the red carpet, for the very best ones. A picture goes with its story, under the star.",
+  cert: "Add a picture under Photos and it fills the gold frame, whatever its shape. With no picture, a certificate with your name, Issued by and Issue date is drawn.",
   id: "Your hero photo goes on the card, or the entry's picture if it has one. Its Status is the stamp. With no Status, it says Now.",
-  plate: "A brass plate from an office door, for a job you've moved on from. Tick I still work here to make it a staff ID.",
-  medal: "A medal on a ribbon. Set the Mood to heavy for a cracked frame instead.",
-  crack: "A hard season, in a cracked frame mended with tape. It stays on the wall, because you made it through.",
+  plate: "The same card faded, for a job you've moved on from. Tick I still work here to make it bright.",
+  medal: "You make the front page of your own newspaper, and a picture becomes its photo. Set the Mood to heavy for a card mended in gold instead.",
+  crack: "A hard season: it cracks apart, comes back together and the gold lines light up.",
 };
 type Text = "position" | "company" | "start" | "end" | "issuer" | "issued" | "expires" | "credential" | "by";
 
