@@ -58,6 +58,10 @@ Every box on an entry's page and a section's page now has a title and an arrow, 
 
 The Saved message was only showing the first time, because a second save in a row didn't change the address. It now shows on every save, at the top of the screen.
 
+### 2026-11-11: Connect made to match the preview exactly, after the owner's check
+
+They said it wasn't finished, that Connect had black space, and that it should look exactly like the preview, and asked for checking. Checked on the live site and on a local copy with sample notes, a testimonial and four Life entries, on a computer and a phone, in Playful and Night. Found and fixed: the side panel and the names over the bubbles shared a class (`.cw-who`), which broke every bubble; the dark side was empty below the links when there are no testimonials (now a note on how the wall works); sizes, borders, colours and the greeting now follow the preview; a pinned testimonial's emoji bar was cut off; the heart doodle sat on a photo's expand button. Their Email, LinkedIn and GitHub links are still the starter placeholders (you@example.com, linkedin.com/in, github.com), which the old Connect hid; told them. A message sent on the local copy showed its bubble, ✓✓, the wall tag and the automatic reply, and kept the name.
+
 ### 2026-11-11: G7 Life becomes scrapbook pages, G8 Connect a chat window (waiting for the owner's keep or undo)
 
 Both drawn on a private preview first (https://claude.ai/artifact/QNXFTU8mekyteVLiZhjh1r). For Life they picked A at once. For Connect they leaned to B, a chat, but found its sending odd and its space empty, and asked for other options built around posting; of D (B redone in one window), E (a feed) and F (paper planes) they picked D. Both switch over by themselves (`done_once`), and the photo grid and the old Connect stay choices under Section settings. Life is still empty, so it says Coming soon until they add entries. Built and published without tests, as they asked. Explained under "Scrapbook pages" and "Chat window" in `CLAUDE.md`. The chat's reply after sending is automatic and says so; the wall tick stays off by default, as on the old form.

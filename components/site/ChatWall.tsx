@@ -87,7 +87,7 @@ export default function ChatWall({ title, owner, avatar, initials, notes, plane 
   let lastDay = "";
   return (
     <section className="cw-main" aria-label={title}>
-      <header className="cw-head"><b>{title}</b><span>🌍 The wall: notes {owner} approved, for everyone to read</span></header>
+      <header className="cw-head"><b>{title}</b><span>🌍 The wall: approved notes, everyone can read them</span></header>
       <div className="scrolly cw-thread" ref={thread} aria-live="polite">
         <div className="cw-flow">
           {notes.length === 0 && <span className="cw-day">No notes on the wall yet. Yours could be the first.</span>}
@@ -97,13 +97,13 @@ export default function ChatWall({ title, owner, avatar, initials, notes, plane 
             return (
               <div key={n.id} className="cw-group">
                 {day && <span className="cw-day">{day}</span>}
-                <div className="cw-msg"><i className="cw-ini" style={{ "--c": tint(n.name) } as React.CSSProperties}>{first(n.name)}</i><div><span className="cw-who">{n.name}</span><p>{n.body}</p></div></div>
+                <div className="cw-msg"><i className="cw-ini" style={{ "--c": tint(n.name) } as React.CSSProperties}>{first(n.name)}</i><div><span className="cw-by">{n.name}</span><p>{n.body}</p></div></div>
               </div>
             );
           })}
           <div className="cw-msg owner">
             <i className="cw-ini">{avatar ? <img src={avatar} alt="" loading="lazy" /> : initials}</i>
-            <div><span className="cw-who">{owner}</span><p>{title}</p><p>Write anything below. I read every message.</p></div>
+            <div><span className="cw-by">{owner}</span><p>{title} Write anything below. I read every message.</p></div>
           </div>
           {outs.map((o) => {
             const reply = replies.find((r) => r.key === o.key);
@@ -112,7 +112,7 @@ export default function ChatWall({ title, owner, avatar, initials, notes, plane 
                 <div className={`cw-msg you${o.phase === "failed" ? " failed" : ""}`}>
                   <i className="cw-ini" style={{ "--c": tint(o.name) } as React.CSSProperties}>{first(o.name)}</i>
                   <div>
-                    <span className="cw-who">{o.name}</span>
+                    <span className="cw-by">{o.name}</span>
                     <p>{o.body}</p>
                     <span className={`cw-st${o.phase === "inbox" ? " read" : ""}`}>
                       {o.phase === "sending" ? "Sending…" : o.phase === "sent" ? "✓ Sent" : o.phase === "inbox" ? `✓✓ In ${owner}’s inbox` : `Not sent: ${o.error}`}
@@ -144,7 +144,7 @@ export default function ChatWall({ title, owner, avatar, initials, notes, plane 
         </div>
         <div className="hp" aria-hidden><input name="website" tabIndex={-1} autoComplete="off" /></div>
         <div className="cw-row">
-          <label className="cw-wall" title={`Shows it on the public wall once ${owner} approves it`}><input type="checkbox" name="public" /><span>📌<em> Pin on the wall</em></span></label>
+          <label className="cw-wall" title={`Shows it on the public wall once ${owner} approves it`}><input type="checkbox" name="public" /><span>📌<em> Wall</em></span></label>
           <label className="sr-only" htmlFor="cw-message">Your message</label>
           <textarea id="cw-message" ref={box} name="message" rows={1} placeholder="What’s on your mind?" required maxLength={2000} onKeyDown={onKey} defaultValue={state?.values?.message ?? ""} />
           <button ref={send} className={`cw-send${pending ? " busy" : ""}`} aria-label="Send" disabled={pending}>

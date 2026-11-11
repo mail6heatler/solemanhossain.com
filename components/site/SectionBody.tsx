@@ -95,6 +95,13 @@ function medalFor(it: Item) {
 
 const fileName = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "project";
 const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+/** What a link is for, under its name in the chat's contacts; anything unknown shows where it goes. */
+const LINK_NOTES: Record<string, string> = {
+  mail: "Write to me directly", "brand-linkedin": "Work and career", "brand-github": "What I'm building", "brand-x": "Thoughts, short and often", "brand-twitter": "Thoughts, short and often",
+  "brand-instagram": "Pictures from my days", "brand-facebook": "Friends and family", "brand-youtube": "Videos", "brand-tiktok": "Short videos", "brand-whatsapp": "Message me",
+  "brand-telegram": "Message me", phone: "Call me", world: "My other corner of the web", "brand-dribbble": "Designs", "brand-behance": "Designs", "brand-medium": "Longer writing",
+};
+const linkNote = (s: { icon: string; url: string }) => LINK_NOTES[s.icon] ?? linkHint(s.url);
 const linkHint = (url: string) => (url.startsWith("mailto:") ? url.slice(7).split("?")[0] : url.startsWith("tel:") ? url.slice(4) : shortUrl(url));
 
 /** A project with no picture still fills its window: its own details, written as a few lines of code. */
@@ -153,40 +160,41 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "me";
     const notes = (wall ?? []).slice().reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) }));
     return (
-      <div className={`cw reveal r3${items.length ? " has-pins" : ""}`}>
-        <div className="cw-who">
-          <div className="cw-me">
-            <i className="cw-face">{settings.avatarUrl ? <img src={settings.avatarUrl} alt="" loading="lazy" /> : settings.initials || owner.slice(0, 1)}</i>
-            <div><b>{owner}</b>{settings.fullName && settings.fullName !== owner && <small>{settings.fullName}</small>}<span className="cw-online">reads every message</span></div>
-          </div>
+      <div className="cw reveal r3">
+        <div className="cw-side">
+          <i className="cw-face">{settings.avatarUrl ? <img src={settings.avatarUrl} alt="" loading="lazy" /> : settings.initials || owner.slice(0, 1)}</i>
+          <div className="cw-me"><b>{owner}</b>{settings.fullName && settings.fullName !== owner && <small>{settings.fullName}</small>}<span className="cw-online">● reads every message</span></div>
           {settings.socials.length > 0 && (
             <>
               <h3 className="cw-h">Other ways to reach me</h3>
-              <div className="cw-links">
-                {settings.socials.map((s, i) => (
-                  <a key={i} className="cw-link" href={s.url} {...(s.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                    <i className={`ti ti-${s.icon}`} aria-hidden /><span><b>{s.label}</b><small>{linkHint(s.url)}</small></span>
-                  </a>
-                ))}
-              </div>
+              {settings.socials.map((s, i) => (
+                <a key={i} className="cw-link" href={s.url} {...(s.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                  <i className={`ti ti-${s.icon}`} aria-hidden /><span><b>{s.label}</b><small>{linkNote(s)}</small></span>
+                </a>
+              ))}
             </>
           )}
         </div>
-        {items.length > 0 && (
-          <div className="cw-pins" data-lenis-prevent>
-            {items.map((it) => { const l = lookFor(it); return (
+        <div className="cw-pins" data-lenis-prevent>
+          <div className="cw-pins-in">
+            {items.length > 0 ? items.map((it) => { const l = lookFor(it); return (
               <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
                 <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
                   <CardLink to={href(section, it)} label={it.title} />
-                  <span className="cw-pin-lab">⭐ Pinned{it.category ? ` · ${it.category}` : ""}</span>
+                  <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
                   <p className="cw-quote">{it.body || it.title}</p>
-                  <div className="by">— {it.subtitle || it.title}</div>
+                  <div className="by">{it.subtitle || it.title}</div>
                   <LinkButtons it={it} />
                 </Box>
               </div>
-            ); })}
+            ); }) : (
+              <div className="cw-note">
+                <b>📌 The wall</b>
+                Messages land in my inbox. Tap 📌 when you write, and once I approve it, everyone can read it in this chat.
+              </div>
+            )}
           </div>
-        )}
+        </div>
         <ChatWall title={settings.connectFormTitle} owner={owner} avatar={settings.avatarUrl} initials={settings.initials || owner.slice(0, 1)} notes={notes} plane={fx.plane} />
       </div>
     );
