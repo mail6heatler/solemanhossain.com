@@ -2709,6 +2709,138 @@ html.lite .aw-cone, html.lite .arf-fill { display: none; }
   .aw, .aw * { animation: none !important; }
 }
 
+/* --- G1: each note is the card its Subsection names (lib/cardLook.ts): an instruction manual (.note-manual), a protest sign (.note-sign), a story
+   (.note-story) and a collectible card (.note-fact); anything else is the plain note. Paper, wood, the stone-free sign board and the card's rainbow edge are
+   materials, the same in every theme; text on them renames the colour tokens, as the book's panel does. Movement is under the notefx switch --- */
+.note-manual { --fg: #2a2230; --text-2: #3e3446; --muted: #7a6f80; --muted-2: #7a6f80; --line: #e3dccf; --card: #fdfbf6; --bg: #f3eee4; --mint-deep: #2f7a52; color: var(--fg); border: 1px solid #d9d2c6; border-radius: 6px 18px 18px 6px; background: repeating-linear-gradient(transparent 0 27px, rgba(42,34,48,.05) 27px 28px), #fdfbf6; }
+.note-manual::after { content: ""; position: absolute; right: 0; top: 0; z-index: 2; width: 40px; height: 40px; border-bottom-left-radius: 6px; background: linear-gradient(225deg, transparent 50%, #e6ddcd 50%); box-shadow: -2px 2px 4px rgba(0,0,0,.12); pointer-events: none; }
+.mn-top { display: flex; align-items: center; gap: 12px; padding: 0 30px 10px 0; border-bottom: 3px double var(--fg); }
+.mn-top > div { min-width: 0; }
+.mn-ph { flex: none; display: grid; place-items: center; width: 56px; height: 56px; overflow: hidden; border: 2px solid var(--fg); border-radius: 50%; background: linear-gradient(135deg, var(--pop2), var(--pop3)); color: #fff; font: 700 18px/1 var(--display); font-style: normal; }
+.mn-ph img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 14%; }
+.mn-top small { display: block; color: var(--muted); font: 700 10px/1.3 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.note.note-manual .mn-top h3 { margin: 2px 0 0; }
+.mn-spec { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 12px; margin: 0; font: 400 12px/1.4 "JetBrains Mono", ui-monospace, monospace; }
+.mn-spec div { display: contents; }
+.mn-spec dt { color: var(--muted); }
+.mn-spec dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.mn-steps { counter-reset: step; }
+.mn-steps > p, .mn-steps > :is(ul, ol) > li { position: relative; padding-left: 28px; list-style: none; counter-increment: step; }
+.mn-steps > :is(ul, ol) { padding-left: 0; }
+.mn-steps > p::before, .mn-steps > :is(ul, ol) > li::before { content: counter(step); position: absolute; left: 0; top: .15em; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; background: var(--fg); color: #fdfbf6; font: 700 10px/1 "JetBrains Mono", ui-monospace, monospace; }
+.mn-warn { position: absolute; z-index: 3; right: 14px; bottom: 60px; padding: 6px 9px; border: 2px solid #2a2230; background: #ffd84a; color: #2a2230; font: 700 10.5px/1.15 "JetBrains Mono", ui-monospace, monospace; text-transform: uppercase; rotate: -8deg; box-shadow: 2px 2px 0 #2a2230; pointer-events: none; }
+.mn-warn::before { content: "⚠ "; }
+.note-sign { --paint: var(--mood, #e23b45); }
+.sg-board { position: relative; display: grid; place-items: center; min-height: 140px; padding: 20px 16px; border: 3px solid #6b4a2a; border-radius: 6px; background: #fffaf0; box-shadow: 0 8px 0 color-mix(in srgb, var(--fg) 12%, transparent); text-align: center; transform-origin: 50% 100%; }
+.sg-board::before, .sg-board::after { content: ""; position: absolute; top: 8px; width: 9px; height: 9px; border-radius: 50%; background: #9aa3ad; }
+.sg-board::before { left: 9px; } .sg-board::after { right: 9px; }
+.note.note-sign .sg-board h3, .note.note-sign:hover .sg-board h3 { margin: 0; color: color-mix(in srgb, var(--paint) 82%, #2a1840); font: 400 calc(30px * var(--fs, 1))/1.08 "Permanent Marker", "Segoe Print", cursive; text-wrap: balance; overflow-wrap: break-word; }
+.sg-stick { display: block; align-self: center; width: 16px; height: 46px; margin: -12px 0 2px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, #8a5a34, #b98150, #8a5a34); }
+.note-story { --fg: #fff; --text-2: rgba(255,255,255,.92); --muted: rgba(255,255,255,.78); --muted-2: rgba(255,255,255,.7); --line: rgba(255,255,255,.24); --card: rgba(20,10,30,.62); --bg: rgba(255,255,255,.14); --mint-deep: #9df3c4; isolation: isolate; border: 0; background: linear-gradient(160deg, var(--mood, #ff5ca8), #2a1840); color: #fff; }
+.sy-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; }
+.sy-bg .sy-img { display: block; width: 100%; height: 100%; max-height: none; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 30%); }
+.sy-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.4), transparent 26%, transparent 38%, rgba(16,8,26,.9) 76%); }
+.note-story > .scroll-wrap .more-hint { background: linear-gradient(transparent, rgba(16,8,26,.9)); }
+.note-story .flow { min-height: 100%; }
+.note-story .card-foot { background: rgba(16,8,26,.55); }
+.note-story > .pic-zoom { top: 12px; right: 12px; bottom: auto; z-index: 5; }
+.sy-segs { display: flex; gap: 4px; }
+.sy-segs i { position: relative; flex: 1; height: 3px; overflow: hidden; border-radius: 2px; background: rgba(255,255,255,.4); }
+.sy-segs i::after { content: ""; position: absolute; inset: 0; background: #fff; transform-origin: 0 50%; scale: 0 1; }
+.sy-segs i.on::after { scale: 1 1; }
+.sy-user { display: flex; align-items: center; gap: 8px; margin-bottom: auto; font-size: 14px; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+.sy-user small { font-weight: 400; opacity: .85; }
+.sy-face { flex: none; display: grid; place-items: center; width: 34px; height: 34px; overflow: hidden; padding: 2px; border-radius: 50%; background: conic-gradient(var(--pop2), #f2c14e, var(--pop3), var(--pop2)); font: 700 13px/1 var(--display); font-style: normal; }
+.sy-face img { width: 100%; height: 100%; border: 2px solid #000; border-radius: 50%; object-fit: cover; object-position: 50% 14%; }
+.sy-tag { align-self: flex-start; padding: 6px 12px; border-radius: 12px; background: #fff; color: #2a1840; font: 700 14px/1.1 var(--display); rotate: -3deg; }
+.note.note-story h3, .note.note-story:hover h3 { color: #fff; font-size: calc(26px * var(--fs, 1)); text-shadow: 0 2px 12px rgba(0,0,0,.4); }
+.note-fact { border: 7px solid transparent; border-radius: 22px; background: linear-gradient(var(--card), var(--card)) padding-box, conic-gradient(from 210deg, #ff9ecb, #ffe08a, #9df3c4, #8fd8ff, #c6a8ff, #ff9ecb) border-box; }
+.note-fact .flow { padding: 16px; }
+.fc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 700 12px/1 "JetBrains Mono", ui-monospace, monospace; }
+.fc-rar { max-width: 60%; overflow: hidden; padding: 3px 8px; border-radius: 99px; background: var(--fg); color: #f2c14e; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.note-fact .pic-box, .fc-art { position: relative; flex: none; overflow: hidden; border: 2px solid var(--fg); border-radius: 10px; }
+.fc-art { height: 120px; background: radial-gradient(circle at 74% 26%, hsl(calc(var(--h) * 1deg) 90% 88%) 0 9%, transparent 9.5%), linear-gradient(hsl(calc(var(--h) * 1deg) 80% 72%), hsl(calc(var(--h) * 1deg + 60deg) 70% 46%)); }
+.note-fact .pic-box::after, .fc-art::after { content: ""; position: absolute; inset: 0; z-index: 2; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.6) 48%, transparent 60%); translate: -120% 0; pointer-events: none; }
+.fc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 6px; }
+.fc-stats div { padding: 5px 4px; border: 1.5px solid var(--fg); border-radius: 8px; color: var(--muted); font: 700 9.5px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .06em; text-align: center; text-transform: uppercase; }
+.fc-stats b { display: block; color: var(--fg); font: 700 13.5px/1.2 var(--display); letter-spacing: 0; text-transform: none; overflow-wrap: anywhere; }
+.site.fx-notefx .note.seen .mn-warn { animation: nt-slap .5s cubic-bezier(.2,1.6,.4,1) .45s backwards; }
+.site.fx-notefx .note-manual:hover .mn-warn { animation: nt-slap2 .45s cubic-bezier(.2,1.6,.4,1); }
+.site.fx-notefx .note-sign.seen .sg-board { animation: nt-wave 1.6s ease-in-out .3s; }
+.site.fx-notefx .note-sign:hover .sg-board { animation: nt-wave2 1.4s ease-in-out; }
+.site.fx-notefx .note-story.seen .sy-segs i.on::after { animation: nt-seg 2.6s linear .2s backwards; }
+.site.fx-notefx .note-story.seen .sy-tag { animation: nt-slap .5s cubic-bezier(.2,1.6,.4,1) .6s backwards; }
+.site.fx-notefx .note-fact.seen :is(.pic-box, .fc-art)::after { animation: nt-shine 1.2s ease .4s; }
+.site.fx-notefx .note-fact:hover :is(.pic-box, .fc-art)::after { animation: nt-shine2 1s ease; }
+@keyframes nt-slap { from { scale: 2.2; opacity: 0; } }
+@keyframes nt-slap2 { 40% { scale: 1.25; } }
+@keyframes nt-wave { 20% { rotate: -6deg; } 45% { rotate: 5deg; } 70% { rotate: -3deg; } }
+@keyframes nt-wave2 { 25% { rotate: 5deg; } 55% { rotate: -4deg; } 80% { rotate: 2deg; } }
+@keyframes nt-seg { from { scale: 0 1; } }
+@keyframes nt-shine { to { translate: 120% 0; } }
+@keyframes nt-shine2 { to { translate: 120% 0; } }
+html.lite :is(.note-manual, .note-sign, .note-story, .note-fact) * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { :is(.note-manual, .note-sign, .note-story, .note-fact), :is(.note-manual, .note-sign, .note-story, .note-fact) * { animation: none !important; } }
+
+/* --- G2: each window is the app its Subsection names (lib/cardLook.ts): a spreadsheet (.wapp-sheet), a code editor with a terminal (.wapp-code), a notes app
+   (.wapp-notes) and a pocket games console (.wapp-console); anything else is the browser window. The spreadsheet green, the sticky notes, the terminal and
+   the console's plastic and screen are materials. Movement is under the windowfx switch, played as a window arrives --- */
+.wa-sheet { display: grid; gap: 8px; padding: 10px 12px 2px; font: 400 11.5px/1.2 "JetBrains Mono", ui-monospace, monospace; }
+.wa-fx { display: flex; gap: 8px; min-width: 0; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; }
+.wa-fx b { color: #1f8a4c; }
+.wa-fx span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wa-grid { display: grid; grid-template-columns: 24px minmax(0, .8fr) minmax(0, 1.4fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.wa-grid span { overflow: hidden; padding: 5px 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-overflow: ellipsis; white-space: nowrap; }
+.wa-grid .h { background: color-mix(in srgb, var(--fg) 6%, var(--card)); color: var(--muted); font-weight: 700; text-align: center; }
+.wa-grid .sel { outline: 2px solid #1f8a4c; outline-offset: -2px; background: color-mix(in srgb, #1f8a4c 14%, var(--card)); font-weight: 700; }
+.wa-spark { width: 100%; height: 36px; }
+.wa-spark path { fill: none; stroke: #1f8a4c; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.wa-term { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; padding: 8px 12px; background: #0f0b14; color: #cfc6dc; font: 400 11.5px/1.5 "JetBrains Mono", ui-monospace, monospace; }
+.wa-term .run { color: #f2c14e; }
+.wa-term .ok { color: #7ee8a2; }
+.wa-term .busy { color: #8fd8ff; }
+.wa-cur { display: inline-block; width: 7px; height: 12px; background: #7ee8a2; }
+.wa-notes { display: grid; grid-template-columns: 86px minmax(0, 1fr); min-height: 168px; border-bottom: 1px solid var(--line); }
+.wa-folders { display: grid; align-content: start; gap: 3px; padding: 8px; border-right: 1px solid var(--line); background: color-mix(in srgb, #f2c14e 9%, var(--card)); font-size: 11.5px; }
+.wa-folders span { overflow: hidden; padding: 4px 6px; border-radius: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.wa-folders span.on { background: color-mix(in srgb, #f2c14e 45%, var(--card)); }
+.wa-board { display: flex; flex-direction: column; gap: 9px; padding: 10px; }
+.wa-sticky { align-self: flex-start; max-width: 94%; padding: 8px 10px; color: #3a2c18; font: 700 18px/1.1 "Caveat", "Segoe Print", cursive; box-shadow: 0 6px 10px -6px rgba(0,0,0,.35); overflow-wrap: anywhere; }
+.wa-sticky.s0 { background: #ffe08a; rotate: -3deg; }
+.wa-sticky.s1 { align-self: flex-end; background: #c9efff; rotate: 2deg; }
+.wa-sticky.s2 { background: #ffd0e4; rotate: -1deg; }
+.wa-console { position: relative; flex: none; display: grid; justify-items: center; gap: 7px; padding: 14px 16px 10px; border-bottom: 2px solid #a9aeb7; border-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: linear-gradient(#dcdfe5, #c4c8cf); }
+.wa-screen { width: 100%; padding: 10px; border-radius: 10px 10px 26px 10px; background: #4a4f5c; }
+.wa-lcd { display: grid; gap: 4px; min-height: 112px; padding: 8px 10px; border-radius: 4px; background: #9bbc5a; color: #26360f; font: 700 11.5px/1.25 "JetBrains Mono", ui-monospace, monospace; text-transform: uppercase; }
+.wa-lcd b { font-size: 14px; overflow-wrap: anywhere; }
+.wa-lcd a { position: relative; z-index: 2; overflow: hidden; color: #26360f; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.wa-lcd a:hover { text-decoration: underline; }
+.wa-blocks { display: flex; gap: 3px; }
+.wa-blocks i { width: 9px; height: 9px; background: rgba(38,54,15,.18); }
+.wa-blocks i.on { background: #26360f; }
+.wa-brand { display: flex; justify-content: space-between; width: 100%; color: #3d3f73; font: italic 700 12px/1 var(--display); letter-spacing: .12em; }
+.wa-brand em { color: #a3264f; font-style: normal; letter-spacing: 0; }
+.wa-ctrl { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 6px 2px; }
+.wa-dpad { position: relative; width: 44px; height: 44px; }
+.wa-dpad::before, .wa-dpad::after { content: ""; position: absolute; border-radius: 3px; background: #2c2c34; }
+.wa-dpad::before { left: 15px; top: 0; width: 14px; height: 44px; } .wa-dpad::after { left: 0; top: 15px; width: 44px; height: 14px; }
+.wa-ab { display: flex; gap: 8px; rotate: -20deg; }
+.wa-ab i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #a3264f; color: #fff; font: 700 10px/1 var(--display); font-style: normal; }
+.site.fx-windowfx .win.seen .wa-grid .sel { animation: nt-slap .45s cubic-bezier(.2,1.6,.4,1) .5s backwards; }
+.site.fx-windowfx .win.seen .wa-spark { animation: wa-in .7s ease .7s backwards; }
+.site.fx-windowfx .win.seen .wa-term > * { animation: wa-in .35s ease backwards; }
+.site.fx-windowfx .win.seen .wa-term .run { animation-delay: .5s; }
+.site.fx-windowfx .win.seen .wa-term :is(.ok, .busy) { animation-delay: 1.1s; }
+.site.fx-windowfx .win.seen .wa-term .wa-cur { animation-delay: 1.3s; }
+.site.fx-windowfx .win.seen .wa-sticky { animation: wa-drop .5s cubic-bezier(.2,1.5,.4,1) backwards; }
+.site.fx-windowfx .win.seen .wa-sticky.s0 { animation-delay: .4s; }
+.site.fx-windowfx .win.seen .wa-sticky.s1 { animation-delay: .6s; }
+.site.fx-windowfx .win.seen .wa-sticky.s2 { animation-delay: .8s; }
+.site.fx-windowfx .win.seen .wa-blocks i { animation: wa-in .2s steps(1) backwards; animation-delay: calc(.4s + var(--n) * .09s); }
+@keyframes wa-in { from { opacity: 0; translate: 0 6px; } }
+@keyframes wa-drop { from { opacity: 0; translate: 0 -24px; } }
+@media (prefers-reduced-motion: reduce) { :is(.wa-sheet, .wa-term, .wa-notes, .wa-console) * { animation: none !important; } }
+
 /* --- G7: scrapbook pages. Each entry is a page torn from a scrapbook, the one its Subsection names (ScrapFrame.tsx): a diary page with a taped photo, a scrap
    of map with a pin, a habit tracker, a pile of photos. The page is the theme's own card, ruled and punched, so a dark theme gets a black-page album; tape, label
    strips, the map and photo borders are materials, the same in every theme. A pencil travels along the bottom and wakes the page it reaches. Everything that

@@ -18,6 +18,7 @@ import StudyPanel from "@/components/admin/StudyPanel";
 import ComicPanel from "@/components/admin/ComicPanel";
 import AwardDetails from "@/components/admin/AwardDetails";
 import ScrapPanel from "@/components/admin/ScrapPanel";
+import CardLookPanel from "@/components/admin/CardLookPanel";
 import { tripContext } from "@/components/site/TripFrame";
 
 type P = { params: Promise<{ id: string }> };
@@ -66,6 +67,8 @@ export default async function ItemEditor({ params }: P) {
                 {section?.layout === "study" && <div className="hint">Its name picks the object: books give a book; songs, music, podcasts, radio, video, film, listening or watching give a TV player; people give a framed portrait; the internet gives a phone; and anything else a note. You can also choose under On the shelf.</div>}
                 {section?.layout === "awards" && <div className="hint">Its name picks the card: hall of fame gets a star on the red carpet; skills, certificates, courses or degrees a certificate; career, jobs or milestones an RFID staff card, bright if you still work there and faded if not; and anything else a newspaper front page, or a card mended in gold if its Mood is heavy. You can also choose one under Details, below.</div>}
                 {section?.layout === "comic" && <div className="hint">Its name picks the panel: hot takes get a shout with flames; poems a night sky; sayings a fridge door; on repeat a spinning record; vibing waves in the Mood&apos;s colour; a brain dump a bin; chaos scraps of paper; quick fire a quiz show; and anything else a speech bubble. A poll under overrated or underrated gets a balance scale, and any other poll goes by how many options it has. You can also choose one under In the comic, below.</div>}
+                {section?.layout === "notes" && <div className="hint">Its name picks the card: the unfiltered manual (or about, bio, who) gets an instruction manual; beliefs or values a protest sign; currently obsessed with (or now, playing, watching, reading) a story; random facts a collectible card; and anything else a plain note. You can also choose one under Card look, below.</div>}
+                {section?.layout === "windows" && <div className="hint">Its name picks the app: data or storytelling gets a spreadsheet; code or problem solving a code editor with a terminal; brain dumps or ideas a notes app; side quests or games a pocket games console; and anything else a browser window. You can also choose one under Card look, below.</div>}
                 {section?.layout === "scrapbook" && <div className="hint">Its name picks the page: a photo diary gets a diary page with a taped photo; where you&apos;ve lived (or homes, houses, cities) a scrap of map with a pin; rituals, habits or routines a habit tracker; random snapshots a pile of photos under a paperclip; and anything else a diary page. You can also choose one under On the page, below.</div>}
                 {section?.layout === "tickets" && <div className="hint">Its name picks the frame: a quest gets a camera, a bucket list a note with ticks, “Through my eyes” a polaroid, “Moments” a postcard, and anything else a ticket.</div>}
               </div>
@@ -135,6 +138,7 @@ export default async function ItemEditor({ params }: P) {
         </Box>
         {section?.layout === "study" && <StudyPanel open={open("panel")} initial={item.study} category={item.category} />}
         {section?.layout === "scrapbook" && <ScrapPanel open={open("panel")} initial={item.scrap} category={item.category} />}
+        {(section?.layout === "notes" || section?.layout === "windows") && <CardLookPanel open={open("panel")} initial={item.card} category={item.category} kind={section.layout} />}
         {section?.layout === "comic" && <ComicPanel open={open("panel")} initial={item.comic} title={item.title} category={item.category} isPoll={isPoll} options={item.poll_options} hasPic={item.media.some((m) => m.type !== "audio")} />}
         {section?.layout === "tickets" && <TripPanel open={open("panel")} initial={item.pass} category={item.category} title={item.title} place={item.location} home={trip.home} passenger={trip.passenger} />}
       </form>

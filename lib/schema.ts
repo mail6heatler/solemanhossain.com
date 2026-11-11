@@ -63,6 +63,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS award TEXT NOT NULL DEFAULT '{}'`,
   // which page an entry is in a Scrapbook, if the owner chose one, and a ritual's ticked days (lib/scrapItem.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS scrap TEXT NOT NULL DEFAULT '{}'`,
+  // which card a G1 note or a G2 window is, if the owner chose one (lib/cardLook.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS card TEXT NOT NULL DEFAULT '{}'`,
   // which of the reaction bar's extra features this entry has switched on (lib/talk.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS talk TEXT NOT NULL DEFAULT '{}'`,
   // which boxes on its dashboard page are open, as last saved (lib/boxes.ts)

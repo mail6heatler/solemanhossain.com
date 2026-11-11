@@ -18,6 +18,7 @@ import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
 import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
 import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
+import { noteLookOf, questProgress, winLookOf } from "@/lib/cardLook";
 import { FlyingBrain } from "./comicArt";
 import ComicPoll from "./ComicPoll";
 import TvPlay from "./TvPlay";
@@ -468,26 +469,78 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     ));
   }
 
-  if (L === "notes")
+  // G1: each note is the card its subsection names (lib/cardLook.ts): an instruction manual, a protest sign, a story, a collectible card, or the plain note
+  if (L === "notes") {
+    const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "";
+    const face = settings.avatarUrl ? <img src={settings.avatarUrl} alt="" loading="lazy" /> : (settings.initials || owner.slice(0, 1));
+    const perSub = new Map<string, number>(), factNo = new Map<number, number>();
+    for (const it of items) { perSub.set(it.category, (perSub.get(it.category) ?? 0) + 1); factNo.set(it.id, perSub.get(it.category)!); }
     return row("notes", (
       <>
-        {items.map((it, i) => { const l = lookFor(it); return (
-          <div key={it.id} className={`note ${i === 0 && it.body.length > 280 ? "wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
-            <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-              <CardLink to={href(section, it)} label={it.title} />
+        {items.map((it, i) => {
+          const l = lookFor(it);
+          const look = noteLookOf(it.category, it.card.look);
+          const m = l.hide("pic") ? undefined : it.media.find((x) => x.type !== "audio");
+          const pics = it.media.filter((x) => x.type !== "audio").length;
+          const mood = MOODS[it.mood];
+          const date = l.hide("date") ? "" : it.date_label, place = l.hide("date") ? "" : it.location;
+          const picBox = m ? <div className="pic-box"><Cover m={m} className="note-media" style={vt(it.id)} />{m.type === "pdf" && <MediaBadges media={[m]} />}{zoom(it)}</div> : null;
+          const sub = it.subtitle && !l.hide("subtitle") ? <p className="sub">{it.subtitle}</p> : null;
+          const text = it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className={look === "manual" ? "md mn-steps" : "md"}>{it.body}</Markdown>;
+          const tags = it.tags.length > 0 && !l.hide("tags") ? <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div> : null;
+          const style = mood ? ({ ...l.style, "--mood": mood.color } as React.CSSProperties) : l.style;
+          let inner: React.ReactNode;
+          if (look === "manual") {
+            const spec = [["Model", owner], ["Made in", place], ["Runs on", l.hide("tags") ? "" : it.tags.join(", ")], ["Mood", mood ? `${mood.emoji} ${mood.label}` : ""], ["Status", it.status]].filter(([, v]) => v);
+            inner = <>
+              <div className="mn-top"><i className="mn-ph">{face}</i><div><small>{it.category || "User manual"}{date ? ` · v ${date}` : ""}</small><h3>{it.title}</h3></div></div>
+              {sub}
+              {spec.length > 0 && <dl className="mn-spec">{spec.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
+              {picBox}{text}<LinkButtons it={it} />
+            </>;
+          } else if (look === "sign") {
+            inner = <>
+              <div className="sg-board"><h3>{it.title}</h3></div><i className="sg-stick" aria-hidden />
               {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
-              <h3>{it.title}</h3>
-              {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
-              <Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />
-              {it.media[0] && !l.hide("pic") && <div className="pic-box"><Cover m={it.media[0]} className="note-media" />{it.media[0].type === "pdf" && <MediaBadges media={[it.media[0]]} />}{zoom(it)}</div>}
-              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown>{it.body}</Markdown>}
-              <LinkButtons it={it} />
-              {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-            </Box>
-          </div>
-        ); })}
+              {sub}<Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />{picBox}{text}<LinkButtons it={it} />{tags}
+            </>;
+          } else if (look === "story") {
+            inner = <>
+              <div className="sy-segs" aria-hidden>{Array.from({ length: Math.max(1, Math.min(6, pics)) }, (_, n) => <i key={n} className={n === 0 ? "on" : undefined} />)}</div>
+              <div className="sy-user"><i className="sy-face">{face}</i><span>{owner}{[date, place].filter(Boolean).length > 0 && <small> · {[date, place].filter(Boolean).join(" · ")}</small>}</span></div>
+              {it.category && <span className="sy-tag">{it.category}</span>}
+              <h3>{it.title}</h3>{sub}<Meta it={it} showCat={false} hideDate showStatus />{text}<LinkButtons it={it} />{tags}
+            </>;
+          } else if (look === "fact") {
+            const stats = [["When", date], ["Where", place], ["Mood", mood ? `${mood.emoji} ${mood.label}` : ""]].filter(([, v]) => v);
+            inner = <>
+              <div className="fc-top"><span>{it.category ? "Fact" : "Card"} #{String(factNo.get(it.id) ?? i + 1).padStart(2, "0")}</span><span className="fc-rar">★ {it.status || "Rare"}</span></div>
+              {picBox ?? <div className="fc-art" style={{ "--h": (it.id * 47) % 360 } as React.CSSProperties} aria-hidden />}
+              <h3>{it.title}</h3>{sub}{text}
+              {stats.length > 0 && <div className="fc-stats">{stats.map(([k, v]) => <div key={k}><b>{v}</b>{k}</div>)}</div>}
+              <LinkButtons it={it} />{tags}
+            </>;
+          } else {
+            inner = <>
+              {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
+              <h3>{it.title}</h3>{sub}<Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />{picBox}{text}<LinkButtons it={it} />{tags}
+            </>;
+          }
+          return (
+            <div key={it.id} className={`note note-${look}${look === "plain" && i === 0 && it.body.length > 280 ? " wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={style}>
+              {look === "story" && <div className="sy-bg" aria-hidden>{m && <Cover m={m} className="sy-img" style={vt(it.id)} />}</div>}
+              <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+                <CardLink to={href(section, it)} label={it.title} />
+                {inner}
+              </Box>
+              {look === "story" && m && zoom(it)}
+              {look === "manual" && <span className="mn-warn" aria-hidden>Handle with care</span>}
+            </div>
+          );
+        })}
       </>
     ));
+  }
 
   // trips as boarding passes on a route, with a little vehicle travelling along it
   if (L === "tickets") {
@@ -695,14 +748,35 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
 
   // projects as app windows on a desktop, with a dock of icons below
   if (L === "windows") {
+    // each window is the app its subsection names (lib/cardLook.ts): a spreadsheet, a code editor, a notes app, a pocket games console, or the browser
     const windows = items.map((it) => {
       const l = lookFor(it);
+      const look = winLookOf(it.category, it.card.look);
       const pic = it.media[0] && !l.hide("pic");
       const link = it.links.find((x) => /^https?:/.test(x.url));
-      const code = !it.media[0] && !l.hide("pic") && it.type !== "poll"; // its tags are then in the code
+      const code = (look === "browser" || look === "code") && !it.media[0] && !l.hide("pic") && it.type !== "poll"; // its tags are then in the code
       const status = it.status && !(it.pinned && /feature/i.test(it.status)) ? it.status : "";
+      const file = fileName(it.title);
+      const rows = look === "sheet" ? [["Project", it.title], ["Status", status], ["When", l.hide("date") ? "" : it.date_label], ["Where", l.hide("date") ? "" : it.location], ["Tools", l.hide("tags") ? "" : it.tags.join(", ")], ["Link", link ? shortUrl(link.url) : ""]].filter(([, v]) => v) : [];
+      const raw = look === "notes" ? it.body.split("\n").map((x) => x.trim()).filter(Boolean) : [];
+      const stickies = raw.slice(0, 3).map((x) => x.replace(/^(?:[-*+]|\d+\.)\s+/, "").replace(/[*_`#>]/g, "").trim()).filter(Boolean);
+      const body = look === "notes" ? raw.slice(3).join("\n") : it.body;
+      const q = questProgress(status);
+      const hideTags = l.hide("tags") || code || look === "sheet" || look === "notes";
       return (
-        <div key={it.id} className={`card win${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
+        <div key={it.id} className={`card win wapp-${look}${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
+          {look === "console" ? (
+            <div className="wa-console">
+              <a className="win-chrome" href={href(section, it)} tabIndex={-1} aria-hidden />
+              <div className="wa-screen"><div className="wa-lcd">
+                <b>{it.title}</b><span>{q.label}</span>
+                <span className="wa-blocks" aria-hidden>{Array.from({ length: 10 }, (_, n) => <i key={n} className={n < q.level ? "on" : undefined} style={{ "--n": n } as React.CSSProperties} />)}</span>
+                {link ? <a href={link.url} target="_blank" rel="noopener noreferrer">▶ {shortUrl(link.url)}</a> : <span>Press ▶ to play</span>}
+              </div></div>
+              <div className="wa-brand"><span>QUEST·BOY</span>{it.pinned && <em>★ featured</em>}</div>
+              <div className="wa-ctrl" aria-hidden><i className="wa-dpad" /><span className="wa-ab"><i>B</i><i>A</i></span></div>
+            </div>
+          ) : (
           <div className="win-head">
             <a className="win-chrome" href={href(section, it)} tabIndex={-1} aria-hidden />
             <div className="win-bar">
@@ -715,20 +789,36 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               <i className={`ti ti-${link ? "lock" : "folder"}`} aria-hidden />
               {link
                 ? <a href={link.url} target="_blank" rel="noopener noreferrer"><span>{shortUrl(link.url)}</span><i className="ti ti-arrow-up-right" aria-hidden /></a>
-                : <span>{`~/${section.slug}/${fileName(it.title)}`}</span>}
+                : <span>{look === "sheet" ? `${file}.xlsx` : look === "notes" ? `notes/${file}.md` : `~/${section.slug}/${file}`}</span>}
             </div>
           </div>
+          )}
           <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
             <CardLink to={href(section, it)} label={it.title} />
             {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
+            {look === "sheet" && rows.length > 0 && (
+              <div className="wa-sheet">
+                <div className="wa-fx"><b>fx</b><span>=STORY(&quot;{it.title}&quot;)</span></div>
+                <div className="wa-grid"><span className="h" /><span className="h">A</span><span className="h">B</span>
+                  {rows.map(([k, v], n) => <div key={k} style={{ display: "contents" }}><span className="h">{n + 1}</span><span>{k}</span><span className={k === "Status" || (!status && k === "Project") ? "sel" : undefined}>{v}</span></div>)}</div>
+                <svg className="wa-spark" viewBox="0 0 280 40" preserveAspectRatio="none" aria-hidden><path d="M4 34 50 28 96 30 142 18 188 21 234 9 276 4" /></svg>
+              </div>
+            )}
+            {look === "notes" && (
+              <div className="wa-notes">
+                <div className="wa-folders">{(it.tags.length && !l.hide("tags") ? it.tags : [it.category || "Notes"]).slice(0, 4).map((t, n) => <span key={t} className={n === 0 ? "on" : undefined}>{t}</span>)}</div>
+                <div className="wa-board">{(stickies.length ? stickies : [it.title]).map((t, n) => <span key={n} className={`wa-sticky s${n}`}>{t}</span>)}</div>
+              </div>
+            )}
             {code && <CodeView it={it} hideSubtitle={l.hide("subtitle")} hideTags={l.hide("tags")} hideDate={l.hide("date")} />}
+            {look === "code" && <div className="wa-term" aria-hidden><span className="run">$ run {file}</span><span className={!status || /done|finish|complete|live|ship/i.test(status) ? "ok" : "busy"}>{!status || /done|finish|complete|live|ship/i.test(status) ? "✓ build passed" : `● ${status}`}</span><i className="wa-cur" /></div>}
             <div className="card-body">
               <h3>{it.title}</h3>
               {it.subtitle && !l.hide("subtitle") && !code && <p className="sub">{it.subtitle}</p>}
-              <Meta it={it} showCat={false} hideDate={l.hide("date") || code} />
-              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
+              <Meta it={look === "console" ? { ...it, status: "" } : it} showCat={false} hideDate={l.hide("date") || code || look === "sheet"} />
+              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{body}</Markdown>}
               <LinkButtons it={it} />
-              {it.tags.length > 0 && !l.hide("tags") && !code && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
+              {it.tags.length > 0 && !hideTags && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
             </div>
           </Box>
         </div>

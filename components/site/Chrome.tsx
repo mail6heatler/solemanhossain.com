@@ -131,7 +131,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 }
 
 /** Effects that are purely CSS: they switch on through a fx-<key> class on the page wrapper. */
-const LOOKS = ["intro", "cardtilt", "spotlight", "ambient", "liquid", "navpill", "sheets", "splittext", "themefx", "reactfx", "windowfx", "tripfx", "studyfx", "comicfx", "awardfx", "scrapfx"] as const;
+const LOOKS = ["intro", "cardtilt", "spotlight", "ambient", "liquid", "navpill", "sheets", "splittext", "themefx", "reactfx", "windowfx", "tripfx", "studyfx", "comicfx", "awardfx", "scrapfx", "notefx"] as const;
 
 export function SiteShell({ settings, sections, onHome, children }:
   { settings: SiteSettings; sections: Section[]; onHome: boolean; children: React.ReactNode }) {

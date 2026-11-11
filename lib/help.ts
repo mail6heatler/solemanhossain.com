@@ -389,6 +389,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "To use it on another section, choose “Achievement wall” as its layout, under Section settings."],
     preview: "/?demo=awardfx",
   },
+  notefx: {
+    title: "Notes: a manual, a protest sign, a story and a collectible card come alive",
+    what: "A section laid out as Notes (like Me) shows each entry as the card its Subsection names: the unfiltered manual (or about, bio, who) gets an instruction manual with your photo on the cover and the text as numbered steps; beliefs or values a hand-painted protest sign; currently obsessed with (or now, playing, watching, reading) a story with its picture filling the card; random facts a shiny collectible card with its number. Anything else stays a plain note. With this on, the cards move as they arrive and when you point at them: the manual opens and its warning sticker slaps on, the sign waves, the story's bars run and its sticker pops, the card tilts and light sweeps across it. Off, the cards stay, without the movement. Each entry's page has a Card look box to choose another card.",
+    how: ["Switch on and save.", "To use it on another section, choose “Notes” as its layout, under Section settings."],
+    preview: "/?demo=notefx",
+  },
   scrapfx: {
     title: "Scrapbook pages: a pencil travels along and each page comes alive",
     what: "A section laid out as Scrapbook pages (like Life) shows each entry as a page torn from a scrapbook, chosen by its Subsection: a photo diary gets a diary page with a taped photo and the date in the corner; where you've lived a scrap of map with a pin and the place on a red label; rituals a habit tracker with its days ticked; random snapshots a pile of photos under a paperclip. Tags are stickers, and the tape takes the colour of the entry's Mood. With this on, a pencil travels along the bottom of the row, and the page it reaches comes alive: it lifts, its tape gets pressed down, the pin drops onto the map, the ticks pop on one by one and the photos fan out. With it off, the pages stay, without the pencil or the movement. Which page an entry gets, and a ritual's ticked days, are on the entry's page in the dashboard.",
