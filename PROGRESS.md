@@ -50,6 +50,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-12: Dashboard editors: the G1 preview (waiting for the owner's go)
+
+After G1 and G2's cards were kept, back to the editor. A working preview of the new G1 dashboard (https://claude.ai/artifact/Rg1HEyLNMD5GX54vHSd5YU): the section as on the homepage with labels; every entry as its real card (manual, story, collectible card, sign, plain) with Edit, hide, a ⋯ menu (duplicate, draft, pin, move, open, reset votes, delete) and floating drag-to-reorder (drop on a subsection chip to move it there); ＋ Add card in the section's own design, also from a dropped photo; a labelled editor per card (labels named as the card shows them: Version, Made in, Runs on, Rarity, Paint colour, Sticker) with Card look, resizing by the corner and Size & text; Edit details view, the new "card unfolds" page with its own labels; one save bar with Undo, Redo, Discard, Save; a phone/computer and theme switch, a section health line, subsection chips, select several. Nothing on the site changed.
+
 ### 2026-11-12: G1 and G2 cards follow their subsections (waiting for the owner's keep or undo)
 
 Before the new editor, the owner wanted G1 and G2's cards to differ by subsection as G3 to G7 do, since the editor's labels depend on each card. Drawn on a private preview first (https://claude.ai/artifact/AMa4cr5BBLBrspxrNwe2XE); their picks: the unfiltered manual A (instruction manual), beliefs A (protest sign), currently obsessed B (story), random facts A (collectible card), data storytelling B (spreadsheet), code A (editor with a terminal), brain dumps A (notes app), side quests B (pocket console). Built and published without tests, as they asked. Explained under "G1 and G2 cards by subsection" in `CLAUDE.md`. Next: the labelled editor preview built on every section's own cards.
