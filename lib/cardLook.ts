@@ -2,6 +2,8 @@
  * Which card a G1 note (layout "notes") or a G2 window (layout "windows") is, chosen by the dashboard's own words: the Subsection's name picks it,
  * unless the owner chooses one in the entry's Card look box. Stored as items.card.
  */
+import { cleanPartSizes, type PartSizes } from "./partSize";
+
 export const NOTE_LOOKS = [
   ["manual", "Instruction manual"],
   ["sign", "Protest sign"],
@@ -18,7 +20,7 @@ export const WIN_LOOKS = [
 ] as const;
 export type NoteLook = (typeof NOTE_LOOKS)[number][0];
 export type WinLook = (typeof WIN_LOOKS)[number][0];
-export type CardInfo = { look: NoteLook | WinLook | "" };
+export type CardInfo = { look: NoteLook | WinLook | ""; /** the size of each part the owner dragged in the live editor (lib/partSize.ts) */ parts?: PartSizes };
 export const EMPTY_CARD: CardInfo = { look: "" };
 
 const KEYS: string[] = [...NOTE_LOOKS.map(([k]) => k), ...WIN_LOOKS.map(([k]) => k)];
@@ -29,7 +31,8 @@ export function cleanCard(raw: unknown): CardInfo {
     const v = typeof raw === "string" ? JSON.parse(raw) : raw;
     if (v && typeof v === "object" && !Array.isArray(v)) o = v as Record<string, unknown>;
   } catch { /* unreadable: treat as empty */ }
-  return { look: KEYS.includes(String(o.look)) ? (o.look as CardInfo["look"]) : "" };
+  const parts = cleanPartSizes(o.parts);
+  return { look: KEYS.includes(String(o.look)) ? (o.look as CardInfo["look"]) : "", ...(Object.keys(parts).length ? { parts } : {}) };
 }
 
 /** G1: the manual for who they are, a protest sign for beliefs, a story for what's on now, a collectible card for facts. */

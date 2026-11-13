@@ -3187,14 +3187,16 @@ html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note,
 .fv-wash { position: absolute; z-index: -2; left: 0; top: 0; width: 100%; max-width: none; height: 640px; object-fit: cover; filter: blur(46px) saturate(1.3); opacity: .6; pointer-events: none; }
 .fv-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 26px; }
 .fv-band { min-width: 0; overflow: hidden; padding: 4px 12px; border: 1.5px solid currentColor; border-radius: var(--r-pill); color: color-mix(in srgb, var(--fvm) 62%, var(--fg)); font: 700 10.5px/1.4 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; rotate: 1.5deg; }
-.fv-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(26px, auto); gap: 14px 22px; }
-.fv-b { position: relative; min-width: 0; align-self: start; }
+/* 48 columns and 8px rows, so a part can sit almost anywhere; the space between parts is their own padding, not a gap, so the grid has no gaps to land in */
+.fv-grid { display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); grid-auto-rows: minmax(8px, auto); margin: 0 -11px; }
+.fv-b { position: relative; min-width: 0; align-self: start; padding: 7px 11px; }
+.fv-z { height: 100%; }
 .fv-b.fvb-pic { align-self: stretch; }
 .fv-eye { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .fvb-title h1 { margin: 14px 0 10px; font-size: clamp(30px, 4.6cqw, 58px); font-weight: 800; line-height: 1.03; letter-spacing: -.02em; text-wrap: balance; overflow-wrap: break-word; }
 :is(.lay-poster, .lay-story) .fvb-title h1 { font-size: clamp(34px, 6cqw, 70px); }
 .fvb-title .lead { margin: 0; color: var(--muted); font-size: 19px; }
-.fv-frame { position: relative; height: 100%; min-height: 240px; }
+.fv-frame { position: relative; height: 100%; min-height: 160px; }
 .fv-shot { position: absolute; inset: 0; display: block; width: 100%; padding: 0; overflow: hidden; border: .5px solid var(--line); border-radius: 22px; background: var(--bg-2); color: inherit; cursor: zoom-in; box-shadow: 0 30px 50px -30px color-mix(in srgb, var(--fg) 55%, transparent); }
 .lay-spread .fv-shot { rotate: -1.2deg; }
 .fv-fill { position: absolute; left: -40px; top: -40px; width: calc(100% + 80px); max-width: none; height: calc(100% + 80px); object-fit: cover; filter: blur(22px) saturate(1.2) brightness(.9); }
@@ -3248,14 +3250,23 @@ html.lite .fv-wash, html.lite .fv-fill { display: none; }
 /* narrow: one column, in reading order. The media rule is for browsers without container queries, the container rule for the dashboard's narrow preview */
 @media (max-width: 760px) {
   .fv { padding: 96px 20px 70px; }
-  .fv-grid { display: flex; flex-direction: column; gap: 22px; }
+  .fv-grid { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+  .fv-b { padding: 7px 0; }
   .fv-b, .fv-b.fvb-pic { align-self: auto; }
   .fv-frame { height: auto; min-height: 0; aspect-ratio: 4 / 3; }
   .fv-band { max-width: 55%; }
 }
 @container fv (max-width: 720px) {
-  .fv-grid { display: flex; flex-direction: column; gap: 22px; }
+  .fv-grid { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+  .fv-b { padding: 7px 0; }
   .fv-b, .fv-b.fvb-pic { align-self: auto; }
   .fv-frame { height: auto; min-height: 0; aspect-ratio: 4 / 3; }
   .fvb-title h1 { font-size: clamp(30px, 9cqw, 46px); }
 }
+
+/* --- a card's parts at the size the owner dragged them to (lib/partSize.ts, items.card.parts): data-sz says what was set.
+   A width or height needs a box, so a part that is a run of words becomes one; a picture fills the height it was given --- */
+:where([data-sz~="w"], [data-sz~="h"]) { display: inline-block; max-width: 100%; box-sizing: border-box; vertical-align: top; }
+.flow > [data-sz~="w"] { align-self: flex-start; }
+.note .pic-box[data-sz~="h"] { display: block; overflow: hidden; border-radius: 10px; }
+.note .pic-box[data-sz~="h"] > .note-media { height: 100%; max-height: none; aspect-ratio: auto; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }

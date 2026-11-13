@@ -5,8 +5,9 @@ import type { Item, Section } from "@/lib/data";
 import { LIVE_THEMES, MOODS, SKIN_LABELS, type Skin } from "@/lib/settings";
 import { noteLookOf } from "@/lib/cardLook";
 import { LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles } from "@/lib/contentStyle";
-import { FV_PARTS, fvBoxes, fvLook, type FvBox, type FvPart } from "@/lib/fullView";
+import { FV_PARTS, fvBoxes, fvLook, fvPlace, type FvBox, type FvPart } from "@/lib/fullView";
 import { pinnedFirst, toSave, type StudioData, type StudioDraft, type StudioSection } from "@/lib/studio";
+import type { PartSize } from "@/lib/partSize";
 import { saveStudio, studioComment, studioReset } from "@/app/actions";
 import NoteCard from "@/components/site/NoteCard";
 import EntryFull, { fvPresent } from "@/components/site/EntryFull";
@@ -275,7 +276,31 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const activeFor = (scope: Scope) => (typing?.scope === scope ? typing.key : pop && (pop.scope === scope || (scope !== "sec" && pop.scope !== "sec")) ? pop.key : undefined);
   const openFull = () => { if (view === "spot") setFace("fv"); else fvStage.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); setPlayed((n) => n + 1); };
   const play = () => { if (!draft.fullfx) say("Movement in full views is switched off. It's under Section settings, Movement."); setPlayed((n) => n + 1); };
-  const moveBlock = (part: string, box: FvBox) => { if (!item) return; const at = Object.keys(item.fv.at).length ? { ...item.fv.at } : Object.fromEntries(blocks.map((b) => [b.part, [b.x, b.y, b.w, b.h]])); at[part as FvPart] = [box.x, box.y, box.w, box.h]; setItem({ fv: { ...item.fv, at } }, `at-${part}`); };
+  /** A full view part's new place and size. Parts it would cover move down out of its way. `tag` joins steps into one Undo (a slider); a drag is one step of its own. */
+  const moveBlock = (part: string, box: FvBox, tag = `at-${part}`) => {
+    if (sel === null) return;
+    const id = sel, shown = blocks;
+    change((d) => ({ ...d, items: d.items.map((it) => {
+      if (it.id !== id) return it;
+      const placed = fvPlace(shown.map((b) => (b.part === part ? box : b)), box);
+      const at = { ...it.fv.at };
+      for (const b of placed) at[b.part] = [b.x, b.y, b.w, b.h];
+      const zoom = { ...it.fv.zoom };
+      if (box.z === 100) delete zoom[part as FvPart]; else zoom[part as FvPart] = box.z;
+      return { ...it, fv: { ...it.fv, at, zoom } };
+    }) }), tag);
+  };
+  /** One part of the card at the size it was dragged to; undefined puts it back. Typing-like: a whole drag is one step to undo. */
+  const setPartSize = (key: string, size: PartSize | undefined, stroke?: number) => {
+    if (sel === null) return;
+    const id = sel;
+    change((d) => ({ ...d, items: d.items.map((it) => {
+      if (it.id !== id) return it;
+      const parts = { ...it.card.parts };
+      if (size) parts[key] = size; else delete parts[key];
+      return same(it.card.parts?.[key], size) ? it : { ...it, card: { ...it.card, parts } };
+    }) }), `ps-${id}-${key}${stroke ? `-${stroke}` : ""}`);
+  };
   const resize = (e: React.PointerEvent) => {
     if (!item) return;
     e.preventDefault();
@@ -286,7 +311,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     window.addEventListener("pointerup", up);
   };
 
-  const ed: Ed = { data, draft, live, item, card, rev, setItem, setSection, setDraft: change, ask: setAsk, comment, reset, remove, duplicate, play, busy, open: (scope, key) => openPop(scope, key) };
+  const ed: Ed = { data, draft, live, item, card, rev, setItem, setSection, setDraft: change, ask: setAsk, comment, reset, remove, duplicate, play, busy, open: (scope, key) => openPop(scope, key), blocks, setBlock: moveBlock, setPartSize };
 
   // ---------- pieces ----------
   const cats = Array.from(new Set([...draft.section.categories, ...draft.items.map((i) => i.category)].filter(Boolean)));
@@ -333,7 +358,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   );
   const cardSurface = item && (
     <div className="stu-cardbox">
-      <Surface labels={labels} name={(k) => partName(k, card)} active={activeFor("card")} onPart={onPart("card")} onOpen={openFull}
+      <Surface labels={labels} name={(k) => partName(k, card)} active={activeFor("card")} onPart={onPart("card")} onOpen={openFull} sizes={item.card.parts ?? {}} onSize={setPartSize}
         typing={typingFor("card")} onType={(v) => typing && setTyped("card", typing.key, v)} onTypeEnd={() => setTyping(null)}>
         <div className={`${siteClass} stu-site stu-one${item.visible ? "" : " off"}`} style={siteStyle}>{cardOf(item, true)}</div>
       </Surface>
@@ -351,7 +376,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const fvSurface = item && (
     <Surface key={`fv${phone ? "p" : "d"}`} className="stu-fvsurf" zoom={fvZoom} width={phone ? Math.min(390, fvWidth) : Math.round(FV_WIDTH * fvZoom)} labels={labels} name={(k) => partName(k, card)} active={activeFor("fv")} onPart={onPart("fv")}
       typing={typingFor("fv")} onType={(v) => typing && setTyped("fv", typing.key, v)} onTypeEnd={() => setTyping(null)}
-      blocks={phone ? undefined : blocks} blockName={(p) => FV_PARTS.find(([k]) => k === p)?.[1] ?? p} onBlock={moveBlock} onBlockPick={(p, at) => openPop("fv", `fvb:${p}`, at)}>
+      blocks={phone ? undefined : blocks} blockName={(p) => FV_PARTS.find(([k]) => k === p)?.[1] ?? p} onBlock={(p, b) => moveBlock(p, b, `drag-${Date.now()}`)} onBlockPick={(p, at) => openPop("fv", `fvb:${p}`, at)}>
       <div key={played} className={`${siteClass} stu-site stu-fvpage`} style={{ ...siteStyle, width: phone ? Math.min(390, fvWidth) : FV_WIDTH }}>
         <EntryFull item={item} section={section} settings={settings} factNo={factNo(item)} edit foot={bar(item, false)} />
       </div>

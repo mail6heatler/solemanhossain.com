@@ -5,7 +5,7 @@ import type { Look } from "@/lib/contentStyle";
 import Markdown from "./Markdown";
 import PollCard from "./PollCard";
 import { Cover, MediaBadges } from "./Media";
-import { Box, CardLink, LinkButtons, Meta, noPart, type PartFn } from "./cardParts";
+import { Box, CardLink, LinkButtons, Meta, partFn, type PartFn } from "./cardParts";
 
 /**
  * One G1 note: the card its subsection names (lib/cardLook.ts): an instruction manual, a protest sign, a story, a collectible card, or the plain note.
@@ -16,7 +16,7 @@ export default function NoteCard({ it, l, index, factNo, foot, href, owner, face
   it: Item; l: Look; index: number; factNo: number; foot?: React.ReactNode; href: string; owner: string; face: React.ReactNode;
   vt?: React.CSSProperties; zoom?: React.ReactNode; confetti?: boolean; edit?: boolean; full?: React.ReactNode;
 }) {
-  const p: PartFn = edit ? (k) => ({ "data-part": k }) : noPart;
+  const p: PartFn = partFn(edit, it.card.parts);
   const look = noteLookOf(it.category, it.card.look);
   const m = l.hide("pic") ? undefined : it.media.find((x) => x.type !== "audio");
   const pics = it.media.filter((x) => x.type !== "audio").length;
@@ -43,7 +43,7 @@ export default function NoteCard({ it, l, index, factNo, foot, href, owner, face
   } else if (look === "sign") {
     inner = <>
       <div className="sg-board"><h3 {...p("title")}>{it.title}</h3></div><i className="sg-stick" aria-hidden />
-      {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }} {...p("sub")}>{it.category}</span>}
+      {it.category && it.category !== it.title && <span className="chip" {...p("sub", { alignSelf: "flex-start" })}>{it.category}</span>}
       {sub}<Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus p={p} />{picBox}{text}{links}{tags}
     </>;
   } else if (look === "story") {
@@ -64,13 +64,13 @@ export default function NoteCard({ it, l, index, factNo, foot, href, owner, face
     </>;
   } else {
     inner = <>
-      {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }} {...p("sub")}>{it.category}</span>}
+      {it.category && it.category !== it.title && <span className="chip" {...p("sub", { alignSelf: "flex-start" })}>{it.category}</span>}
       <h3 {...p("title")}>{it.title}</h3>{sub}<Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus p={p} />{picBox}{text}{links}{tags}
     </>;
   }
   return (
     <div className={`note note-${look}${look === "plain" && index === 0 && it.body.length > 280 ? " wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={style}>
-      {look === "story" && <div className="sy-bg" aria-hidden {...(m ? p("pic") : {})}>{m && <Cover m={m} className="sy-img" style={vt} />}</div>}
+      {look === "story" && <div className="sy-bg" aria-hidden {...(m && edit ? { "data-part": "pic", "data-fixed": "" } : {})}>{m && <Cover m={m} className="sy-img" style={vt} />}</div>}
       <Box foot={foot} to={edit ? undefined : href} label={it.title} full={full}>
         {!edit && <CardLink to={href} label={it.title} />}
         {inner}

@@ -1,7 +1,7 @@
 import ReactMarkdown from "react-markdown";
 
 /** Anything beyond the text and its class (the dashboard's `data-part`) goes onto the wrapper. */
-export default function Markdown({ children, className = "md", ...rest }: { children: string; className?: string } & Record<`data-${string}`, string>) {
+export default function Markdown({ children, className = "md", ...rest }: { children: string; className?: string; style?: React.CSSProperties } & { [k: `data-${string}`]: string | undefined }) {
   if (!children?.trim()) return null;
   return (
     <div className={className} {...rest}>

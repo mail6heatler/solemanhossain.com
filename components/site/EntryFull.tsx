@@ -107,7 +107,8 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
         {boxes.map((b, i) => (
           <section key={b.part} className={`fv-b fvb-${b.part}`} data-fv={edit ? b.part : undefined}
             style={{ gridColumn: `${b.x + 1} / span ${b.w}`, gridRow: `${b.y + 1} / span ${b.h}`, "--i": i, "--h": b.h } as React.CSSProperties}>
-            {part(b.part)}
+            {/* everything in a part is drawn this much bigger or smaller (its corner, in the dashboard) */}
+            <div className="fv-z" style={b.z !== 100 ? { zoom: b.z / 100 } : undefined}>{part(b.part)}</div>
           </section>
         ))}
       </div>

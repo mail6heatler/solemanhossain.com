@@ -1,13 +1,30 @@
 import type { Item } from "@/lib/data";
 import { MOODS } from "@/lib/settings";
 import FullView from "./FullView";
+import { partStyle, type PartSizes } from "@/lib/partSize";
 
 /**
  * The pieces every card is built from. They live here, apart from SectionBody, so the dashboard's editor can draw the very same card
  * (see NoteCard) without loading every layout. `p` names a part for the dashboard's labels (`data-part`); on the site it adds nothing.
  */
-export type PartFn = (key: string) => Record<string, string>;
-export const noPart: PartFn = () => ({});
+export type PartAttrs = { "data-part"?: string; "data-sz"?: string; style?: React.CSSProperties };
+export type PartFn = (key: string, base?: React.CSSProperties) => PartAttrs;
+export const noPart: PartFn = (_key, base) => (base ? { style: base } : {});
+
+/**
+ * How a card's parts are drawn: with `edit` each is named for the dashboard's labels, and on the site as in the dashboard each gets the size the owner
+ * dragged it to (lib/partSize.ts). `base` is the style the part has anyway, which a size adds to.
+ */
+export function partFn(edit: boolean | undefined, sizes?: PartSizes): PartFn {
+  return (key, base) => {
+    const out: PartAttrs = {};
+    if (edit) out["data-part"] = key;
+    const { style, flags } = partStyle(key, sizes?.[key]);
+    if (style || base) out.style = { ...base, ...style };
+    if (flags) out["data-sz"] = flags;
+    return out;
+  };
+}
 
 /** Makes a whole card clickable while buttons inside it (reactions) stay clickable on their own. */
 export const CardLink = ({ to, label }: { to: string; label: string }) => <a href={to} className="card-link" aria-label={label} />;

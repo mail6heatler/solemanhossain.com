@@ -50,6 +50,11 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-13: G1: every box can be sized, smoothly (waiting for the owner's keep or undo)
+
+After the live editor went out they said "great job" and asked for every box, in every card and full view, to be smoothly resizable, in G1 now and in every section's editor after. They chose: a part's side or bottom edge gives it more room with the words keeping their size, its corner makes everything in it bigger; and in the full view a part follows the mouse, then settles onto a fine grid. Built as explained in `CLAUDE.md` (the live editor's sizing points). Tried once locally: handles appear on hover, all three drags work on a card and in the full view, the site shows the sizes, Undo takes one drag at a time. Found and fixed there: a full view part dragged onto another printed over it; parts now push each other down instead. Not tried: phones, other themes, Firefox and Safari.
+
+
 ### 2026-11-13: G1's dashboard becomes the live editor, with a new full view (waiting for the owner's keep or undo)
 
 They didn't like the first G1 preview: they couldn't tell whether everything they asked for was in it, and it wasn't interactive enough. A second preview had five working options and a checklist of their 17 requests that ticked itself as they tried things (https://claude.ai/artifact/GvNRnu95XxbFDbDPMvBExP). They asked for Workbench and Spotlight together, got that as a sixth option, and said "go for g1. don't forget a single thing belt size etc etc use eye soothing color shade in the admin panel". A live tracker page ran during the build, as they asked (https://claude.ai/artifact/NvUMpxjiKZVuuBazknPqqd).

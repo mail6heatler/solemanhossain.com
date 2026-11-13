@@ -5,7 +5,8 @@ import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE } from "@/lib/settings";
 import { NOTE_LOOKS, noteLookOf, type NoteLook } from "@/lib/cardLook";
 import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
-import { FV_BGS, FV_LAYOUTS, FV_OPENS, FV_PARTS, FV_QUOTE_MAX, fvLook, type FvPart } from "@/lib/fullView";
+import { FV_BGS, FV_COLS, FV_LAYOUTS, FV_OPENS, FV_PARTS, FV_QUOTE_MAX, FV_ROW, FV_ZOOM, fvLook, type FvBox, type FvPart } from "@/lib/fullView";
+import { PART_LIMITS, SIZED_PARTS, cleanPartSize, type PartSize } from "@/lib/partSize";
 import type { StudioData, StudioDraft, StudioLive, StudioSection } from "@/lib/studio";
 import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
 import { deleteSection } from "@/app/actions";
@@ -52,6 +53,9 @@ export type Ed = {
   reset: (kind: "reactions" | "votes") => void;
   remove: (it: Item) => void; duplicate: (it: Item) => void; play: () => void; busy: boolean;
   open: (scope: "card" | "fv" | "sec", key: string) => void;
+  /** the full view's parts as drawn, and how to place or size one */
+  blocks: FvBox[]; setBlock: (part: string, box: FvBox) => void;
+  setPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
@@ -103,8 +107,32 @@ function ReplyBox({ start, busy, onSave }: { start: string; busy: boolean; onSav
   );
 }
 
-/** One part of a card, opened from its label. */
+/** A part's size as numbers: the same as dragging its side edge, bottom edge or corner on the card. */
+function PartSizeFields({ ed, k }: { ed: Ed; k: string }) {
+  const s = ed.item?.card.parts?.[k] ?? {};
+  const set = (patch: Partial<PartSize>) => ed.setPartSize(k, cleanPartSize({ ...s, ...patch }));
+  const pic = k === "pic";
+  return (
+    <div className="fl stu-f stu-size">
+      <span className="lab">Size of this part on the card</span>
+      <span className="hint">Or drag it on the card: its side edge or bottom edge for more room (the words keep their size), its corner to make everything in it bigger.</span>
+      <Slider label="Width" value={s.w} range={PART_LIMITS.w} unit="%" fallback={100} onChange={(w) => set({ w })} onClear={() => set({ w: undefined })} />
+      <Slider label={pic ? "Height" : "Room (at least)"} value={s.h} range={[PART_LIMITS.h[0], pic ? 600 : 500]} unit="px" fallback={pic ? 200 : 40} onChange={(h) => set({ h })} onClear={() => set({ h: undefined })} />
+      <Slider label="Size of everything in it" value={s.z} range={PART_LIMITS.z} unit="%" fallback={100} onChange={(z) => set({ z })} onClear={() => set({ z: undefined })} />
+      {(s.w !== undefined || s.h !== undefined || s.z !== undefined) && <button type="button" className="b-out b-sm" onClick={() => ed.setPartSize(k, undefined)}><i className="ti ti-restore" />Back to its own size</button>}
+    </div>
+  );
+}
+
+/** One part of a card, opened from its label, with its size under it. */
 export function CardEditor({ ed, k }: { ed: Ed; k: string }) {
+  return <>
+    <CardFields ed={ed} k={k} />
+    {ed.item && (SIZED_PARTS as readonly string[]).includes(k) && <PartSizeFields ed={ed} k={k} />}
+  </>;
+}
+
+function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const it = ed.item;
   if (!it) return <p className="hint">Pick a card first.</p>;
   const { draft, data, live } = ed;
@@ -237,10 +265,16 @@ export function FullEditor({ ed, k }: { ed: Ed; k: string }) {
   const moved = Object.keys(fv.at).length > 0;
   if (k.startsWith("fvb:")) {
     const part = k.slice(4) as FvPart;
+    const box = ed.blocks.find((b) => b.part === part);
     const inside: Record<FvPart, string[]> = { pic: ["pic"], title: ["sub", "title", "subtitle"], facts: ["date", "place", "mood", "status"], quote: ["quote"], story: it.type === "poll" ? ["poll", "body"] : ["body"], gallery: ["pic"], tags: ["tags"], buttons: ["links"], reacts: ["reacts"] };
     return <>
       <Sw label="Show this part in the full view" on={!fv.hide[part]} onChange={(on) => { const hide = { ...fv.hide }; if (on) delete hide[part]; else hide[part] = true; set({ hide }); }} />
-      <p className="hint" style={{ margin: 0 }}>Drag its handle to move it anywhere on the page, and its corner to resize it. A part grows by itself if what&apos;s in it needs more room.</p>
+      <p className="hint" style={{ margin: 0 }}>Drag its handle to move it anywhere on the page. Drag its side or bottom edge for more room (the words keep their size), and its corner to make everything in it bigger. A part grows by itself if what&apos;s in it needs more room.</p>
+      {box && <div className="fl stu-f stu-size">
+        <Slider label="Width" value={Math.round((box.w / FV_COLS) * 100)} range={[8, 100]} unit="%" fallback={100} onChange={(pc) => ed.setBlock(part, { ...box, w: Math.max(4, Math.min(FV_COLS - box.x, Math.round((pc / 100) * FV_COLS))) })} />
+        <Slider label="Room (at least)" value={box.h * FV_ROW} range={[16, 1200]} unit="px" fallback={200} onChange={(px) => ed.setBlock(part, { ...box, h: Math.max(2, Math.min(200, Math.round(px / FV_ROW))) })} />
+        <Slider label="Size of everything in it" value={box.z} range={FV_ZOOM} unit="%" fallback={100} onChange={(z) => ed.setBlock(part, { ...box, z })} onClear={box.z === 100 ? undefined : () => ed.setBlock(part, { ...box, z: 100 })} />
+      </div>}
       <div className="fl stu-f"><span className="lab">What&apos;s in it</span>
         <div className="stu-pills">{inside[part].map((key) => <button key={key} type="button" onClick={() => ed.open("card", key)}>{partName(key, ed.card)} →</button>)}</div>
       </div>
@@ -248,7 +282,7 @@ export function FullEditor({ ed, k }: { ed: Ed; k: string }) {
   }
   return <>
     <div className="fl stu-f"><span className="lab">Layout</span>
-      <Seg label="Layout" value={fv.layout} options={withAuto(FV_LAYOUTS, now.layout)} onChange={(layout) => set({ layout, at: {} })} />
+      <Seg label="Layout" value={fv.layout} options={withAuto(FV_LAYOUTS, now.layout)} onChange={(layout) => set({ layout, at: {}, zoom: {} })} />
       <span className="hint">{FV_LAYOUTS.find(([key]) => key === now.layout)?.[2]}. Choosing a layout puts every part back in its place.</span>
     </div>
     <div className="fl stu-f"><span className="lab">Background</span>
@@ -264,8 +298,8 @@ export function FullEditor({ ed, k }: { ed: Ed; k: string }) {
       <div className="stu-switches">{FV_PARTS.map(([part, label]) => <Sw key={part} label={label} on={!fv.hide[part]} onChange={(on) => { const hide = { ...fv.hide }; if (on) delete hide[part]; else hide[part] = true; set({ hide }); }} />)}</div>
       <span className="hint">A part with nothing in it (no tags, no pull quote) isn&apos;t drawn and leaves no gap.</span>
     </div>
-    <div className="btns"><button type="button" className="b-out b-sm" disabled={!moved} onClick={() => set({ at: {} })}><i className="ti ti-restore" />Put every part back where the layout had it</button></div>
-    <span className="hint">Only the full view has these: the layout, background, opening, pull quote, and moving its parts. Drag a part by its handle to put it anywhere; drag its corner to resize it. Phones always stack the parts, top to bottom.</span>
+    <div className="btns"><button type="button" className="b-out b-sm" disabled={!moved && !Object.keys(fv.zoom).length} onClick={() => set({ at: {}, zoom: {} })}><i className="ti ti-restore" />Put every part back where and how the layout had it</button></div>
+    <span className="hint">Only the full view has these: the layout, background, opening, pull quote, and moving its parts. Drag a part by its handle to put it anywhere; drag its side or bottom edge for more room, and its corner to make everything in it bigger. Phones always stack the parts, top to bottom.</span>
   </>;
 }
 
