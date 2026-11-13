@@ -6,13 +6,16 @@ import { cleanAward } from "@/lib/awardItem";
 import { cleanScrap } from "@/lib/scrapItem";
 import { cleanCard } from "@/lib/cardLook";
 import { cleanBoxes } from "@/lib/boxes";
-import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
+import { COMMENT_MAX, TALK_FEATURES, cleanTalk } from "@/lib/talk";
+import { cleanFv } from "@/lib/fullView";
+import type { StudioData, StudioSave } from "@/lib/studio";
+import { loadStudio } from "@/lib/studioData";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { query, queryOne } from "@/lib/db";
-import { getSettings } from "@/lib/data";
+import { getComments, getPollCounts, getReactionCounts, getReactionPeople, getSettings, type Comment } from "@/lib/data";
 import {
   checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
 } from "@/lib/auth";
@@ -467,4 +470,104 @@ export async function sendHello(_prev: HelloState | undefined, fd: FormData): Pr
   await query("INSERT INTO messages (name, email, body, wants_public) VALUES ($1,$2,$3,$4)",
     [name, email, body, bool(fd, "public")]);
   return { ok: true };
+}
+
+// ---------- the live editor (components/admin/studio): a whole section saves at once ----------
+/**
+ * One Save for a section's page: its header and settings, every card in the order shown, each card's size, look, reactions switches and full view,
+ * new cards (an id below zero) and the ones in the bin. Everything is cleaned here as the older forms do, and what's now stored is handed back.
+ */
+export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: StudioData } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    const sectionId = Number(raw?.sectionId);
+    if (!Number.isInteger(sectionId) || !(await queryOne("SELECT id FROM sections WHERE id=$1", [sectionId]))) return { ok: false, error: "That section no longer exists. Reload the page." };
+    const t = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
+    const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+    const sec = raw.section ?? ({} as StudioSave["section"]);
+    const layout = LAYOUT_VALUES.includes(String(sec.layout)) ? String(sec.layout) : "notes";
+    const title = t(sec.title, 160) || "Untitled";
+    const slug = await uniqueSlug(t(sec.slug, 60) || title, sectionId);
+    // subsections are stored with commas between them, so a name can't hold one
+    const cats = list(sec.categories).map((c) => t(c, 100).replace(/,/g, " ")).filter(Boolean).slice(0, 40).join(", ");
+    await query(
+      `UPDATE sections SET title=$1, slug=$2, code=$3, nav_label=$4, nav_emoji=$5, eyebrow=$6, eyebrow_emoji=$7,
+         subtitle=$8, layout=$9, emojis=$10, categories=$11, empty_text=$12, home_limit=$13, visible=$14, ribbon=$15, style=$16 WHERE id=$17`,
+      [title, slug, t(sec.code, 8), t(sec.nav_label, 40), t(sec.nav_emoji, 16), t(sec.eyebrow, 80), t(sec.eyebrow_emoji, 16), t(sec.subtitle, 400), layout, t(sec.emojis, 80),
+       cats, t(sec.empty_text, 300), Math.max(1, Math.min(60, Math.round(Number(sec.home_limit)) || 6)), sec.visible !== false, sec.ribbon !== false, JSON.stringify(cleanStyle(sec.style)), sectionId]
+    );
+    const now = await getSettings();
+    await saveSettingsData({
+      ribbonSize: cleanRibbonSize(raw.ribbonSize),
+      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
+    });
+
+    const own = new Map((await query("SELECT id, type FROM items WHERE section_id=$1", [sectionId])).map((r) => [Number(r.id), String(r.type)]));
+    const sectionIds = new Set((await query("SELECT id FROM sections")).map((r) => Number(r.id)));
+    const gone = new Set(list(raw.deleted).map(Number).filter((id) => own.has(id)));
+    for (const id of gone) await query("DELETE FROM items WHERE id=$1", [id]);
+
+    let sort = 0;
+    for (const item of list(raw.items).slice(0, 500)) {
+      const it = (item ?? {}) as StudioSave["items"][number];
+      const given = Number(it.id), isNew = !(given > 0);
+      if (!isNew && (!own.has(given) || gone.has(given))) continue; // another section's, or deleted in this same save
+      const type = isNew ? (it.type === "poll" ? "poll" : "post") : own.get(given)!;
+      const tags = list(it.tags).map((x) => t(x, 60).replace(/,/g, " ")).filter(Boolean).slice(0, 30).join(", ");
+      const mood = MOODS[String(it.mood)] ? String(it.mood) : "";
+      let poll = list(it.poll_options).map((x) => t(x, 120)).filter(Boolean).slice(0, 8);
+      if (type === "poll" && poll.length < 2) poll = ["Option A", "Option B"];
+      // photos + videos (first = cover); image_url keeps the first photo for link previews
+      const media = parseMedia(list(it.media));
+      const firstPhoto = media.find((m) => m.type === "image")?.url ?? media.find((m) => m.thumb)?.thumb ?? "";
+      sort += 1;
+      const vals = [t(it.title, 300) || "Untitled", t(it.subtitle, 300), t(it.body, 100000), firstPhoto, tags, JSON.stringify(parseLinks(list(it.links))), t(it.date_label, 80),
+        t(it.status, 60), mood, t(it.location, 160), t(it.category, 100).replace(/,/g, " "), JSON.stringify(poll), it.pinned === true, it.visible !== false, JSON.stringify(media),
+        JSON.stringify(cleanStyle(it.style)), JSON.stringify(cleanCard(it.card)), JSON.stringify(cleanTalk(it.talk)), JSON.stringify(cleanFv(it.fv)), sort];
+      let id = given;
+      if (isNew) {
+        const row = await queryOne(
+          `INSERT INTO items (title, subtitle, body, image_url, tags, links, date_label, status, mood, location, category, poll_options, pinned, visible, media, style, card, talk, fv, sort, section_id, type)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING id`, [...vals, sectionId, type]);
+        id = Number(row!.id);
+      } else {
+        await query(
+          `UPDATE items SET title=$1, subtitle=$2, body=$3, image_url=$4, tags=$5, links=$6, date_label=$7, status=$8, mood=$9, location=$10, category=$11, poll_options=$12,
+             pinned=$13, visible=$14, media=$15, style=$16, card=$17, talk=$18, fv=$19, sort=$20 WHERE id=$21`, [...vals, id]);
+      }
+      // moved to another section: it goes to the front there, as a new entry would
+      const target = Number(it.section_id);
+      if (target !== sectionId && sectionIds.has(target)) await query("UPDATE items SET section_id=$1, sort=(SELECT COALESCE(MIN(sort),1)-1 FROM items WHERE section_id=$1) WHERE id=$2", [target, id]);
+    }
+    refresh();
+    const data = await loadStudio(sectionId);
+    return data ? { ok: true, data } : { ok: false, error: "Saved, but the page couldn't be read back. Reload it." };
+  } catch (e) {
+    console.error("saveStudio", e);
+    return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." };
+  }
+}
+
+/** A comment's reply, pin, hide or delete from the live editor. It happens right away, and the entry's comments come back. */
+export async function studioComment(id: number, op: "reply" | "pin" | "hide" | "delete", reply = ""): Promise<Comment[] | null> {
+  await requireAdmin();
+  const row = await queryOne("SELECT item_id, pinned FROM comments WHERE id=$1", [Number(id)]);
+  if (!row) return null;
+  const itemId = Number(row.item_id);
+  if (op === "reply") await query("UPDATE comments SET reply=$1, seen=TRUE WHERE id=$2", [String(reply ?? "").trim().slice(0, COMMENT_MAX), id]);
+  if (op === "hide") await query("UPDATE comments SET hidden = NOT hidden, seen=TRUE WHERE id=$1", [id]);
+  if (op === "delete") await query("DELETE FROM comments WHERE id=$1", [id]);
+  if (op === "pin") { // one at a time: pinning another replaces it
+    await query("UPDATE comments SET pinned=FALSE WHERE item_id=$1", [itemId]);
+    if (!row.pinned) await query("UPDATE comments SET pinned=TRUE, seen=TRUE WHERE id=$1", [id]);
+  }
+  return getComments(itemId, true);
+}
+
+/** Clears an entry's reactions or a poll's votes from the live editor, right away, and says what's left. */
+export async function studioReset(kind: "reactions" | "votes", itemId: number, options = 0) {
+  await requireAdmin();
+  const id = Number(itemId);
+  await query(kind === "votes" ? "DELETE FROM votes WHERE item_id=$1" : "DELETE FROM reactions WHERE item_id=$1", [id]);
+  return { reactions: await getReactionCounts(id), people: await getReactionPeople(id), votes: await getPollCounts(id, Math.max(0, Math.min(8, Number(options) || 0))) };
 }

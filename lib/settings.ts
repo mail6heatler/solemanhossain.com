@@ -166,6 +166,7 @@ export const EFFECTS = [
   { key: "comicfx", group: "Layout", label: "Comic strip: a brain flies along and pops each panel" },
   { key: "awardfx", group: "Layout", label: "Achievement wall: a spotlight travels along and each card comes alive" },
   { key: "notefx", group: "Layout", label: "Notes: a manual, a protest sign, a story and a collectible card come alive" },
+  { key: "fullfx", group: "Layout", label: "Full view: an opened note arrives piece by piece, and its details and picture move" },
   { key: "scrapfx", group: "Layout", label: "Scrapbook pages: a pencil travels along and each page comes alive" },
   { key: "windowfx", group: "Layout", label: "App windows pop open and their apps come alive, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
@@ -370,6 +371,9 @@ export const LAYOUTS = [
   { value: "chat", label: "Chat window — links, say hello, the wall as a chat" },
   { value: "connect", label: "Connect — links, hello form, guest wall" },
 ] as const;
+
+/** Layouts whose dashboard page is the live editor (components/admin/studio). The others keep the older boxes until their turn. */
+export const hasStudio = (layout: string) => layout === "notes";
 
 /** Layouts that hold the links, the hello form and the guest wall. */
 export const isConnectLayout = (layout: string) => layout === "connect" || layout === "chat";

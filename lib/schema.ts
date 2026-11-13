@@ -65,6 +65,8 @@ export const SCHEMA = [
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS scrap TEXT NOT NULL DEFAULT '{}'`,
   // which card a G1 note or a G2 window is, if the owner chose one (lib/cardLook.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS card TEXT NOT NULL DEFAULT '{}'`,
+  // a G1 entry's full view: its layout, background, opening, pull quote and where its parts sit (lib/fullView.ts)
+  `ALTER TABLE items ADD COLUMN IF NOT EXISTS fv TEXT NOT NULL DEFAULT '{}'`,
   // which of the reaction bar's extra features this entry has switched on (lib/talk.ts)
   `ALTER TABLE items ADD COLUMN IF NOT EXISTS talk TEXT NOT NULL DEFAULT '{}'`,
   // which boxes on its dashboard page are open, as last saved (lib/boxes.ts)

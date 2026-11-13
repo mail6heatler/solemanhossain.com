@@ -18,7 +18,10 @@ import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
 import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
 import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
-import { noteLookOf, questProgress, winLookOf } from "@/lib/cardLook";
+import { questProgress, winLookOf } from "@/lib/cardLook";
+import NoteCard from "./NoteCard";
+import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
+export { Mood };
 import { FlyingBrain } from "./comicArt";
 import ComicPoll from "./ComicPoll";
 import TvPlay from "./TvPlay";
@@ -28,58 +31,6 @@ const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
 
 /** The same name on a card picture and on the entry page's big picture makes it morph between pages. */
 export const morphName = (on: boolean, id: number) => (on ? ({ viewTransitionName: `entry-${id}` } as React.CSSProperties) : undefined);
-
-/** Makes a whole card clickable while buttons inside it (reactions) stay clickable on their own. */
-const CardLink = ({ to, label }: { to: string; label: string }) => <a href={to} className="card-link" aria-label={label} />;
-
-export function Mood({ mood }: { mood: string }) {
-  const m = MOODS[mood];
-  if (!m) return null;
-  return <span className="mood" title={`Mood: ${m.label}`}><i style={{ background: m.color }} />{m.label}</span>;
-}
-
-function Meta({ it, showCat = true, hideDate = false, showStatus = false }: { it: Item; showCat?: boolean; hideDate?: boolean; showStatus?: boolean }) {
-  const bits = [
-    showCat && it.category ? <span key="c" className="chip">{it.category}</span> : null,
-    showStatus && it.status ? <span key="s" className="chip line">{it.status}</span> : null,
-    it.date_label && !hideDate ? <span key="d">{it.date_label}</span> : null,
-    it.location && !hideDate ? <span key="l"><i className="ti ti-map-pin" style={{ fontSize: 12 }} /> {it.location}</span> : null,
-    it.mood ? <Mood key="m" mood={it.mood} /> : null,
-  ].filter(Boolean);
-  return bits.length ? <div className="meta">{bits}</div> : null;
-}
-
-/**
- * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
- * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible.
- */
-function Box({ children, foot, to, label = "", stub }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string; stub?: React.ReactNode }) {
-  return (
-    <>
-      <div className={`scroll-wrap${foot || to ? " has-foot" : ""}`}>
-        <div className="scrolly"><div className="flow">{children}</div></div>
-        <span className="more-hint" aria-hidden><span className="more-pill"><span className="more-word">Scroll for more</span><i className="ti ti-chevrons-down hint-arrow" /></span></span>
-        <i className="scroll-line" aria-hidden><b /></i>
-      </div>
-      {stub}
-      {(foot || to) && <div className="card-foot">{foot}{to && <FullView to={to} label={label} />}</div>}
-    </>
-  );
-}
-
-/** The entry's buttons (like "View project"), on the card itself. They sit above the card's own link. */
-function LinkButtons({ it }: { it: Item }) {
-  if (!it.links.length) return null;
-  return (
-    <div className="card-links">
-      {it.links.slice(0, 3).map((l, i) => (
-        <a key={i} href={l.url} {...(l.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-          {l.label}{l.url.startsWith("http") && <i className="ti ti-arrow-up-right" aria-hidden />}
-        </a>
-      ))}
-    </div>
-  );
-}
 
 /** Visitors see this on an empty section. Older default messages told the owner to use the dashboard, which means nothing to a visitor. */
 /** A milestone's medal, from its subsection's name. */
@@ -477,67 +428,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     for (const it of items) { perSub.set(it.category, (perSub.get(it.category) ?? 0) + 1); factNo.set(it.id, perSub.get(it.category)!); }
     return row("notes", (
       <>
-        {items.map((it, i) => {
-          const l = lookFor(it);
-          const look = noteLookOf(it.category, it.card.look);
-          const m = l.hide("pic") ? undefined : it.media.find((x) => x.type !== "audio");
-          const pics = it.media.filter((x) => x.type !== "audio").length;
-          const mood = MOODS[it.mood];
-          const date = l.hide("date") ? "" : it.date_label, place = l.hide("date") ? "" : it.location;
-          const picBox = m ? <div className="pic-box"><Cover m={m} className="note-media" style={vt(it.id)} />{m.type === "pdf" && <MediaBadges media={[m]} />}{zoom(it)}</div> : null;
-          const sub = it.subtitle && !l.hide("subtitle") ? <p className="sub">{it.subtitle}</p> : null;
-          const text = it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className={look === "manual" ? "md mn-steps" : "md"}>{it.body}</Markdown>;
-          const tags = it.tags.length > 0 && !l.hide("tags") ? <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div> : null;
-          const style = mood ? ({ ...l.style, "--mood": mood.color } as React.CSSProperties) : l.style;
-          let inner: React.ReactNode;
-          if (look === "manual") {
-            const spec = [["Model", owner], ["Made in", place], ["Runs on", l.hide("tags") ? "" : it.tags.join(", ")], ["Mood", mood ? `${mood.emoji} ${mood.label}` : ""], ["Status", it.status]].filter(([, v]) => v);
-            inner = <>
-              <div className="mn-top"><i className="mn-ph">{face}</i><div><small>{it.category || "User manual"}{date ? ` · v ${date}` : ""}</small><h3>{it.title}</h3></div></div>
-              {sub}
-              {spec.length > 0 && <dl className="mn-spec">{spec.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
-              {picBox}{text}<LinkButtons it={it} />
-            </>;
-          } else if (look === "sign") {
-            inner = <>
-              <div className="sg-board"><h3>{it.title}</h3></div><i className="sg-stick" aria-hidden />
-              {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
-              {sub}<Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />{picBox}{text}<LinkButtons it={it} />{tags}
-            </>;
-          } else if (look === "story") {
-            inner = <>
-              <div className="sy-segs" aria-hidden>{Array.from({ length: Math.max(1, Math.min(6, pics)) }, (_, n) => <i key={n} className={n === 0 ? "on" : undefined} />)}</div>
-              <div className="sy-user"><i className="sy-face">{face}</i><span>{owner}{[date, place].filter(Boolean).length > 0 && <small> · {[date, place].filter(Boolean).join(" · ")}</small>}</span></div>
-              {it.category && <span className="sy-tag">{it.category}</span>}
-              <h3>{it.title}</h3>{sub}<Meta it={it} showCat={false} hideDate showStatus />{text}<LinkButtons it={it} />{tags}
-            </>;
-          } else if (look === "fact") {
-            const stats = [["When", date], ["Where", place], ["Mood", mood ? `${mood.emoji} ${mood.label}` : ""]].filter(([, v]) => v);
-            inner = <>
-              <div className="fc-top"><span>{it.category ? "Fact" : "Card"} #{String(factNo.get(it.id) ?? i + 1).padStart(2, "0")}</span><span className="fc-rar">★ {it.status || "Rare"}</span></div>
-              {picBox ?? <div className="fc-art" style={{ "--h": (it.id * 47) % 360 } as React.CSSProperties} aria-hidden />}
-              <h3>{it.title}</h3>{sub}{text}
-              {stats.length > 0 && <div className="fc-stats">{stats.map(([k, v]) => <div key={k}><b>{v}</b>{k}</div>)}</div>}
-              <LinkButtons it={it} />{tags}
-            </>;
-          } else {
-            inner = <>
-              {it.category && it.category !== it.title && <span className="chip" style={{ alignSelf: "flex-start" }}>{it.category}</span>}
-              <h3>{it.title}</h3>{sub}<Meta it={it} showCat={false} hideDate={l.hide("date")} showStatus />{picBox}{text}<LinkButtons it={it} />{tags}
-            </>;
-          }
-          return (
-            <div key={it.id} className={`note note-${look}${look === "plain" && i === 0 && it.body.length > 280 ? " wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={style}>
-              {look === "story" && <div className="sy-bg" aria-hidden>{m && <Cover m={m} className="sy-img" style={vt(it.id)} />}</div>}
-              <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-                <CardLink to={href(section, it)} label={it.title} />
-                {inner}
-              </Box>
-              {look === "story" && m && zoom(it)}
-              {look === "manual" && <span className="mn-warn" aria-hidden>Handle with care</span>}
-            </div>
-          );
-        })}
+        {items.map((it, i) => (
+          <NoteCard key={it.id} it={it} l={lookFor(it)} index={i} factNo={factNo.get(it.id) ?? i + 1} foot={foot(it.id)} href={href(section, it)}
+            owner={owner} face={face} vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} />
+        ))}
       </>
     ));
   }

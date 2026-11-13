@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getLookCounts, getSampleItem, getSection, getSettings, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
-import { LAYOUTS, MOODS, isConnectLayout } from "@/lib/settings";
+import { LAYOUTS, MOODS, hasStudio, isConnectLayout } from "@/lib/settings";
+import { loadStudio } from "@/lib/studioData";
+import Studio from "@/components/admin/studio/Studio";
 import { createItem, deleteSection, moveItem, resetSectionLooks, saveLook, toggleItem, updateSection } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
 import LookControls from "@/components/admin/LookControls";
@@ -15,13 +17,20 @@ import { Box } from "@/components/admin/Box";
 import BoxMemory from "@/components/admin/BoxMemory";
 import { boxOpen } from "@/lib/boxes";
 
-type P = { params: Promise<{ id: string }> };
+type P = { params: Promise<{ id: string }>; searchParams: Promise<{ card?: string }> };
 
-export default async function SectionAdmin({ params }: P) {
+export default async function SectionAdmin({ params, searchParams }: P) {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { id } = await params;
   const section = /^\d+$/.test(id) ? await getSection({ id: Number(id) }) : null;
   if (!section) notFound();
+  // a section laid out as Notes is edited in the live editor: its header, its cards, their order and each card's full view on one page
+  if (hasStudio(section.layout)) {
+    const data = await loadStudio(section.id);
+    if (!data) notFound();
+    const card = Number((await searchParams).card);
+    return <Studio key={section.id} data={data} startCard={Number.isInteger(card) ? card : undefined} />;
+  }
   const items = await getItems(section.id);
   const reactions = await getReactionCountsFor(items.map((i) => i.id));
   const [settings, sample, lookCounts] = await Promise.all([getSettings(), getSampleItem(section.id), getLookCounts()]);

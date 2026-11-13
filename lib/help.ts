@@ -395,6 +395,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "To use it on another section, choose “Notes” as its layout, under Section settings."],
     preview: "/?demo=notefx",
   },
+  fullfx: {
+    title: "Full view: an opened note arrives piece by piece",
+    what: "When a visitor opens a card in a section laid out as Notes (like Me), its full view is a page built from parts: the picture, the title, its details as little stamped cards, a pull quote, the story, more pictures, tags, buttons and reactions. With this on, the parts arrive one after another, the way that entry's dashboard page says (unfolding, rising or zooming in), the detail cards sit a little crooked and straighten when pointed at, and the picture lifts under the mouse. Off, the page is the same, standing still. The layout, the background, the opening and where each part sits are set per card in the dashboard, under Full view.",
+    how: ["Switch on and save.", "Open a card in Me with its Full view button to see it.", "To change one card's full view, open that section in the dashboard, pick the card and use the Full view side."],
+    preview: "/?demo=fullfx",
+  },
   scrapfx: {
     title: "Scrapbook pages: a pencil travels along and each page comes alive",
     what: "A section laid out as Scrapbook pages (like Life) shows each entry as a page torn from a scrapbook, chosen by its Subsection: a photo diary gets a diary page with a taped photo and the date in the corner; where you've lived a scrap of map with a pin and the place on a red label; rituals a habit tracker with its days ticked; random snapshots a pile of photos under a paperclip. Tags are stickers, and the tape takes the colour of the entry's Mood. With this on, a pencil travels along the bottom of the row, and the page it reaches comes alive: it lifts, its tape gets pressed down, the pin drops onto the map, the ticks pop on one by one and the photos fan out. With it off, the pages stay, without the pencil or the movement. Which page an entry gets, and a ritual's ticked days, are on the entry's page in the dashboard.",

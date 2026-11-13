@@ -48,9 +48,14 @@ app/
   actions.ts               every dashboard change; all call requireAdmin
   api/                     upload, blob, vote, react, track, presence, export
   site.css                 public design: themes first, then components, then "THE LIVELY LAYER"
+  studio.css               the live editor's design; loaded by the dashboard's layout only
   admin.css                dashboard design
 components/site/
   Chrome.tsx               SiteShell (wrapper for every public page), Nav, Rail, BottomBar, Footer
+  cardParts.tsx            what every card is built from (Box, CardLink, Meta, Mood, LinkButtons), apart from SectionBody so the dashboard can draw a real card
+  NoteCard.tsx             one G1 note; the homepage row and the dashboard's live editor both draw it
+  EntryFull.tsx            a G1 entry's full view: a grid of parts placed by lib/fullView.ts; the entry's page and the live editor both draw it
+  FvShots.tsx              a full view's pictures: the first shown whole over a soft copy of itself, the rest as tiles
   SectionBody.tsx          the section layouts, including the milestones map (`milemap`, a timeline as stops on a trail), app windows (`windows`) and boarding passes (`tickets`)
   Dock.tsx                 the icons under a desktop of app windows; a click sends "row-go" to its SideRow, which answers with "row-at"
   TicketRider.tsx          the vehicle travelling the route above boarding passes, and the study shelf's lamp; it rides inside the row's track (`data-rider`, so SideRow doesn't count it)
@@ -100,8 +105,11 @@ lib/
   awardItem.ts             what an Achievement wall entry stores (items.award): the card it's chosen to be and its Details boxes; which card a Subsection, Date and Mood pick
   cardLook.ts              which card a G1 note or a G2 window is (items.card): the Subsection's words pick it, the Card look box overrides it
   scrapItem.ts             what a Scrapbook pages entry stores (items.scrap): its chosen page and a ritual's ticked days; which page a Subsection picks
+  fullView.ts              what a G1 entry's full view stores (items.fv): layout, background, opening, pull quote, hidden parts, and where each part sits
+  studio.ts, studioData.ts what the live editor holds and saves, and how its page is read (the second is server-only)
   comicItem.ts             what a Comic strip entry stores (items.comic): its chosen panel and its sound effect; which panel a Subsection's words pick, which poll panels a poll's options fit, and the options a title already names
 app/admin/(panel)/banner/  dashboard page for the hanging banner (stored in settings.banner)
+components/admin/studio/   the live editor: Studio (the page), Surface (labels over a preview, typing onto it), Editors and Fields (what opens beside a label)
 ```
 
 `settings.ribbonSize` (Appearance page, `RibbonSize.tsx`) sets how thick the sliding belts are: a percentage that becomes `--rib` on each belt, multiplying its screen-based `--rib-fs` and `--rib-pad`. A theme changing the belt's size sets those two tokens, never `font-size` or `padding`, or the slider stops working there.
@@ -176,6 +184,20 @@ The owner wants each section to look like what it holds, one section at a time (
 **A book with a cover (`.bk-full`).** The owner's rule: whatever gets uploaded becomes the whole book, whatever its shape, with the writing kept on it. `StudyFrame` has a separate branch for it; with no picture the book stays as it was (`.bk-cover`). `.bk-pic` fills the box and by default keeps its shape from the top (`contain`), over one blurred copy of itself (`.bk-fill` in `.bk-back`, which also colours the spine, so none of the cover's letters land on it). That default already looks full for a normal cover, because the writing hides what's left below it, and nothing is cut. `CoverFit.tsx` adds `.snug` (`cover`) only for a cover a little narrower than the book, which would otherwise have thin bars at its sides. Picture fit overrides it: Show whole is always `contain`, Fill the space always `cover` at the chosen point, and the dashboard's preview takes the click on `link`. Picture height does nothing here. The writing is `.bk-panel`, at most 66% of the book. The title goes in `Box`'s scrolling part (`above`), so a card of any size can show everything. The panel is dark, so `.bk-panel .scroll-wrap` renames the colour tokens rather than restyling things: links, tags, polls and the "more" hint follow by themselves, and a new token used by something inside may need adding there (`--bg` was missed, which made poll options unreadable). A video or an unreadable PDF has no blurred copy, only `--inv-bg`. `html.lite` hides the blur. The expand button is at the top left, because the panel covers the usual corner.
 
 **Sound on entries.** `Media.type` can be `"audio"`. `MediaField` only takes it with `allowAudio`, which only a Study shelf entry's page passes. `parseMedia` always sorts sound last, so `media[0]` stays a picture wherever there is one, and it never gets the Cover badge. `Cover` draws a tile if sound is all an entry has, `PicZoom` leaves it out, and the entry's page shows it with the browser's own player (`EntryGallery`). `TvPlay` only fetches it when Play is pressed. Only one thing plays on the page at a time. Headless Chrome plays it fine after a real click, so a test can check `.tv-time` and `.tv-fill` move.
+
+## The live editor (G1)
+
+The owner asked for it on 2026-11-11 and chose "Workbench + Spotlight" from six working previews (https://claude.ai/artifact/GvNRnu95XxbFDbDPMvBExP). A section whose layout has it (`hasStudio` in `lib/settings.ts`: only `notes` so far) gets one dashboard page, `components/admin/studio`, instead of the boxes: its header and settings, every card, their order, and each card's full view. G2 to G7 are next, one at a time; G0 and G8 after. The older pages stay for every other layout, and `/admin/items/<id>` of a section with the editor redirects to `/admin/s/<section>?card=<id>`.
+
+- **The previews are the site's own components**, drawn with `edit`: `NoteCard` and `EntryFull` then put `data-part="<key>"` on each part, lead nowhere, and show a still poll and a still reaction bar (`StillReacts`). Never draw a look-alike. A new layout's editor starts by moving its card out of `SectionBody` the same way.
+- **Labels are laid over the preview, not put in it** (`Surface.tsx`): it measures every `[data-part]` and draws outlines and name tags in a layer on top, so the card's own styles and pseudo-elements are untouched. A part's name is the card's own word (`partName` in `Editors.tsx`: a manual has a Version, a collectible card a Rarity).
+- **Typing onto the preview** (`TYPED`): for a short part whose shown text is exactly what's stored, a text box in the part's own lettering covers it (its element only gets `visibility: hidden`). Anything else opens the floating editor (`Popover`).
+- **Two views of one state.** Workbench shows the cards, the section, the card and its full view together (the full view goes under the card when the room is under 1040px); Spotlight shows one of them big. The owner's switch is remembered (`lc_stu_view`).
+- **One Save for the page** (`saveStudio` in `app/actions.ts`, fed by `toSave`): section fields, the section's size and look, belt size and the two movement switches (site-wide settings shown here because the owner wanted nothing left out), every card with its order, and the bin. A new card has an id below zero until then. Undo and Redo are a list of whole drafts; typing in one field is one step. Comments (reply, pin, hide, delete) and resetting reactions or votes are not part of it: they happen at once (`studioComment`, `studioReset`).
+- **Pinned cards stay first**, in the list as on the site, so the list is always the visitors' order.
+- **Previews wear a theme.** `skinScript` skips `/admin`, so the editor sets `data-skin` on `<html>` while it's open (the site's default to start with) and removes it on leaving; `studio.css` keeps the dashboard's own `color-scheme`.
+- **The full view** (`.fv`, `EntryFull.tsx`): a 12-column grid whose rows are a minimum height and grow, so nothing is cut and nothing scrolls inside a part. `fvBoxes` places the parts by the layout (spread, poster, story), leaving no gap for a part with nothing in it; once the owner drags one, every part keeps the place it had (`items.fv.at`). Phones, and any container under 720px, stack them in reading order. With nothing chosen it follows the card (`fvLook`). Its movement is the `fullfx` switch.
+- **A class name that's already taken bites here too:** the stage around the full view's preview was `.stu-stage.fv` and took the full view's own padding (`.stu .fv`), which pushed the preview 22px off its stage. Editor classes are `stu-`; a modifier needs a word of its own (`.full`).
 
 ## Rows that don't fit
 

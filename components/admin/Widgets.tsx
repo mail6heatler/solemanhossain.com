@@ -74,9 +74,21 @@ export function ChipsEditor({ name, initial, placeholder }: { name: string; init
 
 type Row = { label: string; url: string; icon?: string };
 
+/** Tells whoever is listening (the live editor) each time a list changes, but not when it's first shown. */
+function useChanged<T>(value: T, onChange?: (value: T) => void) {
+  const first = useRef(true);
+  const tell = useRef(onChange);
+  tell.current = onChange;
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    tell.current?.(value);
+  }, [value]);
+}
+
 /** Button / link rows (label + URL, optional icon). Saved as JSON in a hidden input. */
-export function LinksEditor({ name, initial, withIcon, addLabel = "Add button" }: { name: string; initial: Row[]; withIcon?: boolean; addLabel?: string }) {
+export function LinksEditor({ name, initial, withIcon, addLabel = "Add button", onChange }: { name: string; initial: Row[]; withIcon?: boolean; addLabel?: string; onChange?: (rows: Row[]) => void }) {
   const [rows, setRows] = useState<Row[]>(initial);
+  useChanged(rows, onChange);
   const set = (i: number, k: keyof Row, v: string) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
   const move = (i: number, d: number) => setRows((rs) => {
     const j = i + d; if (j < 0 || j >= rs.length) return rs;
@@ -157,8 +169,9 @@ const pdfThumb = async (src: File | string, base: string, useBlob: boolean) => {
 };
 
 /** Photos, videos and PDFs for an entry: upload several at once, drag files in, reorder, choose the cover (first), remove. */
-export function MediaField({ name, initial, useBlob, maxVideoMb, allowAudio = false }: { name: string; initial: MediaItem[]; useBlob: boolean; maxVideoMb: number; allowAudio?: boolean }) {
+export function MediaField({ name, initial, useBlob, maxVideoMb, allowAudio = false, onChange }: { name: string; initial: MediaItem[]; useBlob: boolean; maxVideoMb: number; allowAudio?: boolean; onChange?: (items: MediaItem[]) => void }) {
   const [items, setItems] = useState<MediaItem[]>(initial);
+  useChanged(items, onChange);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [link, setLink] = useState("");
   const [over, setOver] = useState(false);

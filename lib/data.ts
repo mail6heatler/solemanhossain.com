@@ -1,3 +1,4 @@
+import { cleanFv, type FvInfo } from "@/lib/fullView";
 import { cleanStudy, type StudyInfo } from "./studyItem";
 import { cleanComic, type ComicInfo } from "./comicItem";
 import { cleanAward, type AwardInfo } from "./awardItem";
@@ -45,6 +46,8 @@ export type Item = {
   scrap: ScrapInfo;
   /** which card a G1 note or a G2 window is, if the owner chose one (lib/cardLook.ts) */
   card: CardInfo;
+  /** how its full view is laid out, if the owner changed it (lib/fullView.ts) */
+  fv: FvInfo;
 };
 
 export type Message = {
@@ -73,6 +76,7 @@ const toItem = (r: Row): Item => ({
   award: cleanAward(r.award),
   scrap: cleanScrap(r.scrap),
   card: cleanCard(r.card),
+  fv: cleanFv(r.fv),
 });
 const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
 

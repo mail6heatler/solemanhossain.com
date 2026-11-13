@@ -1,18 +1,20 @@
 /* ================= ADMIN DASHBOARD ================= */
+/* Calm, low-glare colours (the owner asked for shades that are easy on the eyes): a soft sage page instead of bright cream, cards a touch off white,
+   green-charcoal instead of pure black for text and the side menu, and a gentler mint. */
 .adm {
-  --page-bg: #f5f2ee; --card-bg: #fff; --card-border: #e0dcd6; --card-border-hover: #cdc7be;
-  --text-strong: #1a1a1a; --text-soft: #444; --text-muted: #666; --text-faint: #999;
-  --topbar-bg: rgba(255,255,255,.55); --topbar-border: #e6e1da;
-  --chip-bg: rgba(126,232,162,.16); --icon: #2f7a52; --input-bg: #fff; --input-border: #d8d4ce;
-  --mint: #7ee8a2; --ink: #1a1a1a; --danger: #c8453a; --shadow: rgba(26,26,26,.07);
+  --page-bg: #edf1ec; --card-bg: #fafcf9; --card-border: #d9e0d8; --card-border-hover: #c3cdc3;
+  --text-strong: #25302b; --text-soft: #45514b; --text-muted: #65726b; --text-faint: #94a099;
+  --topbar-bg: rgba(250,252,249,.62); --topbar-border: #dbe2da;
+  --chip-bg: rgba(122,201,160,.18); --icon: #2f7a57; --input-bg: #fdfefd; --input-border: #d0d8d0;
+  --mint: #8fdcb0; --ink: #25302b; --danger: #b9584c; --shadow: rgba(37,48,43,.08); --side-bg: #232c28;
   font-family: "Space Grotesk", system-ui, sans-serif; color: var(--text-strong); background: var(--page-bg);
   -webkit-font-smoothing: antialiased; min-height: 100vh;
 }
 .adm.dark {
-  --page-bg: #1c1b19; --card-bg: #26241f; --card-border: #3a3830; --card-border-hover: #4a473d;
-  --text-strong: #f1ede6; --text-soft: #c9c4ba; --text-muted: #9a948a; --text-faint: #7c766c;
-  --topbar-bg: rgba(0,0,0,.28); --topbar-border: #36342c; --chip-bg: rgba(126,232,162,.22); --icon: #7ee8a2;
-  --input-bg: #1f1e1a; --input-border: #423f37; --danger: #ff8a7a; --shadow: rgba(0,0,0,.3);
+  --page-bg: #171c1a; --card-bg: #1f2623; --card-border: #323c37; --card-border-hover: #424d47;
+  --text-strong: #e6ede8; --text-soft: #c1cbc5; --text-muted: #95a29b; --text-faint: #74807a;
+  --topbar-bg: rgba(0,0,0,.24); --topbar-border: #2e3833; --chip-bg: rgba(143,220,176,.18); --icon: #8fdcb0;
+  --input-bg: #1a201d; --input-border: #3a4540; --danger: #f09a8c; --shadow: rgba(0,0,0,.3); --side-bg: #131816;
 }
 .adm * { box-sizing: border-box; }
 :where(.adm) a { color: inherit; }
@@ -24,7 +26,7 @@
 /* shell */
 /* positioned, so that anything absolutely placed inside it is clipped here: otherwise it sticks out below and the whole document scrolls into white. clip, because a hidden box can still be scrolled */
 .adm-shell { position: relative; display: flex; height: 100vh; overflow: clip; }
-.adm-side { width: 214px; flex-shrink: 0; background: #1a1a1a; padding: 16px 10px; display: flex; flex-direction: column; height: 100%; }
+.adm-side { width: 214px; flex-shrink: 0; background: var(--side-bg); padding: 16px 10px; display: flex; flex-direction: column; height: 100%; }
 .adm-logo { display: flex; align-items: center; gap: 9px; padding: 4px 10px 16px; text-decoration: none; }
 .adm-logo .sq { width: 28px; height: 28px; border-radius: 8px; background: var(--mint); display: flex; align-items: center; justify-content: center; font-family: "Syne"; font-weight: 800; font-size: 12px; color: #1a1a1a; flex-shrink: 0; }
 .adm-logo b { font-family: "Syne"; font-size: 13.5px; color: #f5f2ee; display: block; }
@@ -113,8 +115,8 @@
 /* buttons */
 .b-dark, .b-out, .b-mint, .b-danger { display: inline-flex; align-items: center; gap: 6px; font: 600 12px "Space Grotesk"; padding: 7px 14px; border-radius: 99px; cursor: pointer;
   white-space: nowrap; text-decoration: none; letter-spacing: .02em; transition: background .15s, border-color .15s, transform .1s; }
-.b-dark { background: #1a1a1a; color: var(--mint); border: .5px solid transparent; }
-.b-dark:hover { background: #2b2b28; }
+.b-dark { background: var(--ink); color: var(--mint); border: .5px solid transparent; }
+.b-dark:hover { background: #33403a; }
 .adm.dark .b-dark { background: var(--mint); color: #1a1a1a; }
 .b-out { background: transparent; color: var(--text-strong); border: .5px solid var(--input-border); font-weight: 500; }
 .b-out:hover { background: rgba(126,232,162,.16); border-color: var(--mint); }

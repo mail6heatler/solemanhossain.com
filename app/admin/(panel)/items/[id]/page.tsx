@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getComments, getItem, getReactionPeople, getSection, getSections, getSettings, getPollCounts, getReactionCounts } from "@/lib/data";
-import { MOODS, REACTION_EMOJIS, STUDY_STATUSES } from "@/lib/settings";
+import { MOODS, REACTION_EMOJIS, STUDY_STATUSES, hasStudio } from "@/lib/settings";
 import { commentAction, deleteItem, resetPoll, resetReactions, saveLook, updateItem } from "@/app/actions";
 import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
 import LookControls from "@/components/admin/LookControls";
@@ -29,6 +29,8 @@ export default async function ItemEditor({ params }: P) {
   const item = /^\d+$/.test(id) ? await getItem(Number(id)) : null;
   if (!item) notFound();
   const [section, sections, settings] = await Promise.all([getSection({ id: item.section_id }), getSections(), getSettings()]);
+  // a section with the live editor (components/admin/studio) edits its entries on its own page
+  if (section && hasStudio(section.layout)) redirect(`/admin/s/${section.id}?card=${item.id}`);
   const isPoll = item.type === "poll";
   const counts = isPoll ? await getPollCounts(item.id, item.poll_options.length) : [];
   const [reactions, people, comments] = await Promise.all([getReactionCounts(item.id), getReactionPeople(item.id), getComments(item.id, true)]);

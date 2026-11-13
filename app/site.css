@@ -3175,3 +3175,87 @@ html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note,
 #rail .stop:is(:hover, .active) .label { translate: 0 0; background: var(--card); box-shadow: 0 2px 10px rgba(0,0,0,.14); }
 #rail.on-dark .stop:is(:hover, .active) .label { background: var(--hero-bg); }
 #rail .stop:hover .label { pointer-events: auto; }
+
+/* --- G1's full view (.fv): a note opened up (components/site/EntryFull.tsx). A grid of parts: the picture, title, details as stamped cards, a pull quote,
+   the story, more pictures, tags, buttons and reactions. The layout places them, or the owner does in the dashboard (lib/fullView.ts); a row is a minimum height
+   and grows with what's in it, so nothing is cut. Narrow screens stack the parts in reading order. The picture is shown whole over a soft copy of itself.
+   Sticker yellow and the card's rainbow edge are materials, as on the cards. Movement is under the fullfx switch --- */
+.fv { --fvm: var(--mood, var(--mint)); position: relative; isolation: isolate; container: fv / inline-size; width: 100%; max-width: 1240px; margin: 0 auto; padding: 112px 6vw 84px; }
+.fv::before { content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: 580px; pointer-events: none; background: radial-gradient(70% 100% at 12% 0%, color-mix(in srgb, var(--fvm) 26%, transparent), transparent 72%); }
+.fv.bg-plain::before { display: none; }
+.fv.bg-pic::before { height: 640px; background: linear-gradient(color-mix(in srgb, var(--bg) 35%, transparent), var(--bg)); }
+.fv-wash { position: absolute; z-index: -2; left: 0; top: 0; width: 100%; max-width: none; height: 640px; object-fit: cover; filter: blur(46px) saturate(1.3); opacity: .6; pointer-events: none; }
+.fv-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 26px; }
+.fv-band { min-width: 0; overflow: hidden; padding: 4px 12px; border: 1.5px solid currentColor; border-radius: var(--r-pill); color: color-mix(in srgb, var(--fvm) 62%, var(--fg)); font: 700 10.5px/1.4 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; rotate: 1.5deg; }
+.fv-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(26px, auto); gap: 14px 22px; }
+.fv-b { position: relative; min-width: 0; align-self: start; }
+.fv-b.fvb-pic { align-self: stretch; }
+.fv-eye { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fvb-title h1 { margin: 14px 0 10px; font-size: clamp(30px, 4.6cqw, 58px); font-weight: 800; line-height: 1.03; letter-spacing: -.02em; text-wrap: balance; overflow-wrap: break-word; }
+:is(.lay-poster, .lay-story) .fvb-title h1 { font-size: clamp(34px, 6cqw, 70px); }
+.fvb-title .lead { margin: 0; color: var(--muted); font-size: 19px; }
+.fv-frame { position: relative; height: 100%; min-height: 240px; }
+.fv-shot { position: absolute; inset: 0; display: block; width: 100%; padding: 0; overflow: hidden; border: .5px solid var(--line); border-radius: 22px; background: var(--bg-2); color: inherit; cursor: zoom-in; box-shadow: 0 30px 50px -30px color-mix(in srgb, var(--fg) 55%, transparent); }
+.lay-spread .fv-shot { rotate: -1.2deg; }
+.fv-fill { position: absolute; left: -40px; top: -40px; width: calc(100% + 80px); max-width: none; height: calc(100% + 80px); object-fit: cover; filter: blur(22px) saturate(1.2) brightness(.9); }
+.fv-shot .fv-img { position: relative; width: 100%; height: 100%; object-fit: contain; }
+.fv-shot video.fv-img { background: #000; }
+.fv-shot .pdf-tile { position: absolute; inset: 0; }
+.fv-shot .pdf-open { position: absolute; left: 50%; bottom: 14px; margin: 0; translate: -50% 0; white-space: nowrap; }
+.fv-count { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--r-pill); background: color-mix(in srgb, var(--inv-bg) 78%, transparent); color: var(--inv-fg); font: 700 11.5px/1.3 var(--body); }
+.fv-stamps { display: flex; flex-wrap: wrap; gap: 10px 12px; margin: 0; }
+.fv-stamps > div { padding: 8px 14px 9px; border: 1.5px solid color-mix(in srgb, var(--fvm) 55%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--card) 88%, transparent); rotate: -1.6deg; }
+.fv-stamps > div:nth-child(even) { rotate: 1.3deg; }
+.fv-stamps > div:nth-child(3n) { rotate: .5deg; }
+.fv-stamps dt { color: color-mix(in srgb, var(--fvm) 60%, var(--fg)); font: 700 9.5px/1.3 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.fv-stamps dd { margin: 2px 0 0; font: 700 15px/1.25 var(--body); overflow-wrap: anywhere; }
+.fv-quote { margin: 0; padding: 6px 0 6px 18px; border-left: 5px solid var(--fvm); font: 600 clamp(19px, 2.4cqw, 27px)/1.3 var(--display); text-wrap: balance; overflow-wrap: break-word; }
+.fv-quote span::before { content: "“"; } .fv-quote span::after { content: "”"; }
+.fvb-story .md { font-size: 17.5px; line-height: 1.7; }
+.fvb-story .md > p:first-child { margin-top: 0; }
+.fvb-story .poll { max-width: 520px; margin: 0 0 18px; }
+/* a manual's numbered steps: on the card the paper sets their colours; here the theme does */
+.fv .mn-steps > p::before, .fv .mn-steps > :is(ul, ol) > li::before { top: .3em; background: var(--mint); color: var(--on-mint); }
+.fv .gallery.fv-more { margin: 0; }
+.fv .entry-sounds { margin: 0 0 12px; }
+.fv .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.fvb-reacts { padding-top: 18px; border-top: .5px solid var(--line); }
+.fv .reacts { margin-top: 0; }
+.fv .talk-panel { max-width: 640px; margin-top: 16px; }
+html[data-skin="techy"] .site :is(.fv-shot, .fv-stamps > div) { border-radius: 3px; }
+html[data-skin="paper"] .site :is(.fv-shot, .fv-stamps > div) { border: 1px solid var(--fg); box-shadow: 3px 3px 0 var(--fg); }
+/* each card's own touch: ruled paper and a sticker for the manual, painted letters for the sign, the rainbow edge for a collectible card */
+.fvk-manual::after { content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: 580px; pointer-events: none; background: linear-gradient(transparent 45%, var(--bg)), repeating-linear-gradient(transparent 0 27px, color-mix(in srgb, var(--fg) 7%, transparent) 27px 28px); }
+.fvk-manual .fv-stamps > div { border-style: dashed; border-radius: 4px; rotate: none; font-family: "JetBrains Mono", ui-monospace, monospace; }
+.fvk-manual .fv-frame::after { content: "⚠ Handle with care"; position: absolute; z-index: 2; right: -6px; bottom: 18px; padding: 6px 9px; border: 2px solid #2a2230; background: #ffd84a; color: #2a2230; font: 700 10.5px/1.15 "JetBrains Mono", ui-monospace, monospace; text-transform: uppercase; rotate: -8deg; box-shadow: 2px 2px 0 #2a2230; pointer-events: none; }
+.fvk-sign .fvb-title h1 { color: color-mix(in srgb, var(--fvm) 80%, var(--fg)); font-family: "Permanent Marker", "Segoe Print", cursive; font-weight: 400; letter-spacing: 0; line-height: 1.1; }
+.fvk-story .fv-shot { border-radius: 30px; }
+.fvk-fact .fv-shot { border: 7px solid transparent; background: linear-gradient(var(--card), var(--card)) padding-box, conic-gradient(from 210deg, #ff9ecb, #ffe08a, #9df3c4, #8fd8ff, #c6a8ff, #ff9ecb) border-box; }
+.fvk-fact .fv-band { border-color: #c79a2e; background: #2a2230; color: #f2c14e; }
+/* movement: the parts arrive one after another, the detail cards straighten when pointed at, and the picture lifts */
+.site.fx-fullfx .fv-b { animation: fv-unfold .7s cubic-bezier(.2,.8,.2,1) calc(var(--i) * 80ms + 120ms) backwards; }
+.site.fx-fullfx .open-rise .fv-b { animation-name: fv-rise; }
+.site.fx-fullfx .open-zoom .fv-b { animation-name: fv-zoom; }
+@keyframes fv-unfold { from { opacity: 0; transform: perspective(900px) rotateX(-38deg) translateY(-14px); transform-origin: 50% 0; } to { transform-origin: 50% 0; } }
+@keyframes fv-rise { from { opacity: 0; transform: translateY(34px); } }
+@keyframes fv-zoom { from { opacity: 0; transform: scale(.86); } }
+.site.fx-fullfx .fv-stamps > div { transition: rotate .35s cubic-bezier(.3,1.6,.5,1), translate .2s; }
+.site.fx-fullfx .fv-stamps > div:hover { rotate: 0deg; translate: 0 -3px; }
+.site.fx-fullfx .fv-shot { transition: rotate .4s cubic-bezier(.3,1.5,.5,1), scale .4s; }
+.site.fx-fullfx .fv-shot:hover { rotate: 0deg; scale: 1.012; }
+html.lite .fv-wash, html.lite .fv-fill { display: none; }
+@media (prefers-reduced-motion: reduce) { .site.fx-fullfx .fv-b { animation: none; } .site.fx-fullfx :is(.fv-shot, .fv-stamps > div) { transition: none; } }
+/* narrow: one column, in reading order. The media rule is for browsers without container queries, the container rule for the dashboard's narrow preview */
+@media (max-width: 760px) {
+  .fv { padding: 96px 20px 70px; }
+  .fv-grid { display: flex; flex-direction: column; gap: 22px; }
+  .fv-b, .fv-b.fvb-pic { align-self: auto; }
+  .fv-frame { height: auto; min-height: 0; aspect-ratio: 4 / 3; }
+  .fv-band { max-width: 55%; }
+}
+@container fv (max-width: 720px) {
+  .fv-grid { display: flex; flex-direction: column; gap: 22px; }
+  .fv-b, .fv-b.fvb-pic { align-self: auto; }
+  .fv-frame { height: auto; min-height: 0; aspect-ratio: 4 / 3; }
+  .fvb-title h1 { font-size: clamp(30px, 9cqw, 46px); }
+}
