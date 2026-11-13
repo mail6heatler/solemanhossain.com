@@ -50,7 +50,7 @@ export function Meta({ it, showCat = true, hideDate = false, showStatus = false,
  * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
  * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible. `full` stands in for the Full view link in the dashboard.
  */
-export function Box({ children, foot, to, label = "", stub, full }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string; stub?: React.ReactNode; full?: React.ReactNode }) {
+export function Box({ children, foot, to, label = "", stub, full, fullAttrs }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string; stub?: React.ReactNode; full?: React.ReactNode; fullAttrs?: PartAttrs }) {
   return (
     <>
       <div className={`scroll-wrap${foot || to || full ? " has-foot" : ""}`}>
@@ -59,7 +59,7 @@ export function Box({ children, foot, to, label = "", stub, full }: { children: 
         <i className="scroll-line" aria-hidden><b /></i>
       </div>
       {stub}
-      {(foot || to || full) && <div className="card-foot">{foot}{full ?? (to && <FullView to={to} label={label} />)}</div>}
+      {(foot || to || full) && <div className="card-foot">{foot}{full ?? (to && <FullView to={to} label={label} attrs={fullAttrs} />)}</div>}
     </>
   );
 }

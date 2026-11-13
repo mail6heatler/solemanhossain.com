@@ -429,7 +429,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     return row("notes", (
       <>
         {items.map((it, i) => (
-          <NoteCard key={it.id} it={it} l={lookFor(it)} index={i} factNo={factNo.get(it.id) ?? i + 1} foot={foot(it.id)} href={href(section, it)}
+          <NoteCard key={it.id} it={it} l={lookFor(it)} index={i} factNo={factNo.get(it.id) ?? i + 1} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} href={href(section, it)}
             owner={owner} face={face} vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} />
         ))}
       </>

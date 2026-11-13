@@ -7,7 +7,7 @@ import PollCard from "./PollCard";
 import Reactions from "./Reactions";
 import BackLink from "./BackLink";
 import { FvShots } from "./FvShots";
-import { noPart, type PartFn } from "./cardParts";
+import { partFn, type PartAttrs, type PartFn } from "./cardParts";
 
 /** Which parts of a full view have something in them. The dashboard asks too, to say what isn't on the page yet. */
 export function fvPresent(it: Item, reactions: boolean): Record<FvPart, boolean> {
@@ -40,8 +40,8 @@ const BASE_NAMES = { date: "When", place: "Where", mood: "Mood", status: "Status
  * placed by its layout, or wherever the owner dragged them in the dashboard (lib/fullView.ts). Phones stack them in reading order.
  * The entry's own page draws it, and so does the dashboard's editor: with `edit` each part carries its name, nothing leads anywhere and `foot` stands in for the reaction bar.
  */
-export default function EntryFull({ item, section, settings, factNo, edit, foot }: { item: Item; section: Section; settings: SiteSettings; factNo: number; edit?: boolean; foot?: React.ReactNode }) {
-  const p: PartFn = edit ? (k) => ({ "data-part": k }) : noPart;
+export default function EntryFull({ item, section, settings, factNo, edit, foot }: { item: Item; section: Section; settings: SiteSettings; factNo: number; edit?: boolean; foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode }) {
+  const p: PartFn = partFn(edit, item.fv.parts);
   const card = noteLookOf(item.category, item.card.look);
   const mood = MOODS[item.mood];
   const seen = item.media.filter((m) => m.type !== "audio");
@@ -65,14 +65,14 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
       case "pic": return <div className="fv-frame" {...p("pic")}><FvShots media={item.media} title={item.title} mode="hero" morphName={!edit && settings.effects.morph ? `entry-${item.id}` : undefined} still={edit} /></div>;
       case "title": return <>
         <div className="fv-eye">
-          {section.code && <span className="chip dark">{section.code}</span>}
+          {section.code && <span className="chip dark" {...p("code")}>{section.code}</span>}
           {item.category && <span className="chip" {...p("sub")}>{item.category}</span>}
           {card === "fact" && <span className="chip line">#{String(factNo).padStart(2, "0")}</span>}
         </div>
         <h1 {...p("title")}>{item.title}</h1>
         {item.subtitle && <p className="lead" {...p("subtitle")}>{item.subtitle}</p>}
       </>;
-      case "facts": return <dl className="fv-stamps">{facts.map(([k, v, key], i) => <div key={k} style={{ "--t": i } as React.CSSProperties} {...(key ? p(key) : {})}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>;
+      case "facts": return <dl className="fv-stamps">{facts.map(([k, v, key], i) => <div key={k} {...(key ? p(key, { "--t": i } as React.CSSProperties) : { style: { "--t": i } as React.CSSProperties })}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>;
       case "quote": return <blockquote className="fv-quote" {...p("quote")}><span>{item.fv.quote}</span></blockquote>;
       case "story": return <>
         {item.type === "poll" && (edit
@@ -80,7 +80,7 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
           : <PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} />)}
         <Markdown className={card === "manual" ? "md mn-steps" : "md"} {...p("body")}>{item.body}</Markdown>
       </>;
-      case "gallery": return <div {...p("pic")}><FvShots media={item.media} title={item.title} mode="rest" still={edit} /></div>;
+      case "gallery": return <div {...p("gallery")}><FvShots media={item.media} title={item.title} mode="rest" still={edit} /></div>;
       case "tags": return <div className="tags" {...p("tags")}>{item.tags.map((t) => <span key={t}>{t}</span>)}</div>;
       case "buttons": return (
         <div className="btn-row" {...p("links")}>
@@ -91,7 +91,7 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
           ))}
         </div>
       );
-      case "reacts": return foot ?? <Reactions id={item.id} talk={item.talk} />;
+      case "reacts": return foot ? foot({ bar: p("reacts"), talk: p("comments") }) : <Reactions id={item.id} talk={item.talk} attrs={{ bar: p("reacts"), talk: p("comments") }} />;
     }
   };
 
@@ -101,7 +101,7 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
       {look.bg === "pic" && wash && <img className="fv-wash" src={wash} alt="" aria-hidden />}
       <div className="fv-top">
         {edit ? <span className="back"><i className="ti ti-arrow-left" />{section.title}</span> : <BackLink href={`/s/${section.slug}`} label={section.title} />}
-        <span className="fv-band" aria-hidden>{band}</span>
+        <span className="fv-band" aria-hidden {...p("band")}>{band}</span>
       </div>
       <div className="fv-grid">
         {boxes.map((b, i) => (

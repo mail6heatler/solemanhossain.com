@@ -5,6 +5,7 @@ import type { TalkInfo } from "@/lib/talk";
 import type { Comment } from "@/lib/data";
 import { FV_COLS, FV_MAX_ROWS, FV_ROW, FV_ZOOM, type FvBox } from "@/lib/fullView";
 import { PART_LIMITS, SIZED_PARTS, cleanPartSize, type PartSize, type PartSizes } from "@/lib/partSize";
+import type { PartAttrs } from "@/components/site/cardParts";
 
 type Mark = { key: string; n: number; x: number; y: number; w: number; h: number; tx: number; ty: number; tag: boolean; rs: boolean };
 type Grip = { part: string; x: number; y: number; w: number; h: number };
@@ -12,8 +13,8 @@ type Pen = { x: number; y: number; w: number; h: number; css: React.CSSPropertie
 type Tip = { x: number; y: number; text: string };
 /** What's being typed straight onto the preview: which part, which of them if it shows twice, and its text. */
 export type Typing = { key: string; n: number; value: string };
-/** Which way a drag sizes: the side edge (width), the bottom edge (height) or the corner (everything in it, words included). */
-type Way = "w" | "h" | "z";
+/** Which way a drag goes: the side edge (width), the bottom edge (height), the corner (everything in it, words included), or the move handle (its place). */
+type Way = "w" | "h" | "z" | "m";
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const r1 = (v: number) => Math.round(v * 2) / 2;
@@ -25,7 +26,7 @@ const holder = (el: HTMLElement) => {
   return p ?? el;
 };
 const sizeText = (s: PartSize | undefined, pic: boolean) =>
-  [s?.w !== undefined ? `Width ${s.w}%` : "Full width", s?.h !== undefined ? `${pic ? "Height" : "Room"} ${s.h}px` : "", `Size ${s?.z ?? 100}%`].filter(Boolean).join(" · ");
+  [s?.w !== undefined ? `Width ${s.w}%` : "Full width", s?.h !== undefined ? `${pic ? "Height" : "Room"} ${s.h}px` : "", `Size ${s?.z ?? 100}%`, s?.x || s?.y ? `moved ${s.x ?? 0}, ${s.y ?? 0}` : ""].filter(Boolean).join(" · ");
 
 /**
  * A live preview you can point at. Whatever is drawn inside carries `data-part` names (see NoteCard and EntryFull); this measures them and lays
@@ -65,7 +66,6 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     const out: Mark[] = [], seen: Record<string, number> = {}, chips: { x: number; y: number; w: number }[] = [];
     el.querySelectorAll<HTMLElement>(".stu-inner [data-part]").forEach((p) => {
       const key = p.dataset.part!;
-      if (key === "open") return;
       const n = (seen[key] = (seen[key] ?? 0) + 1) - 1;
       const r = p.getBoundingClientRect();
       if (r.width < 4 || r.height < 4) return;
@@ -214,6 +214,8 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
       if (way === "w") n.w = Math.round(clamp(((r.width + dx) / room) * 100, PART_LIMITS.w[0], 100) * 2) / 2;
       if (way === "h") n.h = Math.round(clamp((r.height + dy) / (zoom * z0), PART_LIMITS.h[0], PART_LIMITS.h[1]));
       if (way === "z") n.z = Math.round(clamp(z0 * Math.max(0.1, ((r.width + dx) / r.width + (r.height + dy) / r.height) / 2) * 100, PART_LIMITS.z[0], PART_LIMITS.z[1]));
+      // a move is counted in the card's own pixels, so it lands where it's dropped whatever the preview's zoom
+      if (way === "m") { n.x = Math.round(clamp((s0.x ?? 0) + dx / zoom, PART_LIMITS.x[0], PART_LIMITS.x[1])); n.y = Math.round(clamp((s0.y ?? 0) + dy / zoom, PART_LIMITS.y[0], PART_LIMITS.y[1])); }
       const s = cleanPartSize(n);
       setTip({ x: ev.clientX, y: ev.clientY, text: sizeText(s, pic) });
       cancelAnimationFrame(frame);
@@ -221,10 +223,15 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     }, () => { setDragging(""); setTip(null); });
   };
   // a double click on a handle puts that one back
-  const unsize = (m: Mark, way: Way) => { if (!onSize) return; const s = { ...(sizes?.[m.key] ?? {}) }; delete s[way]; onSize(m.key, cleanPartSize(s), Date.now()); };
+  const unsize = (m: Mark, way: Way) => {
+    if (!onSize) return;
+    const s = { ...(sizes?.[m.key] ?? {}) };
+    if (way === "m") { delete s.x; delete s.y; } else delete s[way];
+    onSize(m.key, cleanPartSize(s), Date.now());
+  };
 
   // ----- a full view's part: it follows the mouse exactly, then glides onto the grid when let go -----
-  const grab = (e: React.PointerEvent, g: Grip, mode: "move" | Way) => {
+  const grab = (e: React.PointerEvent, g: Grip, mode: "move" | Exclude<Way, "m">) => {
     const el = root.current, grid = el?.querySelector<HTMLElement>(".fv-grid"), blk = el?.querySelector<HTMLElement>(`[data-fv="${g.part}"]`), start = blocks?.find((b) => b.part === g.part);
     if (!grid || !blk || !start || !onBlock) return;
     e.preventDefault();
@@ -274,8 +281,10 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     if (way === "z") onBlock(g.part, { ...start, z: 100 });
   };
 
-  const handles = (left: number, top: number, w: number, h: number, on: (e: React.PointerEvent, way: Way) => void, off: (way: Way) => void, what: string) => (
+  const handles = (left: number, top: number, w: number, h: number, on: (e: React.PointerEvent, way: Way) => void, off: (way: Way) => void, what: string, movable = false) => (
     <>
+      {movable && <button type="button" className="stu-grip" style={{ left: left + w / 2 - 11, top: top - 11 }} title="Drag to move it anywhere. Double-click to put it back."
+        aria-label={`Move ${what}`} onPointerDown={(e) => on(e, "m")} onDoubleClick={() => off("m")}><i className="ti ti-arrows-move" aria-hidden /></button>}
       <button type="button" className="stu-edge ew" style={{ left: left + w - 5, top: top + h / 2 - 13, height: Math.min(26, Math.max(12, h - 6)) }} title="Drag the side for more room. The words keep their size. Double-click to put it back."
         aria-label={`Width of ${what}`} onPointerDown={(e) => on(e, "w")} onDoubleClick={() => off("w")} />
       <button type="button" className="stu-edge ns" style={{ left: left + w / 2 - 13, top: top + h - 5, width: Math.min(26, Math.max(12, w - 6)) }} title="Drag the bottom for more room. The words keep their size. Double-click to put it back."
@@ -295,14 +304,14 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
           <span key={g.part}>
             <i className={`stu-blk${dragging === g.part ? " held" : ""}`} style={{ left: g.x, top: g.y, width: g.w, height: g.h }} />
             <button type="button" className="stu-move" style={{ left: g.x + g.w - 6, top: g.y - 11 }} title="Drag to move it anywhere. Click for its options." onPointerDown={(e) => grab(e, g, "move")}><i className="ti ti-arrows-move" aria-hidden />{blockName?.(g.part)}</button>
-            {handles(g.x, g.y, g.w, g.h, (e, way) => grab(e, g, way), (way) => resetBlock(g, way), blockName?.(g.part) ?? g.part)}
+            {handles(g.x, g.y, g.w, g.h, (e, way) => { if (way !== "m") grab(e, g, way); }, (way) => resetBlock(g, way), blockName?.(g.part) ?? g.part)}
           </span>
         ))}
         {labels && marks.filter((m) => m.tag).map((m) => (
           <button key={`${m.key}${m.n}`} type="button" className={`stu-tag${active === m.key ? " on" : ""}`} style={{ left: m.tx, top: m.ty }} onClick={() => tagClick(m)}>{name(m.key)}</button>
         ))}
         {sizes && !typing && marks.filter((m) => m.rs && (dragging ? dragging === `${m.key}:${m.n}` : hover === `${m.key}:${m.n}` || (active === m.key && m.n === 0))).map((m) => (
-          <span key={`h${m.key}${m.n}`}>{handles(m.x, m.y, m.w, m.h, (e, way) => sizePart(e, m, way), (way) => unsize(m, way), name(m.key))}</span>
+          <span key={`h${m.key}${m.n}`}>{handles(m.x, m.y, m.w, m.h, (e, way) => sizePart(e, m, way), (way) => unsize(m, way), name(m.key), true)}</span>
         ))}
         {typing && pen && (
           <textarea key={typeKey} className="stu-type" autoFocus value={typing.value} style={{ left: pen.x, top: pen.y, width: pen.w, height: pen.h, ...pen.css }} aria-label={name(typing.key)}
@@ -320,14 +329,14 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
  * The reaction bar as visitors see it, standing still: the dashboard has nobody to react as. The switches in `talk` change it the same way they change
  * the real one (Reactions.tsx): the total, the crown, Share and comments.
  */
-export function StillReacts({ counts, talk, compact, comments, owner }: { counts: Record<string, number>; talk: TalkInfo; compact?: boolean; comments: Comment[]; owner: string }) {
+export function StillReacts({ counts, talk, compact, comments, owner, attrs }: { counts: Record<string, number>; talk: TalkInfo; compact?: boolean; comments: Comment[]; owner: string; attrs?: { bar?: PartAttrs; talk?: PartAttrs } }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const ranked = REACTION_EMOJIS.map((e) => counts[e] ?? 0).sort((a, b) => b - a);
   const crowned = talk.top && ranked[0] > (ranked[1] ?? 0) ? REACTION_EMOJIS.find((e) => (counts[e] ?? 0) === ranked[0]) : undefined;
   const shown = comments.filter((c) => !c.hidden);
   return (
     <>
-      <div className={`reacts${compact ? " mini" : ""}`} data-part="reacts">
+      <div className={`reacts${compact ? " mini" : ""}`} data-part="reacts" {...attrs?.bar}>
         {REACTION_EMOJIS.map((e) => {
           const n = counts[e] ?? 0;
           return <button key={e} type="button" tabIndex={-1} className={`${n === 0 ? "zero" : ""}${e === crowned ? " top" : ""}`}><span className="e">{e}</span><span className="n">{n > 0 ? n : ""}</span></button>;
@@ -336,12 +345,12 @@ export function StillReacts({ counts, talk, compact, comments, owner }: { counts
         {talk.share && <button type="button" tabIndex={-1} className="r-share"><i className="ti ti-share" aria-hidden />{!compact && <span>Share</span>}</button>}
       </div>
       {talk.comments && (compact ? (
-        <div className="talk-row" data-part="reacts">
+        <div className="talk-row" data-part="comments" {...attrs?.talk}>
           <button type="button" tabIndex={-1} className="talk-count"><i className="ti ti-message-circle" aria-hidden />{shown.length > 0 && <b>{shown.length}</b>}</button>
           <div className="talk-say"><input type="text" readOnly tabIndex={-1} placeholder="Say something…" /><button type="button" tabIndex={-1} className="talk-send" disabled><i className="ti ti-send" aria-hidden /></button></div>
         </div>
       ) : (
-        <div className="talk-panel" data-part="reacts">
+        <div className="talk-panel" data-part="comments" {...attrs?.talk}>
           <div className="talk-say big"><textarea readOnly tabIndex={-1} rows={2} placeholder="Say something…" /><button type="button" tabIndex={-1} className="talk-send" disabled><i className="ti ti-send" aria-hidden /></button></div>
           <ul className="talk-list">
             {shown.length === 0 && <li className="talk-none">Nobody has said anything yet. Be the first!</li>}

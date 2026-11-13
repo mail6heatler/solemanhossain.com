@@ -24,7 +24,9 @@ const NOTE_HINTS: Record<NoteLook, string> = {
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
 const NAMES: Record<string, string> = {
   sub: "Subsection", title: "Title", subtitle: "Subtitle", body: "Story", pic: "Pictures", date: "Date", place: "Place", mood: "Mood", status: "Status", tags: "Tags",
-  links: "Buttons", poll: "Poll", reacts: "Reactions & comments", size: "Size & look", more: "Show, pin, move", quote: "Pull quote", fv: "Full view options",
+  links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
+  fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
+  band: "Band", code: "Code tag",
 };
 const BY_LOOK: Record<NoteLook, Record<string, string>> = {
   manual: { date: "Version", place: "Made in", tags: "Runs on", body: "Steps", sub: "Manual name" },
@@ -56,7 +58,12 @@ export type Ed = {
   /** the full view's parts as drawn, and how to place or size one */
   blocks: FvBox[]; setBlock: (part: string, box: FvBox) => void;
   setPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
+  setFvPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
+/** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
+const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open"];
+/** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
+const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -107,28 +114,32 @@ function ReplyBox({ start, busy, onSave }: { start: string; busy: boolean; onSav
   );
 }
 
-/** A part's size as numbers: the same as dragging its side edge, bottom edge or corner on the card. */
-function PartSizeFields({ ed, k }: { ed: Ed; k: string }) {
-  const s = ed.item?.card.parts?.[k] ?? {};
-  const set = (patch: Partial<PartSize>) => ed.setPartSize(k, cleanPartSize({ ...s, ...patch }));
-  const pic = k === "pic";
+/** A box's size and place as numbers: the same as dragging its move handle, side edge, bottom edge or corner on the card or in the full view. */
+function PartSizeFields({ ed, k, where }: { ed: Ed; k: string; where: "card" | "fv" }) {
+  const s = (where === "fv" ? ed.item?.fv.parts?.[k] : ed.item?.card.parts?.[k]) ?? {};
+  const put = where === "fv" ? ed.setFvPartSize : ed.setPartSize;
+  const set = (patch: Partial<PartSize>) => put(k, cleanPartSize({ ...s, ...patch }));
+  const pic = k === "pic" && where === "card";
+  const moved = !!(s.x || s.y);
   return (
     <div className="fl stu-f stu-size">
-      <span className="lab">Size of this part on the card</span>
-      <span className="hint">Or drag it on the card: its side edge or bottom edge for more room (the words keep their size), its corner to make everything in it bigger.</span>
+      <span className="lab">Size and place of this box {where === "fv" ? "in the full view" : "on the card"}</span>
+      <span className="hint">Or drag it there: its ✥ handle to move it anywhere, its side or bottom edge for more room (the words keep their size), its corner to make everything in it bigger. A double click on a handle puts that one back.</span>
+      <Slider label="Left or right" value={s.x || undefined} range={[-400, 400]} unit="px" fallback={0} onChange={(x) => set({ x, y: s.y ?? 0 })} onClear={moved ? () => set({ x: 0 }) : undefined} />
+      <Slider label="Up or down" value={s.y || undefined} range={[-400, 400]} unit="px" fallback={0} onChange={(y) => set({ y, x: s.x ?? 0 })} onClear={moved ? () => set({ y: 0 }) : undefined} />
       <Slider label="Width" value={s.w} range={PART_LIMITS.w} unit="%" fallback={100} onChange={(w) => set({ w })} onClear={() => set({ w: undefined })} />
       <Slider label={pic ? "Height" : "Room (at least)"} value={s.h} range={[PART_LIMITS.h[0], pic ? 600 : 500]} unit="px" fallback={pic ? 200 : 40} onChange={(h) => set({ h })} onClear={() => set({ h: undefined })} />
       <Slider label="Size of everything in it" value={s.z} range={PART_LIMITS.z} unit="%" fallback={100} onChange={(z) => set({ z })} onClear={() => set({ z: undefined })} />
-      {(s.w !== undefined || s.h !== undefined || s.z !== undefined) && <button type="button" className="b-out b-sm" onClick={() => ed.setPartSize(k, undefined)}><i className="ti ti-restore" />Back to its own size</button>}
+      {(s.w !== undefined || s.h !== undefined || s.z !== undefined || moved) && <button type="button" className="b-out b-sm" onClick={() => put(k, undefined)}><i className="ti ti-restore" />Back to its own size and place</button>}
     </div>
   );
 }
 
-/** One part of a card, opened from its label, with its size under it. */
-export function CardEditor({ ed, k }: { ed: Ed; k: string }) {
+/** One box of a card or of the full view, opened from its label: what it says, then its size and place. */
+export function CardEditor({ ed, k, where = "card" }: { ed: Ed; k: string; where?: "card" | "fv" }) {
   return <>
-    <CardFields ed={ed} k={k} />
-    {ed.item && (SIZED_PARTS as readonly string[]).includes(k) && <PartSizeFields ed={ed} k={k} />}
+    {DESIGN.includes(k) ? <p className="hint" style={{ margin: 0 }}>This box is part of the {where === "fv" ? "full view's" : "card's"} own design: there&apos;s nothing to type in it, but you can size it and move it anywhere.</p> : <CardFields ed={ed} k={ALIAS[k] ?? k} />}
+    {ed.item && (SIZED_PARTS as readonly string[]).includes(k) && <PartSizeFields ed={ed} k={k} where={where} />}
   </>;
 }
 

@@ -239,3 +239,8 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .stu-size { padding-top: 10px; border-top: .5px dashed var(--card-border); }
 /* the old card-corner button sits beside the part handles: keep it apart */
 .stu-corner { right: -14px; bottom: -14px; }
+.stu-grip { position: absolute; z-index: 5; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--stu-on); color: #fff; font-size: 13px; box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(20,40,30,.35); cursor: grab; pointer-events: auto; touch-action: none; transition: scale .15s; }
+.stu-grip:hover { scale: 1.15; }
+.stu-grip:active { cursor: grabbing; }
+/* in the editor every box catches the mouse, even decoration the site lets the mouse pass through (the warning sticker), so it can be picked and dragged */
+.stu-inner [data-part] { pointer-events: auto; }

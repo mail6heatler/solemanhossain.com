@@ -8,6 +8,7 @@ import { LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles } from 
 import { FV_PARTS, fvBoxes, fvLook, fvPlace, type FvBox, type FvPart } from "@/lib/fullView";
 import { pinnedFirst, toSave, type StudioData, type StudioDraft, type StudioSection } from "@/lib/studio";
 import type { PartSize } from "@/lib/partSize";
+import type { PartAttrs } from "@/components/site/cardParts";
 import { saveStudio, studioComment, studioReset } from "@/app/actions";
 import NoteCard from "@/components/site/NoteCard";
 import EntryFull, { fvPresent } from "@/components/site/EntryFull";
@@ -114,11 +115,10 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const siteMood = MOODS[settings.mood];
   const siteStyle = (siteMood ? { "--m": siteMood.color, "--m-deep": siteMood.deep } : {}) as React.CSSProperties;
   const siteClass = `site${draft.notefx ? " fx-notefx" : ""}${draft.fullfx ? " fx-fullfx" : ""}${settings.effects.themefx ? " fx-themefx" : ""}`;
-  const bar = (it: Item, compact: boolean) => (settings.effects.reactions ? <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} /> : undefined);
-  const cardOf = (it: Item, edit: boolean) => (
-    <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={faceIcon} edit foot={bar(it, true)}
-      full={edit ? <button type="button" className="full-view" data-part="open"><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></button> : <span className="full-view"><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span>} />
-  );
+  const bar = (it: Item, compact: boolean) => (settings.effects.reactions
+    ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
+    : undefined);
+  const cardOf = (it: Item) => <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={faceIcon} edit foot={bar(it, true)} />;
   const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? 340, h: p?.h ?? s.h ?? 440 }; };
   const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions)) : []), [item, card, settings.effects.reactions]);
   const fvZoom = phone ? 1 : Math.min(1, fvWidth / FV_WIDTH);
@@ -290,6 +290,17 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
       return { ...it, fv: { ...it.fv, at, zoom } };
     }) }), tag);
   };
+  /** One box inside the full view at the size and place it was dragged to; undefined puts it back. */
+  const setFvPartSize = (key: string, size: PartSize | undefined, stroke?: number) => {
+    if (sel === null) return;
+    const id = sel;
+    change((d) => ({ ...d, items: d.items.map((it) => {
+      if (it.id !== id) return it;
+      const parts = { ...it.fv.parts };
+      if (size) parts[key] = size; else delete parts[key];
+      return same(it.fv.parts?.[key], size) ? it : { ...it, fv: { ...it.fv, parts } };
+    }) }), `fps-${id}-${key}${stroke ? `-${stroke}` : ""}`);
+  };
   /** One part of the card at the size it was dragged to; undefined puts it back. Typing-like: a whole drag is one step to undo. */
   const setPartSize = (key: string, size: PartSize | undefined, stroke?: number) => {
     if (sel === null) return;
@@ -311,7 +322,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     window.addEventListener("pointerup", up);
   };
 
-  const ed: Ed = { data, draft, live, item, card, rev, setItem, setSection, setDraft: change, ask: setAsk, comment, reset, remove, duplicate, play, busy, open: (scope, key) => openPop(scope, key), blocks, setBlock: moveBlock, setPartSize };
+  const ed: Ed = { data, draft, live, item, card, rev, setItem, setSection, setDraft: change, ask: setAsk, comment, reset, remove, duplicate, play, busy, open: (scope, key) => openPop(scope, key), blocks, setBlock: moveBlock, setPartSize, setFvPartSize };
 
   // ---------- pieces ----------
   const cats = Array.from(new Set([...draft.section.categories, ...draft.items.map((i) => i.category)].filter(Boolean)));
@@ -360,7 +371,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     <div className="stu-cardbox">
       <Surface labels={labels} name={(k) => partName(k, card)} active={activeFor("card")} onPart={onPart("card")} onOpen={openFull} sizes={item.card.parts ?? {}} onSize={setPartSize}
         typing={typingFor("card")} onType={(v) => typing && setTyped("card", typing.key, v)} onTypeEnd={() => setTyping(null)}>
-        <div className={`${siteClass} stu-site stu-one${item.visible ? "" : " off"}`} style={siteStyle}>{cardOf(item, true)}</div>
+        <div className={`${siteClass} stu-site stu-one${item.visible ? "" : " off"}`} style={siteStyle}>{cardOf(item)}</div>
       </Surface>
       <button type="button" className="stu-corner" title="Drag to resize this card" aria-label="Resize this card" onPointerDown={resize} />
     </div>
@@ -374,7 +385,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     </div>
   );
   const fvSurface = item && (
-    <Surface key={`fv${phone ? "p" : "d"}`} className="stu-fvsurf" zoom={fvZoom} width={phone ? Math.min(390, fvWidth) : Math.round(FV_WIDTH * fvZoom)} labels={labels} name={(k) => partName(k, card)} active={activeFor("fv")} onPart={onPart("fv")}
+    <Surface key={`fv${phone ? "p" : "d"}`} className="stu-fvsurf" zoom={fvZoom} width={phone ? Math.min(390, fvWidth) : Math.round(FV_WIDTH * fvZoom)} labels={labels} name={(k) => partName(k, card)} active={activeFor("fv")} onPart={onPart("fv")} sizes={item.fv.parts ?? {}} onSize={setFvPartSize}
       typing={typingFor("fv")} onType={(v) => typing && setTyped("fv", typing.key, v)} onTypeEnd={() => setTyping(null)}
       blocks={phone ? undefined : blocks} blockName={(p) => FV_PARTS.find(([k]) => k === p)?.[1] ?? p} onBlock={(p, b) => moveBlock(p, b, `drag-${Date.now()}`)} onBlockPick={(p, at) => openPop("fv", `fvb:${p}`, at)}>
       <div key={played} className={`${siteClass} stu-site stu-fvpage`} style={{ ...siteStyle, width: phone ? Math.min(390, fvWidth) : FV_WIDTH }}>
@@ -407,7 +418,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
             onClick={() => select(it.id)} onKeyDown={(e) => { if (e.key === "Enter" && e.target === e.currentTarget) select(it.id); }}
             onDragStart={(e) => { dragFrom.current = i; e.dataTransfer.effectAllowed = "move"; }} onDragOver={(e) => { e.preventDefault(); setOver(i); }} onDragLeave={() => setOver((o) => (o === i ? null : o))}
             onDrop={(e) => { e.preventDefault(); setOver(null); if (dragFrom.current !== null) move(dragFrom.current, i); dragFrom.current = null; }} onDragEnd={() => { dragFrom.current = null; setOver(null); }}>
-            <div className="stu-thumb" aria-hidden>{draft.items.length <= 24 ? <div className={`${siteClass} stu-site`} style={{ ...siteStyle, zoom: 58 / size.w }}>{cardOf(it, false)}</div> : <i className="ti ti-note" />}</div>
+            <div className="stu-thumb" aria-hidden>{draft.items.length <= 24 ? <div className={`${siteClass} stu-site`} style={{ ...siteStyle, zoom: 58 / size.w }}>{cardOf(it)}</div> : <i className="ti ti-note" />}</div>
             <div className="stu-meta">
               <b>{it.title || "Untitled"}</b>
               <small>{it.category || "No subsection"}</small>
@@ -522,7 +533,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
         <Popover key={`${pop.scope}:${pop.key.startsWith("fv") ? "fv" : pop.scope === "sec" ? "sec" : "card"}`} x={pop.x} y={pop.y} title={popTitle} onClose={() => setPop(null)}
           foot={pop.scope !== "sec" && item && !pop.key.startsWith("fv") ? <><span>Also on this card:</span>{[...CARD_KEYS, "quote", ...(item.type === "poll" ? ["poll"] : [])].map((k) => <button key={k} type="button" className={k === pop.key ? "on" : ""} onClick={() => setPop({ ...pop, key: k })}>{partName(k, card)}</button>)}</>
             : pop.key.startsWith("fv") ? <><span>Full view:</span><button type="button" className={pop.key === "fv" ? "on" : ""} onClick={() => setPop({ ...pop, key: "fv" })}>Options</button>{FV_PARTS.map(([k, label]) => <button key={k} type="button" className={pop.key === `fvb:${k}` ? "on" : ""} onClick={() => setPop({ ...pop, key: `fvb:${k}` })}>{label}</button>)}</> : null}>
-          {pop.scope === "sec" ? <SectionEditor ed={ed} focus={pop.key} /> : pop.key === "fv" || pop.key.startsWith("fvb:") ? <FullEditor ed={ed} k={pop.key} /> : <div key={`${sel}:${pop.key}`} className="stu-fields"><CardEditor ed={ed} k={pop.key} /></div>}
+          {pop.scope === "sec" ? <SectionEditor ed={ed} focus={pop.key} /> : pop.key === "fv" || pop.key.startsWith("fvb:") ? <FullEditor ed={ed} k={pop.key} /> : <div key={`${sel}:${pop.key}`} className="stu-fields"><CardEditor ed={ed} k={pop.key} where={pop.scope === "fv" ? "fv" : "card"} /></div>}
         </Popover>
       )}
 

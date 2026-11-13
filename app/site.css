@@ -3270,3 +3270,6 @@ html.lite .fv-wash, html.lite .fv-fill { display: none; }
 .flow > [data-sz~="w"] { align-self: flex-start; }
 .note .pic-box[data-sz~="h"] { display: block; overflow: hidden; border-radius: 10px; }
 .note .pic-box[data-sz~="h"] > .note-media { height: 100%; max-height: none; aspect-ratio: auto; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 40%); }
+/* a box dragged to a new place draws above what it now covers */
+[data-sz~="x"] { position: relative; z-index: 3; }
+.mn-warn[data-sz~="x"], .stu-site .mn-warn[data-sz~="x"] { position: absolute; }

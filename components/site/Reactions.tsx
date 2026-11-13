@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { REACTION_EMOJIS } from "@/lib/settings";
 import type { TalkInfo } from "@/lib/talk";
 import { ShareButton, TalkPanel, TalkRow } from "./Talk";
+import type { PartAttrs } from "./cardParts";
 import { burst } from "./fx";
 import { askName, savedName } from "./askName";
 
@@ -37,7 +38,8 @@ async function flush() {
  * ❤️ 🔥 😂 🤯 👏 under an entry. Tap to add, tap again to take it back. `compact` = the small version for cards.
  * `talk` is what this entry has switched on beyond the emojis, in the dashboard: the total, the crown, Share and comments. `href` is its page.
  */
-export default function Reactions({ id, compact = false, talk, href }: { id: number; compact?: boolean; talk?: TalkInfo; href?: string }) {
+/** `attrs` are the size and place the owner gave the bar and the comment box in the dashboard (lib/partSize.ts). */
+export default function Reactions({ id, compact = false, talk, href, attrs }: { id: number; compact?: boolean; talk?: TalkInfo; href?: string; attrs?: { bar?: PartAttrs; talk?: PartAttrs } }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [mine, setMine] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -96,7 +98,7 @@ export default function Reactions({ id, compact = false, talk, href }: { id: num
   const ranked = REACTION_EMOJIS.map((e) => counts[e] ?? 0).sort((a, b) => b - a);
   const crowned = talk?.top && ranked[0] > (ranked[1] ?? 0) ? REACTION_EMOJIS.find((e) => (counts[e] ?? 0) === ranked[0]) : undefined;
   const bar = (
-    <div className={`reacts${compact ? " mini" : ""}`} role="group" aria-label={`Reactions (${total})`}>
+    <div className={`reacts${compact ? " mini" : ""}`} role="group" aria-label={`Reactions (${total})`} {...attrs?.bar}>
       {REACTION_EMOJIS.map((e) => {
         const n = counts[e] ?? 0;
         return (
@@ -120,7 +122,7 @@ export default function Reactions({ id, compact = false, talk, href }: { id: num
   return (
     <>
       {bar}
-      {compact ? <TalkRow id={id} count={comments} float={talk.float} /> : <TalkPanel id={id} float={talk.float} />}
+      {compact ? <TalkRow id={id} count={comments} float={talk.float} attrs={attrs?.talk} /> : <TalkPanel id={id} float={talk.float} attrs={attrs?.talk} />}
     </>
   );
 }

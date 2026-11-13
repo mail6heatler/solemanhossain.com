@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { COMMENT_MAX } from "@/lib/talk";
 import { burst } from "./fx";
 import { askName, savedName } from "./askName";
+import type { PartAttrs } from "./cardParts";
 
 type Comment = { id: number; name: string; body: string; reply: string; pinned: boolean; at: string };
 type Answer = { comments?: Comment[]; owner?: string; error?: string };
@@ -83,7 +84,7 @@ function Say({ id, float, big, onPosted }: { id: number; float: boolean; big?: b
 }
 
 /** The comments, pinned first and then newest first, with the box above them: under the emojis on an entry's page, and in the card's pop-up. */
-export function TalkPanel({ id, float }: { id: number; float: boolean }) {
+export function TalkPanel({ id, float, attrs }: { id: number; float: boolean; attrs?: PartAttrs }) {
   const [list, setList] = useState<Comment[] | null>(null);
   const [owner, setOwner] = useState("");
   useEffect(() => {
@@ -92,7 +93,7 @@ export function TalkPanel({ id, float }: { id: number; float: boolean }) {
     return () => { live = false; };
   }, [id]);
   return (
-    <div className="talk-panel">
+    <div className="talk-panel" {...attrs}>
       <Say id={id} float={float} big onPosted={(a) => { if (a.comments) { setList(a.comments); tellCount(id, a.comments.length); } }} />
       <ul className="talk-list">
         {list === null && <li className="talk-none">Loading…</li>}
@@ -131,10 +132,10 @@ function TalkDialog({ id, float, onClose }: { id: number; float: boolean; onClos
 }
 
 /** On a card: a 💬 button with the count, which opens them all, and a line to type in, under the emojis. The card stays its size, so its text part gives way. */
-export function TalkRow({ id, count, float }: { id: number; count: number; float: boolean }) {
+export function TalkRow({ id, count, float, attrs }: { id: number; count: number; float: boolean; attrs?: PartAttrs }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="talk-row" onClick={(e) => e.stopPropagation()}>
+    <div className="talk-row" onClick={(e) => e.stopPropagation()} {...attrs}>
       <button type="button" className="talk-count" aria-label={`Open the comments (${count})`} onClick={(e) => { e.preventDefault(); setOpen(true); }}>
         <i className="ti ti-message-circle" aria-hidden="true" />{count > 0 && <b>{count}</b>}
       </button>

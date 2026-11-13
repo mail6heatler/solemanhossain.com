@@ -1,3 +1,4 @@
+import { cleanPartSizes, type PartSizes } from "./partSize";
 /**
  * What a G1 entry's full view stores (items.fv): its layout, background and opening, a pull quote that only shows there, which parts are hidden,
  * and where each part sits once the owner has moved one in the dashboard. Everything left empty follows the card's own look.
@@ -33,6 +34,8 @@ export type FvInfo = {
   layout: FvLayout | ""; bg: FvBg | ""; open: FvOpen | ""; quote: string; hide: Partial<Record<FvPart, boolean>>; at: Partial<Record<FvPart, Box4>>;
   /** how big everything in a part is, words included, in percent (dragging its corner) */
   zoom: Partial<Record<FvPart, number>>;
+  /** the size and place of each box inside the parts: the title, a detail card, the comment box… (lib/partSize.ts) */
+  parts?: PartSizes;
   v?: 2;
 };
 export const EMPTY_FV: FvInfo = { layout: "", bg: "", open: "", quote: "", hide: {}, at: {}, zoom: {}, v: 2 };
@@ -66,10 +69,11 @@ export function cleanFv(raw: unknown): FvInfo {
     const z = whole((o.zoom as Record<string, unknown>)[k], FV_ZOOM[0], FV_ZOOM[1]);
     if (z !== null && z !== 100) zoom[k as FvPart] = z;
   }
-  return { layout: pick(FV_LAYOUTS, o.layout), bg: pick(FV_BGS, o.bg), open: pick(FV_OPENS, o.open), quote: String(o.quote ?? "").trim().slice(0, FV_QUOTE_MAX), hide, at, zoom, v: 2 };
+  const parts = cleanPartSizes(o.parts);
+  return { layout: pick(FV_LAYOUTS, o.layout), bg: pick(FV_BGS, o.bg), open: pick(FV_OPENS, o.open), quote: String(o.quote ?? "").trim().slice(0, FV_QUOTE_MAX), hide, at, zoom, ...(Object.keys(parts).length ? { parts } : {}), v: 2 };
 }
 
-export const isFvCustom = (fv: FvInfo) => !!(fv.layout || fv.bg || fv.open || fv.quote || Object.keys(fv.hide).length || Object.keys(fv.at).length || Object.keys(fv.zoom).length);
+export const isFvCustom = (fv: FvInfo) => !!(fv.layout || fv.bg || fv.open || fv.quote || Object.keys(fv.hide).length || Object.keys(fv.at).length || Object.keys(fv.zoom).length || Object.keys(fv.parts ?? {}).length);
 
 /** With nothing chosen, the full view follows the card: a story opens as one column over its picture's glow, a sign as a poster. */
 export function fvLook(fv: FvInfo, card: string, hasPic: boolean): { layout: FvLayout; bg: FvBg; open: FvOpen } {
