@@ -50,19 +50,24 @@ The dashboard as an app on Android and Windows (asked 2026-11-16). Plan offered:
 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
+### 2026-11-16: G1 editor: the pop-up's size controls no longer spill over (kept)
+
+The size and place controls in a box's pop-up shared the class `.stu-size` with the resize handle, so they became a 16px floating box over the text. Renamed `.stu-sizes`. The owner said to keep this and the three G1 releases below. A private task board for them went up the same day (https://claude.ai/artifact/5A2qbaK8BXkYfxtutzW2gw), updated as tasks change.
+
+
 ## Log
 
-### 2026-11-13: G1: every box moves and sizes, the reaction bar, comment box and Full view button too (waiting for the owner's keep or undo)
+### 2026-11-13: G1: every box moves and sizes, the reaction bar, comment box and Full view button too (kept, 2026-11-16)
 
 They said "every box" meant every box: the reaction bar, the full view box, the comment box, everything, and each one draggable to a place as well as resizable. Every box of a card (including the photo, the warning sticker, the spec sheet, the stats and the story bars) and every box inside the full view's parts now has a move handle as well as the side edge, bottom edge and corner; the site shows where each was put. Tried once locally: the reaction bar, comment box, Full view button and a full view title moved and sized, saved, and the homepage and entry page showed them. Found and fixed: the warning sticker let the mouse pass through, so the editor couldn't grab it. Not tried: phones, other themes, Firefox and Safari.
 
 
-### 2026-11-13: G1: every box can be sized, smoothly (waiting for the owner's keep or undo)
+### 2026-11-13: G1: every box can be sized, smoothly (kept, 2026-11-16)
 
 After the live editor went out they said "great job" and asked for every box, in every card and full view, to be smoothly resizable, in G1 now and in every section's editor after. They chose: a part's side or bottom edge gives it more room with the words keeping their size, its corner makes everything in it bigger; and in the full view a part follows the mouse, then settles onto a fine grid. Built as explained in `CLAUDE.md` (the live editor's sizing points). Tried once locally: handles appear on hover, all three drags work on a card and in the full view, the site shows the sizes, Undo takes one drag at a time. Found and fixed there: a full view part dragged onto another printed over it; parts now push each other down instead. Not tried: phones, other themes, Firefox and Safari.
 
 
-### 2026-11-13: G1's dashboard becomes the live editor, with a new full view (waiting for the owner's keep or undo)
+### 2026-11-13: G1's dashboard becomes the live editor, with a new full view (kept, 2026-11-16)
 
 They didn't like the first G1 preview: they couldn't tell whether everything they asked for was in it, and it wasn't interactive enough. A second preview had five working options and a checklist of their 17 requests that ticked itself as they tried things (https://claude.ai/artifact/GvNRnu95XxbFDbDPMvBExP). They asked for Workbench and Spotlight together, got that as a sixth option, and said "go for g1. don't forget a single thing belt size etc etc use eye soothing color shade in the admin panel". A live tracker page ran during the build, as they asked (https://claude.ai/artifact/NvUMpxjiKZVuuBazknPqqd).
 
@@ -76,11 +81,11 @@ Tried once on the local copy before publishing, because it saves their content: 
 Next, when they say: G2's editor the same way, then G3 to G7, then G0 and G8.
 
 
-### 2026-11-12: Dashboard editors: the G1 preview (waiting for the owner's go)
+### 2026-11-12: Dashboard editors: the G1 preview (they said go; built 2026-11-13)
 
 After G1 and G2's cards were kept, back to the editor. A working preview of the new G1 dashboard (https://claude.ai/artifact/Rg1HEyLNMD5GX54vHSd5YU): the section as on the homepage with labels; every entry as its real card (manual, story, collectible card, sign, plain) with Edit, hide, a ⋯ menu (duplicate, draft, pin, move, open, reset votes, delete) and floating drag-to-reorder (drop on a subsection chip to move it there); ＋ Add card in the section's own design, also from a dropped photo; a labelled editor per card (labels named as the card shows them: Version, Made in, Runs on, Rarity, Paint colour, Sticker) with Card look, resizing by the corner and Size & text; Edit details view, the new "card unfolds" page with its own labels; one save bar with Undo, Redo, Discard, Save; a phone/computer and theme switch, a section health line, subsection chips, select several. Nothing on the site changed.
 
-### 2026-11-12: G1 and G2 cards follow their subsections (waiting for the owner's keep or undo)
+### 2026-11-12: G1 and G2 cards follow their subsections (kept, 2026-11-16)
 
 Before the new editor, the owner wanted G1 and G2's cards to differ by subsection as G3 to G7 do, since the editor's labels depend on each card. Drawn on a private preview first (https://claude.ai/artifact/AMa4cr5BBLBrspxrNwe2XE); their picks: the unfiltered manual A (instruction manual), beliefs A (protest sign), currently obsessed B (story), random facts A (collectible card), data storytelling B (spreadsheet), code A (editor with a terminal), brain dumps A (notes app), side quests B (pocket console). Built and published without tests, as they asked. Explained under "G1 and G2 cards by subsection" in `CLAUDE.md`. Next: the labelled editor preview built on every section's own cards.
 
@@ -100,15 +105,15 @@ The Saved message was only showing the first time, because a second save in a ro
 
 They said it wasn't finished, that Connect had black space, and that it should look exactly like the preview, and asked for checking. Checked on the live site and on a local copy with sample notes, a testimonial and four Life entries, on a computer and a phone, in Playful and Night. Found and fixed: the side panel and the names over the bubbles shared a class (`.cw-who`), which broke every bubble; the dark side was empty below the links when there are no testimonials (now a note on how the wall works); sizes, borders, colours and the greeting now follow the preview; a pinned testimonial's emoji bar was cut off; the heart doodle sat on a photo's expand button. Their Email, LinkedIn and GitHub links are still the starter placeholders (you@example.com, linkedin.com/in, github.com), which the old Connect hid; told them. A message sent on the local copy showed its bubble, ✓✓, the wall tag and the automatic reply, and kept the name.
 
-### 2026-11-11: G7 Life becomes scrapbook pages, G8 Connect a chat window (waiting for the owner's keep or undo)
+### 2026-11-11: G7 Life becomes scrapbook pages, G8 Connect a chat window (kept, 2026-11-16)
 
 Both drawn on a private preview first (https://claude.ai/artifact/QNXFTU8mekyteVLiZhjh1r). For Life they picked A at once. For Connect they leaned to B, a chat, but found its sending odd and its space empty, and asked for other options built around posting; of D (B redone in one window), E (a feed) and F (paper planes) they picked D. Both switch over by themselves (`done_once`), and the photo grid and the old Connect stay choices under Section settings. Life is still empty, so it says Coming soon until they add entries. Built and published without tests, as they asked. Explained under "Scrapbook pages" and "Chat window" in `CLAUDE.md`. The chat's reply after sending is automatic and says so; the wall tick stays off by default, as on the old form.
 
-### 2026-11-11: G6's cards hang level, and the staff card's photo goes on top (waiting for the owner's keep or undo)
+### 2026-11-11: G6's cards hang level, and the staff card's photo goes on top (kept, 2026-11-16)
 
 The cards had been published, but the changes had never been pushed; that was done first. They then said the cards weren't hung equally and the RFID card's picture didn't fit, and asked for a new layout for it. The deliberate drop of every second and third card is gone. They chose the big photo on top over keeping it beside the words: the photo now runs across the card, shown whole over a blurred copy of itself, with the position, dates, chip, ID number and a hologram sticker below. They also asked whether the row glides by itself: it does, like the other rows, whenever the cards don't all fit across the screen. Built and published without tests, as they asked.
 
-### 2026-11-08: G6's cards: an RFID card, a certificate, a front page, mended in gold, a star (waiting for the owner's keep or undo)
+### 2026-11-08: G6's cards: an RFID card, a certificate, a front page, mended in gold, a star (kept, 2026-11-16)
 
 They asked for an RFID card for career and a real certificate for certificates, "for all 4 cards that are fun, dynamic, lively and relevant". Drew them with their movement on the private preview (https://claude.ai/artifact/Tbrxyt2PsLNuMEWGeKLMJB, Version 2), and they said go. Wins became a newspaper front page, a heavy Mood a card mended in gold, and the Hall of fame a star on the red carpet, which were my ideas. Built and published without tests, as they asked. Explained under "Achievement wall" in `CLAUDE.md`.
 
@@ -120,7 +125,7 @@ They saw it live and said to undo the wall and keep the rest, so the Details box
 
 They asked for a wall that looks like a wall, with the milestones hanging and sliding, and for career start, end and position in the Details box. I offered brick or plaster and they chose plaster. The wall now stays still behind the row, and each object hangs from a hook that runs along a rail. Details also asks for a certificate's Issued by, dates and Credential ID and a medal's or trophy's Awarded by, which I added because they said "like", and told them. Built and published without tests, as they asked.
 
-### 2026-11-08: G6 Growth becomes an achievement wall (waiting for the owner's keep or undo)
+### 2026-11-08: G6 Growth becomes an achievement wall (kept, 2026-11-16)
 
 They said Growth is about their career, certificates and everything else they've done, and suggested a career tree or a certificate wall. Drew four ideas on a private preview, with an object per subsection, and they chose B, the wall, sliding sideways like the other sections. Explained under "Achievement wall" in `CLAUDE.md`. The old timeline stays a choice under Section settings. Built and published without tests, as they asked. Their section's subtitle still says "A running timeline", which is their text.
 
@@ -306,7 +311,7 @@ The owner asked for all three, plus control of the belt from the dashboard, and 
 - Menu links to Growth, Life and Connect landed 153px early, with the old-size belt too; Feed also did with the new belt in one run. Offered to the owner as a separate fix; see the newer entry above for where it stands.
 - `behave2.mjs` still expects the Made row to slide; it has two cards now, so three of its checks no longer apply.
 
-### 2026-11-06: Rows dragging (waiting for the owner's keep or undo)
+### 2026-11-06: Rows dragging (kept, 2026-11-16)
 
 The owner said sliding felt like dragging on computer and phone, and asked for normal sliding if it couldn't be fixed.
 
