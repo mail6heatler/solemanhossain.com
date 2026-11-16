@@ -1,6 +1,7 @@
 import { getCommentTotals, getMessages, getRecentComments, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
 import { messageAction } from "@/app/actions";
 import { ConfirmSubmit, CopyButton } from "@/components/admin/Widgets";
+import CommentTools from "@/components/admin/CommentTools";
 import { requireAdmin } from "@/lib/auth";
 import type { Message } from "@/lib/data";
 import { REACTION_EMOJIS } from "@/lib/settings";
@@ -117,10 +118,12 @@ async function CommentList({ tz }: { tz: string }) {
               <span className="when">· {c.section_title} · {fmt(c.created_at, tz)}</span>
               {!c.seen && <span className="tagx red">new</span>}
               {c.hidden && <span className="tagx amber">hidden from visitors</span>}
+              {c.pinned && <span className="tagx">pinned</span>}
             </div>
             <p>{c.body}</p>
+            {c.reply && <p style={{ margin: "6px 0 0", paddingLeft: 10, borderLeft: "3px solid var(--mint)", color: "var(--text-soft)", fontSize: 13 }}><b>Your reply:</b> {c.reply}</p>}
             <div className="btns" style={{ marginTop: 8 }}>
-              <a href={`/admin/items/${c.item_id}#comments`} className="b-dark b-sm"><i className="ti ti-corner-down-left" />Reply, pin, hide or delete</a>
+              <CommentTools c={{ id: c.id, name: c.name, body: c.body, reply: c.reply, pinned: c.pinned, hidden: c.hidden }} />
               <a href={`/s/${c.section_slug}/${c.item_id}`} target="_blank" className="b-out b-sm"><i className="ti ti-external-link" />View on site</a>
             </div>
           </div>

@@ -56,6 +56,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-16: Replying to comments from the Inbox
+
+The owner found the Inbox's "Reply, pin, hide or delete" took them somewhere else instead of a reply box: it linked to the entry's page, which for G1 now redirects to the live editor with nothing open. The Inbox's Comments tab now has Reply (a pop-up with the comment quoted, Save reply, Remove reply), Pin, Hide and Delete (with a confirm box) right there (`components/admin/CommentTools.tsx`, through `studioComment`), and shows the owner's reply and a pinned tag. Built and published without tests, as they asked.
+
 ### 2026-11-16: G1: a card's own photo (kept); G7 and G8 kept
 
 They said "keep all for now", so Life and Connect are kept. They asked for each section to have its own photo upload instead of the hero photo, starting with G1: the Photo box of a manual or story now uploads a photo for that card (`items.card.face`), and the hero photo is used only without one. Changing the Card look used to wipe a card's dragged sizes; it now keeps them and the photo. Built and published without tests, as they asked.
