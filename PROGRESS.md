@@ -50,12 +50,13 @@ The dashboard as an app on Android and Windows (asked 2026-11-16). Plan offered:
 
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
+## Log
+
 ### 2026-11-16: G1 editor: the pop-up's size controls no longer spill over (kept)
 
 The size and place controls in a box's pop-up shared the class `.stu-size` with the resize handle, so they became a 16px floating box over the text. Renamed `.stu-sizes`. The owner said to keep this and the three G1 releases below. A private task board for them went up the same day (https://claude.ai/artifact/5A2qbaK8BXkYfxtutzW2gw), updated as tasks change.
 
 
-## Log
 
 ### 2026-11-13: G1: every box moves and sizes, the reaction bar, comment box and Full view button too (kept, 2026-11-16)
 
