@@ -46,6 +46,8 @@ Agreed with the owner on 2026-11-07: each section should look like what it holds
 
 ## Agreed for later
 
+The dashboard as an app on Android and Windows (asked 2026-11-16). Plan offered: make `/admin` installable (a web app: manifest, icon, its own window, opens straight to the dashboard), not a separate app, so it always matches the site with nothing to update. A real store app (Play Store, a Windows installer) only if they want it after trying that. Not started.
+
 Improve the fan themes one at a time, when the owner brings it up. For each, first ask for that theme's whole package (pictures, GIFs, cut-outs, logos), then build with what they send. Not started.
 
 ## Log
