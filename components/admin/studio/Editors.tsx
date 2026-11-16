@@ -122,7 +122,7 @@ function PartSizeFields({ ed, k, where }: { ed: Ed; k: string; where: "card" | "
   const pic = k === "pic" && where === "card";
   const moved = !!(s.x || s.y);
   return (
-    <div className="fl stu-f stu-size">
+    <div className="fl stu-f stu-sizes">
       <span className="lab">Size and place of this box {where === "fv" ? "in the full view" : "on the card"}</span>
       <span className="hint">Or drag it there: its ✥ handle to move it anywhere, its side or bottom edge for more room (the words keep their size), its corner to make everything in it bigger. A double click on a handle puts that one back.</span>
       <Slider label="Left or right" value={s.x || undefined} range={[-400, 400]} unit="px" fallback={0} onChange={(x) => set({ x, y: s.y ?? 0 })} onClear={moved ? () => set({ x: 0 }) : undefined} />
@@ -281,7 +281,7 @@ export function FullEditor({ ed, k }: { ed: Ed; k: string }) {
     return <>
       <Sw label="Show this part in the full view" on={!fv.hide[part]} onChange={(on) => { const hide = { ...fv.hide }; if (on) delete hide[part]; else hide[part] = true; set({ hide }); }} />
       <p className="hint" style={{ margin: 0 }}>Drag its handle to move it anywhere on the page. Drag its side or bottom edge for more room (the words keep their size), and its corner to make everything in it bigger. A part grows by itself if what&apos;s in it needs more room.</p>
-      {box && <div className="fl stu-f stu-size">
+      {box && <div className="fl stu-f stu-sizes">
         <Slider label="Width" value={Math.round((box.w / FV_COLS) * 100)} range={[8, 100]} unit="%" fallback={100} onChange={(pc) => ed.setBlock(part, { ...box, w: Math.max(4, Math.min(FV_COLS - box.x, Math.round((pc / 100) * FV_COLS))) })} />
         <Slider label="Room (at least)" value={box.h * FV_ROW} range={[16, 1200]} unit="px" fallback={200} onChange={(px) => ed.setBlock(part, { ...box, h: Math.max(2, Math.min(200, Math.round(px / FV_ROW))) })} />
         <Slider label="Size of everything in it" value={box.z} range={FV_ZOOM} unit="%" fallback={100} onChange={(z) => ed.setBlock(part, { ...box, z })} onClear={box.z === 100 ? undefined : () => ed.setBlock(part, { ...box, z: 100 })} />
