@@ -118,7 +118,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const bar = (it: Item, compact: boolean) => (settings.effects.reactions
     ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
     : undefined);
-  const cardOf = (it: Item) => <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={faceIcon} edit foot={bar(it, true)} />;
+  const cardOf = (it: Item) => <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit foot={bar(it, true)} />;
   const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? 340, h: p?.h ?? s.h ?? 440 }; };
   const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions)) : []), [item, card, settings.effects.reactions]);
   const fvZoom = phone ? 1 : Math.min(1, fvWidth / FV_WIDTH);

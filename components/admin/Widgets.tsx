@@ -280,9 +280,10 @@ export function MediaField({ name, initial, useBlob, maxVideoMb, allowAudio = fa
 }
 
 /** Upload a single image or PDF (profile photo, résumé). Images are resized in the browser first, so uploads stay small. */
-export function UploadField({ name, initial, kind = "image", shape = "round", fallback, useBlob = false }:
-  { name: string; initial: string; kind?: "image" | "pdf"; shape?: "round" | "wide" | "sq"; fallback?: string; useBlob?: boolean }) {
-  const [url, setUrl] = useState(initial);
+export function UploadField({ name, initial, kind = "image", shape = "round", fallback, useBlob = false, onChange }:
+  { name: string; initial: string; kind?: "image" | "pdf"; shape?: "round" | "wide" | "sq"; fallback?: React.ReactNode; useBlob?: boolean; onChange?: (url: string) => void }) {
+  const [url, setUrlState] = useState(initial);
+  const setUrl = (u: string) => { setUrlState(u); onChange?.(u); };
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const input = useRef<HTMLInputElement>(null);

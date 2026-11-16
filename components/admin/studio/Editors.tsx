@@ -8,7 +8,7 @@ import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import { FV_BGS, FV_COLS, FV_LAYOUTS, FV_OPENS, FV_PARTS, FV_QUOTE_MAX, FV_ROW, FV_ZOOM, fvLook, type FvBox, type FvPart } from "@/lib/fullView";
 import { PART_LIMITS, SIZED_PARTS, cleanPartSize, type PartSize } from "@/lib/partSize";
 import type { StudioData, StudioDraft, StudioLive, StudioSection } from "@/lib/studio";
-import { ConfirmSubmit, LinksEditor, MediaField } from "@/components/admin/Widgets";
+import { ConfirmSubmit, LinksEditor, MediaField, UploadField } from "@/components/admin/Widgets";
 import { deleteSection } from "@/app/actions";
 import { Chips, LookFields, Seg, Slider, Sw, Txt } from "./Fields";
 
@@ -135,10 +135,23 @@ function PartSizeFields({ ed, k, where }: { ed: Ed; k: string; where: "card" | "
   );
 }
 
+/** The card's own photo: uploaded here, so it needn't be the hero photo. Empty uses the hero photo. */
+function FaceField({ ed }: { ed: Ed }) {
+  const it = ed.item!;
+  return (
+    <div className="fl stu-f">
+      <span className="lab">This card&apos;s photo</span>
+      <span className="hint">Upload a photo just for this card. Leave it empty and the card uses your hero photo.</span>
+      <UploadField key={`${it.id}:${ed.rev}`} name="face" initial={it.card.face ?? ""} useBlob={ed.data.useBlob} fallback={<i className="ti ti-user" style={{ fontSize: 20 }} />}
+        onChange={(face) => ed.setItem({ card: { ...it.card, face: face || undefined } }, `face-${it.id}`)} />
+    </div>
+  );
+}
+
 /** One box of a card or of the full view, opened from its label: what it says, then its size and place. */
 export function CardEditor({ ed, k, where = "card" }: { ed: Ed; k: string; where?: "card" | "fv" }) {
   return <>
-    {DESIGN.includes(k) ? <p className="hint" style={{ margin: 0 }}>This box is part of the {where === "fv" ? "full view's" : "card's"} own design: there&apos;s nothing to type in it, but you can size it and move it anywhere.</p> : <CardFields ed={ed} k={ALIAS[k] ?? k} />}
+    {k === "face" && where === "card" && ed.item ? <FaceField ed={ed} /> : DESIGN.includes(k) ? <p className="hint" style={{ margin: 0 }}>This box is part of the {where === "fv" ? "full view's" : "card's"} own design: there&apos;s nothing to type in it, but you can size it and move it anywhere.</p> : <CardFields ed={ed} k={ALIAS[k] ?? k} />}
     {ed.item && (SIZED_PARTS as readonly string[]).includes(k) && <PartSizeFields ed={ed} k={k} where={where} />}
   </>;
 }
@@ -160,7 +173,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
         <div className="fl stu-f">
           <label className="lab" htmlFor="stu-look">Looks like</label>
-          <select id="stu-look" value={it.card.look} onChange={(e) => ed.setItem({ card: { look: e.target.value as Item["card"]["look"] } })}>
+          <select id="stu-look" value={it.card.look} onChange={(e) => ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } })}>
             <option value="">Automatic, from its subsection: {auto}</option>
             {NOTE_LOOKS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>

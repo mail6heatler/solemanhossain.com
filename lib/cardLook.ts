@@ -20,7 +20,8 @@ export const WIN_LOOKS = [
 ] as const;
 export type NoteLook = (typeof NOTE_LOOKS)[number][0];
 export type WinLook = (typeof WIN_LOOKS)[number][0];
-export type CardInfo = { look: NoteLook | WinLook | ""; /** the size of each part the owner dragged in the live editor (lib/partSize.ts) */ parts?: PartSizes };
+export type CardInfo = { look: NoteLook | WinLook | ""; /** the size of each part the owner dragged in the live editor (lib/partSize.ts) */ parts?: PartSizes;
+  /** this card's own photo (the manual's photo, the story's face); without one the card uses the hero photo */ face?: string };
 export const EMPTY_CARD: CardInfo = { look: "" };
 
 const KEYS: string[] = [...NOTE_LOOKS.map(([k]) => k), ...WIN_LOOKS.map(([k]) => k)];
@@ -32,7 +33,8 @@ export function cleanCard(raw: unknown): CardInfo {
     if (v && typeof v === "object" && !Array.isArray(v)) o = v as Record<string, unknown>;
   } catch { /* unreadable: treat as empty */ }
   const parts = cleanPartSizes(o.parts);
-  return { look: KEYS.includes(String(o.look)) ? (o.look as CardInfo["look"]) : "", ...(Object.keys(parts).length ? { parts } : {}) };
+  const face = typeof o.face === "string" && o.face.length <= 2000 && /^(https:\/\/|\/)/.test(o.face.trim()) ? o.face.trim() : "";
+  return { look: KEYS.includes(String(o.look)) ? (o.look as CardInfo["look"]) : "", ...(Object.keys(parts).length ? { parts } : {}), ...(face ? { face } : {}) };
 }
 
 /** G1: the manual for who they are, a protest sign for beliefs, a story for what's on now, a collectible card for facts. */
