@@ -6,7 +6,6 @@ import SaveBox from "@/components/admin/SaveBox";
 import { Box } from "@/components/admin/Box";
 import BoxMemory from "@/components/admin/BoxMemory";
 import { boxOpen } from "@/lib/boxes";
-import RingPanel from "@/components/admin/RingPanel";
 import StatusPanel from "@/components/admin/StatusPanel";
 
 export default async function HeroPage() {
@@ -35,11 +34,7 @@ export default async function HeroPage() {
       </Box>
 
       <Box name="status" title="Status by your photo" icon="message-circle-2" open={open("status")}>
-        <StatusPanel initial={s.status} />
-      </Box>
-
-      <Box name="ring" title="Ring around your photo" icon="circle-dashed" open={open("ring")}>
-        <RingPanel initial={s.ring} photo={s.avatarUrl} initials={s.initials} sticker={s.effects.sticker} />
+        <StatusPanel initial={s.status} photo={s.avatarUrl} initials={s.initials} sticker={s.effects.sticker} />
       </Box>
 
       <Box name="resume" title="Résumé / CV" icon="file-text" open={open("resume")}>

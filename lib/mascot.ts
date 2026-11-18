@@ -1,24 +1,7 @@
 /**
- * The ring around the hero photo (settings.ring) and the mascot (settings.mascot): what's stored, the choices,
+ * The mascot (settings.mascot): what's stored, the choices,
  * and the cleaning that runs on every read and every save, so a bad value can never reach the page.
  */
-
-// ---------- the ring around the hero photo ----------
-export const RING_STYLES = {
-  solid: { label: "Solid", desc: "A steady line in one colour" },
-  glow: { label: "Pulsing glow", desc: "Breathes softly, like someone's online" },
-  neon: { label: "Neon", desc: "A bright line with a soft halo that flickers" },
-  story: { label: "Rainbow story", desc: "Spinning rainbow, like a story ring" },
-  duo: { label: "Two-colour spin", desc: "Your colour and the theme's second colour, turning slowly" },
-} as const;
-export type RingStyle = keyof typeof RING_STYLES;
-export const RING_COLORS = { status: "My status colour (grey when I'm away)", theme: "The theme's main colour", mood: "Today's mood colour", custom: "My own colour" } as const;
-export type RingColor = keyof typeof RING_COLORS;
-export type Ring = { on: boolean; style: RingStyle; color: RingColor; custom: string; width: number; gap: number; speed: number };
-export const RING_WIDTH = [2, 16] as const;
-export const RING_GAP = [0, 12] as const;
-export const RING_SPEED = [25, 250] as const;
-export const DEFAULT_RING: Ring = { on: true, style: "glow", color: "status", custom: "#35c46f", width: 6, gap: 0, speed: 100 };
 
 const num = (v: unknown, [lo, hi]: readonly [number, number], d: number) => {
   const n = Number(v);
@@ -28,19 +11,6 @@ const hex = (v: unknown, d: string) => (typeof v === "string" && /^#[0-9a-f]{6}$
 const oneOf = <T extends string>(v: unknown, list: Record<T, unknown> | readonly T[], d: T): T =>
   (Array.isArray(list) ? (list as readonly string[]).includes(v as string) : typeof v === "string" && v in (list as object)) ? (v as T) : d;
 const text = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
-
-export function cleanRing(raw: unknown): Ring {
-  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Ring>;
-  return {
-    on: r.on === true,
-    style: oneOf(r.style, RING_STYLES, DEFAULT_RING.style),
-    color: oneOf(r.color, RING_COLORS, DEFAULT_RING.color),
-    custom: hex(r.custom, DEFAULT_RING.custom),
-    width: num(r.width, RING_WIDTH, DEFAULT_RING.width),
-    gap: num(r.gap, RING_GAP, DEFAULT_RING.gap),
-    speed: num(r.speed, RING_SPEED, DEFAULT_RING.speed),
-  };
-}
 
 // ---------- the mascot ----------
 export const MASCOT_CHARACTERS = {

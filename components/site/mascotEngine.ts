@@ -42,12 +42,38 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
   const later = (fn: () => void, ms: number) => { const t = window.setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); };
   const setPose = (p: string) => { M.dataset.pose = p; };
 
+  /* how much of him is on screen, 0 to 1 */
+  function shown() {
+    if (M.classList.contains("gone")) return 0;
+    const r = M.getBoundingClientRect(), w = Math.max(0, Math.min(r.right, window.innerWidth) - Math.max(r.left, 0)), h = Math.max(0, Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0));
+    return r.width && r.height ? (w * h) / (r.width * r.height) : 0;
+  }
+  /* the bubble stays between the menu bar, the bottom bar and the screen's sides (a `translate`, checked a few times a
+     second while it shows, never per frame); with him gone off screen it goes too, so it never talks to nobody */
+  let sx = 0, sy = 0, fitT = 0;
+  function fitSay(first = false) {
+    clearTimeout(fitT);
+    if (!alive || !say.classList.contains("on")) return;
+    if (!first && shown() < 0.15) { say.classList.remove("on"); M.classList.remove("is-talk"); return; }
+    const r = say.getBoundingClientRect(), pad = 8;
+    const l = r.left - sx, rt = r.right - sx, tp = r.top - sy, bt = r.bottom - sy;
+    const top = navBottom() + pad, bottom = Math.min(window.innerHeight, barTop()) - pad, right = window.innerWidth - pad;
+    const nx = l < pad ? pad - l : rt > right ? Math.max(pad - l, right - rt) : 0;
+    const ny = tp < top ? top - tp : bt > bottom ? Math.max(top - tp, bottom - bt) : 0;
+    if (Math.abs(nx - sx) > 0.5 || Math.abs(ny - sy) > 0.5) { sx = nx; sy = ny; say.style.translate = `${Math.round(sx)}px ${Math.round(sy)}px`; }
+    fitT = window.setTimeout(fitSay, 280);
+  }
   function speak(text: string, ms = 2600) {
     if (!v.talk || !text) return;
     say.textContent = text; say.classList.add("on"); M.classList.add("is-talk");
     clearTimeout(sayT);
-    sayT = window.setTimeout(() => { say.classList.remove("on"); M.classList.remove("is-talk"); }, ms);
+    sayT = window.setTimeout(() => { say.classList.remove("on"); M.classList.remove("is-talk"); clearTimeout(fitT); }, ms);
+    fitT = window.setTimeout(() => fitSay(true), 300);
   }
+  /* a section's line or the hello that came while he was away is said when he next appears */
+  let pending = "";
+  const line = (list: string[]) => { if (pending) { const l = pending; pending = ""; return l; } return pick(list); };
+  const tell = (text: string, ms: number) => { if (shown() > 0.3) speak(text, ms); else pending = text; };
   let bursts = 0;
   function burst(list: string[], n = 7) {
     if (html.classList.contains("lite") || bursts > 24) return; // a cap, so fast clicking can't pile them up
@@ -103,8 +129,10 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
     });
   }
 
-  const ACTS: Record<MascotAct, (t: number) => Promise<void>> = {
-    async peek(t) {
+  /* nothing to sit on or hide behind in view: peek once, then look again */
+  const peekThen = async (t: number, again: (t: number) => Promise<void>) => { clean(); M.classList.add("gone"); await ACTS.peek(t, true); clean(); M.classList.add("gone"); return again(t); };
+  const ACTS: Record<MascotAct, (t: number, once?: boolean) => Promise<void>> = {
+    async peek(t, once) {
       M.classList.add("act-peek", "say-low"); setPose("down");
       for (;;) {
         const right = sideRight(), y = rnd(navBottom() + 30, Math.max(navBottom() + 40, barTop() - H() - 30));
@@ -114,12 +142,13 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
         move(away); M.classList.remove("gone");
         await wait(400, t);
         move(right ? "translateX(48%) rotate(-15deg)" : "translateX(-48%) rotate(15deg)", 550); phase = "out";
-        speak(pick(v.lines), 2200);
+        speak(line(v.lines), 2200);
         await wait(900, t);
         if (phase === "out" && Math.random() < 0.55) { setPose("wave"); await wait(1600, t); setPose("down"); }
         await wait(1800, t);
         phase = "in"; move(away, 380, "ease-in");
         await wait(gapMs(), t);
+        if (once) return;
       }
     },
     async hang(t) {
@@ -129,7 +158,7 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
       place(x, top); M.classList.toggle("say-r", x < vw() / 2);
       move(`translateY(${-H() - top - 20}px)`); M.classList.remove("gone");
       move("none", 700);
-      await wait(700, t); speak(pick(["Just hanging out 😎", "Nice menu bar you've got", "Don't mind me 🙃", ...v.lines]), 2400);
+      await wait(700, t); speak(line(["Just hanging out 😎", "Nice menu bar you've got", "Don't mind me 🙃", ...v.lines]), 2400);
       for (let i = 0; i < 4; i++) {
         await wait(rnd(3500, 5000), t);
         const r = Math.random();
@@ -153,7 +182,7 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
         move(`translateY(${-H() - top - 30}px)`); M.classList.remove("gone");
         await wait(400, t);
         move(`translateY(${rnd(-H() * 0.2, 60)}px)`, 1500, "cubic-bezier(.3,1.25,.5,1)");
-        await wait(1100, t); speak(pick(["Hello, upside down! 🙃", "Just dropping in 😄", ...v.lines]), 2400);
+        await wait(1100, t); speak(line(["Hello, upside down! 🙃", "Just dropping in 😄", ...v.lines]), 2400);
         await wait(3200, t);
         move(`translateY(${-H() - top - 30}px)`, 1100, "ease-in");
         await wait(gapMs() + 1100, t);
@@ -167,21 +196,21 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
         move(`translateY(${-H() - top - 30}px)`); M.classList.remove("gone");
         await wait(400, t);
         move(`translateY(${rnd(20, 110)}px)`, 1100, "cubic-bezier(.3,1.7,.45,1)");
-        await wait(900, t); speak(pick(["Coming down! 🪢", "Bungee time! 😆", ...v.lines]), 2200);
+        await wait(900, t); speak(line(["Coming down! 🪢", "Bungee time! 😆", ...v.lines]), 2200);
         await wait(3400, t);
         move(`translateY(${-H() - top - 30}px)`, 900, "ease-in");
         await wait(gapMs() + 900, t);
       }
     },
     async pop(t) {
-      M.classList.add("act-pop", "say-low"); setPose("cross");
+      M.classList.add("act-pop"); setPose("cross");
       for (;;) {
         const x = rnd(0.06, 0.8) * (vw() - W()), bottom = barTop();
         place(x, bottom - H()); M.classList.toggle("say-r", x < vw() / 2);
         move("translateY(105%)"); M.classList.remove("gone");
         await wait(500, t);
         move("translateY(50%)", 420, "cubic-bezier(.3,1.7,.5,1)"); phase = "out";
-        speak(pick(["Peekaboo! 😄", "Up here!", "Found me?", ...v.lines]), 2000);
+        speak(line(["Peekaboo! 😄", "Up here!", "Found me?", ...v.lines]), 2000);
         await wait(2600, t);
         phase = "in"; move("translateY(105%)", 260, "ease-in");
         await wait(gapMs(), t);
@@ -202,9 +231,9 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
         M.classList.toggle("say-r", r.left < window.innerWidth / 2);
         return true;
       };
-      if (!choose(false)) return ACTS.peek(t);
+      if (!choose(false)) return peekThen(t, ACTS.sit);
       M.classList.remove("gone");
-      speak(pick(["Comfy seat 😌", "I'll sit here and wait for you", ...v.lines]), 2400);
+      speak(line(["Comfy seat 😌", "I'll sit here and wait for you", ...v.lines]), 2400);
       for (let n = 0; ; n++) {
         await wait(1000, t);
         if (html.classList.contains("scrolling")) continue;
@@ -212,14 +241,14 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
         const off = r.bottom < navBottom() || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth;
         // the card glided away, or the page moved on: hop to another one in view (or start again elsewhere)
         if (off || Math.abs(ex - at.x) > 60 || Math.abs(ey - at.y) > 30 || n % 8 === 7) {
-          if (!choose(true)) { move("scale(0)", 300, "ease-in"); await wait(400, t); clean(); return ACTS.peek(t); }
+          if (!choose(true)) { move("scale(0)", 300, "ease-in"); await wait(400, t); return peekThen(t, ACTS.sit); }
           speak(off ? "Wait for me! 🏃" : pick(["Next seat! 😄", "This one's better", "Hop!"]), 1500);
         }
       }
     },
     async hide(t) {
       const heads = inView(".chap .stitle");
-      if (!heads.length) return ACTS.peek(t);
+      if (!heads.length) return peekThen(t, ACTS.hide);
       const h = pick(heads), r = h.getBoundingClientRect();
       const box = document.createElement("div"); box.className = "masc-clip";
       const bh = Math.round(H() * 0.5), x = r.left + scrollX + rnd(0, Math.max(0, Math.min(r.width, 420) - W()));
@@ -238,7 +267,7 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
       place(Math.min(r2.right, window.innerWidth - W()) + scrollX - W() * 0.6, r2.top + scrollY - H() + 8);
       M.classList.toggle("say-r", r2.right < window.innerWidth / 2);
       move("scale(.2)"); setPose("wave"); move("none", 520);
-      speak(pick(["Ta-da! Found me 😄", "Over here! 👋", "Surprise!"]), 2200);
+      speak(line(["Ta-da! Found me 😄", "Over here! 👋", "Surprise!"]), 2200);
       await wait(2600, t);
       move("scale(0)", 300, "ease-in");
       await wait(gapMs() + 300, t);
@@ -321,10 +350,10 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
     wake();
     clearTimeout(restT);
     restT = window.setTimeout(() => {
-      if (!v.guideOn || !current || current === told || M.classList.contains("gone")) return;
+      if (!v.guideOn || !current || current === told) return;
       told = current;
       const line = lines.get(current);
-      if (line) speak(line, 2800);
+      if (line) tell(line, 2800);
     }, 450);
   };
   window.addEventListener("scroll", onScroll, { passive: true });
@@ -357,11 +386,11 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
   startShow();
   let hi = false;
   try { hi = sessionStorage.getItem(HELLO_KEY) === "1"; sessionStorage.setItem(HELLO_KEY, "1"); } catch {}
-  if (!hi && v.hello) later(() => { if (!M.classList.contains("gone")) speak(v.hello, 3200); else later(() => speak(v.hello, 3200), 1200); }, 1300);
+  if (!hi && v.hello) later(() => tell(v.hello, 3200), 1300);
 
   return () => {
     alive = false; tok++;
-    clearTimeout(mixT); clearTimeout(sayT); clearTimeout(restT); clearInterval(napT); cancelAnimationFrame(eyeRaf);
+    clearTimeout(mixT); clearTimeout(sayT); clearTimeout(restT); clearInterval(napT); clearTimeout(fitT); cancelAnimationFrame(eyeRaf);
     timers.forEach((t) => clearTimeout(t));
     io.disconnect(); mo.disconnect();
     window.removeEventListener("pointermove", onPointer);

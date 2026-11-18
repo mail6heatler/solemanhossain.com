@@ -3,6 +3,7 @@
  * in one of five looks. After `staleHours` it greys out and says "last seen". Cleaned on every read and save.
  */
 export const STATUS_LOOKS = {
+  border: { label: "Messenger border", desc: "A line around your photo in your status colour, following its shape, with your emoji on it" },
   line: { label: "Line under your name", desc: "A pill under your headline with a dot in your status colour" },
   bubble: { label: "Bubble by the photo", desc: "A speech bubble beside your hanging photo" },
   badge: { label: "Corner badge", desc: "Your emoji on the photo's corner, the words under the photo" },
@@ -20,9 +21,10 @@ export type StatusKind = keyof typeof STATUS_KINDS;
 export const STATUS_EMOJIS = ["☕", "💻", "🎧", "📚", "🏃", "😴", "🎮", "✈️", "⚽", "🍜", "🎬", "🏏", "🕌", "🎉", "🤒", "📊"];
 export const STATUS_PRESETS: [string, string][] = [["💻", "Coding something new"], ["🏃", "At the gym"], ["😴", "Sleeping, back tomorrow"], ["✈️", "Travelling"], ["⚽", "Watching football"], ["📚", "Reading a good book"], ["☕", "Drinking tea and planning a trip"], ["📊", "Crunching numbers at work"]];
 export const STALE_HOURS = [1, 72] as const;
+export const BORDER_WIDTH = [2, 12] as const;
 
-export type Status = { on: boolean; emoji: string; text: string; updatedAt: string; look: StatusLook; kind: StatusKind; staleHours: number; showAgo: boolean; showViews: boolean };
-export const DEFAULT_STATUS: Status = { on: true, emoji: "☕", text: "Drinking tea and planning a trip", updatedAt: "", look: "line", kind: "auto", staleHours: 6, showAgo: true, showViews: true };
+export type Status = { on: boolean; emoji: string; text: string; updatedAt: string; look: StatusLook; kind: StatusKind; staleHours: number; showAgo: boolean; showViews: boolean; border: number };
+export const DEFAULT_STATUS: Status = { on: true, emoji: "☕", text: "Drinking tea and planning a trip", updatedAt: "", look: "border", kind: "auto", staleHours: 6, showAgo: true, showViews: true, border: 5 };
 
 export function cleanStatus(raw: unknown): Status {
   const s = (raw && typeof raw === "object" ? raw : {}) as Partial<Status>;
@@ -39,6 +41,7 @@ export function cleanStatus(raw: unknown): Status {
     staleHours: Number.isFinite(n) && s.staleHours != null ? Math.round(Math.min(STALE_HOURS[1], Math.max(STALE_HOURS[0], n))) : d.staleHours,
     showAgo: typeof s.showAgo === "boolean" ? s.showAgo : d.showAgo,
     showViews: typeof s.showViews === "boolean" ? s.showViews : d.showViews,
+    border: Number.isFinite(Number(s.border)) && s.border != null ? Math.round(Math.min(BORDER_WIDTH[1], Math.max(BORDER_WIDTH[0], Number(s.border)))) : d.border,
   };
 }
 

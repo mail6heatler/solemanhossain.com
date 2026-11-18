@@ -44,8 +44,8 @@ export default async function Home() {
   const sv: StatusView | null = st.on && (st.text || st.emoji)
     ? { emoji: st.emoji, text: st.text, since: st.updatedAt, look: st.look, label: kind.label, color: kind.color, staleHours: st.staleHours, showAgo: st.showAgo, showViews: st.showViews, name: s.nickname || s.fullName, avatar: s.avatarUrl }
     : null;
-  const byPhoto = sv && ["bubble", "badge", "story"].includes(sv.look) ? <StatusPhoto v={sv} /> : null;
-  const ring = s.ring.on ? <HeroRing ring={s.ring} photo={s.avatarUrl} round={!fx.sticker || !s.avatarUrl} /> : null;
+  const byPhoto = sv && ["border", "bubble", "badge", "story"].includes(sv.look) ? <StatusPhoto v={sv} /> : null;
+  const ring = sv && sv.look === "border" ? <HeroRing width={st.border} photo={s.avatarUrl} round={!fx.sticker || !s.avatarUrl} /> : null;
   const avatar = fx.sticker ? <>{ring}{photo}<i className="stk-tape a" aria-hidden /><i className="stk-tape b" aria-hidden /></> : <>{ring}{photo}</>;
   const framed = fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : <div className="avatar-tilt">{avatar}</div>;
 
@@ -89,7 +89,7 @@ export default async function Home() {
           {!fx.sticker && <div className="hero-right">
             <div className="avatar-wrap">
               {fx.tilt ? framed : <div className="ring-host">{avatar}</div>}
-              {!s.ring.on && <div className="avatar-ring" />}
+              {!ring && <div className="avatar-ring" />}
               {byPhoto}
               {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
             </div>

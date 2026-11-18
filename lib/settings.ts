@@ -1,5 +1,5 @@
 import { cleanBoxes, type BoxState } from "./boxes";
-import { cleanMascot, cleanRing, DEFAULT_MASCOT, DEFAULT_RING, type MascotSettings, type Ring } from "./mascot";
+import { cleanMascot, DEFAULT_MASCOT, type MascotSettings } from "./mascot";
 import { cleanStatus, DEFAULT_STATUS, type Status } from "./status";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 
@@ -253,8 +253,6 @@ export type SiteSettings = {
   nowStatus: string;
   partyWord: string;
   banner: Banner;
-  /** The ring around the hero photo (lib/mascot.ts). */
-  ring: Ring;
   /** What I'm up to, by the hero photo (lib/status.ts). */
   status: Status;
   /** The mascot and its show (lib/mascot.ts). */
@@ -308,7 +306,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   nowStatus: "",
   partyWord: "shou",
   banner: DEFAULT_BANNER,
-  ring: DEFAULT_RING,
   status: DEFAULT_STATUS,
   mascot: DEFAULT_MASCOT,
   themePics: {},
@@ -334,7 +331,6 @@ export function mergeSettings(raw: unknown): SiteSettings {
     banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
     contentStyle: cleanStyle(obj.contentStyle),
     heroBoxes: cleanBoxes(obj.heroBoxes),
-    ring: cleanRing(obj.ring),
     status: cleanStatus(obj.status),
     mascot: cleanMascot(obj.mascot),
   };

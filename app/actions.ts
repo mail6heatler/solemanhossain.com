@@ -12,7 +12,7 @@ import type { StudioData, StudioSave } from "@/lib/studio";
 import { loadStudio } from "@/lib/studioData";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
-import { cleanMascot, cleanRing } from "@/lib/mascot";
+import { cleanMascot } from "@/lib/mascot";
 import { cleanStatus } from "@/lib/status";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -155,7 +155,6 @@ export async function saveHero(fd: FormData) {
     heroEmojis: str(fd, "heroEmojis", 80),
     scrollCue: str(fd, "scrollCue", 60),
     heroBoxes: cleanBoxes(str(fd, "boxes", 2000)),
-    ...(fd.has("ring") ? { ring: cleanRing(jsonOf(str(fd, "ring", 2000))) } : {}),
     ...status,
   });
   refresh();

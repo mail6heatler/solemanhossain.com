@@ -102,6 +102,15 @@ export function StatusPhoto({ v }: { v: StatusView }) {
     clearTimeout(timer.current); timer.current = window.setTimeout(() => d.close(), 5200);
   };
   useEffect(() => () => clearTimeout(timer.current), []);
+  if (v.look === "border") return (
+    <>
+      <span className={`hst-emo${stale ? " stale" : ""}`} style={style} title={stale ? `Last seen ${ago}` : `${v.label}: ${v.text}`}>{v.emoji}</span>
+      <div className={`hst-active${stale ? " stale" : ""}`} style={style}>
+        {stale ? <>Last seen {ago}</> : <><i className="hst-dot" aria-hidden />{v.text}</>}
+        {!stale && (v.showAgo && ago || v.showViews && n !== null) ? <span className="hst-meta">{[v.showAgo && ago && `updated ${ago}`, v.showViews && n !== null && `👁 ${n}`].filter(Boolean).join(" · ")}</span> : null}
+      </div>
+    </>
+  );
   if (v.look === "bubble") return (
     <div className={`hst-bubble${stale ? " stale" : ""}`} style={style}>
       {stale ? `Last seen ${ago}` : full}

@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: The ring becomes the status's Messenger border
+
+The owner didn't want a separate ring: the status itself should be a line around the photo that follows its shape, with the emoji on it, like Messenger's active circle. The Ring box and `settings.ring` are gone; "Messenger border" is the status's first and default look, with a thickness slider and a live preview in the status box.
+
 ### 2026-11-18: Status by the photo (correction)
 
 The owner meant the whole "Status by your photo" from the playground, not only its ring. Built: emoji and words, presets, five looks, Online/Busy/Away, live "updated … ago", a real 👁 count, grey "last seen" after a chosen number of hours, and the ring in the status colour. The clock starts at the first save of the status.
