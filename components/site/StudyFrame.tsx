@@ -2,6 +2,7 @@ import { EMPTY_STUDY, STUDY_MEDIA, studyLookOf, studyMediaOf, type StudyInfo } f
 import type { Media } from "@/lib/settings";
 import { Cover } from "./Media";
 import CoverFit from "./CoverFit";
+import { noPart, type PartFn } from "./cardParts";
 
 /**
  * What a Study shelf entry looks like, chosen by the dashboard's own words: its Subsection picks the object (a book, a TV player, a framed
@@ -101,7 +102,7 @@ export type StudyBody = (parts: {
   showTitle?: boolean;
 }) => React.ReactNode;
 
-export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay, body }: {
+export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay, body, p = noPart }: {
   view: StudyView;
   /** The entry's link over the parts that don't scroll. */
   link?: React.ReactNode;
@@ -114,10 +115,12 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
   /** It has sound or a video to play, so a click on the screen plays it. */
   canPlay?: boolean;
   body: StudyBody;
+  /** names each part for the dashboard's labels, and gives it the size the owner dragged it to */
+  p?: PartFn;
 }) {
   if (v.look === "book") {
-    const band = <div className="bk-band"><span>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>;
-    const ribbon = v.status && <span className="bk-ribbon"><span>{v.status}</span></span>;
+    const band = <div className="bk-band" {...p("band")}><span {...p("sub")}>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>;
+    const ribbon = v.status && <span className="bk-ribbon" {...p("status")}><span>{v.status}</span></span>;
     const words = <span className="bk-words" aria-hidden><i>a</i><i>“</i><i>?</i><i>&amp;</i><i>”</i></span>;
     const shine = <i className="bk-shine" aria-hidden />;
     // an uploaded cover is the whole book, with the writing on its lower part. The title goes in the part that scrolls, so a card of any size can show everything
@@ -125,7 +128,7 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
       <>
         <span className="bk-edge" aria-hidden />
         <span className="bk-back" aria-hidden>{(first.type === "image" || (first.type === "pdf" && first.thumb)) && <Cover m={first} className="bk-fill" />}</span>
-        <span className="bk-spine" aria-hidden><b>{v.title}</b></span>
+        <span className="bk-spine" aria-hidden {...p("spine")}><b>{v.title}</b></span>
         {ribbon}
         <div className="bk-in bk-full">
           <Cover m={first} className="bk-pic" />
@@ -133,7 +136,7 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
           {link}
           {words}
           {zoom}
-          <div className="bk-panel">{body({ above: <div className="bk-head">{band}<h3>{v.title}</h3>{v.subtitle && <p>{v.subtitle}</p>}</div> })}</div>
+          <div className="bk-panel" {...p("panel")}>{body({ above: <div className="bk-head">{band}<h3 {...p("title")}>{v.title}</h3>{v.subtitle && <p {...p("subtitle")}>{v.subtitle}</p>}</div> })}</div>
           {shine}
         </div>
       </>
@@ -141,15 +144,15 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
     return (
       <>
         <span className="bk-edge" aria-hidden />
-        <span className="bk-spine" aria-hidden><b>{v.title}</b></span>
+        <span className="bk-spine" aria-hidden {...p("spine")}><b>{v.title}</b></span>
         {ribbon}
         <div className="bk-in">
-          <div className="bk-cover">
+          <div className="bk-cover" {...p("art")}>
             {link}
             {words}
             {band}
-            <h3>{v.title}</h3>
-            {v.subtitle && <p>{v.subtitle}</p>}
+            <h3 {...p("title")}>{v.title}</h3>
+            {v.subtitle && <p {...p("subtitle")}>{v.subtitle}</p>}
             {shine}
           </div>
           {body({})}
@@ -161,16 +164,16 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
     <>
       <div className={`tv-head${canPlay ? " can-play" : ""}`}>
         {link}
-        <svg className="tv-ant" viewBox="0 0 110 40" aria-hidden><path d="M55 40 24 5M55 40 90 2" /><circle cx="24" cy="5" r="3.5" /><circle cx="90" cy="2" r="3.5" /></svg>
+        <svg className="tv-ant" viewBox="0 0 110 40" aria-hidden {...p("art")}><path d="M55 40 24 5M55 40 90 2" /><circle cx="24" cy="5" r="3.5" /><circle cx="90" cy="2" r="3.5" /></svg>
         <div className="tv-bezel">
-          {v.status && <span className="tv-sticker">{v.status}</span>}
-          <div className="tv-screen">
+          {v.status && <span className="tv-sticker" {...p("status")}>{v.status}</span>}
+          <div className="tv-screen" {...p("screen")}>
             <Screen v={v} first={first} />
             <i className="tv-lines" /><i className="tv-glare" /><i className="tv-band" /><i className="tv-on" />
           </div>
           {zoom}
         </div>
-        <div className="tv-panel">
+        <div className="tv-panel" {...p("controls")}>
           {play}
           <span className="tv-kind">{v.mediaName}</span>
           <span className="tv-grille" aria-hidden><i className="tv-fill" /></span>
@@ -183,16 +186,16 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
   );
   if (v.look === "portrait") return (
     <>
-      <svg className="pt-wire" viewBox="0 0 130 34" aria-hidden><path d="M4 34 65 5 126 34" /><circle cx="65" cy="5" r="4" /></svg>
+      <svg className="pt-wire" viewBox="0 0 130 34" aria-hidden {...p("art")}><path d="M4 34 65 5 126 34" /><circle cx="65" cy="5" r="4" /></svg>
       <div className="pt-mat">
         <div className="pt-top">
           {link}
           {picture ?? (
             <svg className="pt-nobody" viewBox="0 0 120 120" preserveAspectRatio="xMidYMax slice" aria-hidden><circle cx="60" cy="48" r="24" /><path d="M14 120c4-34 22-46 46-46s42 12 46 46Z" /></svg>
           )}
-          {v.status && <span className="pt-tag">{v.status}</span>}
-          <div className="pt-plate"><h3>{v.title}</h3>{v.subtitle && <p>{v.subtitle}</p>}</div>
-          <div className="pt-sub"><span>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
+          {v.status && <span className="pt-tag" {...p("status")}>{v.status}</span>}
+          <div className="pt-plate" {...p("band")}><h3 {...p("title")}>{v.title}</h3>{v.subtitle && <p {...p("subtitle")}>{v.subtitle}</p>}</div>
+          <div className="pt-sub"><span {...p("sub")}>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
         </div>
         {body({})}
       </div>
@@ -206,12 +209,12 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
       <span className="pn-fly" aria-hidden><i>♥</i><i>♥</i><i>♥</i></span>
       <div className="pn-top">
         {link}
-        <div className="pn-status" aria-hidden><span>9:41</span><span className="pn-sig"><span className="pn-wifi"><i /><i /><i /></span><em><i /><i /><i /></em></span></div>
-        <div className="pn-note"><span className="pn-ping" aria-hidden /><b>{v.subsection}</b>{v.status || v.no}</div>
+        <div className="pn-status" aria-hidden {...p("band")}><span>9:41</span><span className="pn-sig"><span className="pn-wifi"><i /><i /><i /></span><em><i /><i /><i /></em></span></div>
+        <div className="pn-note" {...p("status")}><span className="pn-ping" aria-hidden /><b {...p("sub")}>{v.subsection}</b>{v.status || v.no}</div>
         <span className="pn-spin" aria-hidden />
       </div>
       {body({ showTitle: true, above: (
-        <div className="pn-shot">
+        <div className="pn-shot" {...p("shot")}>
           {picture ?? <div className="pn-art" aria-hidden />}
           <i className="pn-skel" aria-hidden /><i className="pn-shim" aria-hidden /><i className="pn-tap" aria-hidden /><span className="pn-big" aria-hidden>♥</span>
         </div>
@@ -220,9 +223,9 @@ export function StudyFrame({ view: v, link, picture, first, zoom, play, canPlay,
   );
   return (
     <>
-      <span className="nt-tape" aria-hidden />
-      <div className="nt-head">{link}<span>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
-      {v.status && <span className="pt-tag nt-tag">{v.status}</span>}
+      <span className="nt-tape" aria-hidden {...p("sticker")} />
+      <div className="nt-head" {...p("band")}>{link}<span {...p("sub")}>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
+      {v.status && <span className="pt-tag nt-tag" {...p("status")}>{v.status}</span>}
       {body({ showTitle: true, above: picture })}
     </>
   );

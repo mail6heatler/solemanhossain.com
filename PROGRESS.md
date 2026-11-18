@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: Influences (G4) gets the live editor (G3 kept)
+
+The owner kept G3 and said "go" for G4, with no helpers (now their default: no more asking). Restore point `before-g4-studio`. Same editor, drawing the real book, TV player, portrait, phone and note (`StudyCard`): every part labelled, moved and sized; Screen & type and the Line that stuck open from the labels; Looks like chooses the object; sound can be added to pictures. Entries open as the new full view. Not tested beyond the build; waiting for keep or undo.
+
 ### 2026-11-18: Adventures (G3) gets the live editor (G2 kept)
 
 The owner kept G2 and said "go" for G3 (no helpers, live tracker https://claude.ai/artifact/KNdLFuST6rosevqRXJBCWQ). Restore point `before-g3-studio`. G3's dashboard page is the same editor, drawing the real frames (`TripCard`, moved out of `SectionBody`): every part of the pass, camera, bucket-list note, polaroid and postcard has a label and moves and sizes; Pass details, Tick lines, Vehicle and the stamp's words open from the labels; Looks like chooses a frame by hand. Trips open as the new full view with their pass. Not tested beyond the build (no-extra-checks); waiting for keep or undo.

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/lib/data";
-import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, TRIP_STATUSES, hasStudio } from "@/lib/settings";
+import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, STUDY_STATUSES, TRIP_STATUSES, hasStudio } from "@/lib/settings";
+import { STUDY_LOOKS, STUDY_MEDIA, studyLookOf, type StudyLook, type StudyMedia } from "@/lib/studyItem";
 import { NOTE_LOOKS, TRIP_LOOKS, WIN_LOOKS, noteLookOf, tripLookOf, winLookOf } from "@/lib/cardLook";
 import { MAX_TICKS, TRIP_VEHICLES, type TickLine } from "@/lib/tripPass";
 import { codeFor, tripContext } from "@/components/site/TripFrame";
@@ -31,6 +32,11 @@ const NOTE_HINTS: Record<string, string> = {
   bucket: "A page from a notepad: the box beside the title ticks itself when Status says Visited or Done, and Tick lines each get their own box.",
   polaroid: "A taped polaroid: the picture is the photo, the title is written under it, and Status is the stamp.",
   postcard: "A postcard saying “Greetings from” the title, with the vehicle as its postage stamp and the Date as its postmark.",
+  book: "A book on the shelf: the subsection is on its band, Status is its ribbon. Add a picture and it becomes the whole cover, whatever its shape, with the writing kept on it.",
+  player: "A little TV player: Screen & type picks what its screen shows (song, music, podcast, radio or video) and the words on it, Status is its sticker, and Play plays an uploaded sound or video, or opens the first web link.",
+  portrait: "A framed portrait on a wire: the picture is the person, the title and subtitle are on the name plate, and Status is the tag.",
+  phone: "A phone: the subsection and Status are its notification, and the picture is on its screen.",
+  note: "A note taped to the shelf, with the subsection at its top and Status as its tag.",
 };
 
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
@@ -39,6 +45,7 @@ const NAMES: Record<string, string> = {
   links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
+  spine: "Spine", line: "Line that stuck", shot: "Phone screen", panel: "Writing panel", player: "Screen & type",
   route: "Route", passinfo: "Pass details", times: "Times", stub: "Stub & barcode", ticks: "Tick lines", passname: "Name on the pass", pass: "Pass details", vehicle: "Vehicle",
   url: "Address bar", codeview: "Code view", sheet: "Spreadsheet", term: "Terminal", board: "Sticky notes", screen: "Screen", brand: "Name plate", controls: "Buttons",
 };
@@ -58,6 +65,11 @@ const BY_LOOK: Record<string, Record<string, string>> = {
   bucket: { band: "Note top", art: "Bucket", status: "Stamp" },
   polaroid: { sticker: "Tape", status: "Stamp", art: "Vehicle" },
   postcard: { band: "Postcard top", title: "Greetings from", art: "Postage stamp", date: "Postmark", status: "Stamp" },
+  book: { band: "Book band", sub: "Shelf label", status: "Ribbon", art: "Cover" },
+  player: { status: "Sticker", screen: "TV screen", controls: "Control panel", art: "Antenna" },
+  portrait: { band: "Name plate", status: "Tag", art: "Wire" },
+  phone: { band: "Status bar", sub: "App name", status: "Notification" },
+  note: { band: "Note top", status: "Tag", sticker: "Tape" },
 };
 export const partName = (key: string, look: string) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look]?.[key] ?? NAMES[key] ?? key);
 export const SEC_NAMES: Record<string, string> = {
@@ -85,7 +97,7 @@ export type Ed = {
   setFvPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
-const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub"];
+const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
 const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass" };
 
@@ -175,7 +187,7 @@ function FaceField({ ed }: { ed: Ed }) {
 /** One box of a card or of the full view, opened from its label: what it says, then its size and place. */
 export function CardEditor({ ed, k: asked, where = "card" }: { ed: Ed; k: string; where?: "card" | "fv" }) {
   // on a trip, the drawn vehicle and the postage stamp are the Vehicle, which can be chosen
-  const k = ed.kind === "tickets" && asked === "art" && ed.card !== "bucket" ? "vehicle" : asked;
+  const k = ed.kind === "tickets" && asked === "art" && ed.card !== "bucket" ? "vehicle" : ed.kind === "study" && asked === "screen" ? "player" : asked;
   return <>
     {k === "face" && where === "card" && ed.item ? <FaceField ed={ed} /> : DESIGN.includes(k) ? <p className="hint" style={{ margin: 0 }}>This box is part of the {where === "fv" ? "full view's" : "card's"} own design: there&apos;s nothing to type in it, but you can size it and move it anywhere.</p> : <CardFields ed={ed} k={ALIAS[k] ?? k} />}
     {ed.item && (SIZED_PARTS as readonly string[]).includes(asked) && <PartSizeFields ed={ed} k={asked} where={where} />}
@@ -193,14 +205,15 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   switch (k) {
     case "sub": {
-      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : NOTE_LOOKS;
-      const auto = looks.find(([key]) => key === (ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : noteLookOf(it.category)))?.[1] ?? "";
+      const shelf = ed.kind === "study";
+      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : NOTE_LOOKS;
+      const auto = looks.find(([key]) => key === (ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : noteLookOf(it.category)))?.[1] ?? "";
       return <>
         <Txt label="Subsection" value={it.category} placeholder="Pick one below, or type a new one" onChange={(v) => ed.setItem({ category: v.replace(/,/g, " ") }, "category")} />
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
         <div className="fl stu-f">
           <label className="lab" htmlFor="stu-look">Looks like</label>
-          <select id="stu-look" value={it.card.look} onChange={(e) => ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } })}>
+          <select id="stu-look" value={shelf ? it.study.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
             <option value="">Automatic, from its subsection: {auto}</option>
             {looks.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
@@ -214,7 +227,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       hint={<>{ed.card === "manual" && "Each paragraph or list line becomes a numbered step. "}{ed.card === "notes" && "The first three lines are the sticky notes on the card. "}Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…){it.type === "poll" && ". On the card a poll shows its options instead; this text shows in the full view."}</>} />;
     case "pic": return <>
       <div className="fl stu-f"><span className="lab">Photos, videos &amp; PDFs</span>
-        <MediaField key={`${it.id}:${ed.rev}`} name="media" initial={it.media} useBlob={data.useBlob} maxVideoMb={data.maxVideoMb} onChange={(media) => ed.setItem({ media: media as Item["media"] })} />
+        <MediaField key={`${it.id}:${ed.rev}`} name="media" initial={it.media} useBlob={data.useBlob} maxVideoMb={data.maxVideoMb} allowAudio={ed.kind === "study"} onChange={(media) => ed.setItem({ media: media as Item["media"] })} />
       </div>
       <button type="button" className="stu-link" onClick={() => ed.open("card", "size")}>Its fit, its height on the card and the part that stays in view are under Size &amp; look →</button>
     </>;
@@ -222,7 +235,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
     case "place": return <Txt label={name("place")} value={it.location} focus placeholder="Dhaka, Bangladesh" max={160} onChange={(v) => ed.setItem({ location: v }, "place")} />;
     case "status": return <>
       <Txt label={name("status")} value={it.status} focus placeholder={ed.card === "fact" ? "Rare" : "Reading, Done, In progress…"} max={60} onChange={(v) => ed.setItem({ status: v }, "status")} />
-      <Pills options={ed.card === "fact" ? ["Common", "Rare", "Epic", "Legendary"] : ed.kind === "windows" ? ["Live", "In progress", "Done", "Planned"] : ed.kind === "tickets" ? [...TRIP_STATUSES] : ["Now", "Done", "In progress", "Planned"]} value={it.status} onPick={(v) => ed.setItem({ status: v })} />
+      <Pills options={ed.card === "fact" ? ["Common", "Rare", "Epic", "Legendary"] : ed.kind === "windows" ? ["Live", "In progress", "Done", "Planned"] : ed.kind === "tickets" ? [...TRIP_STATUSES] : ed.kind === "study" ? [...STUDY_STATUSES] : ["Now", "Done", "In progress", "Planned"]} value={it.status} onPick={(v) => ed.setItem({ status: v })} />
     </>;
     case "mood": return (
       <div className="fl stu-f">
@@ -299,6 +312,15 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       </>;
     }
     case "pass": return <PassFields ed={ed} />;
+    case "line": return <Txt label="The line that stuck" area focus value={it.study.line} max={300} placeholder="A quote or lyric, shown highlighted at the top of the text" onChange={(v) => ed.setItem({ study: { ...it.study, line: v } }, "line")} />;
+    case "player": return <>
+      <div className="fl stu-f"><span className="lab">What is it?</span>
+        <div className="stu-pills">{STUDY_MEDIA.map(([key, label]) => <button key={key} type="button" className={it.study.media === key ? "on" : ""} onClick={() => ed.setItem({ study: { ...it.study, media: it.study.media === key ? "" : (key as StudyMedia) } })}>{label}</button>)}</div>
+        <span className="hint">It picks what the screen shows. With none pressed, it goes by the entry&apos;s words. A sound file or video under Pictures plays on the Play button; without either, Play opens the first web link under Buttons.</span>
+      </div>
+      <Txt label="On the screen" value={it.study.screen} max={24} placeholder="FM 98.4, EP 12, CH 04…" onChange={(v) => ed.setItem({ study: { ...it.study, screen: v } }, "screen")} />
+      {ed.card !== "player" && <span className="hint">This entry isn&apos;t a TV player right now; choose one under Looks like.</span>}
+    </>;
     case "ticks": return <TickFields ed={ed} />;
     case "vehicle": {
       const p = it.pass;
@@ -441,7 +463,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
             </div>
           ))}
           <div><button type="button" className="b-out b-sm" onClick={() => ed.setSection({ categories: [...s.categories, "New subsection"] })}><i className="ti ti-plus" />Add a subsection</button></div>
-          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "tickets"
+          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "study"
+            ? "Its name picks its entries' object: books a book; songs, music, podcasts, radio, video, film, listening or watching a TV player; people a framed portrait; the internet a phone; and anything else a note. Each entry can choose another under Looks like."
+            : ed.kind === "tickets"
             ? "Its name picks its trips' frame: quests a camera; bucket lists (or dreams, someday) a note with ticks; “Through my eyes” (or photos) a polaroid; moments (or postcards, memories) a postcard; and anything else a boarding pass. Each trip can choose another under Looks like."
             : ed.kind === "windows"
             ? "Its name picks its windows' app: data (or analysis, dashboards, Excel) a spreadsheet; code (or problems, programs, apps) a code editor; brain dumps (or ideas, notes) a notes app; side quests (or fun, games, hobbies) a games console; and anything else a browser window."
@@ -466,7 +490,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
       {G({ k: "motion", children: (
         <div className="fl stu-f"><span className="lab">{SEC_NAMES.motion} (for the whole site)</span>
           <div className="stu-switches">
-            {ed.kind === "tickets"
+            {ed.kind === "study"
+              ? <Sw label="The shelf comes alive" hint="The lamp travels the shelf and wakes what it reaches: a book lifts and its ribbon swings, a phone runs its little show, a player's bars dance." on={draft.studyfx} onChange={(studyfx) => ed.setDraft((d) => ({ ...d, studyfx }))} />
+              : ed.kind === "tickets"
               ? <Sw label="Trips come alive" hint="The vehicle travels the route and each frame wakes as it arrives: the camera records, the bucket's handle swings, the stamp lands." on={draft.tripfx} onChange={(tripfx) => ed.setDraft((d) => ({ ...d, tripfx }))} />
               : ed.kind === "windows"
               ? <Sw label="Windows come alive" hint="Windows pop open as they arrive, their apps start up and the dock swells and bounces." on={draft.windowfx} onChange={(windowfx) => ed.setDraft((d) => ({ ...d, windowfx }))} />

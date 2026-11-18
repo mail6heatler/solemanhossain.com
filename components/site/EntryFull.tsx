@@ -3,6 +3,7 @@ import { MOODS, type SiteSettings } from "@/lib/settings";
 import { cardLookOf } from "@/lib/cardLook";
 import { fileName, shortUrl } from "./WinCard";
 import { PassCard, passView, TickList, tripContext } from "./TripFrame";
+import { studyView } from "./StudyFrame";
 import { fvBoxes, fvLook, fvOrder, type FvPart } from "@/lib/fullView";
 import Markdown from "./Markdown";
 import PollCard from "./PollCard";
@@ -19,7 +20,7 @@ export function fvPresent(it: Item, reactions: boolean, layout = "notes"): Recor
     title: true,
     facts: !!(it.date_label || it.location || it.status || MOODS[it.mood]) || cardLookOf(layout, it) === "fact" || cardLookOf(layout, it) === "ticket",
     quote: !!it.fv.quote,
-    story: !!it.body.trim() || (it.type === "poll" && it.poll_options.length > 0) || (cardLookOf(layout, it) === "bucket" && it.pass.ticks.length > 0),
+    story: !!it.body.trim() || (it.type === "poll" && it.poll_options.length > 0) || (cardLookOf(layout, it) === "bucket" && it.pass.ticks.length > 0) || (layout === "study" && !!it.study.line),
     gallery: seen.length > 1 || it.media.some((m) => m.type === "audio"),
     tags: it.tags.length > 0,
     buttons: it.links.length > 0,
@@ -73,6 +74,7 @@ export default function EntryFull({ item, section, settings, factNo, index, edit
     : card === "fact" ? `Fact file #${String(factNo).padStart(2, "0")}`
     : section.layout === "windows" ? winBand(card, item, section.slug)
     : trip ? `${trip.subsection} · ${trip.no}`
+    : section.layout === "study" ? `${item.category || section.title} · ${studyView(item, { code: section.code, fallback: section.title, index: index ?? 0 }).no}`
     : item.category || section.title;
 
   const part = (k: FvPart): React.ReactNode => {
@@ -95,6 +97,7 @@ export default function EntryFull({ item, section, settings, factNo, index, edit
           ? <div className="poll" {...p("poll")}>{item.poll_options.map((o, i) => <button key={i} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}<div className="poll-foot">Tap an option to vote and see results</div></div>
           : <PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} />)}
         {trip?.frame === "bucket" && <TickList ticks={trip.ticks} attrs={p("ticks")} />}
+        {section.layout === "study" && item.study.line && <p className="sty-line" {...p("line")}><span>{item.study.line}</span></p>}
         <Markdown className={card === "manual" ? "md mn-steps" : "md"} {...p("body")}>{item.body}</Markdown>
       </>;
       case "gallery": return <div {...p("gallery")}><FvShots media={item.media} title={item.title} mode="rest" still={edit} /></div>;

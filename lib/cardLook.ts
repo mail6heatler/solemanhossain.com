@@ -3,6 +3,7 @@
  * unless the owner chooses one in the entry's Card look box. Stored as items.card.
  */
 import { cleanPartSizes, type PartSizes } from "./partSize";
+import { studyLookOf, type StudyInfo, type StudyLook } from "./studyItem";
 
 export const NOTE_LOOKS = [
   ["manual", "Instruction manual"],
@@ -68,7 +69,8 @@ export function winLookOf(subsection: string, chosen: CardInfo["look"] = ""): Wi
 }
 
 /** The card an entry is, for the section's layout: a window for Made (G2), a note otherwise. */
-export function cardLookOf(layout: string, it: { category: string; card: CardInfo }): NoteLook | WinLook | TripLook {
+export function cardLookOf(layout: string, it: { category: string; card: CardInfo; study?: StudyInfo }): NoteLook | WinLook | TripLook | StudyLook {
+  if (layout === "study") return studyLookOf(it.category, it.study?.look ?? "");
   return layout === "windows" ? winLookOf(it.category, it.card.look) : layout === "tickets" ? tripLookOf(it.category, it.card.look) : noteLookOf(it.category, it.card.look);
 }
 

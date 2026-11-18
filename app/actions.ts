@@ -499,7 +499,7 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
     const now = await getSettings();
     await saveSettingsData({
       ribbonSize: cleanRibbonSize(raw.ribbonSize),
-      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, tripfx: typeof raw.tripfx === "boolean" ? raw.tripfx : now.effects.tripfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
+      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, tripfx: typeof raw.tripfx === "boolean" ? raw.tripfx : now.effects.tripfx, studyfx: typeof raw.studyfx === "boolean" ? raw.studyfx : now.effects.studyfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
     });
 
     const own = new Map((await query("SELECT id, type FROM items WHERE section_id=$1", [sectionId])).map((r) => [Number(r.id), String(r.type)]));
@@ -537,6 +537,8 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
       }
       // a trip's pass (its details, tick lines and vehicle)
       if (it.pass) await query("UPDATE items SET pass=$1 WHERE id=$2", [JSON.stringify(cleanPass(it.pass)), id]);
+      // a shelf entry's object, screen, kind and the line that stuck
+      if (it.study) await query("UPDATE items SET study=$1 WHERE id=$2", [JSON.stringify(cleanStudy(it.study)), id]);
       // moved to another section: it goes to the front there, as a new entry would
       const target = Number(it.section_id);
       if (target !== sectionId && sectionIds.has(target)) await query("UPDATE items SET section_id=$1, sort=(SELECT COALESCE(MIN(sort),1)-1 FROM items WHERE section_id=$1) WHERE id=$2", [target, id]);
