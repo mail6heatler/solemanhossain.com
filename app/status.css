@@ -1,0 +1,66 @@
+/* ═══ THE STATUS BY THE HERO PHOTO ═══ (components/site/HeroStatus.tsx; --sc is the status colour, grey once stale) */
+.hst-meta { color: var(--hero-muted, var(--muted)); font-weight: 500; font-size: .86em; white-space: nowrap; }
+.hst-dot { position: relative; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--sc); flex: none; }
+.hst-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--sc); animation: hst-ping 1.8s ease-out infinite; }
+@keyframes hst-ping { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.8); opacity: 0; } }
+.stale .hst-dot::after { animation: none; opacity: 0; }
+html.scrolling .hst-dot::after, .sleep .hst-dot::after, html.lite .hst-dot::after { animation-play-state: paused; }
+/* the line under the name */
+.hst-line { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; max-width: 100%; margin: 10px 0 4px; padding: 7px 13px; border-radius: 16px; font-weight: 600; font-size: 14.5px; line-height: 1.35;
+  color: var(--hero-fg, var(--fg)); background: color-mix(in srgb, var(--sc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--sc) 50%, transparent); }
+.hst-line.stale { opacity: .75; }
+/* the live ticker */
+.hst-tick { display: grid; gap: 4px; margin: 10px 0 4px; color: var(--hero-fg, var(--fg)); }
+.hst-row { font: 600 16px/1.35 var(--display); display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.hst-lbl { font: 800 10.5px var(--body); letter-spacing: .1em; color: #fff; background: var(--sc); padding: 2px 7px; border-radius: 5px; align-self: center; }
+.hst-caret { display: inline-block; width: 2px; height: 1.1em; background: var(--mint); animation: hst-blink 1s steps(1) infinite; translate: 0 3px; }
+@keyframes hst-blink { 50% { opacity: 0; } }
+html.scrolling .hst-caret, .sleep .hst-caret { animation-play-state: paused; }
+/* the bubble beside the photo */
+.hst-bubble { position: absolute; right: calc(100% + 18px); top: 62%; z-index: 4; width: max-content; max-width: 210px; background: var(--card); color: var(--fg); border: 2px solid var(--fg); border-radius: 16px;
+  padding: 8px 12px; font-weight: 600; font-size: 13.5px; line-height: 1.3; box-shadow: 3px 3px 0 var(--sc); pointer-events: auto; text-align: left; }
+.hst-bubble::after { content: ""; position: absolute; right: -8px; top: 14px; width: 12px; height: 12px; background: var(--card); border-right: 2px solid var(--fg); border-top: 2px solid var(--fg); rotate: 45deg; }
+.hst-bubble .hst-meta { display: block; margin-top: 2px; color: var(--muted); }
+/* the corner badge and its chip */
+.hst-badge { position: absolute; z-index: 4; top: -14px; right: -16px; width: 52px; height: 52px; border-radius: 50%; background: var(--card); border: 3px solid var(--sc); display: grid; place-items: center; font-size: 25px; box-shadow: 0 6px 12px rgba(0,0,0,.2); }
+.hst-badge .hst-dot { position: absolute; right: 0; bottom: 2px; width: 13px; height: 13px; outline: 2px solid var(--card); }
+.hst-chip, .hst-tap { position: absolute; z-index: 4; top: calc(100% + 16px); left: 50%; translate: -50% 0; width: max-content; max-width: 240px; text-align: center; pointer-events: auto; }
+.hst-chip { background: var(--fg); color: var(--bg); padding: 6px 12px; border-radius: 14px; font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+.hst-chip .hst-meta { display: block; color: color-mix(in srgb, var(--bg) 70%, transparent); }
+/* the story */
+.hst-tap { font: 700 12.5px var(--body); background: var(--card); color: var(--fg); border: 1.5px solid var(--sc); padding: 5px 11px; border-radius: 99px; cursor: pointer; animation: hst-nudge 1.6s ease-in-out infinite; }
+.hst-tap:disabled { cursor: default; animation: none; }
+@keyframes hst-nudge { 50% { transform: translateY(-4px); } }
+html.scrolling .hst-tap, .sleep .hst-tap { animation-play-state: paused; }
+.hst-story { border: 0; padding: 0; background: none; max-width: none; overflow: visible; }
+.hst-story::backdrop { background: rgba(10,14,12,.6); }
+.hst-sc { width: min(300px, 86vw); min-height: 360px; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px; color: #fff; cursor: pointer;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--sc) 85%, #000), #16201b); box-shadow: 0 30px 50px -20px rgba(0,0,0,.6); animation: hst-pop .35s cubic-bezier(.3,1.6,.5,1); }
+@keyframes hst-pop { from { transform: scale(.6); opacity: 0; } }
+.hst-pb { height: 3px; border-radius: 3px; background: rgba(255,255,255,.3); overflow: hidden; }
+.hst-pb i { display: block; height: 100%; background: #fff; transform-origin: 0; animation: hst-prog 5s linear forwards; }
+@keyframes hst-prog { from { transform: scaleX(0); } }
+.hst-who { display: flex; align-items: center; gap: 8px; font: 700 13px var(--body); }
+.hst-who img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+.hst-who span { font-weight: 500; opacity: .75; }
+.hst-big { flex: 1; display: grid; place-content: center; text-align: center; gap: 10px; }
+.hst-big b { font-size: 56px; line-height: 1; }
+.hst-big p { margin: 0; font: 700 21px/1.2 var(--display); }
+.hst-ft { font: 13px var(--body); opacity: .85; display: flex; justify-content: space-between; }
+/* the ring in the status colour goes grey and still once the status is old */
+#hero.status-stale { --status-c: #9aa39e !important; }
+#hero.status-stale .hring > i { animation: none; opacity: .7; }
+/* phones: the photo is small and the paper buttons sit beside it, so the bubble goes under the photo */
+@media (max-width: 760px) {
+  .hst-bubble { right: auto; left: 50%; translate: -50% 0; top: calc(100% + 16px); max-width: 170px; font-size: 12.5px; }
+  .hst-bubble::after { right: auto; left: calc(50% - 6px); top: -8px; rotate: -45deg; }
+  .hst-badge { width: 40px; height: 40px; font-size: 19px; top: -10px; right: -12px; }
+  .hst-chip, .hst-tap { max-width: 170px; font-size: 11.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .hst-dot::after, .hst-caret, .hst-tap, .hst-sc, .hst-pb i { animation: none !important; } }
+
+/* dashboard: the status box's preview line, and the ring preview's status colour */
+.st-prev { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; padding: 8px 13px; border-radius: 14px; font-weight: 600; font-size: 14px;
+  background: color-mix(in srgb, var(--sc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--sc) 50%, transparent); }
+.st-prev .hst-meta { color: inherit; opacity: .7; }
+.ring-prev { --status-c: #35c46f; }

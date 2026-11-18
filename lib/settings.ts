@@ -1,5 +1,6 @@
 import { cleanBoxes, type BoxState } from "./boxes";
 import { cleanMascot, cleanRing, DEFAULT_MASCOT, DEFAULT_RING, type MascotSettings, type Ring } from "./mascot";
+import { cleanStatus, DEFAULT_STATUS, type Status } from "./status";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
@@ -254,6 +255,8 @@ export type SiteSettings = {
   banner: Banner;
   /** The ring around the hero photo (lib/mascot.ts). */
   ring: Ring;
+  /** What I'm up to, by the hero photo (lib/status.ts). */
+  status: Status;
   /** The mascot and its show (lib/mascot.ts). */
   mascot: MascotSettings;
   /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
@@ -306,6 +309,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   partyWord: "shou",
   banner: DEFAULT_BANNER,
   ring: DEFAULT_RING,
+  status: DEFAULT_STATUS,
   mascot: DEFAULT_MASCOT,
   themePics: {},
   contentStyle: {},
@@ -331,6 +335,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     contentStyle: cleanStyle(obj.contentStyle),
     heroBoxes: cleanBoxes(obj.heroBoxes),
     ring: cleanRing(obj.ring),
+    status: cleanStatus(obj.status),
     mascot: cleanMascot(obj.mascot),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);

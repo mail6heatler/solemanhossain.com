@@ -144,6 +144,12 @@ export const SCHEMA = [
     visitor TEXT PRIMARY KEY,
     last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`,
+  // the hero status's 👁 count: one row per browser that saw a status, keyed by when that status was set
+  `CREATE TABLE IF NOT EXISTS status_views (
+    since TEXT NOT NULL,
+    visitor TEXT NOT NULL,
+    PRIMARY KEY (since, visitor)
+  )`,
   // Changes to live content that must happen only once, however many times this list runs, so a later choice in the dashboard stands.
   `CREATE TABLE IF NOT EXISTS done_once (key TEXT PRIMARY KEY)`,
   // G2's new look, agreed with the owner on 2026-11-07. The old cards stay a choice under Section settings.

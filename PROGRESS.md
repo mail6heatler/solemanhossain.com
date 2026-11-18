@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: Status by the photo (correction)
+
+The owner meant the whole "Status by your photo" from the playground, not only its ring. Built: emoji and words, presets, five looks, Online/Busy/Away, live "updated … ago", a real 👁 count, grey "last seen" after a chosen number of hours, and the ring in the status colour. The clock starts at the first save of the status.
+
 ### 2026-11-18: Ring around the hero photo and the mascot, live
 
 The owner asked for the two from the fun-features preview: the ring (settings in the hero page) and the mascot (its own dashboard page, beside Appearance, with more settings than the preview). Both are on by default. The ring: 5 styles, theme, mood or own colour, thickness, gap and speed, with a live preview around the real photo. The mascot: 5 characters (Mini Shourobh first), size, Mini's outfit, beard, glasses, hair colour and skin tone, the 7 acts or a mix of the ticked ones, which side he peeks from, time away, when he dozes off, which of his 7 moves a click plays, the hello, his lines, a line per section, and switches for speech, the section guide, eyes, ducking, cheering on reactions, theme outfits, phones and every page. Only the screen check was asked for (display-checker).

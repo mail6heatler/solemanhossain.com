@@ -7,6 +7,7 @@ import { Box } from "@/components/admin/Box";
 import BoxMemory from "@/components/admin/BoxMemory";
 import { boxOpen } from "@/lib/boxes";
 import RingPanel from "@/components/admin/RingPanel";
+import StatusPanel from "@/components/admin/StatusPanel";
 
 export default async function HeroPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
@@ -31,6 +32,10 @@ export default async function HeroPage() {
         <div className="f3" style={{ marginTop: 12 }}>
           <div className="fl"><label>Initials (shown when there&apos;s no photo)</label><input className="inp" name="initials" defaultValue={s.initials} maxLength={3} /></div>
         </div>
+      </Box>
+
+      <Box name="status" title="Status by your photo" icon="message-circle-2" open={open("status")}>
+        <StatusPanel initial={s.status} />
       </Box>
 
       <Box name="ring" title="Ring around your photo" icon="circle-dashed" open={open("ring")}>

@@ -10,7 +10,7 @@ export default function HeroRing({ ring, photo, round }: { ring: Ring; photo: st
     "--rg": `${ring.gap}px`,
     "--rk": (100 / ring.speed).toFixed(3),
     ...(shaped ? { "--ring-img": `url("${photo}")` } : {}),
-    ...(ring.color === "custom" ? { "--rc": ring.custom } : ring.color === "mood" ? { "--rc": "var(--m, var(--mint))" } : {}),
+    ...(ring.color === "custom" ? { "--rc": ring.custom } : ring.color === "mood" ? { "--rc": "var(--m, var(--mint))" } : ring.color === "status" ? { "--rc": "var(--status-c, var(--mint))" } : {}),
   } as React.CSSProperties;
   return (
     <i className={`hring r-${ring.style}${shaped ? "" : " round"}${ring.gap ? " gap" : ""}`} style={style} aria-hidden>
