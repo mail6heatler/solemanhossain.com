@@ -4,6 +4,7 @@ import { cardLookOf } from "@/lib/cardLook";
 import { fileName, shortUrl } from "./WinCard";
 import { PassCard, passView, TickList, tripContext } from "./TripFrame";
 import { studyView } from "./StudyFrame";
+import { awardFacts } from "@/lib/awardItem";
 import { fvBoxes, fvLook, fvOrder, type FvPart } from "@/lib/fullView";
 import Markdown from "./Markdown";
 import PollCard from "./PollCard";
@@ -66,6 +67,7 @@ export default function EntryFull({ item, section, settings, factNo, index, edit
   const name = (k: "date" | "place" | "mood" | "status") => FACT_NAMES[card]?.[k] ?? BASE_NAMES[k];
   const facts: [string, string, string][] = [];
   if (card === "manual" && owner) facts.push(["Model", owner, ""]);
+  if (section.layout === "awards") for (const [k, val] of awardFacts(item)) if (val) facts.push([k, val, "specs"]);
   for (const k of ["date", "place", "mood", "status"] as const) {
     const v = k === "date" ? item.date_label : k === "place" ? item.location : k === "mood" ? (mood ? `${mood.emoji} ${mood.label}` : "") : item.status || (card === "fact" ? "Rare" : "");
     if (v) facts.push([name(k), v, k]);
@@ -74,6 +76,7 @@ export default function EntryFull({ item, section, settings, factNo, index, edit
     : card === "fact" ? `Fact file #${String(factNo).padStart(2, "0")}`
     : section.layout === "windows" ? winBand(card, item, section.slug)
     : trip ? `${trip.subsection} · ${trip.no}`
+    : section.layout === "awards" ? `${item.category || section.title} · ID ${String((index ?? 0) + 1).padStart(4, "0")}`
     : section.layout === "comic" ? `${item.category || section.title} · ${section.code || "G5"}-${String((index ?? 0) + 1).padStart(2, "0")}`
     : section.layout === "study" ? `${item.category || section.title} · ${studyView(item, { code: section.code, fallback: section.title, index: index ?? 0 }).no}`
     : item.category || section.title;

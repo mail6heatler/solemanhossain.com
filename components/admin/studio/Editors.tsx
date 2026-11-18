@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/lib/data";
 import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, STUDY_STATUSES, TRIP_STATUSES, hasStudio } from "@/lib/settings";
 import { STUDY_LOOKS, STUDY_MEDIA, studyLookOf, type StudyLook, type StudyMedia } from "@/lib/studyItem";
+import { AWARD_LOOKS, AWARD_TEXT_MAX, awardLookOf, jobFromTitle, type AwardInfo, type AwardLook } from "@/lib/awardItem";
 import { COMIC_LOOKS, SFX_MAX, comicLookOf, comicPollChoices, comicPollOf, sfxOf, voteWordOf, type ComicAnyLook } from "@/lib/comicItem";
 import { NOTE_LOOKS, TRIP_LOOKS, WIN_LOOKS, noteLookOf, tripLookOf, winLookOf } from "@/lib/cardLook";
 import { MAX_TICKS, TRIP_VEHICLES, type TickLine } from "@/lib/tripPass";
@@ -52,6 +53,12 @@ const NOTE_HINTS: Record<string, string> = {
   slash: "A poll of three options, split by slashes.",
   quad: "A poll of four options, as four small panels.",
   buttons: "A poll with big comic buttons under the panel (any number of options, and any poll with a picture).",
+  id: "An RFID staff card, bright: a job you still have. Details holds the position, company and dates; Staff card photo is its photo (your hero photo without one).",
+  plate: "An RFID staff card, faded: a job you've left. Details holds the position, company and dates.",
+  cert: "A certificate with a gold seal and your name. Details holds who issued it, the dates and the credential ID.",
+  medal: "The front page of a newspaper named after you, with the title as the headline. Details holds who awarded it.",
+  crack: "A card mended in gold, for something heavy you came through.",
+  trophy: "A star on the red carpet, for the hall of fame. Details holds who awarded it.",
 };
 
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
@@ -60,7 +67,7 @@ const NAMES: Record<string, string> = {
   links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
-  bubble: "Speech bubble", sfx: "Sound effect", record: "Record",
+  bubble: "Speech bubble", sfx: "Sound effect", record: "Record", award: "Details", company: "Company", span: "Dates", chips: "Card chips", reader: "Card reader", sign: "Signature", seal: "Gold seal", owner: "Your name",
   spine: "Spine", line: "Line that stuck", shot: "Phone screen", panel: "Writing panel", player: "Screen & type",
   route: "Route", passinfo: "Pass details", times: "Times", stub: "Stub & barcode", ticks: "Tick lines", passname: "Name on the pass", pass: "Pass details", vehicle: "Vehicle",
   url: "Address bar", codeview: "Code view", sheet: "Spreadsheet", term: "Terminal", board: "Sticky notes", screen: "Screen", brand: "Name plate", controls: "Buttons",
@@ -93,6 +100,12 @@ const BY_LOOK: Record<string, Record<string, string>> = {
   dump: { sub: "Caption", band: "Panel number", art: "Panel art", bubble: "Thought bubbles" },
   chaos: { sub: "Caption", band: "Panel number", art: "Panel art", title: "Word scraps" },
   quick: { sub: "Caption", band: "Panel number", art: "Quiz show", bubble: "Question board", title: "Question", body: "Answer" },
+  id: { art: "Staff card", title: "Position", band: "Card number", status: "Stamp", face: "Staff card photo", specs: "Details" },
+  plate: { art: "Staff card", title: "Position", band: "Card number", status: "Stamp", face: "Staff card photo", specs: "Details" },
+  cert: { art: "Certificate", specs: "Details" },
+  medal: { art: "Front page", band: "Masthead", title: "Headline", sticker: "Winner stamp", specs: "Details" },
+  crack: { art: "Mended card", sub: "Label", date: "Date chip" },
+  trophy: { art: "Red carpet", sub: "Label", title: "Star's name", specs: "Details" },
 };
 export const partName = (key: string, look: string) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look]?.[key] ?? NAMES[key] ?? key);
 export const SEC_NAMES: Record<string, string> = {
@@ -120,9 +133,9 @@ export type Ed = {
   setFvPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
-const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot", "record"];
+const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot", "record", "chips", "reader", "seal", "owner"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
-const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title" };
+const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title", company: "award", span: "award", sign: "award", specs: "award" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -199,8 +212,8 @@ function FaceField({ ed }: { ed: Ed }) {
   const it = ed.item!;
   return (
     <div className="fl stu-f">
-      <span className="lab">{ed.kind === "windows" ? "This project's icon in the dock" : <>This card&apos;s photo</>}</span>
-      <span className="hint">{ed.kind === "windows" ? "The little picture for this project in the dock under the windows. Leave it empty and the dock uses the project's first picture." : "Upload a photo just for this card. Leave it empty and the card uses your hero photo."}</span>
+      <span className="lab">{ed.kind === "windows" ? "This project's icon in the dock" : ed.kind === "awards" ? "This staff card's photo" : <>This card&apos;s photo</>}</span>
+      <span className="hint">{ed.kind === "windows" ? "The little picture for this project in the dock under the windows. Leave it empty and the dock uses the project's first picture." : ed.kind === "awards" ? "The photo on this staff card. A picture under Pictures takes its place; with neither, it uses your hero photo." : "Upload a photo just for this card. Leave it empty and the card uses your hero photo."}</span>
       <UploadField key={`${it.id}:${ed.rev}`} name="face" initial={it.card.face ?? ""} useBlob={ed.data.useBlob} fallback={<i className="ti ti-user" style={{ fontSize: 20 }} />}
         onChange={(face) => ed.setItem({ card: { ...it.card, face: face || undefined } }, `face-${it.id}`)} />
     </div>
@@ -228,17 +241,17 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   switch (k) {
     case "sub": {
-      const shelf = ed.kind === "study", comic = ed.kind === "comic", hasPic = it.media.some((m) => m.type !== "audio");
+      const shelf = ed.kind === "study", comic = ed.kind === "comic", wall = ed.kind === "awards", hasPic = it.media.some((m) => m.type !== "audio");
       const pollLooks = comicPollChoices(it.poll_options).map(([key, label]) => [key, label] as const);
-      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : comic ? (it.type === "poll" ? pollLooks : COMIC_LOOKS) : NOTE_LOOKS;
-      const autoKey = ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : comic ? (it.type === "poll" ? comicPollOf(it.category, it.poll_options, "", hasPic) : comicLookOf(it.category)) : noteLookOf(it.category);
-      const auto = [...looks, ...COMIC_LOOKS, ["buttons", "Big comic buttons"] as const].find(([key]) => key === autoKey)?.[1] ?? "";
+      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : comic ? (it.type === "poll" ? pollLooks : COMIC_LOOKS) : wall ? AWARD_LOOKS : NOTE_LOOKS;
+      const autoKey = ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : comic ? (it.type === "poll" ? comicPollOf(it.category, it.poll_options, "", hasPic) : comicLookOf(it.category)) : wall ? awardLookOf(it.category, it.mood, it.date_label, { look: "", still: it.award.still, end: it.award.end }) : noteLookOf(it.category);
+      const auto = [...looks, ...COMIC_LOOKS, ...AWARD_LOOKS, ["buttons", "Big comic buttons"] as const].find(([key]) => key === autoKey)?.[1] ?? "";
       return <>
         <Txt label="Subsection" value={it.category} placeholder="Pick one below, or type a new one" onChange={(v) => ed.setItem({ category: v.replace(/,/g, " ") }, "category")} />
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
         <div className="fl stu-f">
           <label className="lab" htmlFor="stu-look">Looks like</label>
-          <select id="stu-look" value={shelf ? it.study.look : comic ? it.comic.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : comic ? ed.setItem({ comic: { ...it.comic, look: e.target.value as ComicAnyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
+          <select id="stu-look" value={shelf ? it.study.look : comic ? it.comic.look : wall ? it.award.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : wall ? ed.setItem({ award: { ...it.award, look: e.target.value as AwardLook | "" } }) : comic ? ed.setItem({ comic: { ...it.comic, look: e.target.value as ComicAnyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
             <option value="">Automatic, from its subsection: {auto}</option>
             {looks.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
@@ -337,6 +350,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       </>;
     }
     case "pass": return <PassFields ed={ed} />;
+    case "award": return <AwardFields ed={ed} />;
     case "sfx": {
       const word = ed.card === "stuck" ? "Stuck" : it.type === "poll" && ed.card !== "buttons" ? voteWordOf(ed.card as ComicAnyLook, "") : sfxOf(ed.card as ComicAnyLook, "");
       return <Txt label="Sound effect" value={it.comic.sfx} max={SFX_MAX} placeholder={word || "Pow!, Zap!, Boom!…"} onChange={(v) => ed.setItem({ comic: { ...it.comic, sfx: v } }, "sfx")}
@@ -388,6 +402,28 @@ function PassFields({ ed }: { ed: Ed }) {
     <div className="f3">{F("seat", "Seat", "Automatic", 12)}{F("flight", "Flight or trip no.", "Automatic", 16)}{F("passenger", "Passenger", c.passenger)}</div>
     {F("name", "Name on the pass", vehicleName, 30)}
   </>;
+}
+
+/** What an achievement's card says beyond its title: a job's position, company and dates, a certificate's issuer and credential, who awarded a prize. */
+function AwardFields({ ed }: { ed: Ed }) {
+  const it = ed.item!, a = it.award, look = ed.card as AwardLook;
+  const job = jobFromTitle(it.title);
+  const set = (patch: Partial<AwardInfo>, tag?: string) => ed.setItem({ award: { ...a, ...patch } }, tag);
+  const T = (k: "position" | "company" | "start" | "end" | "issuer" | "issued" | "expires" | "credential" | "by", label: string, ph: string, off = false) => (
+    <Txt key={k} label={label} value={off ? "" : a[k]} placeholder={ph} max={AWARD_TEXT_MAX} onChange={(v) => set({ [k]: v } as Partial<AwardInfo>, `aw-${k}`)} />
+  );
+  if (look === "id" || look === "plate") return <>
+    <div className="f2">{T("position", "Position", job.position || "Data Officer")}{T("company", "Company", job.company || "T.K. Group")}</div>
+    <div className="f2">{T("start", "Start", "March 2024")}{T("end", "End", a.still ? "Still here" : "June 2025", a.still)}</div>
+    <Sw label="I still work here" hint="The card is bright while you're there, and fades once you've left." on={a.still} onChange={(still) => set({ still })} />
+    <span className="hint">Leave Position and Company empty and they come from the Title. The grey words show what they&apos;d say.</span>
+  </>;
+  if (look === "cert") return <>
+    <div className="f2">{T("issuer", "Issued by", "Coursera, your university…")}{T("credential", "Credential ID", "ABC-12345")}</div>
+    <div className="f2">{T("issued", "Issue date", "March 2024")}{T("expires", "Expiry date", "Leave empty if it doesn't expire")}</div>
+  </>;
+  if (look === "trophy" || look === "medal") return T("by", "Awarded by", "Who gave it to you");
+  return <p className="hint" style={{ margin: 0 }}>A card mended in gold has no extra details: its title, Subsection and Date say it all.</p>;
 }
 
 /** A bucket list's tick lines: each gets its own box on the note. */
@@ -493,7 +529,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
             </div>
           ))}
           <div><button type="button" className="b-out b-sm" onClick={() => ed.setSection({ categories: [...s.categories, "New subsection"] })}><i className="ti ti-plus" />Add a subsection</button></div>
-          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "comic"
+          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "awards"
+            ? "Its name picks its cards: hall of fame a star on the red carpet; skills, certificates, courses or degrees a certificate; career, jobs or milestones a staff card, bright if you still work there and faded if not; and anything else a newspaper front page, or a card mended in gold if the Mood is heavy. Each entry can choose another under Looks like."
+            : ed.kind === "comic"
             ? "Its name picks its panels: hot takes a shout; poems a night sky; sayings a fridge door; on repeat a record; vibing waves; brain dumps a bin; creative chaos word scraps; quick fire a quiz show; and anything else a speech bubble. A poll's panel also goes by how many options it has. Each entry can choose another under Looks like."
             : ed.kind === "study"
             ? "Its name picks its entries' object: books a book; songs, music, podcasts, radio, video, film, listening or watching a TV player; people a framed portrait; the internet a phone; and anything else a note. Each entry can choose another under Looks like."
@@ -522,7 +560,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
       {G({ k: "motion", children: (
         <div className="fl stu-f"><span className="lab">{SEC_NAMES.motion} (for the whole site)</span>
           <div className="stu-switches">
-            {ed.kind === "comic"
+            {ed.kind === "awards"
+              ? <Sw label="The wall comes alive" hint="A spotlight travels the wall and wakes the card it reaches: a staff card scans, a certificate's seal shines, flashes go off on the red carpet." on={draft.awardfx} onChange={(awardfx) => ed.setDraft((d) => ({ ...d, awardfx }))} />
+              : ed.kind === "comic"
               ? <Sw label="Panels come alive" hint="A brain flies along the strip and wakes the panel it reaches: shouts shake, records spin, words fly onto their scraps." on={draft.comicfx} onChange={(comicfx) => ed.setDraft((d) => ({ ...d, comicfx }))} />
               : ed.kind === "study"
               ? <Sw label="The shelf comes alive" hint="The lamp travels the shelf and wakes what it reaches: a book lifts and its ribbon swings, a phone runs its little show, a player's bars dance." on={draft.studyfx} onChange={(studyfx) => ed.setDraft((d) => ({ ...d, studyfx }))} />

@@ -15,7 +15,7 @@ import { vehicleFor } from "./vehicles";
 import { tripContext } from "./TripFrame";
 import { ShelfDecor, ShelfLamp } from "./StudyFrame";
 import { ComicMore } from "./ComicFrame";
-import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
+import { AwardMore } from "./AwardFrame";
 import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
 import NoteCard from "./NoteCard";
@@ -23,6 +23,7 @@ import WinCard, { shortUrl } from "./WinCard";
 import TripCard from "./TripCard";
 import StudyCard from "./StudyCard";
 import ComicCard from "./ComicCard";
+import AwardCard from "./AwardCard";
 import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
 export { Mood };
 import { FlyingBrain } from "./comicArt";
@@ -427,37 +428,11 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
 
   // achievements on a wall: each entry is the object its subsection names, and a spotlight travels along and wakes the one it reaches
   if (L === "awards") {
-    const cells = items.map((it, i) => {
-      const l = lookFor(it);
-      const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
-      const v = awardView(it, { fallback: section.nav_label || section.title, index: i, code: section.code, hideSubtitle: l.hide("subtitle"), hideDate: l.hide("date"), hasPic: !!first, owner: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials });
-      const picture = first ? <div className="pic-box"><div className="ph has-pic"><Cover m={first} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div> : null;
-      const body: AwardBody = ({ above, showTitle, showSubtitle, inBody }) => (
-        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-          <CardLink to={href(section, it)} label={it.title} />
-          {inBody}
-          <div className="tb">
-            {above}
-            {showTitle && <h3>{it.title}</h3>}
-            {showSubtitle && v.subtitle && <p className="sub">{v.subtitle}</p>}
-            {v.fields.length > 0 && <dl className="tkt-fields">{v.fields.map(([k, f]) => <div key={k}><dt>{k}</dt><dd>{f}</dd></div>)}</dl>}
-            {it.type === "poll" && <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />}
-            {it.body.trim() && <Markdown className="md ex">{it.body}</Markdown>}
-            <Meta it={{ ...it, date_label: v.dateInArt ? "" : it.date_label, status: v.statusInArt ? "" : it.status }} showCat={false} hideDate={l.hide("date")} showStatus />
-            <LinkButtons it={it} />
-            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-          </div>
-        </Box>
-      );
-      return (
-        <div key={it.id} className={`tkt-cell aw-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
-          <div className={`trip tkt aw on-${v.look}`} style={l.style}>
-            <AwardFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} body={body}
-              back={first && (first.type === "image" || (first.type === "pdf" && first.thumb)) ? <Cover m={first} className="arf-fill" /> : undefined} />
-          </div>
-        </div>
-      );
-    });
+    const owner = { fullName: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials };
+    const cells = items.map((it, i) => (
+      <AwardCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} code={section.code} fallback={section.nav_label || section.title} owner={owner} href={href(section, it)}
+        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+    ));
     return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>);
   }
 
