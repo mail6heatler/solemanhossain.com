@@ -249,11 +249,10 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 /* ----- the hero's live editor (HeroStudio.tsx) ----- */
 .hst-grid { display: grid; grid-template-columns: minmax(0, 1fr) 410px; gap: 16px; align-items: start; }
 @media (max-width: 1180px) { .hst-grid { grid-template-columns: minmax(0, 1fr); } }
-.hst-prev { position: sticky; top: 12px; min-width: 0; display: grid; gap: 8px; }
+.hst-prev { position: sticky; top: 12px; min-width: 0; display: grid; gap: 8px; justify-items: center; }
 @media (max-width: 1180px) { .hst-prev { position: static; } }
-.hst-stage { max-width: 100%; margin: 0 auto; width: 100%; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 .5px var(--card-border), 0 20px 40px -26px rgba(20,30,25,.45); transition: width .3s; }
+.hst-stage { position: relative; margin: 0 auto; border-radius: 14px; overflow: visible; box-shadow: 0 0 0 .5px var(--card-border), 0 20px 40px -26px rgba(20,30,25,.45); transition: width .3s; }
 .hst-site { overflow: clip; }
-.hst-site #hero { min-height: 600px; padding-top: 64px; }
 .hst-panel { display: grid; gap: 12px; min-width: 0; max-height: calc(100vh - 140px); overflow: auto; padding: 2px 4px 80px 2px; overscroll-behavior: contain; }
 @media (max-width: 1180px) { .hst-panel { max-height: none; overflow: visible; } }
 .hst-g { transition: box-shadow .3s; }
@@ -267,3 +266,38 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .hst-btn { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto auto; gap: 6px; align-items: center; }
 .hst-stats { display: grid; gap: 6px; }
 .hst-stats .switch b { margin-left: 4px; color: var(--text-muted); font-weight: 600; }
+.hst-prev .hint { justify-self: stretch; }
+.hst-screens { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.hst-screens .hst-chip { display: inline-flex; align-items: center; gap: 5px; }
+.hst-wh { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-muted); }
+.hst-wh .inp { width: 74px; padding: 5px 7px; }
+.hst-stage > .stu-surface { border-radius: 14px; overflow: hidden; }
+.hst-resize { position: absolute; right: -9px; bottom: -9px; z-index: 8; width: 26px; height: 26px; padding: 0; border: 0; border-right: 5px solid var(--mint); border-bottom: 5px solid var(--mint); border-radius: 0 0 12px 0; background: none; cursor: nwse-resize; touch-action: none; }
+/* the hero drawn for the chosen screen: what it sizes by the window's width or height goes by the preview's instead */
+.hst-site { overflow: clip; }
+.hst-site #hero { min-height: var(--pv-h); padding: 110px calc(var(--pv-w) * .07) 120px; }
+.hst-site #hero .hero-inner:not(.hl) h1 { font-size: clamp(40px, calc(var(--pv-w) * .07), 86px); }
+.hst-site #hero .scrollcue { left: calc(var(--pv-w) * .07); }
+.hst-site .hang { right: clamp(24px, calc(var(--pv-w) * .06), 92px); }
+.hst-site .hang .avatar-wrap.sticker { width: clamp(168px, calc(var(--pv-w) * .145), 214px); }
+/* and the hero's narrow-screen rules (site.css), here by the preview's width */
+.hst-site.pv-mid #hero.hero-hang { padding-top: 322px; }
+.hst-site.pv-mid .hang .paper-ctas { margin-top: 152px; }
+.hst-site.pv-mid .hang { right: 16px; }
+.hst-site.pv-narrow .hero-inner { grid-template-columns: 1fr; gap: 30px; }
+.hst-site.pv-narrow .hero-right { order: -1; align-items: flex-start; flex-direction: row; gap: 22px; }
+.hst-site.pv-narrow .hero-right :is(.avatar-wrap, .avatar-wrap img, .avatar-ph) { width: 104px; height: 104px; font-size: 34px; }
+.hst-site.pv-narrow .hero-right .ctas { width: auto; flex: 1; max-width: 200px; }
+.hst-site.pv-narrow #hero .scrollcue { display: none; }
+.hst-site.pv-narrow #hero.hero-hang { padding-top: 282px; }
+.hst-site.pv-narrow .hang { gap: 12px; left: 16px; right: 16px; justify-content: flex-end; }
+.hst-site.pv-narrow .hang .avatar-wrap.sticker { width: 118px; margin: 44px 0 0; }
+.hst-site.pv-narrow .hang .avatar-wrap.sticker :is(img, .avatar-ph) { max-height: 160px; filter: drop-shadow(4px 0 0 var(--stk-b)) drop-shadow(-4px 0 0 var(--stk-b)) drop-shadow(0 4px 0 var(--stk-b)) drop-shadow(0 -4px 0 var(--stk-b)) drop-shadow(0 10px 8px rgba(0,0,0,.42)); }
+.hst-site.pv-narrow .hang .stk-tape { top: -38px; height: 58px; width: 26px; }
+.hst-site.pv-narrow .hang .paper-ctas { margin-top: 148px; gap: 13px; }
+.hst-site.pv-narrow .paper-face { padding: 11px 14px 12px; font-size: 11.5px; }
+.hst-site.pv-tiny .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+.hst-site.pv-xs #hero { padding: 100px calc(var(--pv-w) * .05) 110px; }
+.hst-site.pv-xs #hero .hero-inner:not(.hl) h1 { font-size: clamp(28px, calc(var(--pv-w) * .082), 44px); }
+.hst-prev.real { overflow: auto; max-height: calc(100vh - 140px); justify-items: start; }
+.hst-prev.real > :is(.hst-screens, .hint) { position: sticky; left: 0; }

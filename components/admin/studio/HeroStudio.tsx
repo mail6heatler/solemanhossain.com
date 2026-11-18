@@ -11,6 +11,10 @@ import { Surface, type Typing } from "./Surface";
 
 type Draft = Omit<HeroSave, "heroDesign"> & { heroDesign: HeroDesign };
 type Hist = { list: Draft[]; at: number; saved: Draft; tag: string; time: number };
+/** Screens the preview can stand for: a phone, a tablet, laptops and a big screen. */
+const SCREENS: [string, string, number, number][] = [["phone", "Phone", 390, 844], ["tablet", "Tablet", 820, 1100], ["laptop", "Laptop", 1366, 768], ["desktop", "Desktop", 1536, 864], ["big", "Big screen", 1920, 1080]];
+const PV_W: [number, number] = [320, 2560], PV_H: [number, number] = [480, 1600];
+const clampN = (v: number, [lo, hi]: [number, number]) => Math.round(Math.max(lo, Math.min(hi, v)));
 type Sec = { id: number; slug: string; layout: string; nav_label: string; title: string; nav_emoji: string };
 
 const same = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b);
@@ -55,7 +59,12 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   const d = hist.list[hist.at];
   const dirty = d !== hist.saved;
   const [labels, setLabels] = useState(true);
-  const [phone, setPhone] = useState(false);
+  // the screen the preview stands for, drawn at its real size and scaled to fit the room on the left
+  const [pv, setPv] = useState({ w: 1366, h: 768 });
+  const [fit, setFit] = useState(true);
+  const [room, setRoom] = useState({ w: 900, h: 600 });
+  const prevBox = useRef<HTMLDivElement>(null);
+  const phone = pv.w <= 760;
   const [skin, setSkin] = useState("");
   const [typing, setTyping] = useState<Typing | null>(null);
   const [lit, setLit] = useState("");
@@ -92,7 +101,18 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   const discard = () => { setHist((h) => ({ list: [h.saved], at: 0, saved: h.saved, tag: "", time: 0 })); setTyping(null); setRev((r) => r + 1); say("Back to the last save."); };
 
   // ---------- the page around it ----------
-  useEffect(() => { try { if (localStorage.getItem("lc_stu_labels") === "0") setLabels(false); } catch {} }, []);
+  useEffect(() => { try { if (localStorage.getItem("lc_stu_labels") === "0") setLabels(false); const v = JSON.parse(localStorage.getItem("lc_hero_pv") || "null"); if (v && v.w && v.h) setPv({ w: clampN(v.w, PV_W), h: clampN(v.h, PV_H) }); } catch {} }, []);
+  useEffect(() => { try { localStorage.setItem("lc_hero_pv", JSON.stringify(pv)); } catch {} }, [pv]);
+  useEffect(() => {
+    const el = prevBox.current;
+    if (!el) return;
+    const measure = () => setRoom({ w: Math.max(240, el.clientWidth - 4), h: Math.max(320, window.innerHeight - el.getBoundingClientRect().top - 120) });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener("resize", measure);
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
+  }, []);
   useEffect(() => {
     const t = settings.defaultTheme as string, h = new Date().getHours();
     setSkin((LIVE_THEMES as string[]).includes(t) ? t : t === "auto" ? (h >= 18 || h < 6 ? "night" : "day") : "playful");
@@ -134,6 +154,16 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   }, `size-${key}${stroke ? `-${stroke}` : ""}`);
 
   const h = d.heroDesign;
+  // fit: the whole screen, width and height, inside the room on the left; real size: 100%, and the left side scrolls
+  const zoom = fit ? Math.min(1, room.w / pv.w, room.h / pv.h) : 1;
+  const resizeScreen = (e: React.PointerEvent) => {
+    e.preventDefault();
+    const x0 = e.clientX, y0 = e.clientY, start = pv, z = zoom;
+    const moveTo = (m: PointerEvent) => setPv({ w: clampN(start.w + (m.clientX - x0) / z, PV_W), h: clampN(start.h + (m.clientY - y0) / z, PV_H) });
+    const up = () => { window.removeEventListener("pointermove", moveTo); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", moveTo);
+    window.addEventListener("pointerup", up);
+  };
   const look = phone && h.phoneLook ? h.phoneLook : h.look;
   const chosenStats = h.stats;
   const statOptions = [...sections.filter((x) => !isConnectLayout(x.layout)).map((x) => ({ key: x.slug, label: `${x.nav_emoji ? x.nav_emoji + " " : ""}${x.nav_label || x.title}`, n: counts[x.id] ?? 0 })), { key: "reactions", label: "❤️ Reactions", n: reactions }];
@@ -149,29 +179,38 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
         <div className="btns stu-topbtns">
           <label className="switch"><input type="checkbox" checked={labels} onChange={(e) => { setLabels(e.target.checked); try { localStorage.setItem("lc_stu_labels", e.target.checked ? "1" : "0"); } catch {} }} />Labels</label>
           <select className="stu-skin" value={skin} aria-label="Theme the preview wears" onChange={(e) => setSkin(e.target.value)}>{LIVE_THEMES.map((t) => <option key={t} value={t}>{SKIN_LABELS[t as Skin] ?? t}</option>)}</select>
-          <button type="button" className={`b-out b-sm${phone ? " on" : ""}`} aria-pressed={phone} onClick={() => setPhone((x) => !x)}><i className={`ti ti-${phone ? "device-desktop" : "device-mobile"}`} />{phone ? "Computer" : "Phone"}</button>
           <a href="/#hero" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a>
         </div>
       </header>
 
       <div className="hst-grid">
-        <div className="hst-prev">
-          <div className="hst-stage" style={phone ? { width: 390 } : undefined}>
-            <Surface key={`${phone}-${rev}`} labels={labels} name={(k) => NAMES[k] ?? k} onPart={onPart} sizes={h.parts ?? {}} onSize={setSize}
+        <div className={`hst-prev${fit ? "" : " real"}`} ref={prevBox}>
+          <div className="hst-screens" role="group" aria-label="Screen size of the preview">
+            {SCREENS.map(([k, label, w, hh]) => <button key={k} type="button" className={`hst-chip${pv.w === w && pv.h === hh ? " on" : ""}`} onClick={() => setPv({ w, h: hh })}><i className={`ti ti-${k === "phone" ? "device-mobile" : k === "tablet" ? "device-tablet" : k === "big" ? "device-tv" : "device-laptop"}`} />{label}</button>)}
+            <span className="hst-wh">
+              <input type="number" className="inp" aria-label="Screen width" min={PV_W[0]} max={PV_W[1]} value={pv.w} onChange={(e) => setPv((v) => ({ ...v, w: clampN(+e.target.value || v.w, PV_W) }))} />×
+              <input type="number" className="inp" aria-label="Screen height" min={PV_H[0]} max={PV_H[1]} value={pv.h} onChange={(e) => setPv((v) => ({ ...v, h: clampN(+e.target.value || v.h, PV_H) }))} />
+            </span>
+            <button type="button" className={`hst-chip${fit ? " on" : ""}`} onClick={() => setFit((f) => !f)} title="Fit the whole screen in the window, or show it at its real size">{fit ? `Fit · ${Math.round(zoom * 100)}%` : "Real size · 100%"}</button>
+          </div>
+          <div className="hst-stage" style={{ width: Math.round(pv.w * zoom) }}>
+            <Surface key={`${phone}-${rev}`} zoom={zoom} width={Math.round(pv.w * zoom)} labels={labels} name={(k) => NAMES[k] ?? k} onPart={onPart} sizes={h.parts ?? {}} onSize={setSize}
               typing={typing} onType={(v) => { const f = typing && TYPED[typing.key]; if (f) set(f, v as never, `type-${f}`); }} onTypeEnd={() => setTyping(null)}>
-              <div className={`site stu-site hst-site${settings.effects.intro ? " fx-intro" : ""}`} style={siteStyle}>
+              <div className={`site stu-site hst-site${settings.effects.intro ? " fx-intro" : ""}${pv.w <= 1000 ? " pv-mid" : ""}${pv.w <= 760 ? " pv-narrow" : ""}${pv.w <= 560 ? " pv-tiny" : ""}${pv.w <= 480 ? " pv-xs" : ""}`}
+                style={{ ...siteStyle, width: pv.w, "--pv-w": `${pv.w}px`, "--pv-h": `${pv.h}px` } as React.CSSProperties}>
                 <HeroView s={s} d={h} stats={stats} edit phone={phone} />
               </div>
             </Surface>
+            <button type="button" className="hst-resize" aria-label="Drag to change the screen size" title="Drag to change the screen size" onPointerDown={resizeScreen} />
           </div>
-          <p className="hint">Click any piece to change it; type straight onto the subtitle, status, now line and scroll hint. Drag a piece&apos;s handles to move or resize it. {phone ? "This is the phone layout." : "Press Phone to see the phone layout."}</p>
+          <p className="hint">This is a {pv.w} × {pv.h} screen{phone ? ", so it shows the phone layout" : ""}. Pick a screen above, type a size, or drag the corner of the preview to change it and watch the hero adjust. Click any piece to change it; type straight onto the subtitle, status, now line and scroll hint; drag a piece&apos;s handles to move or resize it.</p>
         </div>
 
         <div className="hst-panel" ref={panel}>
           <G lit={lit} g="look" title="Look">
             <div className="hst-looks">{HERO_LOOKS.map(([k, label, desc]) => chip(h.look === k, <><b>{label}</b><small>{desc}</small></>, () => setD({ look: k as HeroLook }), k))}</div>
             <div className="fl"><label htmlFor="h-pl">On phones</label>
-              <select id="h-pl" value={h.phoneLook} onChange={(e) => { setD({ phoneLook: e.target.value as HeroLook | "" }); if (e.target.value) setPhone(true); }}>
+              <select id="h-pl" value={h.phoneLook} onChange={(e) => { setD({ phoneLook: e.target.value as HeroLook | "" }); if (e.target.value) setPv({ w: 390, h: 844 }); }}>
                 <option value="">The same look</option>{HERO_LOOKS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
               </select><div className="hint">A different look just for phones, for example the profile card on phones and the magazine on computers.</div></div>
             <div className="fl"><span className="lab">Background</span><div className="hst-chips">{HERO_BGS.map(([k, label]) => chip(h.bg === k, label, () => setD({ bg: k }), k))}</div>
