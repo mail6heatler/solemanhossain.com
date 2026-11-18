@@ -7,6 +7,7 @@ import { Clock, TypeOnce } from "@/components/site/Typewriters";
 import { AvatarTilt, DecodeText, Greeting, LivePill, Sticker } from "@/components/site/HeroFx";
 import HeroScene from "@/components/site/HeroScene";
 import Intro from "@/components/site/Intro";
+import HeroRing from "@/components/site/HeroRing";
 import { Split, Words } from "@/components/site/Split";
 import { MOODS, isConnectLayout } from "@/lib/settings";
 
@@ -37,7 +38,8 @@ export default async function Home() {
   ];
   const headline = (text: string, delay: number) => (fx.decode || fx.kinetic ? <DecodeText text={text} delay={delay} animate={fx.decode} letters={fx.kinetic} /> : <Accent text={text} />);
   const photo = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
-  const avatar = fx.sticker ? <>{photo}<i className="stk-tape a" aria-hidden /><i className="stk-tape b" aria-hidden /></> : photo;
+  const ring = s.ring.on ? <HeroRing ring={s.ring} photo={s.avatarUrl} round={!fx.sticker || !s.avatarUrl} /> : null;
+  const avatar = fx.sticker ? <>{ring}{photo}<i className="stk-tape a" aria-hidden /><i className="stk-tape b" aria-hidden /></> : <>{ring}{photo}</>;
   const framed = fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : <div className="avatar-tilt">{avatar}</div>;
 
   return (
@@ -78,8 +80,8 @@ export default async function Home() {
           </div>
           {!fx.sticker && <div className="hero-right">
             <div className="avatar-wrap">
-              {fx.tilt ? framed : photo}
-              <div className="avatar-ring" />
+              {fx.tilt ? framed : <div className="ring-host">{avatar}</div>}
+              {!s.ring.on && <div className="avatar-ring" />}
               {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
             </div>
             <div className="ctas">

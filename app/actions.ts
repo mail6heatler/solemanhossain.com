@@ -12,6 +12,7 @@ import type { StudioData, StudioSave } from "@/lib/studio";
 import { loadStudio } from "@/lib/studioData";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
+import { cleanMascot, cleanRing } from "@/lib/mascot";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { query, queryOne } from "@/lib/db";
@@ -145,6 +146,7 @@ export async function saveHero(fd: FormData) {
     heroEmojis: str(fd, "heroEmojis", 80),
     scrollCue: str(fd, "scrollCue", 60),
     heroBoxes: cleanBoxes(str(fd, "boxes", 2000)),
+    ...(fd.has("ring") ? { ring: cleanRing(jsonOf(str(fd, "ring", 2000))) } : {}),
   });
   refresh();
   redirect(`/admin/hero?${saved()}`);
@@ -156,6 +158,16 @@ export async function setHeroHidden(fd: FormData) {
   await saveSettingsData({ heroHidden: str(fd, "hidden", 1) === "1" });
   refresh();
   redirect(`/admin/hero?${saved()}`);
+}
+
+const jsonOf = (t: string): unknown => { try { return JSON.parse(t); } catch { return null; } };
+
+// ---------- the mascot ----------
+export async function saveMascot(fd: FormData) {
+  await requireAdmin();
+  await saveSettingsData({ mascot: cleanMascot(jsonOf(str(fd, "mascot", 20000))) });
+  refresh();
+  redirect(`/admin/mascot?${saved()}`);
 }
 
 // ---------- site settings ----------

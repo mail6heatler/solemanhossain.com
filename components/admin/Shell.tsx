@@ -33,6 +33,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     { href: "/admin/banner", label: "Hanging banner", icon: "speakerphone" },
     { href: "/admin/content", label: "Content sizes", icon: "adjustments" },
     { href: "/admin/appearance", label: "Appearance", icon: "palette" },
+    { href: "/admin/mascot", label: "Mascot", icon: "mood-happy" },
     { href: "/admin/themes", label: "Theme pictures", icon: "photo" },
     { href: "/admin/settings", label: "Settings", icon: "settings" },
   ], [sections, unread]);

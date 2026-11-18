@@ -6,6 +6,7 @@ import SaveBox from "@/components/admin/SaveBox";
 import { Box } from "@/components/admin/Box";
 import BoxMemory from "@/components/admin/BoxMemory";
 import { boxOpen } from "@/lib/boxes";
+import RingPanel from "@/components/admin/RingPanel";
 
 export default async function HeroPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
@@ -30,6 +31,10 @@ export default async function HeroPage() {
         <div className="f3" style={{ marginTop: 12 }}>
           <div className="fl"><label>Initials (shown when there&apos;s no photo)</label><input className="inp" name="initials" defaultValue={s.initials} maxLength={3} /></div>
         </div>
+      </Box>
+
+      <Box name="ring" title="Ring around your photo" icon="circle-dashed" open={open("ring")}>
+        <RingPanel initial={s.ring} photo={s.avatarUrl} initials={s.initials} sticker={s.effects.sticker} />
       </Box>
 
       <Box name="resume" title="Résumé / CV" icon="file-text" open={open("resume")}>
