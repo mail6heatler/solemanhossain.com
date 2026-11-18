@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: Made (G2) gets the live editor
+
+The owner said "go" for G2 (no helpers, with a live tracker page: https://claude.ai/artifact/DiZFYesGwXkQJBm7KaaZNc). Restore point `before-g2-studio`. G2's dashboard page is now the same Workbench + Spotlight editor as G1, drawing the real window (`WinCard`, moved out of `SectionBody`): every part of every app window has a label, short words are typed onto it, and every box (title bar, address bar, picture, code view, spreadsheet, terminal, folders, sticky notes, console screen, name plate, buttons, reaction bar, comment box, Full view button) moves and sizes like G1's. New: a Dock icon per project. Made entries now open as the new full view, keeping a window look. Not tested beyond the build, per the owner's no-extra-checks rule; waiting for keep or undo.
+
 ### 2026-11-18: Mascot and status built, then undone (saved for later)
 
 Built and released the same day: the mascot (own dashboard page, 5 characters, 7 acts, many settings) and the status by the hero photo (6 looks, the default a "Messenger border" that follows the photo's shape with the emoji on it, a live clock, a real 👁 count, grey "last seen"). The owner then asked for both to be removed and the site put back exactly as before that day, with both kept on the task board for later. The full code is in commits 9840e48, 1076ed2, d519260 and 5113edf (reverted together); to bring them back, revert the revert. The live database may hold an empty `status_views` table and `mascot`/`status`/`ring` keys in settings; nothing reads them.

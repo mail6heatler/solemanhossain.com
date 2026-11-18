@@ -11,7 +11,8 @@ export type PartSizes = Record<string, PartSize>;
 export const PART_LIMITS = { w: [10, 100], h: [16, 900], z: [40, 400], x: [-1200, 1200], y: [-1200, 1200] } as const;
 /** Every box of a card or a full view: what the owner writes, the reaction bar, the comment box, the Full view button, and the card's own decoration. */
 export const SIZED_PARTS = ["sub", "title", "subtitle", "body", "pic", "gallery", "date", "place", "mood", "status", "tags", "links", "poll", "quote",
-  "reacts", "comments", "open", "face", "sticker", "specs", "stats", "bars", "art", "band", "code"] as const;
+  "reacts", "comments", "open", "face", "sticker", "specs", "stats", "bars", "art", "band", "code",
+  "url", "codeview", "sheet", "term", "board", "screen", "brand", "controls"] as const;
 
 const num = (v: unknown, [lo, hi]: readonly [number, number], step = 1) => {
   const n = Number(v);

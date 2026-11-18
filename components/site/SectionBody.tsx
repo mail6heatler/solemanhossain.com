@@ -18,8 +18,8 @@ import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
 import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
 import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
-import { questProgress, winLookOf } from "@/lib/cardLook";
 import NoteCard from "./NoteCard";
+import WinCard, { shortUrl } from "./WinCard";
 import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
 export { Mood };
 import { FlyingBrain } from "./comicArt";
@@ -45,8 +45,6 @@ function medalFor(it: Item) {
   return "flag";
 }
 
-const fileName = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "project";
-const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 /** What a link is for, under its name in the chat's contacts; anything unknown shows where it goes. */
 const LINK_NOTES: Record<string, string> = {
   mail: "Write to me directly", "brand-linkedin": "Work and career", "brand-github": "What I'm building", "brand-x": "Thoughts, short and often", "brand-twitter": "Thoughts, short and often",
@@ -55,27 +53,6 @@ const LINK_NOTES: Record<string, string> = {
 };
 const linkNote = (s: { icon: string; url: string }) => LINK_NOTES[s.icon] ?? linkHint(s.url);
 const linkHint = (url: string) => (url.startsWith("mailto:") ? url.slice(7).split("?")[0] : url.startsWith("tel:") ? url.slice(4) : shortUrl(url));
-
-/** A project with no picture still fills its window: its own details, written as a few lines of code. */
-function CodeView({ it, hideSubtitle, hideTags, hideDate }: { it: Item; hideSubtitle: boolean; hideTags: boolean; hideDate: boolean }) {
-  const str = (v: string) => <span className="cd-str">&quot;{v}&quot;</span>;
-  const link = it.links.find((x) => /^https?:/.test(x.url));
-  const fields: [string, React.ReactNode][] = [];
-  if (it.status) fields.push(["status", str(it.status.toLowerCase())]);
-  if (it.tags.length && !hideTags) fields.push(["stack", <>[{it.tags.map((t, i) => <span key={t}>{i > 0 && ", "}{str(t)}</span>)}]</>]);
-  if (it.date_label && !hideDate) fields.push(["when", str(it.date_label)]);
-  if (it.location && !hideDate) fields.push(["where", str(it.location)]);
-  if (link) fields.push(["link", str(shortUrl(link.url))]);
-  const call = <><span className="cd-fn">build</span>({str(fileName(it.title))}</>;
-  const lines: React.ReactNode[] = [
-    ...(it.subtitle && !hideSubtitle ? [<span key="c" className="cd-note">{`// ${it.subtitle}`}</span>] : []),
-    ...(fields.length
-      ? [<>{call}, {"{"}</>, ...fields.map(([k, v]) => <>{"  "}<span className="cd-key">{k}</span>: {v},</>), <>{"});"}</>]
-      : [<>{call});</>]),
-    <i key="end" className="blink-cursor" />,
-  ];
-  return <pre className="win-code">{lines.map((line, i) => <span key={i} className="cd-line" style={{ ["--l" as string]: i }}>{line}</span>)}</pre>;
-}
 
 function Empty({ text }: { text: string }) {
   const shown = !text || /dashboard/i.test(text) ? "Coming soon." : text;
@@ -643,84 +620,13 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   // projects as app windows on a desktop, with a dock of icons below
   if (L === "windows") {
     // each window is the app its subsection names (lib/cardLook.ts): a spreadsheet, a code editor, a notes app, a pocket games console, or the browser
-    const windows = items.map((it) => {
-      const l = lookFor(it);
-      const look = winLookOf(it.category, it.card.look);
-      const pic = it.media[0] && !l.hide("pic");
-      const link = it.links.find((x) => /^https?:/.test(x.url));
-      const code = (look === "browser" || look === "code") && !it.media[0] && !l.hide("pic") && it.type !== "poll"; // its tags are then in the code
-      const status = it.status && !(it.pinned && /feature/i.test(it.status)) ? it.status : "";
-      const file = fileName(it.title);
-      const rows = look === "sheet" ? [["Project", it.title], ["Status", status], ["When", l.hide("date") ? "" : it.date_label], ["Where", l.hide("date") ? "" : it.location], ["Tools", l.hide("tags") ? "" : it.tags.join(", ")], ["Link", link ? shortUrl(link.url) : ""]].filter(([, v]) => v) : [];
-      const raw = look === "notes" ? it.body.split("\n").map((x) => x.trim()).filter(Boolean) : [];
-      const stickies = raw.slice(0, 3).map((x) => x.replace(/^(?:[-*+]|\d+\.)\s+/, "").replace(/[*_`#>]/g, "").trim()).filter(Boolean);
-      const body = look === "notes" ? raw.slice(3).join("\n") : it.body;
-      const q = questProgress(status);
-      const hideTags = l.hide("tags") || code || look === "sheet" || look === "notes";
-      return (
-        <div key={it.id} className={`card win wapp-${look}${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
-          {look === "console" ? (
-            <div className="wa-console">
-              <a className="win-chrome" href={href(section, it)} tabIndex={-1} aria-hidden />
-              <div className="wa-screen"><div className="wa-lcd">
-                <b>{it.title}</b><span>{q.label}</span>
-                <span className="wa-blocks" aria-hidden>{Array.from({ length: 10 }, (_, n) => <i key={n} className={n < q.level ? "on" : undefined} style={{ "--n": n } as React.CSSProperties} />)}</span>
-                {link ? <a href={link.url} target="_blank" rel="noopener noreferrer">▶ {shortUrl(link.url)}</a> : <span>Press ▶ to play</span>}
-              </div></div>
-              <div className="wa-brand"><span>QUEST·BOY</span>{it.pinned && <em>★ featured</em>}</div>
-              <div className="wa-ctrl" aria-hidden><i className="wa-dpad" /><span className="wa-ab"><i>B</i><i>A</i></span></div>
-            </div>
-          ) : (
-          <div className="win-head">
-            <a className="win-chrome" href={href(section, it)} tabIndex={-1} aria-hidden />
-            <div className="win-bar">
-              <span className="win-dots" aria-hidden><i /><i /><i /></span>
-              <span className="win-name">{it.category || section.nav_label || section.title}</span>
-              {it.pinned && <span className="win-flag">★ featured</span>}
-              {status && <span className={`win-status${/progress|build|work|doing|wip|soon/i.test(status) ? " busy" : ""}`}><i aria-hidden />{status}</span>}
-            </div>
-            <div className="win-url">
-              <i className={`ti ti-${link ? "lock" : "folder"}`} aria-hidden />
-              {link
-                ? <a href={link.url} target="_blank" rel="noopener noreferrer"><span>{shortUrl(link.url)}</span><i className="ti ti-arrow-up-right" aria-hidden /></a>
-                : <span>{look === "sheet" ? `${file}.xlsx` : look === "notes" ? `notes/${file}.md` : `~/${section.slug}/${file}`}</span>}
-            </div>
-          </div>
-          )}
-          <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-            <CardLink to={href(section, it)} label={it.title} />
-            {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
-            {look === "sheet" && rows.length > 0 && (
-              <div className="wa-sheet">
-                <div className="wa-fx"><b>fx</b><span>=STORY(&quot;{it.title}&quot;)</span></div>
-                <div className="wa-grid"><span className="h" /><span className="h">A</span><span className="h">B</span>
-                  {rows.map(([k, v], n) => <div key={k} style={{ display: "contents" }}><span className="h">{n + 1}</span><span>{k}</span><span className={k === "Status" || (!status && k === "Project") ? "sel" : undefined}>{v}</span></div>)}</div>
-                <svg className="wa-spark" viewBox="0 0 280 40" preserveAspectRatio="none" aria-hidden><path d="M4 34 50 28 96 30 142 18 188 21 234 9 276 4" /></svg>
-              </div>
-            )}
-            {look === "notes" && (
-              <div className="wa-notes">
-                <div className="wa-folders">{(it.tags.length && !l.hide("tags") ? it.tags : [it.category || "Notes"]).slice(0, 4).map((t, n) => <span key={t} className={n === 0 ? "on" : undefined}>{t}</span>)}</div>
-                <div className="wa-board">{(stickies.length ? stickies : [it.title]).map((t, n) => <span key={n} className={`wa-sticky s${n}`}>{t}</span>)}</div>
-              </div>
-            )}
-            {code && <CodeView it={it} hideSubtitle={l.hide("subtitle")} hideTags={l.hide("tags")} hideDate={l.hide("date")} />}
-            {look === "code" && <div className="wa-term" aria-hidden><span className="run">$ run {file}</span><span className={!status || /done|finish|complete|live|ship/i.test(status) ? "ok" : "busy"}>{!status || /done|finish|complete|live|ship/i.test(status) ? "✓ build passed" : `● ${status}`}</span><i className="wa-cur" /></div>}
-            <div className="card-body">
-              <h3>{it.title}</h3>
-              {it.subtitle && !l.hide("subtitle") && !code && <p className="sub">{it.subtitle}</p>}
-              <Meta it={look === "console" ? { ...it, status: "" } : it} showCat={false} hideDate={l.hide("date") || code || look === "sheet"} />
-              {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{body}</Markdown>}
-              <LinkButtons it={it} />
-              {it.tags.length > 0 && !hideTags && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-            </div>
-          </Box>
-        </div>
-      );
-    });
+    const windows = items.map((it) => (
+      <WinCard key={it.id} it={it} l={lookFor(it)} href={href(section, it)} home={section.nav_label || section.title} slug={section.slug} vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti}
+        foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+    ));
     const dock = items.map((it) => {
       const m = lookFor(it).hide("pic") ? undefined : it.media[0];
-      return { title: it.title, href: href(section, it), pic: m?.type === "image" ? m.url : m?.thumb ?? "" };
+      return { title: it.title, href: href(section, it), pic: it.card.face || (m?.type === "image" ? m.url : m?.thumb ?? "") };
     });
     return row("grid3 win-row", <>{windows}</>, <Dock items={dock} />);
   }

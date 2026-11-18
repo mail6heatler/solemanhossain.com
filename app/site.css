@@ -1532,6 +1532,9 @@ html[data-skin="ocean"] .site.fx-themefx .side[data-mode="slide"] .stagger.live 
 .win-url > span, .win-url a span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .win-url a { position: relative; z-index: 2; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; color: inherit; text-decoration: none; }
 .win-url a:hover, .win-url a:focus-visible { color: var(--mint-deep); }
+/* the dashboard's editor draws the same window with the links as plain words, so nothing leads anywhere */
+.win-url > .win-link { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; overflow: visible; white-space: normal; }
+.win-url .win-link span, .wa-lcd .win-link { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .win-url::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--mint); transform: scaleX(0); transform-origin: left; pointer-events: none; }
 .card.win .card-media .card-img { object-position: var(--fx, 50%) var(--fy, 0%); } /* a screenshot's top is what matters */
 .card.win .card-body { padding: 14px 16px 16px; }
@@ -3234,6 +3237,12 @@ html[data-skin="paper"] .site :is(.fv-shot, .fv-stamps > div) { border: 1px soli
 .fvk-story .fv-shot { border-radius: 30px; }
 .fvk-fact .fv-shot { border: 7px solid transparent; background: linear-gradient(var(--card), var(--card)) padding-box, conic-gradient(from 210deg, #ff9ecb, #ffe08a, #9df3c4, #8fd8ff, #c6a8ff, #ff9ecb) border-box; }
 .fvk-fact .fv-band { border-color: #c79a2e; background: #2a2230; color: #f2c14e; }
+/* a G2 window's full view keeps its window: the band is its address bar, with the three dots, and the main picture sits under a title bar */
+.fv:is(.fvk-sheet, .fvk-code, .fvk-notes, .fvk-browser) .fv-band { rotate: none; border-radius: 9px; border-width: 1px; border-color: var(--line); background: var(--card); color: var(--fg); letter-spacing: .02em; text-transform: none; padding: 5px 12px 5px 46px; position: relative; }
+.fv:is(.fvk-sheet, .fvk-code, .fvk-notes, .fvk-browser) .fv-band::before { content: ""; position: absolute; left: 12px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #ff5f57; box-shadow: 11px 0 #febc2e, 22px 0 #28c840; }
+.fvk-console .fv-band { rotate: none; border-radius: 6px; border-color: #3b4a1c; background: #9bbc0f; color: #26360f; }
+.fv:is(.fvk-sheet, .fvk-code, .fvk-notes, .fvk-browser) .fv-frame { padding-top: 26px; border-radius: 14px; background: var(--card); box-shadow: 0 0 0 1px var(--line), 0 18px 36px -22px color-mix(in srgb, var(--fg) 60%, transparent); }
+.fv:is(.fvk-sheet, .fvk-code, .fvk-notes, .fvk-browser) .fv-frame::before { content: ""; position: absolute; left: 12px; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: #ff5f57; box-shadow: 13px 0 #febc2e, 26px 0 #28c840; }
 /* movement: the parts arrive one after another, the detail cards straighten when pointed at, and the picture lifts */
 .site.fx-fullfx .fv-b { animation: fv-unfold .7s cubic-bezier(.2,.8,.2,1) calc(var(--i) * 80ms + 120ms) backwards; }
 .site.fx-fullfx .open-rise .fv-b { animation-name: fv-rise; }

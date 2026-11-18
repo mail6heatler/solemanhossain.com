@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/lib/data";
-import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE } from "@/lib/settings";
-import { NOTE_LOOKS, noteLookOf, type NoteLook } from "@/lib/cardLook";
+import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, hasStudio } from "@/lib/settings";
+import { NOTE_LOOKS, WIN_LOOKS, noteLookOf, winLookOf } from "@/lib/cardLook";
 import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import { FV_BGS, FV_COLS, FV_LAYOUTS, FV_OPENS, FV_PARTS, FV_QUOTE_MAX, FV_ROW, FV_ZOOM, fvLook, type FvBox, type FvPart } from "@/lib/fullView";
@@ -13,12 +13,17 @@ import { deleteSection } from "@/app/actions";
 import { Chips, LookFields, Seg, Slider, Sw, Txt } from "./Fields";
 
 /** What each card look does with an entry's words, said under the Looks like box. */
-const NOTE_HINTS: Record<NoteLook, string> = {
+const NOTE_HINTS: Record<string, string> = {
   manual: "Your photo is on the cover. Date is the version, Place is “made in”, tags are what it runs on, and each paragraph or line of the text is a numbered step.",
   sign: "The title is painted on the sign, in the colour of its Mood. The rest sits under it.",
   story: "The first picture fills the card, with a bar at the top for each picture. The subsection is the sticker.",
   fact: "Its number is its place among the facts. Status is the rarity (Rare when empty), and the first picture is the art.",
   plain: "The plain note.",
+  sheet: "A spreadsheet of the project's own details, a row each: its Status, Date, Place, Tools (its tags) and its first web link.",
+  code: "A code editor. Without a picture, its details are written as code, and the terminal under it shows its Status (“✓ build passed” when it's done).",
+  notes: "A notes app: its tags are the folders, and the first three lines of its text are sticky notes. The rest is the note.",
+  console: "A pocket games console. The bar fills from its Status: empty when new, half while under way, full when done. Its first web link is ▶ Play.",
+  browser: "A browser window, with its first web link in the address bar. Without a picture, its details are written as code.",
 };
 
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
@@ -27,15 +32,21 @@ const NAMES: Record<string, string> = {
   links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
+  url: "Address bar", codeview: "Code view", sheet: "Spreadsheet", term: "Terminal", board: "Sticky notes", screen: "Screen", brand: "Name plate", controls: "Buttons",
 };
-const BY_LOOK: Record<NoteLook, Record<string, string>> = {
+const BY_LOOK: Record<string, Record<string, string>> = {
   manual: { date: "Version", place: "Made in", tags: "Runs on", body: "Steps", sub: "Manual name" },
   sign: { title: "Slogan", mood: "Paint colour", body: "Small print" },
   story: { sub: "Sticker", pic: "Story pictures", title: "Headline" },
   fact: { status: "Rarity", body: "The fact", title: "Card name", sub: "Fact number" },
   plain: {},
+  sheet: { sub: "Window name", band: "Title bar", tags: "Tools", face: "Dock icon" },
+  code: { sub: "Window name", band: "Title bar", tags: "Stack", status: "Build status", face: "Dock icon" },
+  notes: { sub: "Window name", band: "Title bar", tags: "Folders", body: "Notes", face: "Dock icon" },
+  console: { title: "Game title", status: "Quest progress", face: "Dock icon" },
+  browser: { sub: "Window name", band: "Title bar", face: "Dock icon" },
 };
-export const partName = (key: string, look: NoteLook) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look][key] ?? NAMES[key] ?? key);
+export const partName = (key: string, look: string) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look]?.[key] ?? NAMES[key] ?? key);
 export const SEC_NAMES: Record<string, string> = {
   title: "Big title", subtitle: "Subtitle", eyebrow: "Small label", eyebrow_emoji: "Label emoji", code: "Code tag", nav_label: "Menu name", nav_emoji: "Menu emoji", slug: "URL name",
   emojis: "Floating emojis", categories: "Subsections", layout: "Layout", home_limit: "Cards on the homepage", empty_text: "Message when empty", visible: "Visible on the site",
@@ -46,7 +57,7 @@ export const TYPED = ["title", "subtitle", "date", "place", "status", "quote", "
 export const CARD_KEYS = ["sub", "title", "subtitle", "body", "pic", "date", "place", "mood", "status", "tags", "links", "size", "reacts", "more"];
 
 export type Ed = {
-  data: StudioData; draft: StudioDraft; live: StudioLive; item: Item | null; card: NoteLook; rev: number;
+  data: StudioData; draft: StudioDraft; live: StudioLive; item: Item | null; /** the card's look, and the section's layout */ card: string; kind: string; rev: number;
   setItem: (patch: Partial<Item>, tag?: string) => void;
   setSection: (patch: Partial<StudioSection>, tag?: string) => void;
   setDraft: (fn: (d: StudioDraft) => StudioDraft, tag?: string) => void;
@@ -61,9 +72,9 @@ export type Ed = {
   setFvPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
-const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open"];
+const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
-const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic" };
+const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -140,8 +151,8 @@ function FaceField({ ed }: { ed: Ed }) {
   const it = ed.item!;
   return (
     <div className="fl stu-f">
-      <span className="lab">This card&apos;s photo</span>
-      <span className="hint">Upload a photo just for this card. Leave it empty and the card uses your hero photo.</span>
+      <span className="lab">{ed.kind === "windows" ? "This project's icon in the dock" : <>This card&apos;s photo</>}</span>
+      <span className="hint">{ed.kind === "windows" ? "The little picture for this project in the dock under the windows. Leave it empty and the dock uses the project's first picture." : "Upload a photo just for this card. Leave it empty and the card uses your hero photo."}</span>
       <UploadField key={`${it.id}:${ed.rev}`} name="face" initial={it.card.face ?? ""} useBlob={ed.data.useBlob} fallback={<i className="ti ti-user" style={{ fontSize: 20 }} />}
         onChange={(face) => ed.setItem({ card: { ...it.card, face: face || undefined } }, `face-${it.id}`)} />
     </div>
@@ -167,7 +178,8 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   switch (k) {
     case "sub": {
-      const auto = NOTE_LOOKS.find(([key]) => key === noteLookOf(it.category))?.[1] ?? "";
+      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : NOTE_LOOKS;
+      const auto = looks.find(([key]) => key === (ed.kind === "windows" ? winLookOf(it.category) : noteLookOf(it.category)))?.[1] ?? "";
       return <>
         <Txt label="Subsection" value={it.category} placeholder="Pick one below, or type a new one" onChange={(v) => ed.setItem({ category: v.replace(/,/g, " ") }, "category")} />
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
@@ -175,7 +187,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
           <label className="lab" htmlFor="stu-look">Looks like</label>
           <select id="stu-look" value={it.card.look} onChange={(e) => ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } })}>
             <option value="">Automatic, from its subsection: {auto}</option>
-            {NOTE_LOOKS.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            {looks.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
           <span className="hint">{NOTE_HINTS[ed.card]}</span>
         </div>
@@ -184,7 +196,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
     case "title": return <Txt label={name("title")} value={it.title} focus placeholder="What's it called?" max={300} onChange={(v) => ed.setItem({ title: v }, "title")} />;
     case "subtitle": return <Txt label={name("subtitle")} value={it.subtitle} focus placeholder="A line under the title" max={300} onChange={(v) => ed.setItem({ subtitle: v }, "subtitle")} />;
     case "body": return <Txt label={name("body")} area tall focus value={it.body} onChange={(v) => ed.setItem({ body: v }, "body")}
-      hint={<>{ed.card === "manual" && "Each paragraph or list line becomes a numbered step. "}Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…){it.type === "poll" && ". On the card a poll shows its options instead; this text shows in the full view."}</>} />;
+      hint={<>{ed.card === "manual" && "Each paragraph or list line becomes a numbered step. "}{ed.card === "notes" && "The first three lines are the sticky notes on the card. "}Write freely. **bold**, _italic_, ## heading, &gt; quote, - list, [link](https://…){it.type === "poll" && ". On the card a poll shows its options instead; this text shows in the full view."}</>} />;
     case "pic": return <>
       <div className="fl stu-f"><span className="lab">Photos, videos &amp; PDFs</span>
         <MediaField key={`${it.id}:${ed.rev}`} name="media" initial={it.media} useBlob={data.useBlob} maxVideoMb={data.maxVideoMb} onChange={(media) => ed.setItem({ media: media as Item["media"] })} />
@@ -195,7 +207,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
     case "place": return <Txt label={name("place")} value={it.location} focus placeholder="Dhaka, Bangladesh" max={160} onChange={(v) => ed.setItem({ location: v }, "place")} />;
     case "status": return <>
       <Txt label={name("status")} value={it.status} focus placeholder={ed.card === "fact" ? "Rare" : "Reading, Done, In progress…"} max={60} onChange={(v) => ed.setItem({ status: v }, "status")} />
-      <Pills options={ed.card === "fact" ? ["Common", "Rare", "Epic", "Legendary"] : ["Now", "Done", "In progress", "Planned"]} value={it.status} onPick={(v) => ed.setItem({ status: v })} />
+      <Pills options={ed.card === "fact" ? ["Common", "Rare", "Epic", "Legendary"] : ed.kind === "windows" ? ["Live", "In progress", "Done", "Planned"] : ["Now", "Done", "In progress", "Planned"]} value={it.status} onPick={(v) => ed.setItem({ status: v })} />
     </>;
     case "mood": return (
       <div className="fl stu-f">
@@ -359,7 +371,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
             </div>
           ))}
           <div><button type="button" className="b-out b-sm" onClick={() => ed.setSection({ categories: [...s.categories, "New subsection"] })}><i className="ti ti-plus" />Add a subsection</button></div>
-          <span className="hint">Renaming one renames it on its cards too. Its name picks its cards&apos; look: the unfiltered manual (or about, bio, who) an instruction manual; beliefs or values a protest sign; currently obsessed with (or now, playing, watching, reading) a story; random facts a collectible card; and anything else a plain note.</span>
+          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "windows"
+            ? "Its name picks its windows' app: data (or analysis, dashboards, Excel) a spreadsheet; code (or problems, programs, apps) a code editor; brain dumps (or ideas, notes) a notes app; side quests (or fun, games, hobbies) a games console; and anything else a browser window."
+            : "Its name picks its cards' look: the unfiltered manual (or about, bio, who) an instruction manual; beliefs or values a protest sign; currently obsessed with (or now, playing, watching, reading) a story; random facts a collectible card; and anything else a plain note."}</span>
         </div>
       ) })}
       {G({ k: "home_limit", children: (
@@ -380,7 +394,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
       {G({ k: "motion", children: (
         <div className="fl stu-f"><span className="lab">{SEC_NAMES.motion} (for the whole site)</span>
           <div className="stu-switches">
-            <Sw label="Cards come alive" hint="The manual opens, the sign waves, the story's bars run, light sweeps a collectible card." on={draft.notefx} onChange={(notefx) => ed.setDraft((d) => ({ ...d, notefx }))} />
+            {ed.kind === "windows"
+              ? <Sw label="Windows come alive" hint="Windows pop open as they arrive, their apps start up and the dock swells and bounces." on={draft.windowfx} onChange={(windowfx) => ed.setDraft((d) => ({ ...d, windowfx }))} />
+              : <Sw label="Cards come alive" hint="The manual opens, the sign waves, the story's bars run, light sweeps a collectible card." on={draft.notefx} onChange={(notefx) => ed.setDraft((d) => ({ ...d, notefx }))} />}
             <Sw label="Full views arrive piece by piece" hint="An opened card's parts unfold, rise or zoom in, and its detail cards straighten when pointed at." on={draft.fullfx} onChange={(fullfx) => ed.setDraft((d) => ({ ...d, fullfx }))} />
           </div>
           <span className="hint">Every other effect is on the <a href="/admin/appearance">Appearance</a> page.</span>
@@ -400,7 +416,7 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
         <div className="fl stu-f">
           <label className="lab" htmlFor="stu-layout">{SEC_NAMES.layout}</label>
           <select id="stu-layout" value={s.layout} onChange={(e) => ed.setSection({ layout: e.target.value })}>{LAYOUTS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
-          {s.layout !== "notes" && <span className="hint">After you save, this section uses the older boxes to edit, until that layout gets this editor too.</span>}
+          {!hasStudio(s.layout) && <span className="hint">After you save, this section uses the older boxes to edit, until that layout gets this editor too.</span>}{hasStudio(s.layout) && s.layout !== ed.kind && <span className="hint">After you save, this page reloads to draw the new look&apos;s cards.</span>}
         </div>
       ) })}
       {G({ k: "danger", children: (

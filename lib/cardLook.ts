@@ -59,6 +59,11 @@ export function winLookOf(subsection: string, chosen: CardInfo["look"] = ""): Wi
   return "browser";
 }
 
+/** The card an entry is, for the section's layout: a window for Made (G2), a note otherwise. */
+export function cardLookOf(layout: string, it: { category: string; card: CardInfo }): NoteLook | WinLook {
+  return layout === "windows" ? winLookOf(it.category, it.card.look) : noteLookOf(it.category, it.card.look);
+}
+
 /** A quest's progress from its Status: done fills the bar, anything under way half of it, nothing an empty one. */
 export function questProgress(status: string): { level: number; label: string } {
   const s = status.toLowerCase().trim();

@@ -15,6 +15,7 @@ export type StudioDraft = {
   /** site-wide settings that show in this section: how thick the sliding belts are, and whether cards and full views move */
   ribbonSize: number;
   notefx: boolean;
+  windowfx: boolean;
   fullfx: boolean;
 };
 
@@ -46,6 +47,7 @@ export type StudioSave = {
   section: Omit<StudioSection, "id">;
   ribbonSize: number;
   notefx: boolean;
+  windowfx: boolean;
   fullfx: boolean;
   items: Pick<Item, "id" | "section_id" | "category" | "type" | "title" | "subtitle" | "body" | "tags" | "links" | "date_label" | "status" | "mood" | "location" | "poll_options" | "pinned" | "visible" | "media" | "style" | "card" | "talk" | "fv">[];
   deleted: number[];
@@ -54,7 +56,7 @@ export type StudioSave = {
 export const toSave = (d: StudioDraft): StudioSave => {
   const { id, ...section } = d.section;
   return {
-    sectionId: id, section, ribbonSize: d.ribbonSize, notefx: d.notefx, fullfx: d.fullfx,
+    sectionId: id, section, ribbonSize: d.ribbonSize, notefx: d.notefx, windowfx: d.windowfx, fullfx: d.fullfx,
     items: d.items.map((it) => ({
       id: it.id, section_id: it.section_id, category: it.category, type: it.type, title: it.title, subtitle: it.subtitle, body: it.body, tags: it.tags, links: it.links,
       date_label: it.date_label, status: it.status, mood: it.mood, location: it.location, poll_options: it.poll_options, pinned: it.pinned, visible: it.visible,

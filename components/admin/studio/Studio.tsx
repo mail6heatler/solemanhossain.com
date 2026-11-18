@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Item, Section } from "@/lib/data";
-import { LIVE_THEMES, MOODS, SKIN_LABELS, type Skin } from "@/lib/settings";
-import { noteLookOf } from "@/lib/cardLook";
+import { LIVE_THEMES, MOODS, SKIN_LABELS, hasStudio, type Skin } from "@/lib/settings";
+import { cardLookOf } from "@/lib/cardLook";
 import { LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles } from "@/lib/contentStyle";
 import { FV_PARTS, fvBoxes, fvLook, fvPlace, type FvBox, type FvPart } from "@/lib/fullView";
 import { pinnedFirst, toSave, type StudioData, type StudioDraft, type StudioSection } from "@/lib/studio";
@@ -11,6 +11,7 @@ import type { PartSize } from "@/lib/partSize";
 import type { PartAttrs } from "@/components/site/cardParts";
 import { saveStudio, studioComment, studioReset } from "@/app/actions";
 import NoteCard from "@/components/site/NoteCard";
+import WinCard from "@/components/site/WinCard";
 import EntryFull, { fvPresent } from "@/components/site/EntryFull";
 import { StillReacts, Surface, type Typing } from "./Surface";
 import { CARD_KEYS, CardEditor, FullEditor, SEC_NAMES, SectionEditor, TYPED, partName, type Ed } from "./Editors";
@@ -41,9 +42,9 @@ const WHERE: [string, string][] = [
 ];
 
 /**
- * The live editor for a section laid out as Notes (G1): one page for its header and settings, every card, their order, and each card's full view.
+ * The live editor for a section laid out as Notes (G1) or App windows (G2): one page for its header and settings, every card, their order, and each card's full view.
  * Two views of the same thing: Workbench shows the cards, the section, the card and its full view side by side; Spotlight puts one of them big on a stage.
- * The previews are the site's own components (NoteCard, EntryFull), so what's edited is what visitors get. Nothing is stored until Save, which writes
+ * The previews are the site's own components (NoteCard or WinCard, and EntryFull), so what's edited is what visitors get. Nothing is stored until Save, which writes
  * everything at once (`saveStudio`); comments and resets are the exception and happen right away.
  */
 export default function Studio({ data: first, startCard }: { data: StudioData; startCard?: number }) {
@@ -77,7 +78,9 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const fvStage = useRef<HTMLDivElement>(null);
 
   const item = draft.items.find((i) => i.id === sel) ?? null;
-  const card = item ? noteLookOf(item.category, item.card.look) : "plain";
+  const kind = draft.section.layout;
+  const win = kind === "windows";
+  const card = item ? cardLookOf(kind, item) : win ? "browser" : "plain";
   const say = useCallback((text: string, opts: { bad?: boolean; undo?: boolean } = {}) => setToast((t) => ({ text, n: (t?.n ?? 0) + 1, ...opts })), []);
 
   // ---------- changes, with undo ----------
@@ -105,7 +108,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const steps = (() => { const n = hist.list.indexOf(hist.saved); return n < 0 ? 0 : Math.abs(hist.at - n); })();
 
   // ---------- what the previews draw from ----------
-  const settings = useMemo(() => ({ ...data.settings, ribbonSize: draft.ribbonSize, effects: { ...data.settings.effects, notefx: draft.notefx, fullfx: draft.fullfx } }), [data.settings, draft.ribbonSize, draft.notefx, draft.fullfx]);
+  const settings = useMemo(() => ({ ...data.settings, ribbonSize: draft.ribbonSize, effects: { ...data.settings.effects, notefx: draft.notefx, windowfx: draft.windowfx, fullfx: draft.fullfx } }), [data.settings, draft.ribbonSize, draft.notefx, draft.windowfx, draft.fullfx]);
   const section = useMemo(() => ({ ...draft.section, sort: 0, boxes: {} }) as Section, [draft.section]);
   const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "";
   // eslint-disable-next-line @next/next/no-img-element
@@ -114,13 +117,15 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const factNo = (it: Item) => Math.max(1, draft.items.filter((x) => (x.visible || x.id === it.id) && x.category === it.category).findIndex((x) => x.id === it.id) + 1);
   const siteMood = MOODS[settings.mood];
   const siteStyle = (siteMood ? { "--m": siteMood.color, "--m-deep": siteMood.deep } : {}) as React.CSSProperties;
-  const siteClass = `site${draft.notefx ? " fx-notefx" : ""}${draft.fullfx ? " fx-fullfx" : ""}${settings.effects.themefx ? " fx-themefx" : ""}`;
+  const siteClass = `site${draft.notefx ? " fx-notefx" : ""}${draft.windowfx ? " fx-windowfx" : ""}${draft.fullfx ? " fx-fullfx" : ""}${settings.effects.themefx ? " fx-themefx" : ""}`;
   const bar = (it: Item, compact: boolean) => (settings.effects.reactions
     ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
     : undefined);
-  const cardOf = (it: Item) => <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit foot={bar(it, true)} />;
-  const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? 340, h: p?.h ?? s.h ?? 440 }; };
-  const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions)) : []), [item, card, settings.effects.reactions]);
+  const cardOf = (it: Item) => win
+    ? <WinCard it={it} l={lookFor(it)} href="#" home={draft.section.nav_label || draft.section.title} slug={draft.section.slug} edit foot={bar(it, true)} />
+    : <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit foot={bar(it, true)} />;
+  const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? (win ? 380 : 340), h: p?.h ?? s.h ?? (win ? 480 : 440) }; };
+  const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions, kind)) : []), [item, card, settings.effects.reactions, kind]);
   const fvZoom = phone ? 1 : Math.min(1, fvWidth / FV_WIDTH);
 
   // ---------- the page around it ----------
@@ -159,7 +164,8 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     const res = await saveStudio(toSave(draft)).catch(() => null);
     setSaving(false);
     if (!res || !res.ok) { say(res?.error ?? "That didn't save. Check your connection and try again.", { bad: true }); return; }
-    if (res.data.draft.section.layout !== "notes") { window.location.reload(); return; } // another layout: its own page
+    // another layout: its own page (an older one's boxes, or this editor drawing other cards)
+    if (!hasStudio(res.data.draft.section.layout) || res.data.draft.section.layout !== hist.saved.section.layout) { window.location.reload(); return; }
     setData(res.data);
     setLive(res.data.live);
     setHist({ list: [res.data.draft], at: 0, saved: res.data.draft, tag: "", time: 0 });
@@ -168,7 +174,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     setPop(null);
     say("Saved. It's live on your site.");
     router.refresh();
-  }, [dirty, saving, draft, sel, say, router]);
+  }, [dirty, saving, draft, sel, say, router, hist.saved]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (document.querySelector("dialog[open]")) return;
@@ -200,7 +206,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   });
   const add = (type: "post" | "poll", category: string) => {
     const id = nextId.current--;
-    insert({ ...data.blank, id, type, category, section_id: draft.section.id, title: type === "poll" ? "New poll" : "New card", poll_options: type === "poll" ? ["Option A", "Option B"] : [] });
+    insert({ ...data.blank, id, type, category, section_id: draft.section.id, title: type === "poll" ? "New poll" : win ? "New project" : "New card", poll_options: type === "poll" ? ["Option A", "Option B"] : [] });
     setSel(id);
     setAdding(null);
     setPop(null);
@@ -322,7 +328,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     window.addEventListener("pointerup", up);
   };
 
-  const ed: Ed = { data, draft, live, item, card, rev, setItem, setSection, setDraft: change, ask: setAsk, comment, reset, remove, duplicate, play, busy, open: (scope, key) => openPop(scope, key), blocks, setBlock: moveBlock, setPartSize, setFvPartSize };
+  const ed: Ed = { data, draft, live, item, card, kind, rev, setItem, setSection, setDraft: change, ask: setAsk, comment, reset, remove, duplicate, play, busy, open: (scope, key) => openPop(scope, key), blocks, setBlock: moveBlock, setPartSize, setFvPartSize };
 
   // ---------- pieces ----------
   const cats = Array.from(new Set([...draft.section.categories, ...draft.items.map((i) => i.category)].filter(Boolean)));
@@ -340,7 +346,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
             <div className="ribbon-track">{Array.from({ length: 20 }, (_, k) => <span key={k}>{ribbonText}</span>)}</div>
           </div>
         )}
-        <section className={`chap${data.index % 2 === 1 ? " alt" : ""}`} data-layout="notes">
+        <section className={`chap${data.index % 2 === 1 ? " alt" : ""}`} data-layout={kind}>
           {fx.ghost && <span className="ghost" aria-hidden>{draft.section.code || "01"}</span>}
           {fx.emojis && emojis.length > 0 && <div className="stu-emos" data-part="emojis">{emojis.map((e, i) => <span key={i} className="float-emo" style={{ top: `${[8, 52, 26, 64, 16, 44][i]}%`, left: `${[8, 30, 54, 70, 84, 46][i]}%` }}>{e}</span>)}</div>}
           <div className="chap-inner">
@@ -382,6 +388,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
       {missing.length > 0 && <span>Not on this card yet:</span>}
       {missing.map((k) => <button key={k} type="button" onClick={(e) => openPop("card", k, e.currentTarget.getBoundingClientRect())}>＋ {partName(k, card)}</button>)}
       {item.type === "poll" && <button type="button" onClick={(e) => openPop("card", "poll", e.currentTarget.getBoundingClientRect())}>Poll options</button>}
+      {win && <button type="button" onClick={(e) => openPop("card", "face", e.currentTarget.getBoundingClientRect())}>{item.card.face ? "Dock icon" : "＋ Dock icon"}</button>}
     </div>
   );
   const fvSurface = item && (
@@ -514,7 +521,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
               </div>
               <aside className="stu-parts">
                 <span className="stu-k">Parts you can change</span>
-                {(face === "sec" ? Object.keys(SEC_NAMES) : face === "fv" ? ["fv", ...FV_PARTS.map(([k]) => `fvb:${k}`)] : [...CARD_KEYS, ...(item?.type === "poll" ? ["poll"] : [])]).map((k) => (
+                {(face === "sec" ? Object.keys(SEC_NAMES) : face === "fv" ? ["fv", ...FV_PARTS.map(([k]) => `fvb:${k}`)] : [...CARD_KEYS, ...(item?.type === "poll" ? ["poll"] : []), ...(win ? ["face"] : [])]).map((k) => (
                   <button key={k} type="button" disabled={face !== "sec" && !item} className={pop?.key === k ? "on" : ""} onClick={(e) => openPop(face === "sec" ? "sec" : face, k, e.currentTarget.getBoundingClientRect())}>
                     {face === "sec" ? SEC_NAMES[k] : k === "fv" ? "Layout & options" : partName(k, card)}<i className="ti ti-chevron-right" />
                   </button>
@@ -531,7 +538,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
 
       {pop && (
         <Popover key={`${pop.scope}:${pop.key.startsWith("fv") ? "fv" : pop.scope === "sec" ? "sec" : "card"}`} x={pop.x} y={pop.y} title={popTitle} onClose={() => setPop(null)}
-          foot={pop.scope !== "sec" && item && !pop.key.startsWith("fv") ? <><span>Also on this card:</span>{[...CARD_KEYS, "quote", ...(item.type === "poll" ? ["poll"] : [])].map((k) => <button key={k} type="button" className={k === pop.key ? "on" : ""} onClick={() => setPop({ ...pop, key: k })}>{partName(k, card)}</button>)}</>
+          foot={pop.scope !== "sec" && item && !pop.key.startsWith("fv") ? <><span>Also on this card:</span>{[...CARD_KEYS, "quote", ...(item.type === "poll" ? ["poll"] : []), ...(win ? ["face"] : [])].map((k) => <button key={k} type="button" className={k === pop.key ? "on" : ""} onClick={() => setPop({ ...pop, key: k })}>{partName(k, card)}</button>)}</>
             : pop.key.startsWith("fv") ? <><span>Full view:</span><button type="button" className={pop.key === "fv" ? "on" : ""} onClick={() => setPop({ ...pop, key: "fv" })}>Options</button>{FV_PARTS.map(([k, label]) => <button key={k} type="button" className={pop.key === `fvb:${k}` ? "on" : ""} onClick={() => setPop({ ...pop, key: `fvb:${k}` })}>{label}</button>)}</> : null}>
           {pop.scope === "sec" ? <SectionEditor ed={ed} focus={pop.key} /> : pop.key === "fv" || pop.key.startsWith("fvb:") ? <FullEditor ed={ed} k={pop.key} /> : <div key={`${sel}:${pop.key}`} className="stu-fields"><CardEditor ed={ed} k={pop.key} where={pop.scope === "fv" ? "fv" : "card"} /></div>}
         </Popover>

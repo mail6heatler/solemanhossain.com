@@ -12,6 +12,7 @@ import { awardFacts } from "@/lib/awardItem";
 import BackLink from "@/components/site/BackLink";
 import { Split } from "@/components/site/Split";
 import EntryFull from "@/components/site/EntryFull";
+import { hasStudio } from "@/lib/settings";
 import { noteLookOf } from "@/lib/cardLook";
 
 type P = { params: Promise<{ slug: string; id: string }> };
@@ -51,9 +52,9 @@ export default async function EntryPage({ params }: P) {
     : null;
 
   // a G1 note opens as its full view: a page of parts the owner can lay out in the dashboard
-  if (section.layout === "notes") {
+  if (hasStudio(section.layout)) {
     // a collectible card keeps the number it has in the row: its place among its subsection's entries
-    const factNo = noteLookOf(item.category, item.card.look) === "fact"
+    const factNo = section.layout === "notes" && noteLookOf(item.category, item.card.look) === "fact"
       ? (await getItems(section.id, { visibleOnly: true })).filter((x) => x.category === item.category).findIndex((x) => x.id === item.id) + 1 : 1;
     return (
       <SiteShell settings={settings} sections={sections} onHome={false}>

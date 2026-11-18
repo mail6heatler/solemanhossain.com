@@ -499,7 +499,7 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
     const now = await getSettings();
     await saveSettingsData({
       ribbonSize: cleanRibbonSize(raw.ribbonSize),
-      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
+      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
     });
 
     const own = new Map((await query("SELECT id, type FROM items WHERE section_id=$1", [sectionId])).map((r) => [Number(r.id), String(r.type)]));

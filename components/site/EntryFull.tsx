@@ -1,6 +1,7 @@
 import type { Item, Section } from "@/lib/data";
 import { MOODS, type SiteSettings } from "@/lib/settings";
-import { noteLookOf, type NoteLook } from "@/lib/cardLook";
+import { cardLookOf } from "@/lib/cardLook";
+import { fileName, shortUrl } from "./WinCard";
 import { fvBoxes, fvLook, fvOrder, type FvPart } from "@/lib/fullView";
 import Markdown from "./Markdown";
 import PollCard from "./PollCard";
@@ -10,12 +11,12 @@ import { FvShots } from "./FvShots";
 import { partFn, type PartAttrs, type PartFn } from "./cardParts";
 
 /** Which parts of a full view have something in them. The dashboard asks too, to say what isn't on the page yet. */
-export function fvPresent(it: Item, reactions: boolean): Record<FvPart, boolean> {
+export function fvPresent(it: Item, reactions: boolean, layout = "notes"): Record<FvPart, boolean> {
   const seen = it.media.filter((m) => m.type !== "audio");
   return {
     pic: seen.length > 0,
     title: true,
-    facts: !!(it.date_label || it.location || it.status || MOODS[it.mood]) || noteLookOf(it.category, it.card.look) === "fact",
+    facts: !!(it.date_label || it.location || it.status || MOODS[it.mood]) || cardLookOf(layout, it) === "fact",
     quote: !!it.fv.quote,
     story: !!it.body.trim() || (it.type === "poll" && it.poll_options.length > 0),
     gallery: seen.length > 1 || it.media.some((m) => m.type === "audio"),
@@ -26,30 +27,40 @@ export function fvPresent(it: Item, reactions: boolean): Record<FvPart, boolean>
 }
 
 /** What a detail is called on each card: a manual has a Version and a Made in, a collectible card a Rarity. The dashboard's labels use the same words. */
-export const FACT_NAMES: Record<NoteLook, Partial<Record<"date" | "place" | "mood" | "status", string>>> = {
+export const FACT_NAMES: Record<string, Partial<Record<"date" | "place" | "mood" | "status", string>>> = {
   manual: { date: "Version", place: "Made in" },
   sign: { mood: "Painted in" },
   story: { date: "Posted" },
   fact: { status: "Rarity" },
   plain: {},
+  sheet: { status: "Status cell" },
+  code: { status: "Build" },
+  console: { status: "Quest" },
 };
 const BASE_NAMES = { date: "When", place: "Where", mood: "Mood", status: "Status" };
+/** A window's full view keeps its address bar as the band at the top: the link, or the file the app has open. */
+function winBand(look: string, it: Item, slug: string) {
+  const link = it.links.find((x) => /^https?:/.test(x.url)), file = fileName(it.title);
+  if (look === "console") return "QUEST·BOY";
+  if (link) return shortUrl(link.url);
+  return look === "sheet" ? `${file}.xlsx` : look === "notes" ? `notes/${file}.md` : `~/${slug}/${file}`;
+}
 
 /**
- * A G1 entry opened up: its full view. The page is a grid of parts (picture, title, details, pull quote, story, more pictures, tags, buttons, reactions)
+ * A G1 or G2 entry opened up: its full view. The page is a grid of parts (picture, title, details, pull quote, story, more pictures, tags, buttons, reactions)
  * placed by its layout, or wherever the owner dragged them in the dashboard (lib/fullView.ts). Phones stack them in reading order.
  * The entry's own page draws it, and so does the dashboard's editor: with `edit` each part carries its name, nothing leads anywhere and `foot` stands in for the reaction bar.
  */
 export default function EntryFull({ item, section, settings, factNo, edit, foot }: { item: Item; section: Section; settings: SiteSettings; factNo: number; edit?: boolean; foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode }) {
   const p: PartFn = partFn(edit, item.fv.parts);
-  const card = noteLookOf(item.category, item.card.look);
+  const card = cardLookOf(section.layout, item);
   const mood = MOODS[item.mood];
   const seen = item.media.filter((m) => m.type !== "audio");
   const look = fvLook(item.fv, card, seen.length > 0);
-  const boxes = fvOrder(fvBoxes(item.fv, look.layout, fvPresent(item, settings.effects.reactions)));
+  const boxes = fvOrder(fvBoxes(item.fv, look.layout, fvPresent(item, settings.effects.reactions, section.layout)));
   const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "";
   const wash = seen[0]?.type === "image" ? seen[0].url : seen[0]?.thumb ?? "";
-  const name = (k: "date" | "place" | "mood" | "status") => FACT_NAMES[card][k] ?? BASE_NAMES[k];
+  const name = (k: "date" | "place" | "mood" | "status") => FACT_NAMES[card]?.[k] ?? BASE_NAMES[k];
   const facts: [string, string, string][] = [];
   if (card === "manual" && owner) facts.push(["Model", owner, ""]);
   for (const k of ["date", "place", "mood", "status"] as const) {
@@ -58,6 +69,7 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
   }
   const band = card === "manual" ? `User manual${item.date_label ? ` · v ${item.date_label}` : ""}`
     : card === "fact" ? `Fact file #${String(factNo).padStart(2, "0")}`
+    : section.layout === "windows" ? winBand(card, item, section.slug)
     : item.category || section.title;
 
   const part = (k: FvPart): React.ReactNode => {

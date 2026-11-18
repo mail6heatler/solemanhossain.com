@@ -54,7 +54,8 @@ components/site/
   Chrome.tsx               SiteShell (wrapper for every public page), Nav, Rail, BottomBar, Footer
   cardParts.tsx            what every card is built from (Box, CardLink, Meta, Mood, LinkButtons), apart from SectionBody so the dashboard can draw a real card
   NoteCard.tsx             one G1 note; the homepage row and the dashboard's live editor both draw it
-  EntryFull.tsx            a G1 entry's full view: a grid of parts placed by lib/fullView.ts; the entry's page and the live editor both draw it
+  WinCard.tsx              one G2 app window (and its CodeView); the homepage row and the live editor both draw it
+  EntryFull.tsx            a G1 or G2 entry's full view: a grid of parts placed by lib/fullView.ts; the entry's page and the live editor both draw it
   FvShots.tsx              a full view's pictures: the first shown whole over a soft copy of itself, the rest as tiles
   SectionBody.tsx          the section layouts, including the milestones map (`milemap`, a timeline as stops on a trail), app windows (`windows`) and boarding passes (`tickets`)
   Dock.tsx                 the icons under a desktop of app windows; a click sends "row-go" to its SideRow, which answers with "row-at"
@@ -186,7 +187,10 @@ The owner wants each section to look like what it holds, one section at a time (
 
 **Sound on entries.** `Media.type` can be `"audio"`. `MediaField` only takes it with `allowAudio`, which only a Study shelf entry's page passes. `parseMedia` always sorts sound last, so `media[0]` stays a picture wherever there is one, and it never gets the Cover badge. `Cover` draws a tile if sound is all an entry has, `PicZoom` leaves it out, and the entry's page shows it with the browser's own player (`EntryGallery`). `TvPlay` only fetches it when Play is pressed. Only one thing plays on the page at a time. Headless Chrome plays it fine after a real click, so a test can check `.tv-time` and `.tv-fill` move.
 
-## The live editor (G1)
+## The live editor (G1 and G2)
+
+**G2 (App windows) joined on 2026-11-18.** `hasStudio` is true for `notes` and `windows`; the same `Studio` draws `WinCard` instead of `NoteCard` (`kind` is the section's layout, `cardLookOf` in `lib/cardLook.ts` picks the look for either). The window's parts are named for the labels: `band` (title bar), `sub` (the window's name), `status`, `url` (address bar, edits the buttons), `pic`, `sheet`, `codeview`, `term` (edits Status), `tags` (the notes app's folders), `board` (sticky notes, edits the text), the console's `screen`, `brand` and `controls`, and the usual title, subtitle, details, body, buttons, reactions, comment box and Full view. In edit mode its links are plain `.win-link` words. Each project's own picture for the dock is `items.card.face` ("Dock icon"; empty uses its first picture), so nothing borrows the hero photo. Its movement switch is `windowfx`, saved by `saveStudio`. A G2 entry now opens as `EntryFull` too, with its address bar as the band and a window frame around the main picture (`.fvk-sheet` and so on in `site.css`). Changing a section between the two layouts reloads the page after Save.
+
 
 The owner asked for it on 2026-11-11 and chose "Workbench + Spotlight" from six working previews (https://claude.ai/artifact/GvNRnu95XxbFDbDPMvBExP). A section whose layout has it (`hasStudio` in `lib/settings.ts`: only `notes` so far) gets one dashboard page, `components/admin/studio`, instead of the boxes: its header and settings, every card, their order, and each card's full view. G2 to G7 are next, one at a time; G0 and G8 after. The older pages stay for every other layout, and `/admin/items/<id>` of a section with the editor redirects to `/admin/s/<section>?card=<id>`.
 
