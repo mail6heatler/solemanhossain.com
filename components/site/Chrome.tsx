@@ -8,8 +8,6 @@ import DemoMode from "./Demo";
 import Living from "./Living";
 import ThemeFx from "./ThemeFx";
 import HangingBanner from "./HangingBanner";
-import Mascot from "./Mascot";
-import { mascotView } from "@/lib/mascot";
 import { Split } from "./Split";
 import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
 
@@ -157,7 +155,6 @@ export function SiteShell({ settings, sections, onHome, children }:
       {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}
       {children}
       <Footer settings={settings} />
-      {settings.mascot.on && (onHome || settings.mascot.everyPage) && <Mascot view={mascotView(settings.mascot, sections)} />}
       {fx.bottombar && <BottomBar sections={sections} onHome={onHome} />}
     </div>
   );

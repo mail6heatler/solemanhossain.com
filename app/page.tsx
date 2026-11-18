@@ -7,9 +7,6 @@ import { Clock, TypeOnce } from "@/components/site/Typewriters";
 import { AvatarTilt, DecodeText, Greeting, LivePill, Sticker } from "@/components/site/HeroFx";
 import HeroScene from "@/components/site/HeroScene";
 import Intro from "@/components/site/Intro";
-import HeroRing from "@/components/site/HeroRing";
-import { StatusPhoto, StatusUnder, type StatusView } from "@/components/site/HeroStatus";
-import { statusKind } from "@/lib/status";
 import { Split, Words } from "@/components/site/Split";
 import { MOODS, isConnectLayout } from "@/lib/settings";
 
@@ -40,13 +37,7 @@ export default async function Home() {
   ];
   const headline = (text: string, delay: number) => (fx.decode || fx.kinetic ? <DecodeText text={text} delay={delay} animate={fx.decode} letters={fx.kinetic} /> : <Accent text={text} />);
   const photo = s.avatarUrl ? <img src={s.avatarUrl} alt={s.fullName} /> : <div className="avatar-ph">{s.initials || "✦"}</div>;
-  const st = s.status, kind = statusKind(st);
-  const sv: StatusView | null = st.on && (st.text || st.emoji)
-    ? { emoji: st.emoji, text: st.text, since: st.updatedAt, look: st.look, label: kind.label, color: kind.color, staleHours: st.staleHours, showAgo: st.showAgo, showViews: st.showViews, name: s.nickname || s.fullName, avatar: s.avatarUrl }
-    : null;
-  const byPhoto = sv && ["border", "bubble", "badge", "story"].includes(sv.look) ? <StatusPhoto v={sv} /> : null;
-  const ring = sv && sv.look === "border" ? <HeroRing width={st.border} photo={s.avatarUrl} round={!fx.sticker || !s.avatarUrl} /> : null;
-  const avatar = fx.sticker ? <>{ring}{photo}<i className="stk-tape a" aria-hidden /><i className="stk-tape b" aria-hidden /></> : <>{ring}{photo}</>;
+  const avatar = fx.sticker ? <>{photo}<i className="stk-tape a" aria-hidden /><i className="stk-tape b" aria-hidden /></> : photo;
   const framed = fx.tilt ? <AvatarTilt label={`${s.fullName}. Click for confetti`}>{avatar}</AvatarTilt> : <div className="avatar-tilt">{avatar}</div>;
 
   return (
@@ -54,7 +45,7 @@ export default async function Home() {
       {fx.intro && <Intro name={s.nickname || s.fullName} />}
       {/* ═══ HERO ═══ (when it's removed: keep a heading for search engines, and the counter behind the dashboard's "people here now") */}
       {s.heroHidden ? <><h1 className="sr-only">{s.fullName}</h1>{fx.visitors && <div hidden><LivePill /></div>}</> : (
-      <section id="hero" data-spy className={fx.sticker ? "hero-hang" : undefined} style={{ "--status-c": sv ? kind.color : "var(--mint)" } as React.CSSProperties}>
+      <section id="hero" data-spy className={fx.sticker ? "hero-hang" : undefined}>
         {fx.aurora ? <div className="aurora" aria-hidden /> : <><div className="blob blob-1" /><div className="blob blob-2" /><div className="blob blob-3" /></>}
         <i className="tf-band" aria-hidden />
         <i className="tf-a" aria-hidden />
@@ -71,7 +62,6 @@ export default async function Home() {
               <span className="name-line"><span>{headline(s.headline1, 250)}</span></span>
               {s.headline2 && <span className="name-line"><span>{headline(s.headline2, 450)}</span></span>}
             </h1>
-            {sv && (sv.look === "line" || sv.look === "ticker") && <StatusUnder v={sv} />}
             {s.subtitle && <p className="hero-sub"><TypeOnce text={s.subtitle} animate={fx.typewriter} /></p>}
             {s.roleChips.length > 0 && <div className="roles">{s.roleChips.map((r, i) => <span key={i}>{r}</span>)}</div>}
             {s.nowStatus && <div className="now-pill">{s.nowStatus}</div>}
@@ -88,9 +78,8 @@ export default async function Home() {
           </div>
           {!fx.sticker && <div className="hero-right">
             <div className="avatar-wrap">
-              {fx.tilt ? framed : <div className="ring-host">{avatar}</div>}
-              {!ring && <div className="avatar-ring" />}
-              {byPhoto}
+              {fx.tilt ? framed : photo}
+              <div className="avatar-ring" />
               {fx.tilt && <div className="avatar-orbit" aria-hidden><i /><i /></div>}
             </div>
             <div className="ctas">
@@ -109,7 +98,7 @@ export default async function Home() {
               )}
               {s.ctaSecondaryLabel && <a className={`btn-paper p-alt ${fx.magnetic ? "mag" : ""}`} href={s.ctaSecondaryUrl}><span className="paper-face"><i className="ti ti-send" />{s.ctaSecondaryLabel}</span><i className="paper-tape" aria-hidden /></a>}
             </div>
-            <div className="avatar-wrap sticker"><Sticker>{framed}{byPhoto}</Sticker></div>
+            <div className="avatar-wrap sticker"><Sticker>{framed}</Sticker></div>
           </div>
         )}
         {s.scrollCue && <div className="scrollcue"><i className="ti ti-chevron-down" />{s.scrollCue}</div>}

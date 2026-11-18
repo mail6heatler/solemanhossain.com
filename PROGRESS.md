@@ -58,17 +58,9 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-18: The ring becomes the status's Messenger border
+### 2026-11-18: Mascot and status built, then undone (saved for later)
 
-The owner didn't want a separate ring: the status itself should be a line around the photo that follows its shape, with the emoji on it, like Messenger's active circle. The Ring box and `settings.ring` are gone; "Messenger border" is the status's first and default look, with a thickness slider and a live preview in the status box.
-
-### 2026-11-18: Status by the photo (correction)
-
-The owner meant the whole "Status by your photo" from the playground, not only its ring. Built: emoji and words, presets, five looks, Online/Busy/Away, live "updated … ago", a real 👁 count, grey "last seen" after a chosen number of hours, and the ring in the status colour. The clock starts at the first save of the status.
-
-### 2026-11-18: Ring around the hero photo and the mascot, live
-
-The owner asked for the two from the fun-features preview: the ring (settings in the hero page) and the mascot (its own dashboard page, beside Appearance, with more settings than the preview). Both are on by default. The ring: 5 styles, theme, mood or own colour, thickness, gap and speed, with a live preview around the real photo. The mascot: 5 characters (Mini Shourobh first), size, Mini's outfit, beard, glasses, hair colour and skin tone, the 7 acts or a mix of the ticked ones, which side he peeks from, time away, when he dozes off, which of his 7 moves a click plays, the hello, his lines, a line per section, and switches for speech, the section guide, eyes, ducking, cheering on reactions, theme outfits, phones and every page. Only the screen check was asked for (display-checker).
+Built and released the same day: the mascot (own dashboard page, 5 characters, 7 acts, many settings) and the status by the hero photo (6 looks, the default a "Messenger border" that follows the photo's shape with the emoji on it, a live clock, a real 👁 count, grey "last seen"). The owner then asked for both to be removed and the site put back exactly as before that day, with both kept on the task board for later. The full code is in commits 9840e48, 1076ed2, d519260 and 5113edf (reverted together); to bring them back, revert the revert. The live database may hold an empty `status_views` table and `mascot`/`status`/`ring` keys in settings; nothing reads them.
 
 ### 2026-11-16: Replying to comments from the Inbox (kept)
 

@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import "./site.css";
 import "./themes.css";
 import "./banner.css";
-import "./mascot.css";
-import "./status.css";
 import "./admin.css";
 import { getSettings } from "@/lib/data";
 import { skinScript } from "@/lib/settings";

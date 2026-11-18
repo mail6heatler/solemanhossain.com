@@ -80,10 +80,6 @@ components/site/
   themeScenes.ts           the 10 classic themes' living backgrounds and click bursts (separate download)
   themeScenes2.ts          the 20 fan themes: one data table of what floats, bursts and falls, plus drawn "pieces"
   themeArt.ts              small drawn sprites shared by scenes, bursts and banner drops; each is stamped from a cache
-  Mascot.tsx               the mascot's empty host; loads mascotEngine.ts once the page is idle
-  mascotEngine.ts          the mascot's show: peek, hang, upside-down drop, rope, pop up, sit on a card, hide behind a heading, or a mix
-  mascotArt.ts             the mascots' drawings as SVG text (Mini Shourobh, Inky, Bagh, Cha, Megh) and their moves; the dashboard's preview uses it too
-  HeroRing.tsx             the ring around the hero photo, in the photo's own shape
   HangingBanner.tsx        the pull-down announcement and its physics (falls, jolts, swings, breeze); opens on every visit
   bannerFall.ts            what falls from the banner in each theme; its canvas exists only while something falls
   askName.ts               the "who's reacting?" box; the name is remembered in localStorage (lc_name)
@@ -124,14 +120,6 @@ A new column goes in `SCHEMA` in `lib/schema.ts` as `ALTER TABLE … ADD COLUMN 
 `settings.heroHidden` takes the hero off the homepage. Nothing is deleted, because the name and photo are also used on other pages. Effects must cope with `#hero` being missing, and the first chapter's ribbon is skipped because it would hide under the menu bar. `LivePill` still runs, hidden, because the dashboard's "people here now" number depends on it.
 
 Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`, `votes`, `reactions`, `comments`, `stats_daily`, `section_views`, `presence`. Created automatically on first use. New settings fields need no migration because `mergeSettings` fills in defaults.
-
-## The ring and the mascot (2026-11-18)
-
-From the fun-features preview; stored in `settings.status` (`lib/status.ts`) and `settings.mascot` (`lib/mascot.ts`), styled in `app/mascot.css`.
-
-- **The Messenger border** (`HeroRing.tsx`) is the status's default look, not a separate feature (the owner asked for that on 2026-11-18): a line in the status colour around the hero photo with the emoji on it at the bottom right (`.hst-emo`) and an "active" tag under the photo (`.hst-active`). The photo is its own mask, laid nine times around itself `--rr` apart, so it follows a rectangle, circle or cut-out. The mask box's padding makes its content box the photo's box, and `contain` fits the mask the way the photo is fitted (the sticker photo is `object-fit: contain` with a max height). It lives inside the tilting button, under the photo. Without the sticker look, or without a photo, it's a plain circle. The Blob host sends `Access-Control-Allow-Origin: *`, which a CSS mask needs.
-- **The status by the photo** (`HeroStatus.tsx`, `lib/status.ts`, `app/status.css`, the hero page's "Status by your photo" box, `StatusPanel.tsx`) is the playground's status: emoji and words, Online/Busy/Away (from the emoji unless chosen), six looks (the Messenger border; line or live ticker under the name; bubble, corner badge with a chip, or a story chip opening a `<dialog>`, by the photo, inside `Sticker` so they sway). The clock and the 👁 count fill in after start-up, so the cached page never disagrees; after `staleHours` it greys and says "last seen", and puts `status-stale` on `#hero`. The 👁 count is `/api/status-view` and the `status_views` table: one row per browser id (localStorage `lc_sv_id`) per status, keyed by `updatedAt`, which `saveHero` sets when the emoji or words change.
-- **The mascot** has its own dashboard page, `/admin/mascot` (`MascotPanel.tsx`, the real drawing beside every setting). Its on/off switch is there, not on the Appearance page. `Mascot.tsx` renders an empty `.masc-host` inside `SiteShell`; the engine fills it after start-up with a fixed layer (`.masc-fix`, screen-edge acts) and a layer that scrolls with the page (`.masc-doc`, sitting on a card and hiding behind a heading). Only `transform` and `opacity` move; his loops pause on `html.scrolling`, `html.lite` and while he sleeps. He doesn't start with reduced motion, and not on phones if that's switched off. z-index 84: under the menu bar (so he drops in from behind it), the bottom bar and the back-to-top button.
 
 ## PDFs on entries
 

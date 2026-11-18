@@ -1,6 +1,4 @@
 import { cleanBoxes, type BoxState } from "./boxes";
-import { cleanMascot, DEFAULT_MASCOT, type MascotSettings } from "./mascot";
-import { cleanStatus, DEFAULT_STATUS, type Status } from "./status";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
@@ -253,10 +251,6 @@ export type SiteSettings = {
   nowStatus: string;
   partyWord: string;
   banner: Banner;
-  /** What I'm up to, by the hero photo (lib/status.ts). */
-  status: Status;
-  /** The mascot and its show (lib/mascot.ts). */
-  mascot: MascotSettings;
   /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
   themePics: Record<string, string>;
   /** Size and look for all content; sections and entries can override it (lib/contentStyle.ts). */
@@ -306,8 +300,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   nowStatus: "",
   partyWord: "shou",
   banner: DEFAULT_BANNER,
-  status: DEFAULT_STATUS,
-  mascot: DEFAULT_MASCOT,
   themePics: {},
   contentStyle: {},
   effects: ALL_ON,
@@ -331,8 +323,6 @@ export function mergeSettings(raw: unknown): SiteSettings {
     banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
     contentStyle: cleanStyle(obj.contentStyle),
     heroBoxes: cleanBoxes(obj.heroBoxes),
-    status: cleanStatus(obj.status),
-    mascot: cleanMascot(obj.mascot),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;

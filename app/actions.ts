@@ -12,8 +12,6 @@ import type { StudioData, StudioSave } from "@/lib/studio";
 import { loadStudio } from "@/lib/studioData";
 import { cleanPass } from "@/lib/tripPass";
 import { revalidatePath } from "next/cache";
-import { cleanMascot } from "@/lib/mascot";
-import { cleanStatus } from "@/lib/status";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { query, queryOne } from "@/lib/db";
@@ -125,14 +123,6 @@ export async function changePassword(_prev: { error?: string; ok?: string } | un
 // ---------- hero (G0) ----------
 export async function saveHero(fd: FormData) {
   await requireAdmin();
-  // a new emoji or new words (or the "start again" tick) restart the clock and the 👁 count
-  let status = {};
-  if (fd.has("status")) {
-    const old = (await getSettings()).status;
-    const next = cleanStatus(jsonOf(str(fd, "status", 2000)));
-    const fresh = !old.updatedAt || next.emoji !== old.emoji || next.text !== old.text || str(fd, "status_touch", 1) === "1";
-    status = { status: { ...next, updatedAt: fresh ? new Date().toISOString() : old.updatedAt } };
-  }
   await saveSettingsData({
     fullName: str(fd, "fullName", 120),
     nickname: str(fd, "nickname", 80),
@@ -155,7 +145,6 @@ export async function saveHero(fd: FormData) {
     heroEmojis: str(fd, "heroEmojis", 80),
     scrollCue: str(fd, "scrollCue", 60),
     heroBoxes: cleanBoxes(str(fd, "boxes", 2000)),
-    ...status,
   });
   refresh();
   redirect(`/admin/hero?${saved()}`);
@@ -167,16 +156,6 @@ export async function setHeroHidden(fd: FormData) {
   await saveSettingsData({ heroHidden: str(fd, "hidden", 1) === "1" });
   refresh();
   redirect(`/admin/hero?${saved()}`);
-}
-
-const jsonOf = (t: string): unknown => { try { return JSON.parse(t); } catch { return null; } };
-
-// ---------- the mascot ----------
-export async function saveMascot(fd: FormData) {
-  await requireAdmin();
-  await saveSettingsData({ mascot: cleanMascot(jsonOf(str(fd, "mascot", 20000))) });
-  refresh();
-  redirect(`/admin/mascot?${saved()}`);
 }
 
 // ---------- site settings ----------
