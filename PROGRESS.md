@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: Life (G7) gets the live editor (G6 kept); G1 to G7 all done
+
+The owner kept G6 and said "go" for G7. Restore point `before-g7-studio`. Same editor, drawing the real scrapbook pages (`ScrapCard`): every part labelled, moved and sized; Looks like picks the page; Ticked days for a habit tracker. Entries open as the new full view. Not tested beyond the build; waiting for keep or undo. Next on the plan: G0 (hero) and G8 (Connect), which first need a list of their weaknesses and a preview of ideas for the owner to choose from.
+
 ### 2026-11-18: Growth (G6) gets the live editor (G5 kept)
 
 The owner kept G5 and said "go" for G6. Restore point `before-g6-studio`. Same editor, drawing the real staff cards, certificates, front pages, mended cards and stars (`AwardCard`): every part labelled, moved and sized; Details and Looks like open from the labels. The staff card's photo is now its own upload (it used to borrow the hero photo). Entries open as the new full view. Not tested beyond the build; waiting for keep or undo.

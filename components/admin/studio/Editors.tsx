@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/lib/data";
 import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, STUDY_STATUSES, TRIP_STATUSES, hasStudio } from "@/lib/settings";
 import { STUDY_LOOKS, STUDY_MEDIA, studyLookOf, type StudyLook, type StudyMedia } from "@/lib/studyItem";
+import { SCRAP_DAYS, SCRAP_LOOKS, scrapLookOf, type ScrapLook } from "@/lib/scrapItem";
 import { AWARD_LOOKS, AWARD_TEXT_MAX, awardLookOf, jobFromTitle, type AwardInfo, type AwardLook } from "@/lib/awardItem";
 import { COMIC_LOOKS, SFX_MAX, comicLookOf, comicPollChoices, comicPollOf, sfxOf, voteWordOf, type ComicAnyLook } from "@/lib/comicItem";
 import { NOTE_LOOKS, TRIP_LOOKS, WIN_LOOKS, noteLookOf, tripLookOf, winLookOf } from "@/lib/cardLook";
@@ -59,6 +60,10 @@ const NOTE_HINTS: Record<string, string> = {
   medal: "The front page of a newspaper named after you, with the title as the headline. Details holds who awarded it.",
   crack: "A card mended in gold, for something heavy you came through.",
   trophy: "A star on the red carpet, for the hall of fame. Details holds who awarded it.",
+  diary: "A diary page with the first picture taped in and the Date in the corner.",
+  lived: "A scrap of map with a pin: Place is on the red label strip and Date (the years) under it.",
+  ritual: "A habit tracker: Ticked days picks which days of the week are ticked, and it counts the streak.",
+  snaps: "A pile of up to three pictures under a paperclip.",
 };
 
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
@@ -67,7 +72,7 @@ const NAMES: Record<string, string> = {
   links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
-  bubble: "Speech bubble", sfx: "Sound effect", record: "Record", award: "Details", company: "Company", span: "Dates", chips: "Card chips", reader: "Card reader", sign: "Signature", seal: "Gold seal", owner: "Your name",
+  bubble: "Speech bubble", sfx: "Sound effect", record: "Record", award: "Details", map: "Map", days: "Ticked days", streak: "Streak", company: "Company", span: "Dates", chips: "Card chips", reader: "Card reader", sign: "Signature", seal: "Gold seal", owner: "Your name",
   spine: "Spine", line: "Line that stuck", shot: "Phone screen", panel: "Writing panel", player: "Screen & type",
   route: "Route", passinfo: "Pass details", times: "Times", stub: "Stub & barcode", ticks: "Tick lines", passname: "Name on the pass", pass: "Pass details", vehicle: "Vehicle",
   url: "Address bar", codeview: "Code view", sheet: "Spreadsheet", term: "Terminal", board: "Sticky notes", screen: "Screen", brand: "Name plate", controls: "Buttons",
@@ -106,6 +111,10 @@ const BY_LOOK: Record<string, Record<string, string>> = {
   medal: { art: "Front page", band: "Masthead", title: "Headline", sticker: "Winner stamp", specs: "Details" },
   crack: { art: "Mended card", sub: "Label", date: "Date chip" },
   trophy: { art: "Red carpet", sub: "Label", title: "Star's name", specs: "Details" },
+  diary: { art: "Diary page", sub: "Label strip", pic: "Taped photo" },
+  lived: { art: "Map page", sub: "Label strip", place: "Place label", date: "Years" },
+  ritual: { art: "Habit tracker", sub: "Label strip", pic: "Sticker photo" },
+  snaps: { art: "Snapshot page", sub: "Label strip", pic: "Photo pile" },
 };
 export const partName = (key: string, look: string) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look]?.[key] ?? NAMES[key] ?? key);
 export const SEC_NAMES: Record<string, string> = {
@@ -135,7 +144,7 @@ export type Ed = {
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
 const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot", "record", "chips", "reader", "seal", "owner"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
-const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title", company: "award", span: "award", sign: "award", specs: "award" };
+const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title", company: "award", span: "award", sign: "award", specs: "award", streak: "days", map: "place" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -241,17 +250,17 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   switch (k) {
     case "sub": {
-      const shelf = ed.kind === "study", comic = ed.kind === "comic", wall = ed.kind === "awards", hasPic = it.media.some((m) => m.type !== "audio");
+      const shelf = ed.kind === "study", comic = ed.kind === "comic", wall = ed.kind === "awards", book = ed.kind === "scrapbook", hasPic = it.media.some((m) => m.type !== "audio");
       const pollLooks = comicPollChoices(it.poll_options).map(([key, label]) => [key, label] as const);
-      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : comic ? (it.type === "poll" ? pollLooks : COMIC_LOOKS) : wall ? AWARD_LOOKS : NOTE_LOOKS;
-      const autoKey = ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : comic ? (it.type === "poll" ? comicPollOf(it.category, it.poll_options, "", hasPic) : comicLookOf(it.category)) : wall ? awardLookOf(it.category, it.mood, it.date_label, { look: "", still: it.award.still, end: it.award.end }) : noteLookOf(it.category);
-      const auto = [...looks, ...COMIC_LOOKS, ...AWARD_LOOKS, ["buttons", "Big comic buttons"] as const].find(([key]) => key === autoKey)?.[1] ?? "";
+      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : comic ? (it.type === "poll" ? pollLooks : COMIC_LOOKS) : wall ? AWARD_LOOKS : book ? SCRAP_LOOKS : NOTE_LOOKS;
+      const autoKey = ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : comic ? (it.type === "poll" ? comicPollOf(it.category, it.poll_options, "", hasPic) : comicLookOf(it.category)) : wall ? awardLookOf(it.category, it.mood, it.date_label, { look: "", still: it.award.still, end: it.award.end }) : book ? scrapLookOf(it.category) : noteLookOf(it.category);
+      const auto = [...looks, ...COMIC_LOOKS, ...AWARD_LOOKS, ...SCRAP_LOOKS, ["buttons", "Big comic buttons"] as const].find(([key]) => key === autoKey)?.[1] ?? "";
       return <>
         <Txt label="Subsection" value={it.category} placeholder="Pick one below, or type a new one" onChange={(v) => ed.setItem({ category: v.replace(/,/g, " ") }, "category")} />
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
         <div className="fl stu-f">
           <label className="lab" htmlFor="stu-look">Looks like</label>
-          <select id="stu-look" value={shelf ? it.study.look : comic ? it.comic.look : wall ? it.award.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : wall ? ed.setItem({ award: { ...it.award, look: e.target.value as AwardLook | "" } }) : comic ? ed.setItem({ comic: { ...it.comic, look: e.target.value as ComicAnyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
+          <select id="stu-look" value={shelf ? it.study.look : comic ? it.comic.look : wall ? it.award.look : book ? it.scrap.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : book ? ed.setItem({ scrap: { ...it.scrap, look: e.target.value as ScrapLook | "" } }) : wall ? ed.setItem({ award: { ...it.award, look: e.target.value as AwardLook | "" } }) : comic ? ed.setItem({ comic: { ...it.comic, look: e.target.value as ComicAnyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
             <option value="">Automatic, from its subsection: {auto}</option>
             {looks.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
@@ -351,6 +360,13 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
     }
     case "pass": return <PassFields ed={ed} />;
     case "award": return <AwardFields ed={ed} />;
+    case "days": return (
+      <div className="fl stu-f">
+        <span className="lab">Ticked days</span>
+        <div className="stu-pills">{SCRAP_DAYS.map((d, i) => { const on = it.scrap.days.includes(i); return <button key={d} type="button" className={on ? "on" : ""} aria-pressed={on} onClick={() => ed.setItem({ scrap: { ...it.scrap, days: on ? it.scrap.days.filter((x) => x !== i) : [...it.scrap.days, i].sort((a, b) => a - b) } })}>{d}</button>; })}</div>
+        <span className="hint">The habit tracker ticks these days, one by one, and counts the longest streak.{ed.card !== "ritual" ? " This page isn't a habit tracker right now; choose one under Looks like." : ""}</span>
+      </div>
+    );
     case "sfx": {
       const word = ed.card === "stuck" ? "Stuck" : it.type === "poll" && ed.card !== "buttons" ? voteWordOf(ed.card as ComicAnyLook, "") : sfxOf(ed.card as ComicAnyLook, "");
       return <Txt label="Sound effect" value={it.comic.sfx} max={SFX_MAX} placeholder={word || "Pow!, Zap!, Boom!…"} onChange={(v) => ed.setItem({ comic: { ...it.comic, sfx: v } }, "sfx")}
@@ -529,7 +545,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
             </div>
           ))}
           <div><button type="button" className="b-out b-sm" onClick={() => ed.setSection({ categories: [...s.categories, "New subsection"] })}><i className="ti ti-plus" />Add a subsection</button></div>
-          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "awards"
+          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "scrapbook"
+            ? "Its name picks its pages: a photo diary (or journal) a diary page; where you've lived (homes, cities, places) a scrap of map; rituals (habits, routines) a habit tracker; random snapshots a pile of photos; and anything else a diary page. Each entry can choose another under Looks like."
+            : ed.kind === "awards"
             ? "Its name picks its cards: hall of fame a star on the red carpet; skills, certificates, courses or degrees a certificate; career, jobs or milestones a staff card, bright if you still work there and faded if not; and anything else a newspaper front page, or a card mended in gold if the Mood is heavy. Each entry can choose another under Looks like."
             : ed.kind === "comic"
             ? "Its name picks its panels: hot takes a shout; poems a night sky; sayings a fridge door; on repeat a record; vibing waves; brain dumps a bin; creative chaos word scraps; quick fire a quiz show; and anything else a speech bubble. A poll's panel also goes by how many options it has. Each entry can choose another under Looks like."
@@ -560,7 +578,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
       {G({ k: "motion", children: (
         <div className="fl stu-f"><span className="lab">{SEC_NAMES.motion} (for the whole site)</span>
           <div className="stu-switches">
-            {ed.kind === "awards"
+            {ed.kind === "scrapbook"
+              ? <Sw label="Pages come alive" hint="A pencil travels the row and wakes the page it reaches: it lifts, tape is pressed, the pin drops, ticks pop on, the pile fans out." on={draft.scrapfx} onChange={(scrapfx) => ed.setDraft((d) => ({ ...d, scrapfx }))} />
+              : ed.kind === "awards"
               ? <Sw label="The wall comes alive" hint="A spotlight travels the wall and wakes the card it reaches: a staff card scans, a certificate's seal shines, flashes go off on the red carpet." on={draft.awardfx} onChange={(awardfx) => ed.setDraft((d) => ({ ...d, awardfx }))} />
               : ed.kind === "comic"
               ? <Sw label="Panels come alive" hint="A brain flies along the strip and wakes the panel it reaches: shouts shake, records spin, words fly onto their scraps." on={draft.comicfx} onChange={(comicfx) => ed.setDraft((d) => ({ ...d, comicfx }))} />

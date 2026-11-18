@@ -20,6 +20,7 @@ export type StudioDraft = {
   studyfx: boolean;
   comicfx: boolean;
   awardfx: boolean;
+  scrapfx: boolean;
   fullfx: boolean;
 };
 
@@ -56,19 +57,20 @@ export type StudioSave = {
   studyfx: boolean;
   comicfx: boolean;
   awardfx: boolean;
+  scrapfx: boolean;
   fullfx: boolean;
-  items: Pick<Item, "id" | "section_id" | "category" | "type" | "title" | "subtitle" | "body" | "tags" | "links" | "date_label" | "status" | "mood" | "location" | "poll_options" | "pinned" | "visible" | "media" | "style" | "card" | "talk" | "fv" | "pass" | "study" | "comic" | "award">[];
+  items: Pick<Item, "id" | "section_id" | "category" | "type" | "title" | "subtitle" | "body" | "tags" | "links" | "date_label" | "status" | "mood" | "location" | "poll_options" | "pinned" | "visible" | "media" | "style" | "card" | "talk" | "fv" | "pass" | "study" | "comic" | "award" | "scrap">[];
   deleted: number[];
 };
 
 export const toSave = (d: StudioDraft): StudioSave => {
   const { id, ...section } = d.section;
   return {
-    sectionId: id, section, ribbonSize: d.ribbonSize, notefx: d.notefx, windowfx: d.windowfx, tripfx: d.tripfx, studyfx: d.studyfx, comicfx: d.comicfx, awardfx: d.awardfx, fullfx: d.fullfx,
+    sectionId: id, section, ribbonSize: d.ribbonSize, notefx: d.notefx, windowfx: d.windowfx, tripfx: d.tripfx, studyfx: d.studyfx, comicfx: d.comicfx, awardfx: d.awardfx, scrapfx: d.scrapfx, fullfx: d.fullfx,
     items: d.items.map((it) => ({
       id: it.id, section_id: it.section_id, category: it.category, type: it.type, title: it.title, subtitle: it.subtitle, body: it.body, tags: it.tags, links: it.links,
       date_label: it.date_label, status: it.status, mood: it.mood, location: it.location, poll_options: it.poll_options, pinned: it.pinned, visible: it.visible,
-      media: it.media, style: it.style, card: it.card, talk: it.talk, fv: it.fv, pass: it.pass, study: it.study, comic: it.comic, award: it.award,
+      media: it.media, style: it.style, card: it.card, talk: it.talk, fv: it.fv, pass: it.pass, study: it.study, comic: it.comic, award: it.award, scrap: it.scrap,
     })),
     deleted: d.deleted.map((it) => it.id).filter((n) => n > 0),
   };

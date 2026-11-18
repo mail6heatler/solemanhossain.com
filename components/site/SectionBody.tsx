@@ -16,7 +16,7 @@ import { tripContext } from "./TripFrame";
 import { ShelfDecor, ShelfLamp } from "./StudyFrame";
 import { ComicMore } from "./ComicFrame";
 import { AwardMore } from "./AwardFrame";
-import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
+import { Pencil, ScrapMore } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
 import NoteCard from "./NoteCard";
 import WinCard, { shortUrl } from "./WinCard";
@@ -24,6 +24,7 @@ import TripCard from "./TripCard";
 import StudyCard from "./StudyCard";
 import ComicCard from "./ComicCard";
 import AwardCard from "./AwardCard";
+import ScrapCard from "./ScrapCard";
 import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
 export { Mood };
 import { FlyingBrain } from "./comicArt";
@@ -439,33 +440,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   // short thoughts as a comic: each entry is a panel its subsection picks, and a brain flies along and pops the one it reaches
   // life outside work: each entry is a page torn from a scrapbook, the one its subsection names, and a pencil travels along the row
   if (L === "scrapbook") {
-    const cells = items.map((it, i) => {
-      const l = lookFor(it);
-      const v = scrapView(it, { fallback: section.nav_label || section.title, hideDate: l.hide("date") });
-      const media = l.hide("pic") ? [] : it.media.filter((m) => m.type !== "audio").slice(0, v.look === "snaps" ? 3 : 1);
-      const pics = media.map((m, n) => <div key={n} className="ph has-pic"><Cover m={m} alt={n === 0 ? it.title : ""} style={n === 0 ? vt(it.id) : undefined} />{n === 0 && <MediaBadges media={it.media} />}</div>);
-      const style = v.tape ? ({ ...l.style, "--tape": v.tape } as React.CSSProperties) : l.style;
-      return (
-        <div key={it.id} className={`tkt-cell sb-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
-          <div className={`trip tkt sb on-${v.look}`} style={style}>
-            <ScrapFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} pics={pics} zoom={pics.length ? zoom(it) : null} fixedPic={"--pic" in (l.style ?? {})}>
-              <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-                <CardLink to={href(section, it)} label={it.title} />
-                <div className="tb">
-                  <h3>{it.title}</h3>
-                  {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
-                  {it.type === "poll" && <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />}
-                  {it.body.trim() && <Markdown className="md ex">{it.body}</Markdown>}
-                  <Meta it={{ ...it, date_label: v.dateInArt ? "" : it.date_label, location: v.placeInArt ? "" : it.location }} showCat={false} hideDate={l.hide("date")} showStatus />
-                  <LinkButtons it={it} />
-                  {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-                </div>
-              </Box>
-            </ScrapFrame>
-          </div>
-        </div>
-      );
-    });
+    const cells = items.map((it, i) => (
+      <ScrapCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} fallback={section.nav_label || section.title} href={href(section, it)}
+        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+    ));
     return row("grid3 tkt-row sb-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <ScrapMore />}{!grid && fx.scrapfx && <TicketRider className="sb-rider" count={items.length}><Pencil /></TicketRider>}</>);
   }
 

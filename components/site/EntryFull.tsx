@@ -76,6 +76,7 @@ export default function EntryFull({ item, section, settings, factNo, index, edit
     : card === "fact" ? `Fact file #${String(factNo).padStart(2, "0")}`
     : section.layout === "windows" ? winBand(card, item, section.slug)
     : trip ? `${trip.subsection} · ${trip.no}`
+    : section.layout === "scrapbook" ? `${item.category || section.title}${item.date_label ? ` · ${item.date_label}` : ""}`
     : section.layout === "awards" ? `${item.category || section.title} · ID ${String((index ?? 0) + 1).padStart(4, "0")}`
     : section.layout === "comic" ? `${item.category || section.title} · ${section.code || "G5"}-${String((index ?? 0) + 1).padStart(2, "0")}`
     : section.layout === "study" ? `${item.category || section.title} · ${studyView(item, { code: section.code, fallback: section.title, index: index ?? 0 }).no}`

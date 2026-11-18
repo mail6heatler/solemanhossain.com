@@ -1,5 +1,6 @@
 import { MOODS } from "@/lib/settings";
 import { EMPTY_SCRAP, SCRAP_DAYS, scrapLookOf, streakOf, type ScrapInfo } from "@/lib/scrapItem";
+import { noPart, type PartFn } from "./cardParts";
 
 /**
  * A Scrapbook pages entry: a page torn from a scrapbook, chosen by the dashboard's own words. A photo diary is a diary page with a taped photo and the
@@ -48,49 +49,50 @@ export const Pencil = () => (
   </svg>
 );
 
-export function ScrapFrame({ view: v, link, pics, zoom, fixedPic = false, children }:
-  { view: ScrapView; link?: React.ReactNode; pics: React.ReactNode[]; zoom?: React.ReactNode; fixedPic?: boolean; children: React.ReactNode }) {
+export function ScrapFrame({ view: v, link, pics, zoom, fixedPic = false, children, p = noPart }:
+  { view: ScrapView; link?: React.ReactNode; pics: React.ReactNode[]; zoom?: React.ReactNode; fixedPic?: boolean; children: React.ReactNode;
+    /** names each part for the dashboard's labels, and gives it the size the owner dragged it to */ p?: PartFn }) {
   const pic = pics[0];
   const ticked = SCRAP_DAYS.filter((_, i) => v.days.includes(i));
   return (
     <>
       <i className="sb-holes" aria-hidden="true" />
-      <div className={`sb-art sb-${v.look}${pic ? " has-pic" : ""}${fixedPic ? " fixed" : ""}`}>
+      <div className={`sb-art sb-${v.look}${pic ? " has-pic" : ""}${fixedPic ? " fixed" : ""}`} {...p("art")}>
         {link}
-        <span className="sb-lbl">{v.label}</span>
+        <span className="sb-lbl" {...p("sub")}>{v.label}</span>
 
         {v.look === "diary" && (
           <>
-            {v.date && <span className="sb-date">{v.date}</span>}
-            {pic ? <div className="sb-photo-wrap"><div className="sb-photo">{pic}</div><i className="sb-tape" /><Heart /></div> : <Heart />}
+            {v.date && <span className="sb-date" {...p("date")}>{v.date}</span>}
+            {pic ? <div className="sb-photo-wrap" {...p("pic")}><div className="sb-photo">{pic}</div><i className="sb-tape" /><Heart /></div> : <Heart />}
           </>
         )}
 
         {v.look === "lived" && (
           <>
-            <div className="sb-map">
+            <div className="sb-map" {...p("map")}>
               {pic && <div className="sb-snap">{pic}</div>}
               <i className="sb-pin" />
-              {v.place && <span className="sb-lbl sb-place">{v.place}</span>}
+              {v.place && <span className="sb-lbl sb-place" {...p("place")}>{v.place}</span>}
               <i className="sb-tape" />
             </div>
-            {v.date && <div className="sb-line"><span className="sb-when">{v.date}</span><House /></div>}
+            {v.date && <div className="sb-line"><span className="sb-when" {...p("date")}>{v.date}</span><House /></div>}
           </>
         )}
 
         {v.look === "ritual" && (
           <>
-            {pic && <div className="sb-stk">{pic}</div>}
-            {v.date && <span className="sb-when">{v.date}</span>}
-            <div className="sb-hab" role="img" aria-label={ticked.length ? `Done on ${ticked.join(", ")}` : "No days ticked yet"}>
+            {pic && <div className="sb-stk" {...p("pic")}>{pic}</div>}
+            {v.date && <span className="sb-when" {...p("date")}>{v.date}</span>}
+            <div {...p("days")} className="sb-hab" role="img" aria-label={ticked.length ? `Done on ${ticked.join(", ")}` : "No days ticked yet"}>
               {SCRAP_DAYS.map((d, i) => <span key={d} className={`sb-d${v.days.includes(i) ? " on" : ""}`} style={{ "--i": i } as React.CSSProperties}>{d.slice(0, 2)}<Tick /></span>)}
             </div>
-            {ticked.length > 0 && <div className="sb-line"><span className="sb-streak">{v.streak >= 2 ? `${v.streak} days in a row` : `${ticked.length} of 7 days`}</span><Sun /></div>}
+            {ticked.length > 0 && <div className="sb-line"><span className="sb-streak" {...p("streak")}>{v.streak >= 2 ? `${v.streak} days in a row` : `${ticked.length} of 7 days`}</span><Sun /></div>}
           </>
         )}
 
         {v.look === "snaps" && pics.length > 0 && (
-          <div className={`sb-pile n${Math.min(pics.length, 3)}`}>
+          <div className={`sb-pile n${Math.min(pics.length, 3)}`} {...p("pic")}>
             {pics.slice(0, 3).map((p, i) => <div key={i} className={`sb-pp p${i}`}>{p}</div>)}
             <Clip />
           </div>

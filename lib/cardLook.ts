@@ -6,6 +6,7 @@ import { cleanPartSizes, type PartSizes } from "./partSize";
 import { studyLookOf, type StudyInfo, type StudyLook } from "./studyItem";
 import { comicLookOf, comicPollOf, type ComicAnyLook, type ComicInfo } from "./comicItem";
 import { awardLookOf, type AwardInfo, type AwardLook } from "./awardItem";
+import { scrapLookOf, type ScrapInfo, type ScrapLook } from "./scrapItem";
 
 export const NOTE_LOOKS = [
   ["manual", "Instruction manual"],
@@ -71,7 +72,8 @@ export function winLookOf(subsection: string, chosen: CardInfo["look"] = ""): Wi
 }
 
 /** The card an entry is, for the section's layout: a window for Made (G2), a note otherwise. */
-export function cardLookOf(layout: string, it: { category: string; card: CardInfo; study?: StudyInfo; comic?: ComicInfo; award?: AwardInfo; mood?: string; date_label?: string; type?: string; poll_options?: string[]; media?: { type: string }[] }): NoteLook | WinLook | TripLook | StudyLook | ComicAnyLook | AwardLook {
+export function cardLookOf(layout: string, it: { category: string; card: CardInfo; study?: StudyInfo; comic?: ComicInfo; award?: AwardInfo; scrap?: ScrapInfo; mood?: string; date_label?: string; type?: string; poll_options?: string[]; media?: { type: string }[] }): NoteLook | WinLook | TripLook | StudyLook | ComicAnyLook | AwardLook | ScrapLook {
+  if (layout === "scrapbook") return scrapLookOf(it.category, it.scrap?.look ?? "");
   if (layout === "awards") return awardLookOf(it.category, it.mood ?? "", it.date_label ?? "", it.award);
   if (layout === "study") return studyLookOf(it.category, it.study?.look ?? "");
   if (layout === "comic") return it.type === "poll"

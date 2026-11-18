@@ -499,7 +499,7 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
     const now = await getSettings();
     await saveSettingsData({
       ribbonSize: cleanRibbonSize(raw.ribbonSize),
-      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, tripfx: typeof raw.tripfx === "boolean" ? raw.tripfx : now.effects.tripfx, studyfx: typeof raw.studyfx === "boolean" ? raw.studyfx : now.effects.studyfx, comicfx: typeof raw.comicfx === "boolean" ? raw.comicfx : now.effects.comicfx, awardfx: typeof raw.awardfx === "boolean" ? raw.awardfx : now.effects.awardfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
+      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, tripfx: typeof raw.tripfx === "boolean" ? raw.tripfx : now.effects.tripfx, studyfx: typeof raw.studyfx === "boolean" ? raw.studyfx : now.effects.studyfx, comicfx: typeof raw.comicfx === "boolean" ? raw.comicfx : now.effects.comicfx, awardfx: typeof raw.awardfx === "boolean" ? raw.awardfx : now.effects.awardfx, scrapfx: typeof raw.scrapfx === "boolean" ? raw.scrapfx : now.effects.scrapfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
     });
 
     const own = new Map((await query("SELECT id, type FROM items WHERE section_id=$1", [sectionId])).map((r) => [Number(r.id), String(r.type)]));
@@ -541,6 +541,7 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
       if (!isNew && type !== own.get(given)) await query("UPDATE items SET type=$1 WHERE id=$2", [type, id]);
       if (it.comic) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(it.comic)), id]);
       if (it.award) await query("UPDATE items SET award=$1 WHERE id=$2", [JSON.stringify(cleanAward(it.award)), id]);
+      if (it.scrap) await query("UPDATE items SET scrap=$1 WHERE id=$2", [JSON.stringify(cleanScrap(it.scrap)), id]);
       // a shelf entry's object, screen, kind and the line that stuck
       if (it.study) await query("UPDATE items SET study=$1 WHERE id=$2", [JSON.stringify(cleanStudy(it.study)), id]);
       // moved to another section: it goes to the front there, as a new entry would
