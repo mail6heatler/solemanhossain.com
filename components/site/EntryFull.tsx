@@ -2,6 +2,7 @@ import type { Item, Section } from "@/lib/data";
 import { MOODS, type SiteSettings } from "@/lib/settings";
 import { cardLookOf } from "@/lib/cardLook";
 import { fileName, shortUrl } from "./WinCard";
+import { PassCard, passView, TickList, tripContext } from "./TripFrame";
 import { fvBoxes, fvLook, fvOrder, type FvPart } from "@/lib/fullView";
 import Markdown from "./Markdown";
 import PollCard from "./PollCard";
@@ -16,9 +17,9 @@ export function fvPresent(it: Item, reactions: boolean, layout = "notes"): Recor
   return {
     pic: seen.length > 0,
     title: true,
-    facts: !!(it.date_label || it.location || it.status || MOODS[it.mood]) || cardLookOf(layout, it) === "fact",
+    facts: !!(it.date_label || it.location || it.status || MOODS[it.mood]) || cardLookOf(layout, it) === "fact" || cardLookOf(layout, it) === "ticket",
     quote: !!it.fv.quote,
-    story: !!it.body.trim() || (it.type === "poll" && it.poll_options.length > 0),
+    story: !!it.body.trim() || (it.type === "poll" && it.poll_options.length > 0) || (cardLookOf(layout, it) === "bucket" && it.pass.ticks.length > 0),
     gallery: seen.length > 1 || it.media.some((m) => m.type === "audio"),
     tags: it.tags.length > 0,
     buttons: it.links.length > 0,
@@ -47,13 +48,14 @@ function winBand(look: string, it: Item, slug: string) {
 }
 
 /**
- * A G1 or G2 entry opened up: its full view. The page is a grid of parts (picture, title, details, pull quote, story, more pictures, tags, buttons, reactions)
+ * A G1, G2 or G3 entry opened up: its full view. A trip's details are its whole boarding pass, and a bucket list's tick lines go with its story. The page is a grid of parts (picture, title, details, pull quote, story, more pictures, tags, buttons, reactions)
  * placed by its layout, or wherever the owner dragged them in the dashboard (lib/fullView.ts). Phones stack them in reading order.
  * The entry's own page draws it, and so does the dashboard's editor: with `edit` each part carries its name, nothing leads anywhere and `foot` stands in for the reaction bar.
  */
-export default function EntryFull({ item, section, settings, factNo, edit, foot }: { item: Item; section: Section; settings: SiteSettings; factNo: number; edit?: boolean; foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode }) {
+export default function EntryFull({ item, section, settings, factNo, index, edit, foot }: { item: Item; section: Section; settings: SiteSettings; factNo: number; /** a trip's place in its row, for its pass's number */ index?: number; edit?: boolean; foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode }) {
   const p: PartFn = partFn(edit, item.fv.parts);
   const card = cardLookOf(section.layout, item);
+  const trip = section.layout === "tickets" ? passView(item, { ...tripContext(settings, section), index: index ?? 0 }) : null;
   const mood = MOODS[item.mood];
   const seen = item.media.filter((m) => m.type !== "audio");
   const look = fvLook(item.fv, card, seen.length > 0);
@@ -70,6 +72,7 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
   const band = card === "manual" ? `User manual${item.date_label ? ` · v ${item.date_label}` : ""}`
     : card === "fact" ? `Fact file #${String(factNo).padStart(2, "0")}`
     : section.layout === "windows" ? winBand(card, item, section.slug)
+    : trip ? `${trip.subsection} · ${trip.no}`
     : item.category || section.title;
 
   const part = (k: FvPart): React.ReactNode => {
@@ -84,12 +87,14 @@ export default function EntryFull({ item, section, settings, factNo, edit, foot 
         <h1 {...p("title")}>{item.title}</h1>
         {item.subtitle && <p className="lead" {...p("subtitle")}>{item.subtitle}</p>}
       </>;
-      case "facts": return <dl className="fv-stamps">{facts.map(([k, v, key], i) => <div key={k} {...(key ? p(key, { "--t": i } as React.CSSProperties) : { style: { "--t": i } as React.CSSProperties })}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>;
+      case "facts": if (trip?.frame === "ticket") return <div {...p("passinfo")}><PassCard view={trip} /></div>;
+        return <dl className="fv-stamps">{facts.map(([k, v, key], i) => <div key={k} {...(key ? p(key, { "--t": i } as React.CSSProperties) : { style: { "--t": i } as React.CSSProperties })}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>;
       case "quote": return <blockquote className="fv-quote" {...p("quote")}><span>{item.fv.quote}</span></blockquote>;
       case "story": return <>
         {item.type === "poll" && (edit
           ? <div className="poll" {...p("poll")}>{item.poll_options.map((o, i) => <button key={i} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}<div className="poll-foot">Tap an option to vote and see results</div></div>
           : <PollCard id={item.id} options={item.poll_options} confetti={settings.effects.confetti} />)}
+        {trip?.frame === "bucket" && <TickList ticks={trip.ticks} attrs={p("ticks")} />}
         <Markdown className={card === "manual" ? "md mn-steps" : "md"} {...p("body")}>{item.body}</Markdown>
       </>;
       case "gallery": return <div {...p("gallery")}><FvShots media={item.media} title={item.title} mode="rest" still={edit} /></div>;

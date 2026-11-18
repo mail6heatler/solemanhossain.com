@@ -58,7 +58,7 @@ export default async function EntryPage({ params }: P) {
       ? (await getItems(section.id, { visibleOnly: true })).filter((x) => x.category === item.category).findIndex((x) => x.id === item.id) + 1 : 1;
     return (
       <SiteShell settings={settings} sections={sections} onHome={false}>
-        <EntryFull item={item} section={section} settings={settings} factNo={Math.max(1, factNo)} />
+        <EntryFull item={item} section={section} settings={settings} factNo={Math.max(1, factNo)} index={section.layout === "tickets" ? Math.max(0, (await getItems(section.id, { visibleOnly: true })).findIndex((x) => x.id === item.id)) : undefined} />
       </SiteShell>
     );
   }

@@ -373,7 +373,7 @@ export const LAYOUTS = [
 ] as const;
 
 /** Layouts whose dashboard page is the live editor (components/admin/studio). The others keep the older boxes until their turn. */
-export const hasStudio = (layout: string) => layout === "notes" || layout === "windows";
+export const hasStudio = (layout: string) => layout === "notes" || layout === "windows" || layout === "tickets";
 
 /** Layouts that hold the links, the hello form and the guest wall. */
 export const isConnectLayout = (layout: string) => layout === "connect" || layout === "chat";

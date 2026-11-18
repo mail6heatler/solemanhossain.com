@@ -11,8 +11,8 @@ import PicZoom from "./PicZoom";
 import FullView from "./FullView";
 import Dock from "./Dock";
 import TicketRider from "./TicketRider";
-import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
-import { frameFor, passView, tripContext, TripFrame, type FrameBody } from "./TripFrame";
+import { vehicleFor } from "./vehicles";
+import { tripContext } from "./TripFrame";
 import { ShelfDecor, ShelfLamp, StudyFrame, studyView, type StudyBody } from "./StudyFrame";
 import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
 import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
@@ -20,6 +20,7 @@ import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
 import NoteCard from "./NoteCard";
 import WinCard, { shortUrl } from "./WinCard";
+import TripCard from "./TripCard";
 import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
 export { Mood };
 import { FlyingBrain } from "./comicArt";
@@ -417,49 +418,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "tickets") {
     const trip = tripContext(settings, section);
     const kinds = items.map(vehicleFor);
-    const cells = items.map((it, i) => {
-      const l = lookFor(it);
-      const pic = it.media[0] && !l.hide("pic");
-      const next = isNextTrip(it);
-      const frame = frameFor(it.category);
-      const view = passView(it, { ...trip, index: i, hideDate: l.hide("date") });
-      const picture = pic
-        ? <div className="pic-box"><div className="ph has-pic"><Cover m={it.media[0]} style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>
-        : !l.hide("pic") && !it.media[0] ? <div className="tkt-art" aria-hidden><Vehicle kind={kinds[i]} /></div> : null;
-      const date = frame !== "ticket" && it.date_label && !l.hide("date"); // a pass shows its date at the top
-      const place = it.location && !l.hide("date");
-      const body: FrameBody = ({ above, showTitle, inText, list, stub }) => (
-        <Box foot={foot(it.id)} to={href(section, it)} label={it.title} stub={stub}>
-          <CardLink to={href(section, it)} label={it.title} />
-          {above}
-          <div className="tb">
-            {showTitle && <h3>{it.title}</h3>}
-            {inText}
-            {it.subtitle && !l.hide("subtitle") && <p className="sub">{it.subtitle}</p>}
-            {(date || place || it.mood) && (
-              <dl className="tkt-fields">
-                {date && <div><dt>Date</dt><dd>{it.date_label}</dd></div>}
-                {place && <div><dt>Place</dt><dd>{it.location}</dd></div>}
-                {it.mood && <div><dt>Mood</dt><dd><Mood mood={it.mood} /></dd></div>}
-              </dl>
-            )}
-            {list}
-            {it.type === "poll" ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} /> : <Markdown className="md ex">{it.body}</Markdown>}
-            <LinkButtons it={it} />
-            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-          </div>
-        </Box>
-      );
-      return (
-        <div key={it.id} className={`tkt-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${next ? " next" : ""}${!picture && view.stamp ? " tkt-nopic" : ""}${l.className}`} style={l.style}>
-          {!grid && <div className="tkt-stop" aria-hidden><i /></div>}
-          {/* the size and look settings go here too, because a frame's own picture size would otherwise win over the owner's */}
-          <div className={`trip tkt fr-${frame}${view.report || view.depart || view.journey ? " timed" : ""}${it.body.trim() ? " with-text" : ""}`} style={l.style}>
-            <TripFrame view={view} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} picture={picture} drawn={!pic} body={body} />
-          </div>
-        </div>
-      );
-    });
+    const cells = items.map((it, i) => (
+      <TripCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} trip={trip} href={href(section, it)} route={!grid} vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti}
+        foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+    ));
     return row("grid3 tkt-row", <>{cells}{!grid && fx.tripfx && <TicketRider kinds={kinds} />}</>);
   }
 

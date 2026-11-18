@@ -18,13 +18,21 @@ export const WIN_LOOKS = [
   ["console", "Pocket games console"],
   ["browser", "Browser window"],
 ] as const;
+export const TRIP_LOOKS = [
+  ["ticket", "Boarding pass"],
+  ["camera", "Camera"],
+  ["bucket", "Bucket-list note"],
+  ["polaroid", "Polaroid"],
+  ["postcard", "Postcard"],
+] as const;
 export type NoteLook = (typeof NOTE_LOOKS)[number][0];
+export type TripLook = (typeof TRIP_LOOKS)[number][0];
 export type WinLook = (typeof WIN_LOOKS)[number][0];
-export type CardInfo = { look: NoteLook | WinLook | ""; /** the size of each part the owner dragged in the live editor (lib/partSize.ts) */ parts?: PartSizes;
+export type CardInfo = { look: NoteLook | WinLook | TripLook | ""; /** the size of each part the owner dragged in the live editor (lib/partSize.ts) */ parts?: PartSizes;
   /** this card's own photo (the manual's photo, the story's face); without one the card uses the hero photo */ face?: string };
 export const EMPTY_CARD: CardInfo = { look: "" };
 
-const KEYS: string[] = [...NOTE_LOOKS.map(([k]) => k), ...WIN_LOOKS.map(([k]) => k)];
+const KEYS: string[] = [...NOTE_LOOKS.map(([k]) => k), ...WIN_LOOKS.map(([k]) => k), ...TRIP_LOOKS.map(([k]) => k)];
 
 export function cleanCard(raw: unknown): CardInfo {
   let o: Record<string, unknown> = {};
@@ -60,8 +68,19 @@ export function winLookOf(subsection: string, chosen: CardInfo["look"] = ""): Wi
 }
 
 /** The card an entry is, for the section's layout: a window for Made (G2), a note otherwise. */
-export function cardLookOf(layout: string, it: { category: string; card: CardInfo }): NoteLook | WinLook {
-  return layout === "windows" ? winLookOf(it.category, it.card.look) : noteLookOf(it.category, it.card.look);
+export function cardLookOf(layout: string, it: { category: string; card: CardInfo }): NoteLook | WinLook | TripLook {
+  return layout === "windows" ? winLookOf(it.category, it.card.look) : layout === "tickets" ? tripLookOf(it.category, it.card.look) : noteLookOf(it.category, it.card.look);
+}
+
+/** G3: a camera for quests, a note for the bucket list, a polaroid for "Through my eyes", a postcard for moments, and a boarding pass otherwise. */
+export function tripLookOf(subsection: string, chosen: CardInfo["look"] = ""): TripLook {
+  if (chosen && TRIP_LOOKS.some(([k]) => k === chosen)) return chosen as TripLook;
+  const s = subsection.toLowerCase();
+  if (/\b(quests?|missions?|challenges?)\b/.test(s)) return "camera";
+  if (/\b(buckets?|dreams?|wish(es)?|someday)\b/.test(s)) return "bucket";
+  if (/\b(eyes?|photos?|snapshots?|lens)\b/.test(s)) return "polaroid";
+  if (/\b(moments?|wander\w*|postcards?|memor(y|ies))\b/.test(s)) return "postcard";
+  return "ticket";
 }
 
 /** A quest's progress from its Status: done fills the bar, anything under way half of it, nothing an empty one. */

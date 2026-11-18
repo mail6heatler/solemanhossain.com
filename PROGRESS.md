@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: Adventures (G3) gets the live editor (G2 kept)
+
+The owner kept G2 and said "go" for G3 (no helpers, live tracker https://claude.ai/artifact/KNdLFuST6rosevqRXJBCWQ). Restore point `before-g3-studio`. G3's dashboard page is the same editor, drawing the real frames (`TripCard`, moved out of `SectionBody`): every part of the pass, camera, bucket-list note, polaroid and postcard has a label and moves and sizes; Pass details, Tick lines, Vehicle and the stamp's words open from the labels; Looks like chooses a frame by hand. Trips open as the new full view with their pass. Not tested beyond the build (no-extra-checks); waiting for keep or undo.
+
 ### 2026-11-18: Made (G2) gets the live editor
 
 The owner said "go" for G2 (no helpers, with a live tracker page: https://claude.ai/artifact/DiZFYesGwXkQJBm7KaaZNc). Restore point `before-g2-studio`. G2's dashboard page is now the same Workbench + Spotlight editor as G1, drawing the real window (`WinCard`, moved out of `SectionBody`): every part of every app window has a label, short words are typed onto it, and every box (title bar, address bar, picture, code view, spreadsheet, terminal, folders, sticky notes, console screen, name plate, buttons, reaction bar, comment box, Full view button) moves and sizes like G1's. New: a Dock icon per project. Made entries now open as the new full view, keeping a window look. Not tested beyond the build, per the owner's no-extra-checks rule; waiting for keep or undo.

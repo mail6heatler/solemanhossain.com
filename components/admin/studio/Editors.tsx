@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/lib/data";
-import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, hasStudio } from "@/lib/settings";
-import { NOTE_LOOKS, WIN_LOOKS, noteLookOf, winLookOf } from "@/lib/cardLook";
+import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, TRIP_STATUSES, hasStudio } from "@/lib/settings";
+import { NOTE_LOOKS, TRIP_LOOKS, WIN_LOOKS, noteLookOf, tripLookOf, winLookOf } from "@/lib/cardLook";
+import { MAX_TICKS, TRIP_VEHICLES, type TickLine } from "@/lib/tripPass";
+import { codeFor, tripContext } from "@/components/site/TripFrame";
 import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import { FV_BGS, FV_COLS, FV_LAYOUTS, FV_OPENS, FV_PARTS, FV_QUOTE_MAX, FV_ROW, FV_ZOOM, fvLook, type FvBox, type FvPart } from "@/lib/fullView";
@@ -24,6 +26,11 @@ const NOTE_HINTS: Record<string, string> = {
   notes: "A notes app: its tags are the folders, and the first three lines of its text are sticky notes. The rest is the note.",
   console: "A pocket games console. The bar fills from its Status: empty when new, half while under way, full when done. Its first web link is ▶ Play.",
   browser: "A browser window, with its first web link in the address bar. Without a picture, its details are written as code.",
+  ticket: "A real boarding pass: its route, codes, passenger, seat and times come from Pass details (empty boxes are worked out), its Status is the stamp, and the stub has a barcode.",
+  camera: "A camera: the picture is on its screen, the subsection is the camera's name, and Status is the stamp.",
+  bucket: "A page from a notepad: the box beside the title ticks itself when Status says Visited or Done, and Tick lines each get their own box.",
+  polaroid: "A taped polaroid: the picture is the photo, the title is written under it, and Status is the stamp.",
+  postcard: "A postcard saying “Greetings from” the title, with the vehicle as its postage stamp and the Date as its postmark.",
 };
 
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
@@ -32,6 +39,7 @@ const NAMES: Record<string, string> = {
   links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
+  route: "Route", passinfo: "Pass details", times: "Times", stub: "Stub & barcode", ticks: "Tick lines", passname: "Name on the pass", pass: "Pass details", vehicle: "Vehicle",
   url: "Address bar", codeview: "Code view", sheet: "Spreadsheet", term: "Terminal", board: "Sticky notes", screen: "Screen", brand: "Name plate", controls: "Buttons",
 };
 const BY_LOOK: Record<string, Record<string, string>> = {
@@ -45,6 +53,11 @@ const BY_LOOK: Record<string, Record<string, string>> = {
   notes: { sub: "Window name", band: "Title bar", tags: "Folders", body: "Notes", face: "Dock icon" },
   console: { title: "Game title", status: "Quest progress", face: "Dock icon" },
   browser: { sub: "Window name", band: "Title bar", face: "Dock icon" },
+  ticket: { sub: "Carrier", band: "Pass band", title: "Destination", status: "Stamp", art: "Vehicle" },
+  camera: { sub: "Camera name", band: "Camera top", status: "Stamp", art: "Vehicle" },
+  bucket: { band: "Note top", art: "Bucket", status: "Stamp" },
+  polaroid: { sticker: "Tape", status: "Stamp", art: "Vehicle" },
+  postcard: { band: "Postcard top", title: "Greetings from", art: "Postage stamp", date: "Postmark", status: "Stamp" },
 };
 export const partName = (key: string, look: string) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look]?.[key] ?? NAMES[key] ?? key);
 export const SEC_NAMES: Record<string, string> = {
@@ -72,9 +85,9 @@ export type Ed = {
   setFvPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
-const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls"];
+const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
-const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status" };
+const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -160,10 +173,12 @@ function FaceField({ ed }: { ed: Ed }) {
 }
 
 /** One box of a card or of the full view, opened from its label: what it says, then its size and place. */
-export function CardEditor({ ed, k, where = "card" }: { ed: Ed; k: string; where?: "card" | "fv" }) {
+export function CardEditor({ ed, k: asked, where = "card" }: { ed: Ed; k: string; where?: "card" | "fv" }) {
+  // on a trip, the drawn vehicle and the postage stamp are the Vehicle, which can be chosen
+  const k = ed.kind === "tickets" && asked === "art" && ed.card !== "bucket" ? "vehicle" : asked;
   return <>
     {k === "face" && where === "card" && ed.item ? <FaceField ed={ed} /> : DESIGN.includes(k) ? <p className="hint" style={{ margin: 0 }}>This box is part of the {where === "fv" ? "full view's" : "card's"} own design: there&apos;s nothing to type in it, but you can size it and move it anywhere.</p> : <CardFields ed={ed} k={ALIAS[k] ?? k} />}
-    {ed.item && (SIZED_PARTS as readonly string[]).includes(k) && <PartSizeFields ed={ed} k={k} where={where} />}
+    {ed.item && (SIZED_PARTS as readonly string[]).includes(asked) && <PartSizeFields ed={ed} k={asked} where={where} />}
   </>;
 }
 
@@ -178,8 +193,8 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   switch (k) {
     case "sub": {
-      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : NOTE_LOOKS;
-      const auto = looks.find(([key]) => key === (ed.kind === "windows" ? winLookOf(it.category) : noteLookOf(it.category)))?.[1] ?? "";
+      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : NOTE_LOOKS;
+      const auto = looks.find(([key]) => key === (ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : noteLookOf(it.category)))?.[1] ?? "";
       return <>
         <Txt label="Subsection" value={it.category} placeholder="Pick one below, or type a new one" onChange={(v) => ed.setItem({ category: v.replace(/,/g, " ") }, "category")} />
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
@@ -207,7 +222,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
     case "place": return <Txt label={name("place")} value={it.location} focus placeholder="Dhaka, Bangladesh" max={160} onChange={(v) => ed.setItem({ location: v }, "place")} />;
     case "status": return <>
       <Txt label={name("status")} value={it.status} focus placeholder={ed.card === "fact" ? "Rare" : "Reading, Done, In progress…"} max={60} onChange={(v) => ed.setItem({ status: v }, "status")} />
-      <Pills options={ed.card === "fact" ? ["Common", "Rare", "Epic", "Legendary"] : ed.kind === "windows" ? ["Live", "In progress", "Done", "Planned"] : ["Now", "Done", "In progress", "Planned"]} value={it.status} onPick={(v) => ed.setItem({ status: v })} />
+      <Pills options={ed.card === "fact" ? ["Common", "Rare", "Epic", "Legendary"] : ed.kind === "windows" ? ["Live", "In progress", "Done", "Planned"] : ed.kind === "tickets" ? [...TRIP_STATUSES] : ["Now", "Done", "In progress", "Planned"]} value={it.status} onPick={(v) => ed.setItem({ status: v })} />
     </>;
     case "mood": return (
       <div className="fl stu-f">
@@ -283,9 +298,64 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
         <span className="hint">{it.type === "poll" ? "This card is a poll." : "This card is a post."}{it.id > 0 ? "" : " It's new: it goes on the site when you save."}</span>
       </>;
     }
+    case "pass": return <PassFields ed={ed} />;
+    case "ticks": return <TickFields ed={ed} />;
+    case "vehicle": {
+      const p = it.pass;
+      return (
+        <div className="fl stu-f">
+          <label className="lab" htmlFor="stu-veh">Vehicle</label>
+          <select id="stu-veh" value={p.vehicle} onChange={(e) => ed.setItem({ pass: { ...p, vehicle: e.target.value as typeof p.vehicle } })}>
+            <option value="">Automatic, from its words and tags</option>
+            {TRIP_VEHICLES.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+          </select>
+          <span className="hint">It travels the route above the row, and is drawn on the frame, on the pass and as the postcard's stamp.</span>
+        </div>
+      );
+    }
     case "quote": return <Txt label="Pull quote (only in the full view)" area focus value={it.fv.quote} max={FV_QUOTE_MAX} placeholder="One line you want to stand out" onChange={(v) => ed.setItem({ fv: { ...it.fv, quote: v } }, "quote")} hint="Leave it empty and the full view has no pull quote." />;
   }
   return <p className="hint">Nothing to change here.</p>;
+}
+
+/** What a boarding pass says. An empty box is worked out, and its grey words show what it would say. */
+function PassFields({ ed }: { ed: Ed }) {
+  const it = ed.item!, p = it.pass;
+  const c = tripContext(ed.data.settings, ed.draft.section);
+  const set = (k: keyof typeof p, v: string) => ed.setItem({ pass: { ...p, [k]: v } }, `pass-${k}`);
+  // a plain function, not a component, so a box keeps its focus while it's typed in
+  const F = (k: "from" | "fromCode" | "to" | "toCode" | "report" | "depart" | "journey" | "seat" | "flight" | "passenger" | "name", label: string, ph: string, max = 60) => (
+    <Txt key={k} label={label} value={p[k]} placeholder={ph} max={max} onChange={(v) => set(k, k.endsWith("Code") ? v.toUpperCase() : v)} />
+  );
+  const vehicleName = TRIP_VEHICLES.find(([v]) => v === p.vehicle)?.[2] ?? "Boarding pass";
+  return <>
+    <span className="hint">Leave a box empty and it&apos;s worked out for you. These show on the boarding pass{ed.card === "ticket" ? "" : " (this trip's frame isn't a pass right now, but its full view and stub use them)"}.</span>
+    <div className="f2">{F("from", "From", c.home)}{F("fromCode", "Its code", codeFor(p.from || c.home), 4)}</div>
+    <div className="f2">{F("to", "To", it.title)}{F("toCode", "Its code", codeFor(p.to || it.location || it.title), 4)}</div>
+    <div className="f3">{F("report", "Reporting", "9:30 AM", 30)}{F("depart", "Departure", "10:15 AM", 30)}{F("journey", "Journey", "8 hours", 30)}</div>
+    <div className="f3">{F("seat", "Seat", "Automatic", 12)}{F("flight", "Flight or trip no.", "Automatic", 16)}{F("passenger", "Passenger", c.passenger)}</div>
+    {F("name", "Name on the pass", vehicleName, 30)}
+  </>;
+}
+
+/** A bucket list's tick lines: each gets its own box on the note. */
+function TickFields({ ed }: { ed: Ed }) {
+  const it = ed.item!, p = it.pass;
+  const put = (ticks: TickLine[], tag?: string) => ed.setItem({ pass: { ...p, ticks } }, tag);
+  return (
+    <div className="fl stu-f">
+      <span className="lab">Tick lines</span>
+      {p.ticks.map((t, i) => (
+        <div className="trip-tick" key={i}>
+          <input type="checkbox" checked={t.done} aria-label={`Line ${i + 1} is done`} onChange={(e) => put(p.ticks.map((x, n) => (n === i ? { ...x, done: e.target.checked } : x)))} />
+          <input className="inp" value={t.text} maxLength={120} aria-label={`Line ${i + 1}`} placeholder="Save the money" onChange={(e) => put(p.ticks.map((x, n) => (n === i ? { ...x, text: e.target.value } : x)), `tick-${i}`)} />
+          <button type="button" className="b-out b-sm" aria-label={`Remove line ${i + 1}`} onClick={() => put(p.ticks.filter((_, n) => n !== i))}><i className="ti ti-x" /></button>
+        </div>
+      ))}
+      <div><button type="button" className="b-out b-sm" disabled={p.ticks.length >= MAX_TICKS} onClick={() => put([...p.ticks, { text: "New line", done: false }])}><i className="ti ti-plus" />Add a line</button></div>
+      <span className="hint">They show on the bucket-list note and in its full view. The box beside the title ticks itself when Status is Visited or Done.{ed.card !== "bucket" ? " This trip isn't a bucket-list note right now." : ""}</span>
+    </div>
+  );
 }
 
 /** The full view's own choices: nothing here shows on the card. `k` is "fv", or "fvb:" and a part for one part's options. */
@@ -371,7 +441,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
             </div>
           ))}
           <div><button type="button" className="b-out b-sm" onClick={() => ed.setSection({ categories: [...s.categories, "New subsection"] })}><i className="ti ti-plus" />Add a subsection</button></div>
-          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "windows"
+          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "tickets"
+            ? "Its name picks its trips' frame: quests a camera; bucket lists (or dreams, someday) a note with ticks; “Through my eyes” (or photos) a polaroid; moments (or postcards, memories) a postcard; and anything else a boarding pass. Each trip can choose another under Looks like."
+            : ed.kind === "windows"
             ? "Its name picks its windows' app: data (or analysis, dashboards, Excel) a spreadsheet; code (or problems, programs, apps) a code editor; brain dumps (or ideas, notes) a notes app; side quests (or fun, games, hobbies) a games console; and anything else a browser window."
             : "Its name picks its cards' look: the unfiltered manual (or about, bio, who) an instruction manual; beliefs or values a protest sign; currently obsessed with (or now, playing, watching, reading) a story; random facts a collectible card; and anything else a plain note."}</span>
         </div>
@@ -394,7 +466,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
       {G({ k: "motion", children: (
         <div className="fl stu-f"><span className="lab">{SEC_NAMES.motion} (for the whole site)</span>
           <div className="stu-switches">
-            {ed.kind === "windows"
+            {ed.kind === "tickets"
+              ? <Sw label="Trips come alive" hint="The vehicle travels the route and each frame wakes as it arrives: the camera records, the bucket's handle swings, the stamp lands." on={draft.tripfx} onChange={(tripfx) => ed.setDraft((d) => ({ ...d, tripfx }))} />
+              : ed.kind === "windows"
               ? <Sw label="Windows come alive" hint="Windows pop open as they arrive, their apps start up and the dock swells and bounces." on={draft.windowfx} onChange={(windowfx) => ed.setDraft((d) => ({ ...d, windowfx }))} />
               : <Sw label="Cards come alive" hint="The manual opens, the sign waves, the story's bars run, light sweeps a collectible card." on={draft.notefx} onChange={(notefx) => ed.setDraft((d) => ({ ...d, notefx }))} />}
             <Sw label="Full views arrive piece by piece" hint="An opened card's parts unfold, rise or zoom in, and its detail cards straighten when pointed at." on={draft.fullfx} onChange={(fullfx) => ed.setDraft((d) => ({ ...d, fullfx }))} />

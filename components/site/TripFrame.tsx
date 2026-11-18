@@ -1,5 +1,7 @@
 import { EMPTY_PASS, TRIP_VEHICLES, type TickLine, type TripPass } from "@/lib/tripPass";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
+import { tripLookOf, type CardInfo } from "@/lib/cardLook";
+import { noPart, type PartFn } from "./cardParts";
 
 /**
  * What a Boarding passes entry looks like, chosen by the dashboard's own words: the entry's Subsection picks its frame, its Status is the
@@ -8,14 +10,9 @@ import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
  */
 export type FrameKind = "ticket" | "camera" | "bucket" | "polaroid" | "postcard";
 
-/** Goes by the words in the subsection's name, so "My bucket" still gets the bucket list's note. A new subsection gets the ticket unless its name says otherwise. */
-export function frameFor(subsection: string): FrameKind {
-  const s = subsection.toLowerCase();
-  if (/\b(quests?|missions?|challenges?)\b/.test(s)) return "camera";
-  if (/\b(buckets?|dreams?|wish(es)?|someday)\b/.test(s)) return "bucket";
-  if (/\b(eyes?|photos?|snapshots?|lens)\b/.test(s)) return "polaroid";
-  if (/\b(moments?|wander\w*|postcards?|memor(y|ies))\b/.test(s)) return "postcard";
-  return "ticket";
+/** Goes by the words in the subsection's name, so "My bucket" still gets the bucket list's note, unless the owner chose a frame (items.card.look). */
+export function frameFor(subsection: string, chosen: CardInfo["look"] = ""): FrameKind {
+  return tripLookOf(subsection, chosen);
 }
 
 /** The start of a place's name in capitals, skipping little words. Empty for a name in a script without capitals, which then shows on its own. */
@@ -25,7 +22,7 @@ export function codeFor(name: string) {
   return letters.length >= 2 ? letters.slice(0, 3).toUpperCase() : "";
 }
 
-type TripEntry = { category: string; status: string; title: string; subtitle: string; location: string; date_label: string; tags: string[]; pass: TripPass };
+type TripEntry = { category: string; status: string; title: string; subtitle: string; location: string; date_label: string; tags: string[]; pass: TripPass; card?: CardInfo };
 
 /** The owner's Status; without one, the entry's words and date decide. Without a date, nothing claims a trip was made. */
 export const stampFor = (it: TripEntry, frame: FrameKind) =>
@@ -44,7 +41,7 @@ export type PassView = ReturnType<typeof passView>;
 /** Everything the frames show for one entry. Each field on a pass is what the owner typed, or otherwise what can be worked out. */
 export function passView(it: TripEntry, c: ReturnType<typeof tripContext> & { index: number; hideDate?: boolean }) {
   const p = it.pass ?? EMPTY_PASS;
-  const frame = frameFor(it.category);
+  const frame = frameFor(it.category, it.card?.look);
   const kind = vehicleFor(it);
   const order = String(Math.max(c.index, 0) + 1).padStart(2, "0");
   const no = `${c.code}-${order}`;
@@ -76,37 +73,37 @@ export function passView(it: TripEntry, c: ReturnType<typeof tripContext> & { in
 }
 
 /** The top of a boarding pass: coloured band, big codes, and the details. */
-export function PassHead({ view: v, link }: { view: PassView; link?: React.ReactNode }) {
+export function PassHead({ view: v, link, p = noPart }: { view: PassView; link?: React.ReactNode; p?: PartFn }) {
   const times = ([["Reporting", v.report], ["Departure", v.depart], ["Journey", v.journey]] as const).filter(([, t]) => t);
   return (
     <div className="tkt-head">
       {link}
-      <div className="tkt-band">
-        <span className="tkt-carrier"><Vehicle kind={v.kind} className="tkt-ink" /><span>{v.subsection}</span></span>
-        <span className="tkt-kind">{v.name}</span>
+      <div className="tkt-band" {...p("band")}>
+        <span className="tkt-carrier"><Vehicle kind={v.kind} className="tkt-ink" /><span {...p("sub")}>{v.subsection}</span></span>
+        <span className="tkt-kind" {...p("passname")}>{v.name}</span>
       </div>
-      <div className="tkt-route">
+      <div className="tkt-route" {...p("route")}>
         <div className={`tkt-end${v.fromCode ? "" : " nocode"}`}>{v.fromCode && <b>{v.fromCode}</b>}<span>{v.from}</span></div>
         <div className="tkt-path" aria-hidden><Vehicle kind={v.kind} /></div>
-        <div className={`tkt-end to${v.toCode ? "" : " nocode"}`}>{v.toCode && <b>{v.toCode}</b>}{v.toIsTitle ? <h3>{v.to}</h3> : <span>{v.to}</span>}</div>
+        <div className={`tkt-end to${v.toCode ? "" : " nocode"}`}>{v.toCode && <b>{v.toCode}</b>}{v.toIsTitle ? <h3 {...p("title")}>{v.to}</h3> : <span>{v.to}</span>}</div>
       </div>
-      <dl className="tkt-grid">
+      <dl className="tkt-grid" {...p("passinfo")}>
         <div><dt>Passenger</dt><dd>{v.passenger}</dd></div>
         <div><dt>{v.numberLabel}</dt><dd className="m">{v.number}</dd></div>
-        {v.passDate && <div><dt>Date</dt><dd>{v.passDate}</dd></div>}
+        {v.passDate && <div {...p("date")}><dt>Date</dt><dd>{v.passDate}</dd></div>}
         <div><dt>Seat</dt><dd className="m">{v.seat}</dd></div>
       </dl>
-      {times.length > 0 && <dl className="tkt-grid tkt-times">{times.map(([label, time]) => <div key={label}><dt>{label}</dt><dd>{time}</dd></div>)}</dl>}
+      {times.length > 0 && <dl className="tkt-grid tkt-times" {...p("times")}>{times.map(([label, time]) => <div key={label}><dt>{label}</dt><dd>{time}</dd></div>)}</dl>}
     </div>
   );
 }
 
 /** The bottom of a boarding pass: the tear line with a punched cut at each side, and the stub with its barcode. */
-export function PassStub({ view: v, link }: { view: PassView; link?: React.ReactNode }) {
+export function PassStub({ view: v, link, p = noPart }: { view: PassView; link?: React.ReactNode; p?: PartFn }) {
   return (
     <>
       <div className="tkt-tear" aria-hidden />
-      <div className="tkt-stub">
+      <div className="tkt-stub" {...p("stub")}>
         {link}
         <i className="tkt-bars" style={{ "--bx": `${v.bars}px` } as React.CSSProperties} aria-hidden />
         <i className="tkt-scan" aria-hidden />
@@ -127,14 +124,14 @@ const Box = ({ on }: { on: boolean }) => (
   </span>
 );
 
-export function TickList({ ticks }: { ticks: TickLine[] }) {
+export function TickList({ ticks, attrs }: { ticks: TickLine[]; attrs?: React.HTMLAttributes<HTMLElement> }) {
   if (!ticks.length) return null;
-  return <ul className="bkl-ticks">{ticks.map((t, i) => <li key={i}><Box on={t.done} /><span>{t.text}</span></li>)}</ul>;
+  return <ul className="bkl-ticks" {...attrs}>{ticks.map((t, i) => <li key={i}><Box on={t.done} /><span>{t.text}</span></li>)}</ul>;
 }
 
 /** A little original bucket. The handle is its own layer, because only a whole <svg> moves without redrawing. */
-const Pail = () => (
-  <span className="bkl-pail" aria-hidden>
+const Pail = ({ p }: { p: PartFn }) => (
+  <span className="bkl-pail" aria-hidden {...p("art")}>
     <span className="bkl-handle"><svg viewBox="0 0 80 86"><path d="M13 36C13 2 67 2 67 36" /></svg></span>
     <svg viewBox="0 0 80 86">
       <rect className="bkl-paper" x="33" y="9" width="20" height="30" rx="2" transform="rotate(8 43 24)" />
@@ -160,7 +157,7 @@ export type FrameBody = (parts: {
   stub?: React.ReactNode;
 }) => React.ReactNode;
 
-export function TripFrame({ view: v, link, picture, drawn, body }: {
+export function TripFrame({ view: v, link, picture, drawn, body, p = noPart }: {
   view: PassView;
   /** The entry's link over the parts that don't scroll. */
   link?: React.ReactNode;
@@ -168,21 +165,23 @@ export function TripFrame({ view: v, link, picture, drawn, body }: {
   /** `picture` is the drawn vehicle, not the owner's photo. */
   drawn: boolean;
   body: FrameBody;
+  /** names each part for the dashboard's labels, and gives it the size the owner dragged it to */
+  p?: PartFn;
 }) {
-  const stamp = v.stamp ? <span className="tkt-stamp">{v.stamp}</span> : null;
+  const stamp = v.stamp ? <span className="tkt-stamp" {...p("status")}>{v.stamp}</span> : null;
   if (v.frame === "camera") return (
     <>
-      <div className="cam-top">
+      <div className="cam-top" {...p("band")}>
         {link}
         <span className="cam-lens" aria-hidden />
-        <span className="cam-name">{v.subsection}</span>
+        <span className="cam-name" {...p("sub")}>{v.subsection}</span>
         <span className="tkt-no">{v.no}</span>
         <span className="cam-shutter" aria-hidden />
       </div>
       {body({
         showTitle: true,
         above: picture && (
-          <div className={`cam-screen${drawn ? " drawn" : ""}`}>
+          <div className={`cam-screen${drawn ? " drawn" : ""}`} {...p("screen")}>
             {picture}
             <span className="cam-focus" aria-hidden />
             <span className="cam-rec" aria-hidden><i />REC</span>
@@ -197,34 +196,34 @@ export function TripFrame({ view: v, link, picture, drawn, body }: {
     <>
       <span className="bkl-margin" aria-hidden />
       <span className="bkl-rings" aria-hidden />
-      <Pail />
-      <div className="bkl-head">
+      <Pail p={p} />
+      <div className="bkl-head" {...p("band")}>
         {link}
-        <div className="bkl-sub"><span>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
-        <div className="bkl-title"><Box on={v.done} /><h3>{v.title}</h3></div>
+        <div className="bkl-sub"><span {...p("sub")}>{v.subsection}</span><span className="tkt-no">{v.no}</span></div>
+        <div className="bkl-title"><Box on={v.done} /><h3 {...p("title")}>{v.title}</h3></div>
       </div>
       {body({
         above: picture && !drawn ? <div className="bkl-photo"><span className="bkl-tape" aria-hidden />{picture}</div> : null,
         inText: stamp && <p className="bkl-stamp">{stamp}</p>,
-        list: <TickList ticks={v.ticks} />,
+        list: <TickList ticks={v.ticks} attrs={p("ticks")} />,
       })}
     </>
   );
   if (v.frame === "polaroid") return (
     <>
-      <span className="pol-tape" aria-hidden />
+      <span className="pol-tape" aria-hidden {...p("sticker")} />
       {body({ above: picture, showTitle: true })}
       {stamp}
     </>
   );
   if (v.frame === "postcard") return (
     <>
-      <div className="pc-head">
+      <div className="pc-head" {...p("band")}>
         {link}
         <span className="pc-air" aria-hidden />
-        <div className="pc-greet"><small>Greetings from</small><h3>{v.title}</h3></div>
-        <span className="pc-stamp" aria-hidden><Vehicle kind={v.kind} /></span>
-        {v.date && <span className="pc-mark" aria-hidden>{v.date}</span>}
+        <div className="pc-greet"><small>Greetings from</small><h3 {...p("title")}>{v.title}</h3></div>
+        <span className="pc-stamp" aria-hidden {...p("art")}><Vehicle kind={v.kind} /></span>
+        {v.date && <span className="pc-mark" aria-hidden {...p("date")}>{v.date}</span>}
       </div>
       {body({ above: picture })}
       {stamp}
@@ -232,8 +231,8 @@ export function TripFrame({ view: v, link, picture, drawn, body }: {
   );
   return (
     <>
-      <PassHead view={v} link={link} />
-      {body({ above: <>{picture}{stamp}</>, showTitle: !v.toIsTitle, stub: <PassStub view={v} link={link} /> })}
+      <PassHead view={v} link={link} p={p} />
+      {body({ above: <>{picture}{stamp}</>, showTitle: !v.toIsTitle, stub: <PassStub view={v} link={link} p={p} /> })}
     </>
   );
 }
