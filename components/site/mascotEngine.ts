@@ -104,7 +104,8 @@ export function startMascot(host: HTMLElement, v: MascotView): () => void {
   }
   const gapMs = () => v.gap * 1000 * rnd(0.8, 1.25);
   const navBottom = () => { const n = document.querySelector(".site .nav"); return n ? Math.max(0, n.getBoundingClientRect().bottom) : 0; };
-  const barTop = () => { const b = document.querySelector(".site .bbar") as HTMLElement | null; return b && b.offsetParent !== null ? b.getBoundingClientRect().top : window.innerHeight; };
+  // the phone's bottom bar is fixed, so offsetParent is always null: ask whether it has a size
+  const barTop = () => { const b = document.querySelector(".site .bbar"); const r = b?.getBoundingClientRect(); return r && r.height > 0 && r.top < window.innerHeight ? r.top : window.innerHeight; };
   const move = (transform: string, ms = 0, ease = "cubic-bezier(.3,1.4,.5,1)") => {
     M.style.transition = ms ? `transform ${ms}ms ${ease}` : "none";
     if (!ms) { M.style.transform = transform; void M.offsetWidth; } else M.style.transform = transform;
