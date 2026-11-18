@@ -95,6 +95,8 @@ components/site/
   Split.tsx                server-rendered split text: <Split> for letters, <Words> for words
   Intro.tsx                opening curtain (CSS only)
   HeroFx.tsx               decoding/kinetic headline, avatar tilt, greeting, live counter
+  HeroView.tsx             the hero in any of its six looks (lib/heroLook.ts); the homepage and the hero's live editor both draw it; heroStats picks its numbers
+  RotatingHeadline.tsx     headlines that take turns on the hero
   SideRow.tsx              the homepage's row of cards: never wraps; if it doesn't fit it glides by itself, with arrows and a small counter (see "Rows that don't fit")
   scrollBoxes.ts           cards that scroll inside themselves: the "more" hint and the wheel (text first, then page)
   ThemeSwitch.tsx          theme menu, shuffle, circular theme wipe
@@ -192,6 +194,15 @@ The owner wants each section to look like what it holds, one section at a time (
 
 **Sound on entries.** `Media.type` can be `"audio"`. `MediaField` only takes it with `allowAudio`, which only a Study shelf entry's page passes. `parseMedia` always sorts sound last, so `media[0]` stays a picture wherever there is one, and it never gets the Cover badge. `Cover` draws a tile if sound is all an entry has, `PicZoom` leaves it out, and the entry's page shows it with the browser's own player (`EntryGallery`). `TvPlay` only fetches it when Play is pressed. Only one thing plays on the page at a time. Headless Chrome plays it fine after a real click, so a test can check `.tv-time` and `.tv-fill` move.
 
+## The hero's live editor (G0, 2026-11-18)
+
+The owner said "go" for the hero with "extra more features", after a preview of looks (https://claude.ai/artifact/DdTYraXwmA1gtD4kFSgSuh). `/admin/hero` is `components/admin/studio/HeroStudio.tsx`: the real hero (`HeroView` with `edit`) on the left inside `Surface`, with labels on every piece (`head`, `subtitle`, `status`, `mood`, `live`, `roles`, `now`, `clock`, `greeting`, `stats`, `buttons`, `photo`, `skills`, `cue`, `mast`, `lines`, `band`), typing onto the subtitle, status, now line and scroll hint, and every piece movable and resizable (`heroDesign.parts`); the controls on the right hold everything the older page had, and Save goes through `saveHeroStudio`.
+
+- **`settings.heroDesign`** (`lib/heroLook.ts`): `look` (hang, magazine, profile, terminal, poster, lights), `phoneLook` (another look for phones: both are drawn, `.hl-desk` and `.hl-phone` swap at 760px, and `scrollFx` animates the `.hero-inner` that has a box), `bg` (own, aurora, dots, blur, plain), `hide` (pieces turned off), `rotate` + `rotateOn` (headlines that take turns, `RotatingHeadline`), `stats` (chosen section slugs and "reactions", in order; empty picks them as before), `buttons` (up to 6 after Résumé and the second one), `mast`, `presents`, `prompt`, `shape` (the photo's crop), `parts`.
+- **"hang" is the hero as it always was** and the default, so nothing changed for visitors until the owner picks another look.
+- **Looks are in `app/heroLooks.css`.** The magazine and profile card follow the theme (the card renames the hero tokens to the card's); the boot screen, poster and lights are materials, the same in every theme, with their ground set on `#hero` by `.hl-is-*` (and `.hlp-is-*` on phones). `#hero` is a size container, so the new looks' narrow layouts use `@container hero` and the editor's Phone preview shows them; the hanging look's phone layout still uses media queries, so the editor can't show it.
+- A full-bleed piece (the magazine's photo) sits outside `.hero-inner`, because the scroll effect transforms `.hero-inner`, which would become its containing block.
+
 ## The live editor (G1 to G7)
 
 **G7 (Scrapbook pages) joined on 2026-11-18, which finishes G1 to G7.** `hasStudio` includes `scrapbook`; `Studio` draws `ScrapCard`. `ScrapFrame` takes `p`: `art` (the page), `sub` (label strip), `date`, `pic` (taped photo, sticker photo, photo pile), `map`, `place`, `days` (the tracker) and `streak`. Looks like sets `items.scrap.look`; Ticked days edits `items.scrap.days`, which `saveStudio` now writes. Movement switch `scrapfx`. Entries open as `EntryFull`. Only G0 (hero) and G8 (Connect, `chat`) still use the older pages.
@@ -244,7 +255,7 @@ All in `skinScript` (`lib/settings.ts`), under the `pagefx` switch, because a cl
 
 ## The dashboard's Save box
 
-`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. On an entry's page it's outside the form altogether (`form="entry"` on the button), directly above the Delete box and after Size & look and Reactions, and it floats over all of them. While Size & look is open, that panel's own box (`.look-actions`) covers it at the same width. The Size & look panels keep theirs inside, because it saves only that panel. The hero page's box doesn't float (`still`): the owner wants it resting at the end of the page, above the Remove box.
+`SaveBox` (`components/admin/SaveBox.tsx`): the same card as the Delete box, title on the left, one or two buttons then Save on the right, floating at the bottom of the screen within its own form. `LookControls` has its own copy with a Default button. `.adm-content` scrolls with 60px of bottom padding, so it needs `bottom: -46px` to sit just above the edge. The owner rejected two other versions: a strip across the screen, and a plain row that doesn't float. In section settings it sits outside the settings card, directly above the Delete box. On an entry's page it's outside the form altogether (`form="entry"` on the button), directly above the Delete box and after Size & look and Reactions, and it floats over all of them. While Size & look is open, that panel's own box (`.look-actions`) covers it at the same width. The Size & look panels keep theirs inside, because it saves only that panel. The hero page no longer has one: since 2026-11-18 it's the hero's live editor, with the editors' own save bar; the Remove box stays under it.
 
 ## Reactions and comments
 

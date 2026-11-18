@@ -4,6 +4,7 @@ import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
 import { cleanAward } from "@/lib/awardItem";
 import { cleanScrap } from "@/lib/scrapItem";
+import { cleanHeroDesign } from "@/lib/heroLook";
 import { cleanCard } from "@/lib/cardLook";
 import { cleanBoxes } from "@/lib/boxes";
 import { COMMENT_MAX, TALK_FEATURES, cleanTalk } from "@/lib/talk";
@@ -148,6 +149,39 @@ export async function saveHero(fd: FormData) {
   });
   refresh();
   redirect(`/admin/hero?${saved()}`);
+}
+
+/** What the hero's live editor saves: every word on the hero, its photo and résumé, and its design (lib/heroLook.ts). */
+export type HeroSave = {
+  fullName: string; nickname: string; initials: string; brandPhrases: string[]; statusText: string; nowStatus: string;
+  headline1: string; headline2: string; subtitle: string; roleChips: string[]; skills: string[];
+  location: string; timezone: string; clockLabel: string; avatarUrl: string; resumeUrl: string;
+  ctaPrimaryLabel: string; ctaSecondaryLabel: string; ctaSecondaryUrl: string; heroEmojis: string; scrollCue: string;
+  heroDesign: unknown;
+};
+
+/** The hero's live editor's one Save. Everything is cleaned the same way as the older hero page did. */
+export async function saveHeroStudio(raw: HeroSave): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    const t = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
+    const many = (v: unknown, n: number, max = 120) => (Array.isArray(v) ? v : []).map((x) => t(x, max)).filter(Boolean).slice(0, n);
+    const fullName = t(raw.fullName, 120);
+    if (!fullName) return { ok: false, error: "Your full name can't be empty." };
+    await saveSettingsData({
+      fullName, nickname: t(raw.nickname, 80), initials: t(raw.initials, 3).toUpperCase(), brandPhrases: many(raw.brandPhrases, 8),
+      statusText: t(raw.statusText, 160), nowStatus: t(raw.nowStatus, 120), headline1: t(raw.headline1, 80), headline2: t(raw.headline2, 80), subtitle: t(raw.subtitle, 400),
+      roleChips: many(raw.roleChips, 8), skills: many(raw.skills, 30), location: t(raw.location, 120), timezone: t(raw.timezone, 60) || "UTC", clockLabel: t(raw.clockLabel, 12),
+      avatarUrl: safeUrl(t(raw.avatarUrl, 500)), resumeUrl: safeUrl(t(raw.resumeUrl, 500)), ctaPrimaryLabel: t(raw.ctaPrimaryLabel, 40), ctaSecondaryLabel: t(raw.ctaSecondaryLabel, 40),
+      ctaSecondaryUrl: safeUrl(t(raw.ctaSecondaryUrl, 300)) || "#connect", heroEmojis: t(raw.heroEmojis, 80), scrollCue: t(raw.scrollCue, 60),
+      heroDesign: cleanHeroDesign(raw.heroDesign),
+    });
+    refresh();
+    return { ok: true };
+  } catch (e) {
+    console.error("saveHeroStudio", e);
+    return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." };
+  }
 }
 
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */

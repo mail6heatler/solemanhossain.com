@@ -13,7 +13,8 @@ export const PART_LIMITS = { w: [10, 100], h: [16, 900], z: [40, 400], x: [-1200
 export const SIZED_PARTS = ["sub", "title", "subtitle", "body", "pic", "gallery", "date", "place", "mood", "status", "tags", "links", "poll", "quote",
   "reacts", "comments", "open", "face", "sticker", "specs", "stats", "bars", "art", "band", "code",
   "url", "codeview", "sheet", "term", "board", "screen", "brand", "controls",
-  "route", "passinfo", "times", "stub", "ticks", "passname", "spine", "line", "shot", "panel", "bubble", "sfx", "record", "company", "span", "chips", "reader", "sign", "seal", "owner", "map", "days", "streak"] as const;
+  "route", "passinfo", "times", "stub", "ticks", "passname", "spine", "line", "shot", "panel", "bubble", "sfx", "record", "company", "span", "chips", "reader", "sign", "seal", "owner", "map", "days", "streak",
+  "head", "live", "roles", "now", "clock", "greeting", "buttons", "photo", "skills", "cue", "mast", "lines"] as const;
 
 const num = (v: unknown, [lo, hi]: readonly [number, number], step = 1) => {
   const n = Number(v);

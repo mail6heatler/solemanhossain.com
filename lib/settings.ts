@@ -1,4 +1,5 @@
 import { cleanBoxes, type BoxState } from "./boxes";
+import { cleanHeroDesign, DEFAULT_HERO_DESIGN, type HeroDesign } from "./heroLook";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
@@ -237,6 +238,8 @@ export type SiteSettings = {
   heroHidden: boolean;
   /** which boxes on the hero's dashboard page are open, as last saved */
   heroBoxes: BoxState;
+  /** the hero's look, background, pieces, numbers, extra buttons and headlines that take turns (lib/heroLook.ts) */
+  heroDesign: HeroDesign;
   /** How thick the sliding belts between sections are, percent of the normal size (RIBBON_SIZE). */
   ribbonSize: number;
   socials: Social[];
@@ -283,6 +286,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   scrollCue: "Scroll to begin",
   heroHidden: false,
   heroBoxes: {},
+  heroDesign: DEFAULT_HERO_DESIGN,
   ribbonSize: 100,
   socials: [
     { label: "Email", url: "mailto:you@example.com", icon: "mail" },
@@ -323,6 +327,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     banner: { ...DEFAULT_BANNER, ...(obj.banner ?? {}) },
     contentStyle: cleanStyle(obj.contentStyle),
     heroBoxes: cleanBoxes(obj.heroBoxes),
+    heroDesign: cleanHeroDesign(obj.heroDesign),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;

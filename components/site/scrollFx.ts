@@ -42,7 +42,8 @@ export function startScrollFx(fx: ScrollFxFlags) {
   // the hero's contents sink and fade while the next chapter rises over them
   if (fx.heroexit) {
     const hero = document.getElementById("hero");
-    const inner = hero?.querySelector<HTMLElement>(".hero-inner");
+    // a hero with a different look on phones holds two; the one showing is the one with a box
+    const inner = Array.from(hero?.querySelectorAll<HTMLElement>(".hero-inner") ?? []).find((el) => el.getClientRects().length > 0) ?? hero?.querySelector<HTMLElement>(".hero-inner");
     if (hero && inner) {
       let h = 0;
       scrub(() => { h = hero.offsetHeight; return [docTop(hero), docTop(hero) + h - vh * 0.15]; }, 0.35, (p) => {

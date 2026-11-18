@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: The hero gets its live editor and five new looks (G7 kept)
+
+The owner kept G7 and said "go for hero sections with extra more features, don't hesitate", without picking one look, so every look from the preview is a choice. Restore point `before-g0-studio`. `/admin/hero` is now a live editor of the real hero with labels, typing and every piece movable and resizable. Six looks (hanging photo as before and the default, magazine cover, profile card, boot screen, movie poster, name in lights), another look for phones, five backgrounds, the photo's shape, pieces on and off, chosen numbers in order, up to six more buttons, headlines that take turns, and the masthead, poster line and prompt words. Not tested beyond the build; waiting for keep or undo. G8 (Connect) is the last one.
+
 ### 2026-11-18: G0 and G8 ideas, waiting for picks
 
 The owner said "go" for the G0 (hero) and G8 (Connect) step. As agreed, nothing was built yet: a private, working preview (https://claude.ai/artifact/DdTYraXwmA1gtD4kFSgSuh) lists what's weak in each and draws six looks for each with their real words. Hero: hanging photo (today), magazine cover, profile card, boot screen, movie poster, name in lights; extras: own photo, rotating headlines, pieces on/off, which numbers show, any number of buttons, four backgrounds. Connect: messenger (today), letter box, link in bio, business card, guestbook, phone contact; extras: a links editor with logos found from the link and the owner's own second line, reordering, an editable automatic reply, availability. G7 (Life editor) still waits for keep or undo.

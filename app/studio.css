@@ -245,3 +245,25 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .stu-grip:active { cursor: grabbing; }
 /* in the editor every box catches the mouse, even decoration the site lets the mouse pass through (the warning sticker), so it can be picked and dragged */
 .stu-inner [data-part] { pointer-events: auto; }
+
+/* ----- the hero's live editor (HeroStudio.tsx) ----- */
+.hst-grid { display: grid; grid-template-columns: minmax(0, 1fr) 410px; gap: 16px; align-items: start; }
+@media (max-width: 1180px) { .hst-grid { grid-template-columns: minmax(0, 1fr); } }
+.hst-prev { position: sticky; top: 12px; min-width: 0; display: grid; gap: 8px; }
+@media (max-width: 1180px) { .hst-prev { position: static; } }
+.hst-stage { max-width: 100%; margin: 0 auto; width: 100%; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 .5px var(--card-border), 0 20px 40px -26px rgba(20,30,25,.45); transition: width .3s; }
+.hst-site { overflow: clip; }
+.hst-site #hero { min-height: 600px; padding-top: 64px; }
+.hst-panel { display: grid; gap: 12px; min-width: 0; max-height: calc(100vh - 140px); overflow: auto; padding: 2px 4px 80px 2px; overscroll-behavior: contain; }
+@media (max-width: 1180px) { .hst-panel { max-height: none; overflow: visible; } }
+.hst-g { transition: box-shadow .3s; }
+.hst-g.lit { box-shadow: 0 0 0 3px var(--mint); }
+.hst-looks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.hst-looks .hst-chip { display: grid; gap: 2px; text-align: left; border-radius: 12px; padding: 8px 10px; }
+.hst-looks .hst-chip small { font-weight: 400; font-size: 11.5px; line-height: 1.3; opacity: .8; }
+.hst-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.hst-chip { border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-strong); border-radius: 99px; padding: 6px 12px; font: 600 13px inherit; cursor: pointer; }
+.hst-chip.on { background: var(--mint); border-color: var(--mint); color: #fff; }
+.hst-btn { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto auto; gap: 6px; align-items: center; }
+.hst-stats { display: grid; gap: 6px; }
+.hst-stats .switch b { margin-left: 4px; color: var(--text-muted); font-weight: 600; }
