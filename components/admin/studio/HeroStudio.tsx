@@ -177,7 +177,6 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
     window.addEventListener("pointermove", moveTo);
     window.addEventListener("pointerup", up);
   };
-  const look = phone && h.phoneLook ? h.phoneLook : h.look;
   const chosenStats = h.stats;
   const statOptions = [...sections.filter((x) => !isConnectLayout(x.layout)).map((x) => ({ key: x.slug, label: `${x.nav_emoji ? x.nav_emoji + " " : ""}${x.nav_label || x.title}`, n: counts[x.id] ?? 0 })), { key: "reactions", label: "❤️ Reactions", n: reactions }];
   const txt = (k: keyof Draft, label: string, max: number, hint?: string, ph?: string) => (
@@ -229,10 +228,9 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
             <div className="fl"><label htmlFor="h-pl">On phones</label>
               <select id="h-pl" value={h.phoneLook} onChange={(e) => { setD({ phoneLook: e.target.value as HeroLook | "" }); if (e.target.value) setPv({ w: 390, h: 844 }); }}>
                 <option value="">The same look</option>{HERO_LOOKS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
-              </select><div className="hint">A different look just for phones, for example the profile card on phones and the magazine on computers.</div></div>
+              </select><div className="hint">A different look just for phones, for example the hanging photo on phones and the magazine cover on computers.</div></div>
             <div className="fl"><span className="lab">Background</span><div className="hst-chips">{HERO_BGS.map(([k, label]) => chip(h.bg === k, label, () => setD({ bg: k }), k))}</div>
-              {["terminal", "poster", "lights"].includes(look) && <div className="hint">This look brings its own background.</div>}</div>
-            <div className="fl"><span className="lab">Photo shape (profile card, boot screen, poster, lights)</span><div className="hst-chips">{([["arch", "Arch"], ["round", "Circle"], ["square", "Rounded square"]] as const).map(([k, label]) => chip(h.shape === k, label, () => setD({ shape: k }), k))}</div></div>
+</div>
           </G>
 
           <G lit={lit} g="words" title="Words">
@@ -254,10 +252,8 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
             <div className="hint">Your main headline comes first, then these, one every few seconds with a soft slide. The preview shows the main one; the site plays them.</div>
           </G>
 
-          <G lit={lit} g="looktext" title="Words only some looks use" startOpen={false}>
+          <G lit={lit} g="looktext" title="Magazine cover's masthead" startOpen={false}>
             <div className="fl"><label htmlFor="h-mast">Magazine masthead</label><input id="h-mast" className="inp" maxLength={24} value={h.mast} placeholder={(d.nickname || d.fullName).toUpperCase()} onChange={(e) => setD({ mast: e.target.value }, "mast")} /></div>
-            <div className="fl"><label htmlFor="h-pres">Poster&apos;s line above the photo</label><input id="h-pres" className="inp" maxLength={60} value={h.presents} placeholder={`${(d.location || "Home").split(",")[0]} Pictures presents`} onChange={(e) => setD({ presents: e.target.value }, "presents")} /></div>
-            <div className="fl"><label htmlFor="h-prompt">Boot screen&apos;s prompt name</label><input id="h-prompt" className="inp" maxLength={24} value={h.prompt} placeholder={(d.nickname || "me").toLowerCase()} onChange={(e) => setD({ prompt: e.target.value }, "prompt")} /></div>
           </G>
 
           <G lit={lit} g="photo" title="Photo and résumé">

@@ -28,8 +28,7 @@ export function heroStats(sections: Pick<Section, "id" | "slug" | "layout" | "na
 }
 
 /**
- * The hero, in any of its looks (lib/heroLook.ts): the hanging photo it always had, a magazine cover, a profile card, a boot screen, a movie poster,
- * or a name in lights. Every look shows the same words from the hero's settings, and every piece can be turned off. The homepage draws it, and so
+ * The hero, in either of its looks (lib/heroLook.ts): the hanging photo it always had, or a magazine cover. Every look shows the same words from the hero's settings, and every piece can be turned off. The homepage draws it, and so
  * does the dashboard's hero editor with `edit`, which names each piece (`data-part`) for its labels and keeps everything still.
  * `layers` are the background (aurora, 3D) and `emojis` the floating emojis, which only the homepage passes in.
  */
@@ -95,7 +94,6 @@ export default function HeroView({ s, d, stats, edit = false, layers, emojis, ph
     </div>
   ) : null;
   const cue = on("cue") && s.scrollCue ? <div className="scrollcue" {...p("cue")}><i className="ti ti-chevron-down" />{s.scrollCue}</div> : null;
-  const shaped = `hl-shot shape-${d.shape}`;
 
   const look = (k: HeroLook): React.ReactNode => {
     if (k === "hang") {
@@ -134,70 +132,7 @@ export default function HeroView({ s, d, stats, edit = false, layers, emojis, ph
         <div className="mg-story">{head("mg-head")}{sub}{now}{greet}{ctas("ctas mg-ctas")}</div>
       </div>
     </>;
-    if (k === "profile") return (
-      <div className="hero-inner hl hl-pro">
-        <div className="pf-card">
-          <div className="pf-cover" {...p("band")}><i className={`pf-av ${shaped}`} {...p("photo")}>{photo}</i></div>
-          <div className="pf-body">
-            <div className="pf-name"><b>{s.fullName}</b><span>@{(s.nickname || s.fullName).toLowerCase().replace(/\s+/g, "")}{place ? ` · ${place}` : ""}</span></div>
-            {pills}{head("pf-head")}{sub}{now}
-            {on("stats") && stats.length > 0 && <div className="pf-nums" {...p("stats")}>{stats.map((st) => <span key={st.key}><b data-count={st.n}>{st.n}</b>{st.label}</span>)}</div>}
-            {ctas("ctas pf-ctas")}
-            {on("roles") && s.roleChips.length > 0 && <div className="pf-hl" {...p("roles")}>{s.roleChips.map((r, i) => <span key={i}><i aria-hidden>{["🧠", "🧭", "✨", "🌏", "⚡", "🎯"][i % 6]}</i>{r}</span>)}</div>}
-            {clock}{greet}
-          </div>
-        </div>
-      </div>
-    );
-    if (k === "terminal") {
-      const prompt = `${d.prompt || (s.nickname || "me").toLowerCase().replace(/\s+/g, "-")}@${(place || "home").toLowerCase().replace(/\s+/g, "-")}:~$`;
-      let n = 0;
-      const L = ({ cmd, children, cls = "" }: { cmd?: string; children?: React.ReactNode; cls?: string }) => <div className={`tm-l ${cls}`} style={{ "--i": n++ } as React.CSSProperties}>{cmd ? <><span className="tm-p">{prompt}</span> {cmd}</> : children}</div>;
-      return (
-        <div className="hero-inner hl hl-term">
-          <div className="tm-win">
-            <div className="tm-bar" {...p("band")}><i /><i /><i /><span>{owner.toLowerCase()} — zsh</span></div>
-            <div className="tm-scr">
-              <i className={`tm-photo ${shaped}`} {...p("photo")}>{photo}</i>
-              <L cmd="whoami" /><L>{s.fullName}{s.nickname && s.nickname !== s.fullName ? ` (${s.nickname})` : ""}</L>
-              {status && <><L cmd="status" /><L>{status}{moodPill}{live}</L></>}
-              <L cmd="cat headline.txt" /><L>{head("tm-head")}</L>{sub && <L cls="tm-dim">{sub}</L>}
-              {roles && <><L cmd="ls roles/" /><L>{roles}</L></>}
-              {now && <><L cmd="cat now.txt" /><L>{now}</L></>}
-              {statsBox && <><L cmd="wc -l sections/*" /><L>{statsBox}</L></>}
-              {clock && <><L cmd="date" /><L>{clock}{greet}</L></>}
-              {buttons.length > 0 && <L>{ctas("ctas tm-ctas")}</L>}
-              <L><span className="tm-p">{prompt}</span> <i className="tm-cur" aria-hidden /></L>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (k === "poster") return (
-      <div className="hero-inner hl hl-post">
-        <span className="ps-presents" {...p("band")}>{d.presents || `${place || "Home"} Pictures presents`}</span>
-        <div className={`ps-shot ${shaped}`} {...p("photo")}>{photo}</div>
-        {head("ps-head")}
-        {sub}
-        {on("stats") && stats.length > 0 && <div className="ps-reviews" {...p("stats")}><span className="ps-stars" aria-hidden>★★★★★</span>{stats.map((st) => <span key={st.key}>“<b data-count={st.n}>{st.n}</b> {st.label}”</span>)}</div>}
-        {ctas("ctas ps-ctas")}
-        {on("roles") && s.roleChips.length > 0 && <p className="ps-credits" {...p("roles")}>Starring <b>{s.fullName}</b> as {s.roleChips.join(" · ")}{on("skills") && s.skills.length ? ` · featuring ${s.skills.map((x) => x.replace(/^\S+\s/, "")).join(", ")}` : ""}</p>}
-        <div className="ps-foot">{pills}{now}{clock}{greet}</div>
-      </div>
-    );
-    return (
-      <div className="hero-inner hl hl-lights">
-        <div className="lt-main">
-          <div className="lt-sign"><i className="lt-bulbs" aria-hidden />{pills}{head("lt-head")}{sub}</div>
-          {on("roles") && s.roleChips.length > 0 && <div className="lt-tix" {...p("roles")}>{s.roleChips.map((r, i) => <span key={i}>{r}</span>)}</div>}
-          {now}
-          {on("stats") && stats.length > 0 && <p className="lt-stats" {...p("stats")}>{stats.map((st, i) => <span key={st.key}>{i > 0 && " ★ "}<b data-count={st.n}>{st.n}</b> {st.label}</span>)}</p>}
-          {ctas("ctas lt-ctas")}
-          {clock}{greet}
-        </div>
-        <div className={`lt-cut ${shaped}`} {...p("photo")}>{photo}</div>
-      </div>
-    );
+    return null;
   };
 
   const pl = d.phoneLook && d.phoneLook !== d.look ? d.phoneLook : "";
@@ -218,7 +153,7 @@ export default function HeroView({ s, d, stats, edit = false, layers, emojis, ph
       <i className="tf-a" aria-hidden />
       {on("emojis") && emojis}
       {phone ? look(pl || d.look) : pl ? <><div className="hl-desk">{look(d.look)}</div><div className="hl-phone">{look(pl)}</div></> : look(d.look)}
-      {d.look !== "terminal" || pl ? cue : null}
+      {cue}
       {marquee}
     </section>
   );

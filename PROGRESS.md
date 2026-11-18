@@ -58,6 +58,12 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-19: Hero keeps two looks; a new job for the whole site
+
+The owner asked for every hero look but the hanging photo and the magazine cover to go, so the profile card, boot screen, movie poster and name in lights were removed (code and styles). They also widened the editor's preview (whole window, a draggable divider, fill-the-width zoom) the day before.
+
+**New job, on the task board, not started: one whole section per screen.** On any device and screen size, each section from G0 to G8 should fit the screen whole, one after another, with all of its content visible at once; and when the browser window is resized it adjusts by itself. Things to settle when it starts: sections with many entries or long text (rows already glide sideways; text may need to shrink or scroll inside), phones in landscape, and how it fits with the existing scroll effects (sheets, Lenis) and the sideways rows.
+
 ### 2026-11-18: The hero gets its live editor and five new looks (G7 kept)
 
 The owner kept G7 and said "go for hero sections with extra more features, don't hesitate", without picking one look, so every look from the preview is a choice. Restore point `before-g0-studio`. `/admin/hero` is now a live editor of the real hero with labels, typing and every piece movable and resizable. Six looks (hanging photo as before and the default, magazine cover, profile card, boot screen, movie poster, name in lights), another look for phones, five backgrounds, the photo's shape, pieces on and off, chosen numbers in order, up to six more buttons, headlines that take turns, and the masthead, poster line and prompt words. Not tested beyond the build; waiting for keep or undo. G8 (Connect) is the last one.

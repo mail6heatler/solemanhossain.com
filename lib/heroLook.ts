@@ -1,5 +1,5 @@
 /**
- * The hero's design (settings.heroDesign): which of its looks it wears, its background, which pieces show, which numbers, extra buttons,
+ * The hero's design (settings.heroDesign): which of its two looks it wears (the owner kept the hanging photo and the magazine cover, 2026-11-19), its background, which pieces show, which numbers, extra buttons,
  * headlines that take turns, and the size and place of each piece the owner dragged in the dashboard's hero editor. Cleaned on every read and save.
  * The words themselves (name, headline, subtitle, chips…) stay in their own settings fields, so every look shows the same content.
  */
@@ -8,10 +8,6 @@ import { cleanPartSizes, type PartSizes } from "./partSize";
 export const HERO_LOOKS = [
   ["hang", "Hanging photo", "Your photo on tape, swinging, with the words beside it (as before)"],
   ["magazine", "Magazine cover", "Your photo is the cover, your nickname the masthead, roles and numbers the cover lines"],
-  ["profile", "Profile card", "Like a social profile: numbers as followers, roles as story highlights"],
-  ["terminal", "Boot screen", "A terminal types who you are; your buttons are commands"],
-  ["poster", "Movie poster", "Your headline is the title, numbers are reviews, roles are the credits"],
-  ["lights", "Name in lights", "A marquee sign with chasing bulbs; roles are tickets"],
 ] as const;
 export type HeroLook = (typeof HERO_LOOKS)[number][0];
 
