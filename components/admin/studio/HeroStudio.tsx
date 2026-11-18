@@ -61,7 +61,10 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   const [labels, setLabels] = useState(true);
   // the screen the preview stands for, drawn at its real size and scaled to fit the room on the left
   const [pv, setPv] = useState({ w: 1366, h: 768 });
-  const [fit, setFit] = useState(true);
+  /** width: the preview fills the left side's width; all: the whole screen fits in view; real: 100% */
+  const [fit, setFit] = useState<"width" | "all" | "real">("width");
+  /** how wide the controls on the right are; the divider between them and the preview drags it */
+  const [panelW, setPanelW] = useState(400);
   const [room, setRoom] = useState({ w: 900, h: 600 });
   const prevBox = useRef<HTMLDivElement>(null);
   const phone = pv.w <= 760;
@@ -103,6 +106,8 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   // ---------- the page around it ----------
   useEffect(() => { try { if (localStorage.getItem("lc_stu_labels") === "0") setLabels(false); const v = JSON.parse(localStorage.getItem("lc_hero_pv") || "null"); if (v && v.w && v.h) setPv({ w: clampN(v.w, PV_W), h: clampN(v.h, PV_H) }); } catch {} }, []);
   useEffect(() => { try { localStorage.setItem("lc_hero_pv", JSON.stringify(pv)); } catch {} }, [pv]);
+  useEffect(() => { try { const w = Number(localStorage.getItem("lc_hero_pw")); if (w >= 300) setPanelW(Math.min(760, w)); const f = localStorage.getItem("lc_hero_fit"); if (f === "all" || f === "real" || f === "width") setFit(f); } catch {} }, []);
+  useEffect(() => { try { localStorage.setItem("lc_hero_pw", String(panelW)); localStorage.setItem("lc_hero_fit", fit); } catch {} }, [panelW, fit]);
   useEffect(() => {
     const el = prevBox.current;
     if (!el) return;
@@ -154,8 +159,16 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   }, `size-${key}${stroke ? `-${stroke}` : ""}`);
 
   const h = d.heroDesign;
-  // fit: the whole screen, width and height, inside the room on the left; real size: 100%, and the left side scrolls
-  const zoom = fit ? Math.min(1, room.w / pv.w, room.h / pv.h) : 1;
+  const zoom = fit === "real" ? 1 : fit === "all" ? Math.min(1, room.w / pv.w, room.h / pv.h) : Math.min(1, room.w / pv.w);
+  const dragSplit = (e: React.PointerEvent) => {
+    e.preventDefault();
+    const x0 = e.clientX, w0 = panelW;
+    const moveTo = (m: PointerEvent) => setPanelW(Math.round(Math.max(300, Math.min(760, w0 - (m.clientX - x0)))));
+    const up = () => { window.removeEventListener("pointermove", moveTo); window.removeEventListener("pointerup", up); document.body.style.cursor = ""; };
+    document.body.style.cursor = "col-resize";
+    window.addEventListener("pointermove", moveTo);
+    window.addEventListener("pointerup", up);
+  };
   const resizeScreen = (e: React.PointerEvent) => {
     e.preventDefault();
     const x0 = e.clientX, y0 = e.clientY, start = pv, z = zoom;
@@ -183,15 +196,17 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
         </div>
       </header>
 
-      <div className="hst-grid">
-        <div className={`hst-prev${fit ? "" : " real"}`} ref={prevBox}>
+      <div className="hst-grid" style={{ "--pw": `${panelW}px` } as React.CSSProperties}>
+        <div className={`hst-prev${fit === "real" ? " real" : ""}`} ref={prevBox}>
           <div className="hst-screens" role="group" aria-label="Screen size of the preview">
             {SCREENS.map(([k, label, w, hh]) => <button key={k} type="button" className={`hst-chip${pv.w === w && pv.h === hh ? " on" : ""}`} onClick={() => setPv({ w, h: hh })}><i className={`ti ti-${k === "phone" ? "device-mobile" : k === "tablet" ? "device-tablet" : k === "big" ? "device-tv" : "device-laptop"}`} />{label}</button>)}
             <span className="hst-wh">
               <input type="number" className="inp" aria-label="Screen width" min={PV_W[0]} max={PV_W[1]} value={pv.w} onChange={(e) => setPv((v) => ({ ...v, w: clampN(+e.target.value || v.w, PV_W) }))} />×
               <input type="number" className="inp" aria-label="Screen height" min={PV_H[0]} max={PV_H[1]} value={pv.h} onChange={(e) => setPv((v) => ({ ...v, h: clampN(+e.target.value || v.h, PV_H) }))} />
             </span>
-            <button type="button" className={`hst-chip${fit ? " on" : ""}`} onClick={() => setFit((f) => !f)} title="Fit the whole screen in the window, or show it at its real size">{fit ? `Fit · ${Math.round(zoom * 100)}%` : "Real size · 100%"}</button>
+            <span className="hst-fit" role="group" aria-label="How big the preview is">
+              {([["width", "Fill the width"], ["all", "Whole screen in view"], ["real", "Real size"]] as const).map(([k, label]) => <button key={k} type="button" className={`hst-chip${fit === k ? " on" : ""}`} aria-pressed={fit === k} onClick={() => setFit(k)}>{label}{fit === k ? ` · ${Math.round(zoom * 100)}%` : ""}</button>)}
+            </span>
           </div>
           <div className="hst-stage" style={{ width: Math.round(pv.w * zoom) }}>
             <Surface key={`${phone}-${rev}`} zoom={zoom} width={Math.round(pv.w * zoom)} labels={labels} name={(k) => NAMES[k] ?? k} onPart={onPart} sizes={h.parts ?? {}} onSize={setSize}
@@ -203,9 +218,11 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
             </Surface>
             <button type="button" className="hst-resize" aria-label="Drag to change the screen size" title="Drag to change the screen size" onPointerDown={resizeScreen} />
           </div>
-          <p className="hint">This is a {pv.w} × {pv.h} screen{phone ? ", so it shows the phone layout" : ""}. Pick a screen above, type a size, or drag the corner of the preview to change it and watch the hero adjust. Click any piece to change it; type straight onto the subtitle, status, now line and scroll hint; drag a piece&apos;s handles to move or resize it.</p>
+          <p className="hint">This is a {pv.w} × {pv.h} screen{phone ? ", so it shows the phone layout" : ""}. Pick a screen above, type a size, or drag the preview's green corner to change it and watch the hero adjust. Drag the bar between the preview and the controls to make the preview bigger. Click any piece to change it; type straight onto the subtitle, status, now line and scroll hint; drag a piece&apos;s handles to move or resize it.</p>
         </div>
 
+        <button type="button" className="hst-split" aria-label="Drag to make the preview wider or narrower" title="Drag to make the preview wider or narrower" onPointerDown={dragSplit}
+          onKeyDown={(e) => { if (e.key === "ArrowLeft") setPanelW((w) => Math.min(760, w + 20)); if (e.key === "ArrowRight") setPanelW((w) => Math.max(300, w - 20)); }}><i /></button>
         <div className="hst-panel" ref={panel}>
           <G lit={lit} g="look" title="Look">
             <div className="hst-looks">{HERO_LOOKS.map(([k, label, desc]) => chip(h.look === k, <><b>{label}</b><small>{desc}</small></>, () => setD({ look: k as HeroLook }), k))}</div>

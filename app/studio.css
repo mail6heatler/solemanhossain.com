@@ -247,7 +247,7 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .stu-inner [data-part] { pointer-events: auto; }
 
 /* ----- the hero's live editor (HeroStudio.tsx) ----- */
-.hst-grid { display: grid; grid-template-columns: minmax(0, 1fr) 410px; gap: 16px; align-items: start; }
+.hst-grid { display: grid; grid-template-columns: minmax(0, 1fr) 14px var(--pw, 400px); gap: 8px; align-items: start; }
 @media (max-width: 1180px) { .hst-grid { grid-template-columns: minmax(0, 1fr); } }
 .hst-prev { position: sticky; top: 12px; min-width: 0; display: grid; gap: 8px; justify-items: center; }
 @media (max-width: 1180px) { .hst-prev { position: static; } }
@@ -301,3 +301,10 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .hst-site.pv-xs #hero .hero-inner:not(.hl) h1 { font-size: clamp(28px, calc(var(--pv-w) * .082), 44px); }
 .hst-prev.real { overflow: auto; max-height: calc(100vh - 140px); justify-items: start; }
 .hst-prev.real > :is(.hst-screens, .hint) { position: sticky; left: 0; }
+/* the hero editor uses the whole window, and the bar between the preview and the controls drags */
+.adm-page.hst-page { max-width: none; }
+.hst-split { align-self: stretch; position: sticky; top: 12px; height: calc(100vh - 140px); padding: 0; border: 0; border-radius: 8px; background: none; cursor: col-resize; display: grid; place-items: center; touch-action: none; }
+.hst-split i { width: 4px; height: 56px; border-radius: 4px; background: var(--card-border); transition: background .2s, height .2s; }
+.hst-split:hover i, .hst-split:focus-visible i { background: var(--mint); height: 90px; }
+.hst-fit { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 1180px) { .hst-grid { grid-template-columns: minmax(0, 1fr); } .hst-split { display: none; } }

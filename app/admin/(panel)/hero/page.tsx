@@ -15,7 +15,7 @@ export default async function HeroPage() {
     ctaSecondaryUrl: s.ctaSecondaryUrl, heroEmojis: s.heroEmojis, scrollCue: s.scrollCue, heroDesign: s.heroDesign,
   };
   return (
-    <div className="adm-page">
+    <div className="adm-page hst-page">
       {s.heroHidden && <div className="c c-row" style={{ marginBottom: 14 }}><div className="grow"><div className="c-title">The hero is off your homepage right now</div><div className="c-desc">You can still edit it here. Bring it back at the bottom of this page.</div></div></div>}
       <HeroStudio first={first} settings={s} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} reactions={reactions.total}
         sections={sections.map((x) => ({ id: x.id, slug: x.slug, layout: x.layout, nav_label: x.nav_label, title: x.title, nav_emoji: x.nav_emoji }))}
