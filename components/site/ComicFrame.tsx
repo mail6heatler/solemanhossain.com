@@ -5,6 +5,7 @@ import { isSplittable } from "./Split";
 import { excerpt } from "./Markdown";
 import { Cover } from "./Media";
 import { ComicReveal } from "./ComicPoll";
+import { noPart, type PartFn } from "./cardParts";
 
 /**
  * A comic panel, chosen by the dashboard's own words: the Subsection picks it unless the entry chooses one, and a poll's also goes by how many
@@ -65,11 +66,11 @@ const TILE_COLOURS = [["var(--pop2)", "var(--bg)", "var(--fg)"], ["var(--mint)",
 const LETTER_COLOURS = [["var(--pop2)", "var(--bg)", "var(--fg)"], ["var(--mint)", "var(--on-mint)"], ["var(--pop3)", "var(--bg)", "var(--fg)"], ["var(--inv-fg)", "var(--inv-bg)"]];
 const next = (s: number) => (s * 9301 + 49297) % 233280;
 
-function Tiles({ words, seed }: { words: string[]; seed: number }) {
+function Tiles({ words, seed, attrs }: { words: string[]; seed: number; attrs?: React.HTMLAttributes<HTMLElement> }) {
   let s = seed * 77 + 11;
   const r = () => { s = next(s); return s / 233280; };
   return (
-    <h3 className={`cm-tiles${words.length > 9 ? " many" : ""}`}>
+    <h3 className={`cm-tiles${words.length > 9 ? " many" : ""}`} {...attrs} style={{ ...attrs?.style }}>
       {words.map((w, i) => {
         const c = TILE_COLOURS[i % TILE_COLOURS.length];
         return <b key={i} style={{ "--tile": letters(w), "--c": c[0], "--c2": c[1], "--c3": c[2], "--r": `${((r() - 0.5) * 13).toFixed(1)}deg`, "--d": i, "--dx": `${((r() - 0.5) * 180).toFixed(0)}px`, "--dy": `${((r() - 0.5) * 180).toFixed(0)}px` } as React.CSSProperties}>{w} </b>;
@@ -87,7 +88,7 @@ export type ComicBody = (parts: {
   withPoll: boolean;
 }) => React.ReactNode;
 
-export function ComicFrame({ view: v, link, first, fixedPic, picStyle, zoom, poll, still, body }: {
+export function ComicFrame({ view: v, link, first, fixedPic, picStyle, zoom, poll, still, body, p = noPart }: {
   view: ComicView;
   /** The entry's link over the panel's art. */
   link?: React.ReactNode;
@@ -100,6 +101,8 @@ export function ComicFrame({ view: v, link, first, fixedPic, picStyle, zoom, pol
   /** In the dashboard's preview, where nothing reacts. */
   still?: boolean;
   body: ComicBody;
+  /** names each part for the dashboard's labels, and gives it the size the owner dragged it to */
+  p?: PartFn;
 }) {
   // a record shows a picture as its label; otherwise a picture is the art, and the panel's own scenery stays out of its way
   const onRecord = v.look === "loop" && !!first && (first.type === "image" || (first.type === "pdf" && !!first.thumb));
@@ -110,7 +113,7 @@ export function ComicFrame({ view: v, link, first, fixedPic, picStyle, zoom, pol
   const bubble = v.look === "buttons" || v.look === "scale" || v.look === "say" || v.look === "loop" || v.look === "vibe" || (picArt && v.look === "dump");
   return (
     <>
-      <div className={`cm-art cm-${v.look}${picArt ? ` has-pic${fixedPic ? " fixed" : ""}` : ""}`} style={{ "--tw": v.titleWord, ...(v.look === "vibe" && v.mood ? { "--m": v.mood.color } : {}) } as React.CSSProperties}>
+      <div className={`cm-art cm-${v.look}${picArt ? ` has-pic${fixedPic ? " fixed" : ""}` : ""}`} {...p("art", { "--tw": v.titleWord, ...(v.look === "vibe" && v.mood ? { "--m": v.mood.color } : {}) } as React.CSSProperties)}>
         {picArt && <Cover m={first} className="cm-pic" style={picStyle} />}
         {link}
         {v.look === "hot" && bare && <span className="cm-lines" aria-hidden />}
@@ -123,27 +126,27 @@ export function ComicFrame({ view: v, link, first, fixedPic, picStyle, zoom, pol
         {v.look === "dump" && bare && <><Scribble seed={v.seed} /><svg className="cm-dbrain" viewBox="0 0 56 44" aria-hidden><BrainShape /></svg></>}
         {v.look === "chaos" && <><Splat seed={v.seed + 4} className="a" /><Splat seed={v.seed + 9} className="b" /><Splat seed={v.seed + 15} className="c" /></>}
         {fullPoll && poll}
-        <div className="cm-cap">{v.subsection}</div>
-        <div className="cm-no">{v.no}</div>
+        <div className="cm-cap" {...p("sub")}>{v.subsection}</div>
+        <div className="cm-no" {...p("band")}>{v.no}</div>
 
-        {v.look === "hot" && <div className={`cm-shout${v.size}`}><Spikes seed={v.seed} /><h3>{v.bubble}</h3></div>}
-        {v.look === "poem" && <div className={`cm-bubble cm-think${v.size}`}><h3>{v.bubble}</h3></div>}
-        {v.look === "stuck" && <div className={`cm-note${v.size}`}><i className="cm-mag a" aria-hidden /><i className="cm-mag b" aria-hidden /><h3>{v.bubble}</h3></div>}
+        {v.look === "hot" && <div className={`cm-shout${v.size}`} {...p("bubble")}><Spikes seed={v.seed} /><h3 {...p("title")}>{v.bubble}</h3></div>}
+        {v.look === "poem" && <div className={`cm-bubble cm-think${v.size}`} {...p("bubble")}><h3 {...p("title")}>{v.bubble}</h3></div>}
+        {v.look === "stuck" && <div className={`cm-note${v.size}`} {...p("bubble")}><i className="cm-mag a" aria-hidden /><i className="cm-mag b" aria-hidden /><h3 {...p("title")}>{v.bubble}</h3></div>}
         {v.look === "stuck" && (
-          <div className={`cm-letters${v.letters.length > 7 ? " many" : ""}`} aria-hidden>
+          <div className={`cm-letters${v.letters.length > 7 ? " many" : ""}`} aria-hidden {...p("sfx")}>
             {v.letters.map((l, i) => { const c = LETTER_COLOURS[i % LETTER_COLOURS.length]; return <i key={i} style={{ "--c": c[0], "--c2": c[1], "--c3": c[2] } as React.CSSProperties}>{l}</i>; })}
           </div>
         )}
-        {bubble && <div className={`cm-bubble${v.look === "scale" || v.look === "buttons" || v.look === "dump" ? " up" : ""}${v.long ? " long" : ""}${v.size}`}><h3>{v.bubble}</h3></div>}
-        {v.look === "quick" && <><div className={`cm-board${v.size}`}><h3>{v.bubble}</h3></div><div className="cm-time" aria-hidden><i /></div></>}
-        {v.look === "dump" && bare && <div className="cm-chips"><h3 className="cm-chip">{v.bubble}</h3>{v.chips.map((c, i) => <span key={i} className="cm-chip">{c}</span>)}</div>}
+        {bubble && <div className={`cm-bubble${v.look === "scale" || v.look === "buttons" || v.look === "dump" ? " up" : ""}${v.long ? " long" : ""}${v.size}`} {...p("bubble")}><h3 {...p("title")}>{v.bubble}</h3></div>}
+        {v.look === "quick" && <><div className={`cm-board${v.size}`} {...p("bubble")}><h3 {...p("title")}>{v.bubble}</h3></div><div className="cm-time" aria-hidden><i /></div></>}
+        {v.look === "dump" && bare && <div className="cm-chips" {...p("bubble")}><h3 className="cm-chip" {...p("title")}>{v.bubble}</h3>{v.chips.map((c, i) => <span key={i} className="cm-chip">{c}</span>)}</div>}
         {v.look === "dump" && bare && <svg className="cm-bin" viewBox="0 0 128 62" aria-hidden><path d="M4 3H124L112 62H16Z" /><path className="rib" d="M38 12 44 56M64 12V56M90 12 84 56" /></svg>}
-        {v.look === "chaos" && <Tiles words={v.tiles} seed={v.seed} />}
-        {v.look === "vibe" && v.mood && <span className="cm-vibe-tag">{v.mood.emoji} Vibe: {v.mood.label}</span>}
+        {v.look === "chaos" && <Tiles words={v.tiles} seed={v.seed} attrs={p("title")} />}
+        {v.look === "vibe" && v.mood && <span className="cm-vibe-tag" {...p("mood")}>{v.mood.emoji} Vibe: {v.mood.label}</span>}
 
         {v.look === "loop" && (
           <>
-            <div className="cm-vy">
+            <div className="cm-vy" {...p("record")}>
               <div className="cm-disc">{onRecord ? <Cover m={first} className="cm-label" style={picStyle} /> : <span className="cm-label cm-nolabel" aria-hidden>♪</span>}</div>
               <svg className="cm-arm" viewBox="0 0 76 106" aria-hidden><path d="M62 12 54 66 26 94" /><circle cx="62" cy="12" r="8" /></svg>
             </div>
@@ -152,10 +155,10 @@ export function ComicFrame({ view: v, link, first, fixedPic, picStyle, zoom, pol
         )}
         {artPoll && poll}
         {v.look === "quick" && !v.isPoll && <ComicReveal hasAnswer={!!v.text.trim()} word={v.word} still={still} />}
-        {v.sfx && <><Burst spikes={13} seed={v.seed + 3} className="cm-burst" /><span className={`cm-sfx${v.sfx.length > 9 ? " small" : ""}`} aria-hidden>{v.sfx}</span></>}
+        {v.sfx && <><Burst spikes={13} seed={v.seed + 3} className="cm-burst" /><span className={`cm-sfx${v.sfx.length > 9 ? " small" : ""}`} aria-hidden {...p("sfx")}>{v.sfx}</span></>}
         {zoom}
       </div>
-      {body({ above: fullPoll || v.long ? <h3 className="cm-q">{v.title}</h3> : undefined, withPoll: v.look === "buttons" })}
+      {body({ above: fullPoll || v.long ? <h3 className="cm-q" {...p("title")}>{v.title}</h3> : undefined, withPoll: v.look === "buttons" })}
     </>
   );
 }

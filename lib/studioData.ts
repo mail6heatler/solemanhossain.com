@@ -40,7 +40,7 @@ export async function loadStudio(sectionId: number): Promise<StudioData | null> 
   return {
     draft: {
       section: { id, slug, code, nav_label, nav_emoji, eyebrow, eyebrow_emoji, title, subtitle, layout, emojis, categories, empty_text, home_limit, visible, ribbon, style },
-      items, deleted: [], ribbonSize: settings.ribbonSize, notefx: settings.effects.notefx, windowfx: settings.effects.windowfx, tripfx: settings.effects.tripfx, studyfx: settings.effects.studyfx, fullfx: settings.effects.fullfx,
+      items, deleted: [], ribbonSize: settings.ribbonSize, notefx: settings.effects.notefx, windowfx: settings.effects.windowfx, tripfx: settings.effects.tripfx, studyfx: settings.effects.studyfx, comicfx: settings.effects.comicfx, fullfx: settings.effects.fullfx,
     },
     live: await loadLive(items),
     settings,

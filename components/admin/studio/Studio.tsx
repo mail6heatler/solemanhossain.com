@@ -14,6 +14,8 @@ import NoteCard from "@/components/site/NoteCard";
 import WinCard from "@/components/site/WinCard";
 import TripCard from "@/components/site/TripCard";
 import StudyCard from "@/components/site/StudyCard";
+import ComicCard from "@/components/site/ComicCard";
+import { comicOptionsFromTitle, comicReadyOptions } from "@/lib/comicItem";
 import { tripContext } from "@/components/site/TripFrame";
 import EntryFull, { fvPresent } from "@/components/site/EntryFull";
 import { StillReacts, Surface, type Typing } from "./Surface";
@@ -82,8 +84,8 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
 
   const item = draft.items.find((i) => i.id === sel) ?? null;
   const kind = draft.section.layout;
-  const win = kind === "windows", trips = kind === "tickets", shelf = kind === "study", celled = trips || shelf;
-  const card = item ? cardLookOf(kind, item) : win ? "browser" : trips ? "ticket" : shelf ? "note" : "plain";
+  const win = kind === "windows", trips = kind === "tickets", shelf = kind === "study", comic = kind === "comic", celled = trips || shelf || comic;
+  const card = item ? cardLookOf(kind, item) : win ? "browser" : trips ? "ticket" : shelf ? "note" : comic ? "say" : "plain";
   const say = useCallback((text: string, opts: { bad?: boolean; undo?: boolean } = {}) => setToast((t) => ({ text, n: (t?.n ?? 0) + 1, ...opts })), []);
 
   // ---------- changes, with undo ----------
@@ -111,7 +113,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const steps = (() => { const n = hist.list.indexOf(hist.saved); return n < 0 ? 0 : Math.abs(hist.at - n); })();
 
   // ---------- what the previews draw from ----------
-  const settings = useMemo(() => ({ ...data.settings, ribbonSize: draft.ribbonSize, effects: { ...data.settings.effects, notefx: draft.notefx, windowfx: draft.windowfx, tripfx: draft.tripfx, studyfx: draft.studyfx, fullfx: draft.fullfx } }), [data.settings, draft.ribbonSize, draft.notefx, draft.windowfx, draft.tripfx, draft.studyfx, draft.fullfx]);
+  const settings = useMemo(() => ({ ...data.settings, ribbonSize: draft.ribbonSize, effects: { ...data.settings.effects, notefx: draft.notefx, windowfx: draft.windowfx, tripfx: draft.tripfx, studyfx: draft.studyfx, comicfx: draft.comicfx, fullfx: draft.fullfx } }), [data.settings, draft.ribbonSize, draft.notefx, draft.windowfx, draft.tripfx, draft.studyfx, draft.comicfx, draft.fullfx]);
   const section = useMemo(() => ({ ...draft.section, sort: 0, boxes: {} }) as Section, [draft.section]);
   const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "";
   // eslint-disable-next-line @next/next/no-img-element
@@ -120,14 +122,16 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const factNo = (it: Item) => Math.max(1, draft.items.filter((x) => (x.visible || x.id === it.id) && x.category === it.category).findIndex((x) => x.id === it.id) + 1);
   const siteMood = MOODS[settings.mood];
   const siteStyle = (siteMood ? { "--m": siteMood.color, "--m-deep": siteMood.deep } : {}) as React.CSSProperties;
-  const siteClass = `site${draft.notefx ? " fx-notefx" : ""}${draft.windowfx ? " fx-windowfx" : ""}${draft.tripfx ? " fx-tripfx" : ""}${draft.studyfx ? " fx-studyfx" : ""}${draft.fullfx ? " fx-fullfx" : ""}${settings.effects.themefx ? " fx-themefx" : ""}`;
+  const siteClass = `site${draft.notefx ? " fx-notefx" : ""}${draft.windowfx ? " fx-windowfx" : ""}${draft.tripfx ? " fx-tripfx" : ""}${draft.studyfx ? " fx-studyfx" : ""}${draft.comicfx ? " fx-comicfx" : ""}${draft.fullfx ? " fx-fullfx" : ""}${settings.effects.themefx ? " fx-themefx" : ""}`;
   const bar = (it: Item, compact: boolean) => (settings.effects.reactions
     ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
     : undefined);
   const trip = tripContext(settings, draft.section);
   /** a trip's number on its pass is its place among what visitors see */
   const tripNo = (it: Item) => Math.max(0, draft.items.filter((x) => x.visible || x.id === it.id).findIndex((x) => x.id === it.id));
-  const cardOf = (it: Item) => shelf
+  const cardOf = (it: Item) => comic
+    ? <ComicCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" edit foot={bar(it, true)} />
+    : shelf
     ? <StudyCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" rail={false} edit foot={bar(it, true)} />
     : trips
     ? <TripCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} trip={trip} href="#" route={false} edit foot={bar(it, true)} />
@@ -401,6 +405,8 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
       {win && <button type="button" onClick={(e) => openPop("card", "face", e.currentTarget.getBoundingClientRect())}>{item.card.face ? "Dock icon" : "＋ Dock icon"}</button>}
       {trips && <><button type="button" onClick={(e) => openPop("card", "pass", e.currentTarget.getBoundingClientRect())}>Pass details</button><button type="button" onClick={(e) => openPop("card", "ticks", e.currentTarget.getBoundingClientRect())}>Tick lines</button><button type="button" onClick={(e) => openPop("card", "vehicle", e.currentTarget.getBoundingClientRect())}>Vehicle</button></>}
       {shelf && <><button type="button" onClick={(e) => openPop("card", "line", e.currentTarget.getBoundingClientRect())}>{item.study.line ? "Line that stuck" : "＋ Line that stuck"}</button>{card === "player" && <button type="button" onClick={(e) => openPop("card", "player", e.currentTarget.getBoundingClientRect())}>Screen &amp; type</button>}</>}
+      {comic && <button type="button" onClick={(e) => openPop("card", "sfx", e.currentTarget.getBoundingClientRect())}>{item.comic.sfx ? "Sound effect" : "＋ Sound effect"}</button>}
+      {comic && item.type !== "poll" && <button type="button" onClick={(e) => { const at = e.currentTarget.getBoundingClientRect(); setItem({ type: "poll", poll_options: comicOptionsFromTitle(item.title) ?? comicReadyOptions(item.category) ?? ["Option A", "Option B"] }); say("It's a poll now: people vote by tapping the panel. Check its options; nothing changes on the site until you save."); openPop("card", "poll", at); }}>Let people vote</button>}
     </div>
   );
   const fvSurface = item && (
@@ -533,7 +539,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
               </div>
               <aside className="stu-parts">
                 <span className="stu-k">Parts you can change</span>
-                {(face === "sec" ? Object.keys(SEC_NAMES) : face === "fv" ? ["fv", ...FV_PARTS.map(([k]) => `fvb:${k}`)] : [...CARD_KEYS, ...(item?.type === "poll" ? ["poll"] : []), ...(win ? ["face"] : []), ...(trips ? ["pass", "ticks", "vehicle"] : []), ...(shelf ? ["player", "line"] : [])]).map((k) => (
+                {(face === "sec" ? Object.keys(SEC_NAMES) : face === "fv" ? ["fv", ...FV_PARTS.map(([k]) => `fvb:${k}`)] : [...CARD_KEYS, ...(item?.type === "poll" ? ["poll"] : []), ...(win ? ["face"] : []), ...(trips ? ["pass", "ticks", "vehicle"] : []), ...(shelf ? ["player", "line"] : []), ...(comic ? ["sfx"] : [])]).map((k) => (
                   <button key={k} type="button" disabled={face !== "sec" && !item} className={pop?.key === k ? "on" : ""} onClick={(e) => openPop(face === "sec" ? "sec" : face, k, e.currentTarget.getBoundingClientRect())}>
                     {face === "sec" ? SEC_NAMES[k] : k === "fv" ? "Layout & options" : partName(k, card)}<i className="ti ti-chevron-right" />
                   </button>
@@ -550,7 +556,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
 
       {pop && (
         <Popover key={`${pop.scope}:${pop.key.startsWith("fv") ? "fv" : pop.scope === "sec" ? "sec" : "card"}`} x={pop.x} y={pop.y} title={popTitle} onClose={() => setPop(null)}
-          foot={pop.scope !== "sec" && item && !pop.key.startsWith("fv") ? <><span>Also on this card:</span>{[...CARD_KEYS, "quote", ...(item.type === "poll" ? ["poll"] : []), ...(win ? ["face"] : []), ...(trips ? ["pass", "ticks", "vehicle"] : []), ...(shelf ? ["player", "line"] : [])].map((k) => <button key={k} type="button" className={k === pop.key ? "on" : ""} onClick={() => setPop({ ...pop, key: k })}>{partName(k, card)}</button>)}</>
+          foot={pop.scope !== "sec" && item && !pop.key.startsWith("fv") ? <><span>Also on this card:</span>{[...CARD_KEYS, "quote", ...(item.type === "poll" ? ["poll"] : []), ...(win ? ["face"] : []), ...(trips ? ["pass", "ticks", "vehicle"] : []), ...(shelf ? ["player", "line"] : []), ...(comic ? ["sfx"] : [])].map((k) => <button key={k} type="button" className={k === pop.key ? "on" : ""} onClick={() => setPop({ ...pop, key: k })}>{partName(k, card)}</button>)}</>
             : pop.key.startsWith("fv") ? <><span>Full view:</span><button type="button" className={pop.key === "fv" ? "on" : ""} onClick={() => setPop({ ...pop, key: "fv" })}>Options</button>{FV_PARTS.map(([k, label]) => <button key={k} type="button" className={pop.key === `fvb:${k}` ? "on" : ""} onClick={() => setPop({ ...pop, key: `fvb:${k}` })}>{label}</button>)}</> : null}>
           {pop.scope === "sec" ? <SectionEditor ed={ed} focus={pop.key} /> : pop.key === "fv" || pop.key.startsWith("fvb:") ? <FullEditor ed={ed} k={pop.key} /> : <div key={`${sel}:${pop.key}`} className="stu-fields"><CardEditor ed={ed} k={pop.key} where={pop.scope === "fv" ? "fv" : "card"} /></div>}
         </Popover>

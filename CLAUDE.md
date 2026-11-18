@@ -57,7 +57,8 @@ components/site/
   WinCard.tsx              one G2 app window (and its CodeView); the homepage row and the live editor both draw it
   TripCard.tsx             one G3 trip: its cell on the route and its frame; the homepage row and the live editor both draw it
   StudyCard.tsx            one G4 shelf entry: its cell, plank and object; the homepage row and the live editor both draw it
-  EntryFull.tsx            a G1 to G4 entry's full view: a grid of parts placed by lib/fullView.ts; the entry's page and the live editor both draw it
+  ComicCard.tsx            one G5 comic panel and its writing; the homepage row and the live editor both draw it
+  EntryFull.tsx            a G1 to G5 entry's full view: a grid of parts placed by lib/fullView.ts; the entry's page and the live editor both draw it
   FvShots.tsx              a full view's pictures: the first shown whole over a soft copy of itself, the rest as tiles
   SectionBody.tsx          the section layouts, including the milestones map (`milemap`, a timeline as stops on a trail), app windows (`windows`) and boarding passes (`tickets`)
   Dock.tsx                 the icons under a desktop of app windows; a click sends "row-go" to its SideRow, which answers with "row-at"
@@ -189,7 +190,10 @@ The owner wants each section to look like what it holds, one section at a time (
 
 **Sound on entries.** `Media.type` can be `"audio"`. `MediaField` only takes it with `allowAudio`, which only a Study shelf entry's page passes. `parseMedia` always sorts sound last, so `media[0]` stays a picture wherever there is one, and it never gets the Cover badge. `Cover` draws a tile if sound is all an entry has, `PicZoom` leaves it out, and the entry's page shows it with the browser's own player (`EntryGallery`). `TvPlay` only fetches it when Play is pressed. Only one thing plays on the page at a time. Headless Chrome plays it fine after a real click, so a test can check `.tv-time` and `.tv-fill` move.
 
-## The live editor (G1 to G4)
+## The live editor (G1 to G5)
+
+**G5 (Comic strip) joined on 2026-11-18.** `hasStudio` includes `comic`; `Studio` draws `ComicCard` (no sky, polls `still`). `ComicFrame` takes `p`: `art` (the whole panel), `sub` (caption), `band` (panel number), `bubble` (shout, cloud, fridge note, board, chips; opens the title), `title`, `sfx` (the burst's word, or the magnet letters), `mood` (vibe tag), `record`. Looks like sets `items.comic.look` (poll panels limited by `comicPollChoices`); `cardLookOf` reads it with the type and options. New editor: Sound effect. "Let people vote" turns a post into a poll with options from its title or subsection; `saveStudio` now lets a post become a poll (never back) and writes `items.comic`. Movement switch `comicfx`. Entries open as `EntryFull` with the panel number in the band.
+
 
 **G4 (Study shelf) joined on 2026-11-18.** `hasStudio` includes `study`; `Studio` draws `StudyCard` (no lamp rail, plank kept). `StudyFrame` takes `p`: `band`, `sub`, `status` (ribbon, sticker, tag, notification), `title`, `subtitle`, `spine`, `panel` (a covered book's writing), `art` (plain cover, antenna, wire), `screen` (the TV's, which opens Screen & type), `controls`, `shot` (the phone's screen), `sticker` (the note's tape), and `line` (the line that stuck). Looks like sets `items.study.look` here, not `items.card.look`; `cardLookOf` reads it. New editors: Screen & type (`player`: what the screen shows and its words) and the Line that stuck, all in `items.study`, which `saveStudio` now writes. Pictures accept sound in this layout. Movement switch `studyfx`. A shelf entry opens as `EntryFull`, with its number in the band and its line with the story.
 

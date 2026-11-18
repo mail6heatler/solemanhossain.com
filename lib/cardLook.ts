@@ -4,6 +4,7 @@
  */
 import { cleanPartSizes, type PartSizes } from "./partSize";
 import { studyLookOf, type StudyInfo, type StudyLook } from "./studyItem";
+import { comicLookOf, comicPollOf, type ComicAnyLook, type ComicInfo } from "./comicItem";
 
 export const NOTE_LOOKS = [
   ["manual", "Instruction manual"],
@@ -69,8 +70,11 @@ export function winLookOf(subsection: string, chosen: CardInfo["look"] = ""): Wi
 }
 
 /** The card an entry is, for the section's layout: a window for Made (G2), a note otherwise. */
-export function cardLookOf(layout: string, it: { category: string; card: CardInfo; study?: StudyInfo }): NoteLook | WinLook | TripLook | StudyLook {
+export function cardLookOf(layout: string, it: { category: string; card: CardInfo; study?: StudyInfo; comic?: ComicInfo; type?: string; poll_options?: string[]; media?: { type: string }[] }): NoteLook | WinLook | TripLook | StudyLook | ComicAnyLook {
   if (layout === "study") return studyLookOf(it.category, it.study?.look ?? "");
+  if (layout === "comic") return it.type === "poll"
+    ? comicPollOf(it.category, it.poll_options ?? [], it.comic?.look ?? "", !!it.media?.some((m) => m.type !== "audio"))
+    : comicLookOf(it.category, it.comic?.look ?? "");
   return layout === "windows" ? winLookOf(it.category, it.card.look) : layout === "tickets" ? tripLookOf(it.category, it.card.look) : noteLookOf(it.category, it.card.look);
 }
 

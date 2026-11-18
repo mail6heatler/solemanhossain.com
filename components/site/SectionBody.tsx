@@ -14,7 +14,7 @@ import TicketRider from "./TicketRider";
 import { vehicleFor } from "./vehicles";
 import { tripContext } from "./TripFrame";
 import { ShelfDecor, ShelfLamp } from "./StudyFrame";
-import { ComicFrame, ComicMore, comicView, type ComicBody } from "./ComicFrame";
+import { ComicMore } from "./ComicFrame";
 import { AwardFrame, AwardMore, awardView, type AwardBody } from "./AwardFrame";
 import { Pencil, ScrapFrame, ScrapMore, scrapView } from "./ScrapFrame";
 import ChatWall from "./ChatWall";
@@ -22,10 +22,10 @@ import NoteCard from "./NoteCard";
 import WinCard, { shortUrl } from "./WinCard";
 import TripCard from "./TripCard";
 import StudyCard from "./StudyCard";
+import ComicCard from "./ComicCard";
 import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
 export { Mood };
 import { FlyingBrain } from "./comicArt";
-import ComicPoll from "./ComicPoll";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
 
 const href = (s: Section, it: Item) => `/s/${s.slug}/${it.id}`;
@@ -495,40 +495,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   }
 
   if (L === "comic") {
-    const cells = items.map((it, i) => {
-      const l = lookFor(it);
-      const first = !l.hide("pic") ? it.media.find((m) => m.type !== "audio") : undefined;
-      const v = comicView(it, { code: section.code, fallback: section.nav_label || section.title, index: i, hideSubtitle: l.hide("subtitle"), hasPic: !!first });
-      const poll = it.type !== "poll" ? null : v.look === "buttons"
-        ? <PollCard id={it.id} options={it.poll_options} confetti={fx.confetti} />
-        : <ComicPoll id={it.id} options={it.poll_options} look={v.look as "scale" | "vs" | "quick" | "slash" | "quad"} word={v.word} confetti={fx.confetti} />;
-      const says = v.subtitle ? <p className="sub">{v.subtitle}</p> : null;
-      const body: ComicBody = ({ above, withPoll }) => (
-        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-          <CardLink to={href(section, it)} label={it.title} />
-          <div className="tb">
-            {above}
-            {v.look !== "poem" && says}
-            {withPoll && poll}
-            {v.look === "poem"
-              ? v.verses.map((line, n) => <Markdown key={n} className="md ex cm-verse">{line}</Markdown>)
-              : v.text.trim() && <div className="cm-box"><Markdown className="md ex">{v.text}</Markdown></div>}
-            {v.look === "poem" && says}
-            <Meta it={v.look === "vibe" && v.mood ? { ...it, mood: "" } : it} showCat={false} hideDate={l.hide("date")} showStatus />
-            <LinkButtons it={it} />
-            {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-          </div>
-        </Box>
-      );
-      return (
-        <div key={it.id} className={`tkt-cell cm-cell${i === 0 ? " first" : ""}${i === items.length - 1 ? " last" : ""}${l.className}`} style={l.style}>
-          {!grid && fx.comicfx && <div className="cm-sky" aria-hidden />}
-          <div className={`trip tkt cm${it.body.trim() ? " with-text" : ""}`} style={l.style}>
-            <ComicFrame view={v} link={<a className="tkt-link" href={href(section, it)} tabIndex={-1} aria-hidden />} first={first} fixedPic={"--pic" in (l.style ?? {})} picStyle={vt(it.id)} zoom={first ? zoom(it) : null} poll={poll} body={body} />
-          </div>
-        </div>
-      );
-    });
+    const cells = items.map((it, i) => (
+      <ComicCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} code={section.code} fallback={section.nav_label || section.title} href={href(section, it)} sky={!grid && fx.comicfx}
+        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+    ));
     return row("grid3 tkt-row cm-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <ComicMore sky={fx.comicfx} />}{!grid && fx.comicfx && <TicketRider className="cm-rider" count={items.length}><FlyingBrain /></TicketRider>}</>);
   }
 

@@ -499,7 +499,7 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
     const now = await getSettings();
     await saveSettingsData({
       ribbonSize: cleanRibbonSize(raw.ribbonSize),
-      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, tripfx: typeof raw.tripfx === "boolean" ? raw.tripfx : now.effects.tripfx, studyfx: typeof raw.studyfx === "boolean" ? raw.studyfx : now.effects.studyfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
+      effects: { ...now.effects, notefx: typeof raw.notefx === "boolean" ? raw.notefx : now.effects.notefx, windowfx: typeof raw.windowfx === "boolean" ? raw.windowfx : now.effects.windowfx, tripfx: typeof raw.tripfx === "boolean" ? raw.tripfx : now.effects.tripfx, studyfx: typeof raw.studyfx === "boolean" ? raw.studyfx : now.effects.studyfx, comicfx: typeof raw.comicfx === "boolean" ? raw.comicfx : now.effects.comicfx, fullfx: typeof raw.fullfx === "boolean" ? raw.fullfx : now.effects.fullfx },
     });
 
     const own = new Map((await query("SELECT id, type FROM items WHERE section_id=$1", [sectionId])).map((r) => [Number(r.id), String(r.type)]));
@@ -512,7 +512,8 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
       const it = (item ?? {}) as StudioSave["items"][number];
       const given = Number(it.id), isNew = !(given > 0);
       if (!isNew && (!own.has(given) || gone.has(given))) continue; // another section's, or deleted in this same save
-      const type = isNew ? (it.type === "poll" ? "poll" : "post") : own.get(given)!;
+      // a post can become a poll here (a comic's "Let people vote"), never the other way, which would leave its votes behind
+      const type = isNew || own.get(given) === "post" ? (it.type === "poll" ? "poll" : "post") : own.get(given)!;
       const tags = list(it.tags).map((x) => t(x, 60).replace(/,/g, " ")).filter(Boolean).slice(0, 30).join(", ");
       const mood = MOODS[String(it.mood)] ? String(it.mood) : "";
       let poll = list(it.poll_options).map((x) => t(x, 120)).filter(Boolean).slice(0, 8);
@@ -537,6 +538,8 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
       }
       // a trip's pass (its details, tick lines and vehicle)
       if (it.pass) await query("UPDATE items SET pass=$1 WHERE id=$2", [JSON.stringify(cleanPass(it.pass)), id]);
+      if (!isNew && type !== own.get(given)) await query("UPDATE items SET type=$1 WHERE id=$2", [type, id]);
+      if (it.comic) await query("UPDATE items SET comic=$1 WHERE id=$2", [JSON.stringify(cleanComic(it.comic)), id]);
       // a shelf entry's object, screen, kind and the line that stuck
       if (it.study) await query("UPDATE items SET study=$1 WHERE id=$2", [JSON.stringify(cleanStudy(it.study)), id]);
       // moved to another section: it goes to the front there, as a new entry would

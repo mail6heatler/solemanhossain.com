@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "@/lib/data";
 import { LAYOUTS, MOODS, REACTION_EMOJIS, RIBBON_SIZE, STUDY_STATUSES, TRIP_STATUSES, hasStudio } from "@/lib/settings";
 import { STUDY_LOOKS, STUDY_MEDIA, studyLookOf, type StudyLook, type StudyMedia } from "@/lib/studyItem";
+import { COMIC_LOOKS, SFX_MAX, comicLookOf, comicPollChoices, comicPollOf, sfxOf, voteWordOf, type ComicAnyLook } from "@/lib/comicItem";
 import { NOTE_LOOKS, TRIP_LOOKS, WIN_LOOKS, noteLookOf, tripLookOf, winLookOf } from "@/lib/cardLook";
 import { MAX_TICKS, TRIP_VEHICLES, type TickLine } from "@/lib/tripPass";
 import { codeFor, tripContext } from "@/components/site/TripFrame";
@@ -37,6 +38,20 @@ const NOTE_HINTS: Record<string, string> = {
   portrait: "A framed portrait on a wire: the picture is the person, the title and subtitle are on the name plate, and Status is the tag.",
   phone: "A phone: the subsection and Status are its notification, and the picture is on its screen.",
   note: "A note taped to the shelf, with the subsection at its top and Status as its tag.",
+  say: "A speech bubble over a little figure.",
+  hot: "A jagged shout with flames and a burst; the Sound effect is the word in the burst (Hot take! when empty).",
+  poem: "A night sky with a thought cloud: each line of the text gets its own caption, and the Subtitle is who wrote it.",
+  stuck: "A fridge door: the title is the saying on a note under magnets, the Subtitle is who said it, and the Sound effect is spelled in magnet letters.",
+  loop: "A spinning record: a picture becomes its label.",
+  vibe: "Waves in the colour of its Mood.",
+  dump: "A bin of bubbles: the first two short lines of the text get bubbles of their own.",
+  chaos: "Each word of the title on its own scrap, with paint flying.",
+  quick: "A quiz show: the title is the question and the text is the answer, which a buzzer reveals. As a poll, the options are buzzers.",
+  scale: "A poll on a balance scale that tips toward the winner (2 or 3 short options).",
+  vs: "A poll as a face-off: two options, and the line slides with the votes.",
+  slash: "A poll of three options, split by slashes.",
+  quad: "A poll of four options, as four small panels.",
+  buttons: "A poll with big comic buttons under the panel (any number of options, and any poll with a picture).",
 };
 
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
@@ -45,6 +60,7 @@ const NAMES: Record<string, string> = {
   links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
+  bubble: "Speech bubble", sfx: "Sound effect", record: "Record",
   spine: "Spine", line: "Line that stuck", shot: "Phone screen", panel: "Writing panel", player: "Screen & type",
   route: "Route", passinfo: "Pass details", times: "Times", stub: "Stub & barcode", ticks: "Tick lines", passname: "Name on the pass", pass: "Pass details", vehicle: "Vehicle",
   url: "Address bar", codeview: "Code view", sheet: "Spreadsheet", term: "Terminal", board: "Sticky notes", screen: "Screen", brand: "Name plate", controls: "Buttons",
@@ -70,6 +86,13 @@ const BY_LOOK: Record<string, Record<string, string>> = {
   portrait: { band: "Name plate", status: "Tag", art: "Wire" },
   phone: { band: "Status bar", sub: "App name", status: "Notification" },
   note: { band: "Note top", status: "Tag", sticker: "Tape" },
+  ...Object.fromEntries(["say", "loop", "vibe", "scale", "vs", "slash", "quad", "buttons"].map((k) => [k, { sub: "Caption", band: "Panel number", art: "Panel art" }])),
+  hot: { sub: "Caption", band: "Panel number", art: "Panel art", bubble: "Shout" },
+  poem: { sub: "Caption", band: "Panel number", art: "Panel art", bubble: "Thought cloud", body: "Verses", subtitle: "Who wrote it" },
+  stuck: { sub: "Caption", band: "Panel number", art: "Fridge door", bubble: "Fridge note", sfx: "Magnet letters", title: "Saying", subtitle: "Who said it" },
+  dump: { sub: "Caption", band: "Panel number", art: "Panel art", bubble: "Thought bubbles" },
+  chaos: { sub: "Caption", band: "Panel number", art: "Panel art", title: "Word scraps" },
+  quick: { sub: "Caption", band: "Panel number", art: "Quiz show", bubble: "Question board", title: "Question", body: "Answer" },
 };
 export const partName = (key: string, look: string) => (key.startsWith("fvb:") ? FV_PARTS.find(([k]) => k === key.slice(4))?.[1] ?? key : BY_LOOK[look]?.[key] ?? NAMES[key] ?? key);
 export const SEC_NAMES: Record<string, string> = {
@@ -97,9 +120,9 @@ export type Ed = {
   setFvPartSize: (key: string, size: PartSize | undefined, stroke?: number) => void;
 };
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
-const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot"];
+const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot", "record"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
-const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass" };
+const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -205,15 +228,17 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   switch (k) {
     case "sub": {
-      const shelf = ed.kind === "study";
-      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : NOTE_LOOKS;
-      const auto = looks.find(([key]) => key === (ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : noteLookOf(it.category)))?.[1] ?? "";
+      const shelf = ed.kind === "study", comic = ed.kind === "comic", hasPic = it.media.some((m) => m.type !== "audio");
+      const pollLooks = comicPollChoices(it.poll_options).map(([key, label]) => [key, label] as const);
+      const looks: readonly (readonly [string, string])[] = ed.kind === "windows" ? WIN_LOOKS : ed.kind === "tickets" ? TRIP_LOOKS : shelf ? STUDY_LOOKS : comic ? (it.type === "poll" ? pollLooks : COMIC_LOOKS) : NOTE_LOOKS;
+      const autoKey = ed.kind === "windows" ? winLookOf(it.category) : ed.kind === "tickets" ? tripLookOf(it.category) : shelf ? studyLookOf(it.category) : comic ? (it.type === "poll" ? comicPollOf(it.category, it.poll_options, "", hasPic) : comicLookOf(it.category)) : noteLookOf(it.category);
+      const auto = [...looks, ...COMIC_LOOKS, ["buttons", "Big comic buttons"] as const].find(([key]) => key === autoKey)?.[1] ?? "";
       return <>
         <Txt label="Subsection" value={it.category} placeholder="Pick one below, or type a new one" onChange={(v) => ed.setItem({ category: v.replace(/,/g, " ") }, "category")} />
         <Pills options={cats} value={it.category} onPick={(c) => ed.setItem({ category: c })} />
         <div className="fl stu-f">
           <label className="lab" htmlFor="stu-look">Looks like</label>
-          <select id="stu-look" value={shelf ? it.study.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
+          <select id="stu-look" value={shelf ? it.study.look : comic ? it.comic.look : it.card.look} onChange={(e) => (shelf ? ed.setItem({ study: { ...it.study, look: e.target.value as StudyLook | "" } }) : comic ? ed.setItem({ comic: { ...it.comic, look: e.target.value as ComicAnyLook | "" } }) : ed.setItem({ card: { ...it.card, look: e.target.value as Item["card"]["look"] } }))}>
             <option value="">Automatic, from its subsection: {auto}</option>
             {looks.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
@@ -312,6 +337,11 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       </>;
     }
     case "pass": return <PassFields ed={ed} />;
+    case "sfx": {
+      const word = ed.card === "stuck" ? "Stuck" : it.type === "poll" && ed.card !== "buttons" ? voteWordOf(ed.card as ComicAnyLook, "") : sfxOf(ed.card as ComicAnyLook, "");
+      return <Txt label="Sound effect" value={it.comic.sfx} max={SFX_MAX} placeholder={word || "Pow!, Zap!, Boom!…"} onChange={(v) => ed.setItem({ comic: { ...it.comic, sfx: v } }, "sfx")}
+        hint={ed.card === "stuck" ? "The magnet letters spell it. Left empty, they spell STUCK." : it.type === "poll" && ed.card !== "buttons" ? `It pops up when someone votes. Left empty, it says ${word}` : `It appears in a burst on the panel. ${word ? `Left empty, this one says ${word}` : "Left empty, there's no burst."}`} />;
+    }
     case "line": return <Txt label="The line that stuck" area focus value={it.study.line} max={300} placeholder="A quote or lyric, shown highlighted at the top of the text" onChange={(v) => ed.setItem({ study: { ...it.study, line: v } }, "line")} />;
     case "player": return <>
       <div className="fl stu-f"><span className="lab">What is it?</span>
@@ -463,7 +493,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
             </div>
           ))}
           <div><button type="button" className="b-out b-sm" onClick={() => ed.setSection({ categories: [...s.categories, "New subsection"] })}><i className="ti ti-plus" />Add a subsection</button></div>
-          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "study"
+          <span className="hint">Renaming one renames it on its cards too. {ed.kind === "comic"
+            ? "Its name picks its panels: hot takes a shout; poems a night sky; sayings a fridge door; on repeat a record; vibing waves; brain dumps a bin; creative chaos word scraps; quick fire a quiz show; and anything else a speech bubble. A poll's panel also goes by how many options it has. Each entry can choose another under Looks like."
+            : ed.kind === "study"
             ? "Its name picks its entries' object: books a book; songs, music, podcasts, radio, video, film, listening or watching a TV player; people a framed portrait; the internet a phone; and anything else a note. Each entry can choose another under Looks like."
             : ed.kind === "tickets"
             ? "Its name picks its trips' frame: quests a camera; bucket lists (or dreams, someday) a note with ticks; “Through my eyes” (or photos) a polaroid; moments (or postcards, memories) a postcard; and anything else a boarding pass. Each trip can choose another under Looks like."
@@ -490,7 +522,9 @@ export function SectionEditor({ ed, focus }: { ed: Ed; focus: string }) {
       {G({ k: "motion", children: (
         <div className="fl stu-f"><span className="lab">{SEC_NAMES.motion} (for the whole site)</span>
           <div className="stu-switches">
-            {ed.kind === "study"
+            {ed.kind === "comic"
+              ? <Sw label="Panels come alive" hint="A brain flies along the strip and wakes the panel it reaches: shouts shake, records spin, words fly onto their scraps." on={draft.comicfx} onChange={(comicfx) => ed.setDraft((d) => ({ ...d, comicfx }))} />
+              : ed.kind === "study"
               ? <Sw label="The shelf comes alive" hint="The lamp travels the shelf and wakes what it reaches: a book lifts and its ribbon swings, a phone runs its little show, a player's bars dance." on={draft.studyfx} onChange={(studyfx) => ed.setDraft((d) => ({ ...d, studyfx }))} />
               : ed.kind === "tickets"
               ? <Sw label="Trips come alive" hint="The vehicle travels the route and each frame wakes as it arrives: the camera records, the bucket's handle swings, the stamp lands." on={draft.tripfx} onChange={(tripfx) => ed.setDraft((d) => ({ ...d, tripfx }))} />
