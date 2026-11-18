@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-18: G0 and G8 ideas, waiting for picks
+
+The owner said "go" for the G0 (hero) and G8 (Connect) step. As agreed, nothing was built yet: a private, working preview (https://claude.ai/artifact/DdTYraXwmA1gtD4kFSgSuh) lists what's weak in each and draws six looks for each with their real words. Hero: hanging photo (today), magazine cover, profile card, boot screen, movie poster, name in lights; extras: own photo, rotating headlines, pieces on/off, which numbers show, any number of buttons, four backgrounds. Connect: messenger (today), letter box, link in bio, business card, guestbook, phone contact; extras: a links editor with logos found from the link and the owner's own second line, reordering, an editable automatic reply, availability. G7 (Life editor) still waits for keep or undo.
+
 ### 2026-11-18: Life (G7) gets the live editor (G6 kept); G1 to G7 all done
 
 The owner kept G6 and said "go" for G7. Restore point `before-g7-studio`. Same editor, drawing the real scrapbook pages (`ScrapCard`): every part labelled, moved and sized; Looks like picks the page; Ticked days for a habit tracker. Entries open as the new full view. Not tested beyond the build; waiting for keep or undo. Next on the plan: G0 (hero) and G8 (Connect), which first need a list of their weaknesses and a preview of ideas for the owner to choose from.
