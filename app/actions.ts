@@ -458,10 +458,19 @@ export async function messageAction(fd: FormData) {
   if (op === "read") await query("UPDATE messages SET read = NOT read WHERE id=$1", [id]);
   if (op === "approve") await query("UPDATE messages SET approved = NOT approved, read = TRUE WHERE id=$1", [id]);
   if (op === "delete") await query("DELETE FROM messages WHERE id=$1", [id]);
-  if (op === "allread") await query("UPDATE messages SET read = TRUE");
+  // "Mark all read" clears everything the Inbox's number counts: messages, new reactions and new comments
+  if (op === "allread") {
+    await query("UPDATE messages SET read = TRUE WHERE NOT read");
+    await query("UPDATE reactions SET seen = TRUE WHERE NOT seen");
+    await query("UPDATE comments SET seen = TRUE WHERE NOT seen");
+  }
   if (op === "reactions-seen") await query("UPDATE reactions SET seen = TRUE WHERE NOT seen");
   if (op === "comments-seen") await query("UPDATE comments SET seen = TRUE WHERE NOT seen");
   refresh();
+  // back to the tab it was pressed on, with a message saying it worked
+  const f = str(fd, "f", 20);
+  const tab = ["unread", "public", "reactions", "comments"].includes(f) ? `f=${f}&` : "";
+  redirect(`/admin/inbox?${tab}done=${encodeURIComponent(op)}&t=${Date.now()}`);
 }
 
 // ---------- comments (admin) ----------

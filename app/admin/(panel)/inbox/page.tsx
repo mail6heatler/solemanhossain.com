@@ -1,4 +1,4 @@
-import { getCommentTotals, getMessages, getRecentComments, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
+import { countUnread, getCommentTotals, getMessages, getRecentComments, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
 import { messageAction } from "@/app/actions";
 import { ConfirmSubmit, CopyButton } from "@/components/admin/Widgets";
 import CommentTools from "@/components/admin/CommentTools";
@@ -26,9 +26,12 @@ export default async function Inbox({ searchParams }: P) {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { f } = await searchParams;
   const filter = f === "unread" || f === "public" || f === "reactions" || f === "comments" ? f : "all";
-  const [msgs, settings, totals, talks] = await Promise.all([filter === "reactions" || filter === "comments" ? Promise.resolve([]) : getMessages(filter), getSettings(), getReactionTotals(), getCommentTotals()]);
+  const [msgs, settings, totals, talks, unreadMsgs] = await Promise.all([filter === "reactions" || filter === "comments" ? Promise.resolve([]) : getMessages(filter), getSettings(), getReactionTotals(), getCommentTotals(), countUnread()]);
+  const anyNew = unreadMsgs + totals.fresh + talks.fresh;
+  // every form here says which tab it was on, so the page comes back to it
+  const tab = <input type="hidden" name="f" value={filter} />;
   const tz = settings.timezone || "UTC";
-  const tabs: [string, string][] = [["all", "All"], ["unread", "Unread"], ["public", "On the wall"], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`], ["comments", `Comments${talks.fresh ? ` · ${talks.fresh} new` : ""}`]];
+  const tabs: [string, string][] = [["all", "All"], ["unread", `Unread${anyNew ? ` · ${anyNew}` : ""}`], ["public", "On the wall"], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`], ["comments", `Comments${talks.fresh ? ` · ${talks.fresh} new` : ""}`]];
 
   return (
     <div className="adm-page">
@@ -39,33 +42,33 @@ export default async function Inbox({ searchParams }: P) {
           <a key={k} href={k === "all" ? "/admin/inbox" : `/admin/inbox?f=${k}`} className={filter === k ? "b-dark b-sm" : "b-out b-sm"}>{l}</a>
         ))}
         {filter === "reactions" ? (
-          totals.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="reactions-seen" /><input type="hidden" name="id" value="0" />
+          totals.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="reactions-seen" /><input type="hidden" name="id" value="0" />{tab}
             <button className="b-out b-sm"><i className="ti ti-checks" />Mark all seen</button></form>
         ) : filter === "comments" ? (
-          talks.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="comments-seen" /><input type="hidden" name="id" value="0" />
+          talks.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="comments-seen" /><input type="hidden" name="id" value="0" />{tab}
             <button className="b-out b-sm"><i className="ti ti-checks" />Mark all seen</button></form>
         ) : (
-          <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="allread" /><input type="hidden" name="id" value="0" />
-            <button className="b-out b-sm"><i className="ti ti-checks" />Mark all read</button></form>
+          <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="allread" /><input type="hidden" name="id" value="0" />{tab}
+            <button className="b-out b-sm" disabled={!anyNew} title={anyNew ? "Marks every message, reaction and comment as read" : "Nothing new to mark"}><i className="ti ti-checks" />Mark all read</button></form>
         )}
       </div>
       {filter === "reactions" && <ReactionList tz={tz} total={totals.total} fresh={totals.fresh} />}
       {filter === "comments" && <CommentList tz={tz} />}
-      {filter === "all" && talks.fresh > 0 && (
+      {(filter === "all" || filter === "unread") && talks.fresh > 0 && (
         <a href="/admin/inbox?f=comments" className="c hov c-row" style={{ textDecoration: "none" }}>
           <span className="chipi"><i className="ti ti-message-circle" /></span>
           <div className="grow"><div className="c-title">{talks.fresh} new comment{talks.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who said what →</div></div>
           <span className="tagx red">new</span>
         </a>
       )}
-      {filter === "all" && totals.fresh > 0 && (
+      {(filter === "all" || filter === "unread") && totals.fresh > 0 && (
         <a href="/admin/inbox?f=reactions" className="c hov c-row" style={{ textDecoration: "none" }}>
           <span className="chipi"><i className="ti ti-heart" /></span>
           <div className="grow"><div className="c-title">{totals.fresh} new reaction{totals.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who reacted to what →</div></div>
           <span className="tagx red">new</span>
         </a>
       )}
-      {filter !== "reactions" && filter !== "comments" && msgs.length === 0 && <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>No messages here yet.</div>}
+      {filter !== "reactions" && filter !== "comments" && msgs.length === 0 && <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>{filter === "unread" ? (anyNew ? "No unread messages. The new reactions and comments are above." : "You're all caught up ✨") : "No messages here yet."}</div>}
       {msgs.map((m) => (
         <div key={m.id} className={`c msg ${m.read ? "" : "unread"}`}>
           <span className="chipi"><i className="ti ti-user" /></span>
@@ -87,11 +90,11 @@ export default async function Inbox({ searchParams }: P) {
                   <CopyButton text={m.email} label="Copy email" />
                 </>
               )}
-              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="approve" />
+              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="approve" />{tab}
                 <button className="b-out b-sm"><i className={`ti ${m.approved ? "ti-eye-off" : "ti-pin"}`} />{m.approved ? "Remove from wall" : "Show on wall"}</button></form>
-              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="read" />
+              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="read" />{tab}
                 <button className="b-out b-sm">{m.read ? "Mark unread" : "Mark read"}</button></form>
-              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="delete" />
+              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="delete" />{tab}
                 <ConfirmSubmit title="Delete this message?" message="It's removed for good. This can't be undone." yes="Yes, delete" className="b-danger b-sm"><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
             </div>
           </div>

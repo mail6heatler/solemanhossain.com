@@ -3,6 +3,7 @@ import { setHeroHidden } from "@/app/actions";
 import { ConfirmSubmit } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
 import HeroStudio from "@/components/admin/studio/HeroStudio";
+import { Nav } from "@/components/site/Chrome";
 
 /** G0's dashboard page: the hero's live editor, then taking the hero off the homepage or bringing it back. */
 export default async function HeroPage() {
@@ -19,7 +20,8 @@ export default async function HeroPage() {
       {s.heroHidden && <div className="c c-row" style={{ marginBottom: 14 }}><div className="grow"><div className="c-title">The hero is off your homepage right now</div><div className="c-desc">You can still edit it here. Bring it back at the bottom of this page.</div></div></div>}
       <HeroStudio first={first} settings={s} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} reactions={reactions.total}
         sections={sections.map((x) => ({ id: x.id, slug: x.slug, layout: x.layout, nav_label: x.nav_label, title: x.title, nav_emoji: x.nav_emoji }))}
-        counts={Object.fromEntries(counts)} />
+        counts={Object.fromEntries(counts)}
+        nav={<div className="hst-nav" inert aria-hidden><Nav settings={s} sections={sections} onHome /></div>} />
     {s.heroHidden ? (
       <form action={setHeroHidden} className="c c-row" style={{ marginTop: 14 }}>
         <input type="hidden" name="hidden" value="0" />

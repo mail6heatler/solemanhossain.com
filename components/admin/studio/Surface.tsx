@@ -11,6 +11,12 @@ type Mark = { key: string; n: number; x: number; y: number; w: number; h: number
 type Grip = { part: string; x: number; y: number; w: number; h: number };
 type Pen = { x: number; y: number; w: number; h: number; css: React.CSSProperties };
 type Tip = { x: number; y: number; text: string };
+/** A ruler line shown while a box is dragged: where it lines up with another box or the edges (in the surface's pixels). */
+type Guide = { v: boolean; at: number };
+/** How near (screen pixels) a box's edge or middle has to come to another's to click onto it. */
+const SNAP = 6;
+/** How far the mouse moves on a box before a press becomes a drag (less is a click, which selects or types). */
+const DRAG_FROM = 4;
 /** What's being typed straight onto the preview: which part, which of them if it shows twice, and its text. */
 export type Typing = { key: string; n: number; value: string };
 /** Which way a drag goes: the side edge (width), the bottom edge (height), the corner (everything in it, words included), or the move handle (its place). */
@@ -49,6 +55,9 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
   const [hover, setHover] = useState("");
   const [dragging, setDragging] = useState("");
   const [tip, setTip] = useState<Tip | null>(null);
+  const [guides, setGuides] = useState<Guide[]>([]);
+  /** a press that became a drag: the click that follows it must not also select */
+  const dragged = useRef(false);
   const sig = useRef("");
   const hidden = useRef<HTMLElement | null>(null);
   /** a full view part that was just let go: where it was, so it can glide to where the grid puts it */
@@ -168,6 +177,7 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     if (t.closest(".stu-over")) return;
     e.preventDefault();
     e.stopPropagation();
+    if (dragged.current) { dragged.current = false; return; }
     const p = t.closest<HTMLElement>("[data-part]");
     if (!p) return;
     if (p.dataset.part === "open") onOpen?.(); else pick(p);
@@ -198,6 +208,36 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     window.addEventListener("pointercancel", up);
   };
 
+  /**
+   * Rulers: the lines a box being moved can line up with (every other box's edges and middle, and the edges and middle of the card or
+   * screen it's on), and a function that pulls a move onto the nearest one within SNAP pixels. Alt held moves freely.
+   */
+  const rulers = (el: HTMLElement) => {
+    const surf = root.current!, base = surf.getBoundingClientRect(), start = el.getBoundingClientRect();
+    const xs: number[] = [], ys: number[] = [];
+    const add = (r: DOMRect) => { if (r.width < 4 || r.height < 4) return; xs.push(r.left - base.left, r.left + r.width / 2 - base.left, r.right - base.left); ys.push(r.top - base.top, r.top + r.height / 2 - base.top, r.bottom - base.top); };
+    const frame = surf.querySelector<HTMLElement>(".stu-inner")?.firstElementChild;
+    if (frame) add(frame.getBoundingClientRect());
+    add(holder(el).getBoundingClientRect());
+    surf.querySelectorAll<HTMLElement>(".stu-inner [data-part], .stu-inner [data-fv]").forEach((o) => { if (o !== el && !o.contains(el) && !el.contains(o)) add(o.getBoundingClientRect()); });
+    const x0 = start.left - base.left, y0 = start.top - base.top;
+    const near = (mine: number[], lines: number[]) => {
+      let best: { d: number; at: number } | null = null;
+      for (const m of mine) for (const l of lines) { const d = l - m; if (Math.abs(d) <= SNAP && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, at: l }; }
+      return best;
+    };
+    /** the move, pulled onto a ruler if one is near, and the rulers it lines up with */
+    return (dx: number, dy: number, free: boolean): { dx: number; dy: number; lines: Guide[] } => {
+      if (free) return { dx, dy, lines: [] };
+      const l = x0 + dx, tp = y0 + dy;
+      const bx = near([l, l + start.width / 2, l + start.width], xs), by = near([tp, tp + start.height / 2, tp + start.height], ys);
+      const lines: Guide[] = [];
+      if (bx) lines.push({ v: true, at: r1(bx.at) });
+      if (by) lines.push({ v: false, at: r1(by.at) });
+      return { dx: dx + (bx?.d ?? 0), dy: dy + (by?.d ?? 0), lines };
+    };
+  };
+
   // ----- a card's part: its side edge, bottom edge or corner, followed to the pixel -----
   const sizePart = (e: React.PointerEvent, m: Mark, way: Way) => {
     const el = root.current?.querySelectorAll<HTMLElement>(`.stu-inner [data-part="${m.key}"]`)[m.n];
@@ -206,11 +246,14 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     e.stopPropagation();
     const r = el.getBoundingClientRect(), room = holder(el).getBoundingClientRect().width;
     const s0: PartSize = { ...(sizes?.[m.key] ?? {}) }, z0 = (s0.z ?? 100) / 100, x0 = e.clientX, y0 = e.clientY, pic = m.key === "pic";
+    const pull = way === "m" ? rulers(el) : null;
     let frame = 0;
     const stroke = Date.now(); // one drag, one step to undo
     setDragging(`${m.key}:${m.n}`);
     follow((ev) => {
-      const dx = ev.clientX - x0, dy = ev.clientY - y0, n: PartSize = { ...s0 };
+      let dx = ev.clientX - x0, dy = ev.clientY - y0;
+      if (pull) { const p = pull(dx, dy, ev.altKey); dx = p.dx; dy = p.dy; setGuides(p.lines); }
+      const n: PartSize = { ...s0 };
       if (way === "w") n.w = Math.round(clamp(((r.width + dx) / room) * 100, PART_LIMITS.w[0], 100) * 2) / 2;
       if (way === "h") n.h = Math.round(clamp((r.height + dy) / (zoom * z0), PART_LIMITS.h[0], PART_LIMITS.h[1]));
       if (way === "z") n.z = Math.round(clamp(z0 * Math.max(0.1, ((r.width + dx) / r.width + (r.height + dy) / r.height) / 2) * 100, PART_LIMITS.z[0], PART_LIMITS.z[1]));
@@ -220,7 +263,7 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
       setTip({ x: ev.clientX, y: ev.clientY, text: sizeText(s, pic) });
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => onSize(m.key, s, stroke));
-    }, () => { setDragging(""); setTip(null); });
+    }, () => { setDragging(""); setTip(null); setGuides([]); });
   };
   // a double click on a handle puts that one back
   const unsize = (m: Mark, way: Way) => {
@@ -239,10 +282,12 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     const col = grid.getBoundingClientRect().width / FV_COLS, row = FV_ROW * zoom, r = blk.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
     const inner = blk.querySelector<HTMLElement>(".fv-z"), at = (e.currentTarget as HTMLElement).getBoundingClientRect();
     let box = start, frame = 0;
+    const pull = mode === "move" ? rulers(blk) : null;
     const f = (dx: number, dy: number) => clamp(((r.width + dx) / r.width + (r.height + dy) / r.height) / 2, FV_ZOOM[0] / start.z, FV_ZOOM[1] / start.z);
     setDragging(g.part);
     follow((ev) => {
-      const dx = ev.clientX - x0, dy = ev.clientY - y0;
+      let dx = ev.clientX - x0, dy = ev.clientY - y0;
+      if (pull) { const p = pull(dx, dy, ev.altKey); dx = p.dx; dy = p.dy; setGuides(p.lines); }
       blk.classList.add("stu-held");
       if (mode === "move") {
         blk.style.translate = `${dx / zoom}px ${dy / zoom}px`;
@@ -269,6 +314,7 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     }, (moved) => {
       setDragging("");
       setTip(null);
+      setGuides([]);
       if (!moved) { blk.classList.remove("stu-held"); if (mode === "move") onBlockPick?.(g.part, at); return; }
       settle.current = { part: g.part, from: blk.getBoundingClientRect(), z: box.z };
       onBlock(g.part, box);
@@ -279,6 +325,47 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
     const start = blocks?.find((b) => b.part === g.part);
     if (!start || !onBlock) return;
     if (way === "z") onBlock(g.part, { ...start, z: 100 });
+  };
+
+  /**
+   * Press anywhere on a box and drag it (the owner's ask, 2026-11-19). In a full view a press moves the part it's in (a box inside one
+   * still moves by its own ✥); on a card or the hero it moves the innermost box that can move. Under DRAG_FROM pixels it stays an
+   * ordinary click, which selects the box or starts typing on it; after a drag, that click is swallowed.
+   */
+  const press = (e: React.PointerEvent) => {
+    if (e.button !== 0 || typing || e.pointerType === "touch") return;
+    const t = e.target as HTMLElement;
+    if (t.closest(".stu-over") || !t.closest(".stu-inner")) return;
+    const blk = blocks && onBlock ? t.closest<HTMLElement>("[data-fv]") : null;
+    let part: HTMLElement | null = null;
+    if (!blk && sizes && onSize) {
+      part = t.closest<HTMLElement>("[data-part]");
+      while (part && (!SIZED.includes(part.dataset.part!) || part.hasAttribute("data-fixed"))) part = part.parentElement?.closest<HTMLElement>("[data-part]") ?? null;
+    }
+    if (!part && !blk) return;
+    e.preventDefault(); // no text selection while dragging; the click still comes
+    const x0 = e.clientX, y0 = e.clientY;
+    const fake = (el: HTMLElement) => ({ clientX: x0, clientY: y0, preventDefault() {}, stopPropagation() {}, currentTarget: el }) as unknown as React.PointerEvent;
+    const stop = () => { window.removeEventListener("pointermove", wait); window.removeEventListener("pointerup", stop); window.removeEventListener("pointercancel", stop); };
+    const wait = (ev: PointerEvent) => {
+      if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < DRAG_FROM) return;
+      stop();
+      dragged.current = true;
+      // the click comes in the same task as letting go, so clear the flag just after it, in case no click follows (let go outside)
+      window.addEventListener("pointerup", () => setTimeout(() => { dragged.current = false; }, 0), { once: true });
+      if (blk) {
+        const r = blk.getBoundingClientRect(), base = root.current!.getBoundingClientRect();
+        grab(fake(blk), { part: blk.dataset.fv!, x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height }, "move");
+      } else if (part) {
+        const key = part.dataset.part!, all = Array.from(root.current!.querySelectorAll<HTMLElement>(`.stu-inner [data-part="${key}"]`));
+        sizePart(fake(part), { key, n: Math.max(0, all.indexOf(part)), x: 0, y: 0, w: 0, h: 0, tx: 0, ty: 0, tag: false, rs: true }, "m");
+      }
+      // the drag now listens for itself; hand it this first movement too
+      window.dispatchEvent(new PointerEvent("pointermove", { clientX: ev.clientX, clientY: ev.clientY, altKey: ev.altKey }));
+    };
+    window.addEventListener("pointermove", wait);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
   };
 
   const handles = (left: number, top: number, w: number, h: number, on: (e: React.PointerEvent, way: Way) => void, off: (way: Way) => void, what: string, movable = false) => (
@@ -296,7 +383,7 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
 
   return (
     <div ref={root} className={`stu-surface ${className}${dragging ? " sizing" : ""}`} style={width ? { width } : undefined} onClickCapture={click} onDragStartCapture={(e) => e.preventDefault()}
-      onPointerMove={point} onPointerLeave={() => { if (!dragging) setHover(""); }}>
+      onPointerMove={point} onPointerDown={press} onPointerLeave={() => { if (!dragging) setHover(""); }}>
       <div className="stu-inner" style={zoom !== 1 ? { zoom } : undefined}>{children}</div>
       <div className={`stu-over${labels ? "" : " quiet"}`}>
         {marks.map((m) => <i key={`${m.key}${m.n}`} className={`stu-box${active === m.key ? " on" : ""}${dragging === `${m.key}:${m.n}` ? " sizing" : ""}`} style={{ left: m.x, top: m.y, width: m.w, height: m.h }} />)}
@@ -313,6 +400,7 @@ export function Surface({ children, className = "", width, zoom = 1, labels, nam
         {sizes && !typing && marks.filter((m) => m.rs && (dragging ? dragging === `${m.key}:${m.n}` : hover === `${m.key}:${m.n}` || (active === m.key && m.n === 0))).map((m) => (
           <span key={`h${m.key}${m.n}`}>{handles(m.x, m.y, m.w, m.h, (e, way) => sizePart(e, m, way), (way) => unsize(m, way), name(m.key), true)}</span>
         ))}
+        {guides.map((g, i) => <i key={i} className={`stu-guide ${g.v ? "v" : "h"}`} style={g.v ? { left: g.at } : { top: g.at }} />)}
         {typing && pen && (
           <textarea key={typeKey} className="stu-type" autoFocus value={typing.value} style={{ left: pen.x, top: pen.y, width: pen.w, height: pen.h, ...pen.css }} aria-label={name(typing.key)}
             onFocus={(e) => { const n = e.currentTarget.value.length; e.currentTarget.setSelectionRange(n, n); }}

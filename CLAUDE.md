@@ -239,6 +239,14 @@ The owner asked for it on 2026-11-11 and chose "Workbench + Spotlight" from six 
 - **Parts never overlap.** `fvPlace` puts the dragged part where it was let go and moves any part it would cover straight down. Grid rows grow with what's in them, so once areas don't overlap, nothing prints over anything. Found when a title dragged onto the story printed over it.
 - **A class name that's already taken bites here too:** the stage around the full view's preview was `.stu-stage.fv` and took the full view's own padding (`.stu .fv`), which pushed the preview 22px off its stage. Editor classes are `stu-`; a modifier needs a word of its own (`.full`).
 
+## One screen per section (2026-11-19)
+
+The owner's rule: on the homepage the hero and each section G1 to G8 are one screen each, with everything in them visible at once, on any device, adjusting when the window changes. `.site.home` (SiteShell's `onHome`) gives `#hero` and `section.chap` `min-height: 100svh` (less the phone's bottom bar) and screen-based padding; `FitScreens.tsx` shrinks a part that is still taller with CSS `zoom` on `.hero-inner` or `.chap-inner` (never below 0.5), measuring on load, after fonts and pictures, and when the width or `svh` really changes. SideRow and TicketRider measure with offset sizes, which `zoom` leaves alone. Fire `lc-fit` after anything changes a part's height for good. The hero editor's preview calls the same `fitParts`, so every hero look is the same one-screen size there too, and it draws the site's real menu bar on top (`.hst-nav`, inert).
+
+## Moving boxes in the live editors (2026-11-19)
+
+A press anywhere on a box and a drag of 4px moves it (`press` in `Surface.tsx`): in a full view the part it's in, elsewhere the innermost box in `SIZED_PARTS`; less is a click, and the click after a drag is swallowed. While moving, rulers (`.stu-guide`) show where its edges or middle line up with another box, the card or screen, and the box clicks onto them within 6px; Alt moves freely.
+
 ## Rows that don't fit
 
 All in `SideRow.tsx`; the owner asked for this on 2026-11-07, replacing the row that held the page still while the wheel moved it (that left a huge gap above the cards). If the cards fit, nothing moves. If not, the row glides by itself at about one card every 8 seconds while it's on screen, waits 1.6s at each end and turns back. Arrows go to the next card at once and keep going that way. **The plain mouse wheel only moves the page; don't make it move a row.** Rows are flat: no curve, fly-in or lean.

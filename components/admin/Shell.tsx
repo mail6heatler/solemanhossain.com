@@ -1,4 +1,5 @@
 "use client";
+import { messageAction } from "@/app/actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -119,6 +120,10 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
                         <div>{n.name}: {n.body.slice(0, 60)}{n.body.length > 60 ? "…" : ""}<small>{n.when}</small></div>
                       </a>
                     ))}
+                    {unread > 0 && <form action={messageAction} className="adm-notif" style={{ justifyContent: "center", padding: 6 }}>
+                      <input type="hidden" name="op" value="allread" /><input type="hidden" name="id" value="0" />
+                      <button className="b-out b-sm"><i className="ti ti-checks" />Mark all read</button>
+                    </form>}
                     <a href="/admin/inbox" className="adm-notif" style={{ justifyContent: "center", color: "var(--icon)", fontSize: 12, fontWeight: 600 }}>Open inbox →</a>
                   </div>
                 )}

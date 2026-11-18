@@ -6,6 +6,7 @@ import { HERO_BGS, HERO_LOOKS, HERO_PIECES, MAX_HERO_BUTTONS, MAX_ROTATE, type H
 import type { PartSize } from "@/lib/partSize";
 import { saveHeroStudio, type HeroSave } from "@/app/actions";
 import HeroView, { heroStats } from "@/components/site/HeroView";
+import { fitParts } from "@/components/site/FitScreens";
 import { UploadField } from "@/components/admin/Widgets";
 import { Surface, type Typing } from "./Surface";
 
@@ -51,8 +52,9 @@ function Lines({ id, value, onChange, rows = 4, placeholder }: { id: string; val
  * The right side holds everything the older hero page had, and more: six looks (and another for phones), backgrounds, pieces on and off, which
  * numbers show, any number of buttons, and headlines that take turns. One Save writes it all (`saveHeroStudio`); Undo and Redo work on drafts.
  */
-export default function HeroStudio({ first, settings, sections, counts, reactions, useBlob }: {
+export default function HeroStudio({ first, settings, sections, counts, reactions, useBlob, nav }: {
   first: Draft; settings: SiteSettings; sections: Sec[]; counts: Record<number, number>; reactions: number; useBlob: boolean;
+  /** the site's real menu bar, drawn over the preview's top for reference only (it can't be clicked or edited here) */ nav?: React.ReactNode;
 }) {
   const router = useRouter();
   const [hist, setHist] = useState<Hist>({ list: [first], at: 0, saved: first, tag: "", time: 0 });
@@ -67,6 +69,7 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   const [panelW, setPanelW] = useState(400);
   const [room, setRoom] = useState({ w: 900, h: 600 });
   const prevBox = useRef<HTMLDivElement>(null);
+  const siteBox = useRef<HTMLDivElement>(null);
   const phone = pv.w <= 760;
   const [skin, setSkin] = useState("");
   const [typing, setTyping] = useState<Typing | null>(null);
@@ -137,6 +140,13 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
   }, [save, undo, redo]);
 
   // ---------- the preview ----------
+  // the hero is one screen tall in every look, as on the site: shrink what's inside to fit the screen the preview stands for
+  useEffect(() => {
+    const el = siteBox.current;
+    if (!el) return;
+    const id = requestAnimationFrame(() => fitParts(el));
+    return () => cancelAnimationFrame(id);
+  });
   const s = useMemo(() => ({ ...settings, ...d } as unknown as SiteSettings), [settings, d]);
   const stats = useMemo(() => heroStats(sections.map((x) => ({ ...x })), counts, reactions, d.heroDesign, settings.effects.reactions, isConnectLayout), [sections, counts, reactions, d.heroDesign, settings.effects.reactions]);
   const mood = MOODS[settings.mood];
@@ -210,8 +220,9 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
           <div className="hst-stage" style={{ width: Math.round(pv.w * zoom) }}>
             <Surface key={`${phone}-${rev}`} zoom={zoom} width={Math.round(pv.w * zoom)} labels={labels} name={(k) => NAMES[k] ?? k} onPart={onPart} sizes={h.parts ?? {}} onSize={setSize}
               typing={typing} onType={(v) => { const f = typing && TYPED[typing.key]; if (f) set(f, v as never, `type-${f}`); }} onTypeEnd={() => setTyping(null)}>
-              <div className={`site stu-site hst-site${settings.effects.intro ? " fx-intro" : ""}${pv.w <= 1000 ? " pv-mid" : ""}${pv.w <= 760 ? " pv-narrow" : ""}${pv.w <= 560 ? " pv-tiny" : ""}${pv.w <= 480 ? " pv-xs" : ""}`}
+              <div ref={siteBox} className={`site stu-site hst-site${settings.effects.intro ? " fx-intro" : ""}${pv.w <= 1300 ? " pv-1300" : ""}${pv.w <= 1000 ? " pv-mid" : ""}${pv.w <= 960 ? " pv-960" : ""}${pv.w <= 760 ? " pv-narrow" : ""}${pv.w <= 560 ? " pv-tiny" : ""}${pv.w <= 480 ? " pv-xs" : ""}`}
                 style={{ ...siteStyle, width: pv.w, "--pv-w": `${pv.w}px`, "--pv-h": `${pv.h}px` } as React.CSSProperties}>
+                {nav}
                 <HeroView s={s} d={h} stats={stats} edit phone={phone} />
               </div>
             </Surface>

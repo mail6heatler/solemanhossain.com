@@ -219,6 +219,17 @@ html.lenis, html.lenis body { height: auto; }
 .site section.chap.alt { background: var(--bg-2); }
 html[data-skin="techy"] .site section.chap { background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 32px 32px; background-position: -1px -1px; }
 .chap-inner { position: relative; z-index: 3; max-width: 1040px; width: 100%; }
+/* the homepage: the hero and every section are one screen each, whatever the device (the owner's rule, 2026-11-19). Each is at least
+   a screen tall here, with room under the menu bar (and above the phone's bottom bar); FitScreens.tsx shrinks what's inside one that
+   would be taller, so all of it shows at once. svh, so a phone's address bar sliding away doesn't change it. */
+.site.home section.chap { min-height: 100svh; padding-top: clamp(72px, 12svh, 110px); padding-bottom: clamp(36px, 8svh, 90px); }
+.site.home #hero { min-height: 100svh; padding-top: clamp(84px, 13svh, 110px); padding-bottom: clamp(70px, 13svh, 120px); }
+.site.home.fx-sheets #hero { min-height: calc(100svh + var(--sheet)); padding-bottom: calc(clamp(70px, 13svh, 120px) + var(--sheet)); }
+@media (max-width: 760px) {
+  .site.home.has-bbar section.chap { min-height: calc(100svh - 66px - env(safe-area-inset-bottom)); }
+  .site.home.has-bbar #hero { min-height: calc(100svh - 66px - env(safe-area-inset-bottom)); }
+  .site.home.has-bbar.fx-sheets #hero { min-height: calc(100svh - 66px - env(safe-area-inset-bottom) + var(--sheet)); }
+}
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
 .eyebrow .tag { background: var(--inv-bg); color: var(--mint); padding: 2px 8px; border-radius: var(--r-pill); font-size: 10px; letter-spacing: .05em; box-shadow: var(--glow); }
 .eyebrow .emo { font-size: 16px; }

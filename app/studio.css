@@ -275,7 +275,15 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .hst-resize { position: absolute; right: -9px; bottom: -9px; z-index: 8; width: 26px; height: 26px; padding: 0; border: 0; border-right: 5px solid var(--mint); border-bottom: 5px solid var(--mint); border-radius: 0 0 12px 0; background: none; cursor: nwse-resize; touch-action: none; }
 /* the hero drawn for the chosen screen: what it sizes by the window's width or height goes by the preview's instead */
 .hst-site { overflow: clip; }
-.hst-site #hero { min-height: var(--pv-h); padding: 110px calc(var(--pv-w) * .07) 120px; }
+.hst-site { position: relative; }
+.hst-site #hero { min-height: var(--pv-h); padding: clamp(84px, calc(var(--pv-h) * .13), 110px) calc(var(--pv-w) * .07) clamp(70px, calc(var(--pv-h) * .13), 120px); }
+/* the site's real menu bar over the preview's top, for reference: it sits where it does on the site and can't be clicked */
+.hst-nav { position: absolute; inset: 0 0 auto; z-index: 90; pointer-events: none; }
+.hst-site .hst-nav .nav { position: absolute; padding-inline: calc(var(--pv-w) * .05); }
+.hst-site .hst-nav .mobile-menu { display: none !important; }
+.hst-site.pv-1300 .navlinks a .ne { display: none; }
+.hst-site.pv-960 .navlinks { display: none; }
+.hst-site.pv-960 .menu-btn { display: inline-flex; }
 .hst-site #hero .hero-inner:not(.hl) h1 { font-size: clamp(40px, calc(var(--pv-w) * .07), 86px); }
 .hst-site #hero .scrollcue { left: calc(var(--pv-w) * .07); }
 .hst-site .hang { right: clamp(24px, calc(var(--pv-w) * .06), 92px); }
@@ -308,3 +316,10 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .hst-split:hover i, .hst-split:focus-visible i { background: var(--mint); height: 90px; }
 .hst-fit { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 @media (max-width: 1180px) { .hst-grid { grid-template-columns: minmax(0, 1fr); } .hst-split { display: none; } }
+
+/* moving a box: press anywhere on it and drag; rulers show where it lines up with other boxes and the edges (Surface.tsx) */
+.stu-inner [data-part], .stu-inner [data-fv] { cursor: grab; }
+.stu-surface.sizing, .stu-surface.sizing * { cursor: grabbing !important; }
+.stu-guide { position: absolute; z-index: 6; pointer-events: none; background: #ff3d7f; box-shadow: 0 0 0 .5px rgba(255,255,255,.7); }
+.stu-guide.v { top: 0; bottom: 0; width: 1px; }
+.stu-guide.h { left: 0; right: 0; height: 1px; }

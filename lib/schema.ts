@@ -165,6 +165,9 @@ export const SCHEMA = [
    UPDATE sections SET layout = 'scrapbook' WHERE slug = 'life' AND layout = 'photos' AND EXISTS (SELECT 1 FROM first)`,
   `WITH first AS (INSERT INTO done_once (key) VALUES ('connect-chat') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'chat' WHERE slug = 'connect' AND layout = 'connect' AND EXISTS (SELECT 1 FROM first)`,
+  // 2026-11-19: the owner asked for the hero photo back where it hung (it had been dragged up past the top edge in the editor).
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('hero-photo-reset') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE settings SET data = (data::jsonb #- '{heroDesign,parts,photo}')::text WHERE data LIKE '{%' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {

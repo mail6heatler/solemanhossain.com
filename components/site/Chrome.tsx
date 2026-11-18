@@ -8,6 +8,7 @@ import DemoMode from "./Demo";
 import Living from "./Living";
 import ThemeFx from "./ThemeFx";
 import HangingBanner from "./HangingBanner";
+import FitScreens from "./FitScreens";
 import { Split } from "./Split";
 import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
 
@@ -139,7 +140,7 @@ export function SiteShell({ settings, sections, onHome, children }:
   const mood = MOODS[settings.mood];
   const style = (mood ? { "--m": mood.color, "--m-deep": mood.deep } : {}) as React.CSSProperties;
   return (
-    <div className={`site ${fx.bottombar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
+    <div className={`site ${onHome ? "home " : ""}${fx.bottombar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
       <Effects
         cursor={fx.cursor} track totop={fx.totop}
         fx={{ autolite: fx.autolite, smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
@@ -150,6 +151,7 @@ export function SiteShell({ settings, sections, onHome, children }:
       {fx.themefx && <ThemeFx />}
       <HangingBanner banner={settings.banner.on && settings.banner.title ? bannerView(settings.banner, settings.timezone) : null} fall={fx.bannerfall} />
       <Living fx={{ reactfx: fx.reactfx && fx.reactions, sectionfx: fx.sectionfx, cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
+      {onHome && <FitScreens />}
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       <Nav settings={settings} sections={sections} onHome={onHome} />
       {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}

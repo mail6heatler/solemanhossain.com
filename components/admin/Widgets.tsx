@@ -3,9 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 /** Shows a short toast when the URL has ?saved=1 or ?deleted=1. */
+/** What the Inbox's buttons say once they've worked (`?done=<op>`). */
+const DONE: Record<string, string> = {
+  allread: "✅ All caught up: messages, reactions and comments are marked as read",
+  "reactions-seen": "✅ Reactions marked as seen", "comments-seen": "✅ Comments marked as seen",
+  read: "✅ Updated", approve: "📌 The wall is updated", delete: "🗑️ Message deleted",
+};
 export function Toast() {
   const sp = useSearchParams();
-  const saved = sp.get("saved"), deleted = sp.get("deleted");
+  const saved = sp.get("saved"), deleted = sp.get("deleted"), done = sp.get("done");
+  if (done && DONE[done]) return <div key={sp.get("t") ?? done} className="adm-toast" role="status">{DONE[done]}</div>;
   if (!saved && !deleted) return null;
   // each save's value is new, so a new key starts the message again, even on the second save in a row
   return <div key={saved ?? deleted} className="adm-toast" role="status">{saved ? "✅ Saved — it's live on your site" : "🗑️ Deleted"}</div>;
