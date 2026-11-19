@@ -345,7 +345,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
       <header className="cw-head" {...p("cw-head")}>
         <b>{title}</b>
         {on("headnote") && c.headNote && <span className="cw-hnote">{c.headNote}</span>}
-        {wallBtn("badge", <><span className="cw-pin" aria-hidden>📌</span>The Wall {count}</>)}
+        {wallBtn("badge", <><span className="cw-wb-pin" aria-hidden>📌</span>The Wall {count}</>)}
         {on("avail") && (
           <em className={`cw-hstat av-${online && !anyTyping ? "online" : c.avail}${anyTyping ? " typing" : ""}`} aria-live="polite">
             <i className="cw-dot" aria-hidden />{anyTyping ? `${owner} is typing…` : online ? "Online now" : availLabel}

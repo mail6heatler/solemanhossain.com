@@ -26,7 +26,7 @@ export default function ChatWindow({ s, notes, pins, testi, edit = false, motion
   const showPins = on("pins");
   const wall = c.wallpaper === "photo" && c.wallPic ? ({ "--cw-pic": `url("${c.wallPic}")` } as React.CSSProperties) : undefined;
   const cls = ["cw", edit ? "" : "reveal r3", `cw-wp-${c.wallpaper === "photo" && !c.wallPic ? "dots" : c.wallpaper}`, `cw-b-${c.bubbles}`, `cw-mine-${c.mine}`, `cw-theirs-${c.theirs}`,
-    c.brandColors ? "cw-brand" : "", showPins ? "" : "no-pins", live ? "cw-live" : "", edit ? "cw-edit" : ""].filter(Boolean).join(" ");
+    c.brandColors ? "cw-brand" : "", showPins ? "" : "no-pins", on("wallbtn") && c.boardTesti ? "pins-wall" : "", live ? "cw-live" : "", edit ? "cw-edit" : ""].filter(Boolean).join(" ");
 
   return (
     <div className={cls} style={wall}>

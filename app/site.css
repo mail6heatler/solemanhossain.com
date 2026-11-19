@@ -1496,9 +1496,12 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .grid3 > .trip .ph:not(.has-pic) { height: 170px; }
 
 /* --- the row reaches both edges of the screen, so cards come from outside it --- */
-.side { margin-top: 34px; margin-left: calc(var(--gutter, 7vw) * -1); width: 100vw; max-width: 100vw; position: relative; }
+/* A row runs the screen's full width. When FitScreens shrinks a section with `zoom`, vw and the gutter shrink with it, so they're divided by
+   the shrink (--fz) to land on the screen's edges again; --gz is the gutter in the section's own, shrunk pixels. */
+.site section.chap > .chap-inner { --gz: calc(var(--gutter, 7vw) / var(--fz, 1)); }
+.side { margin-top: 34px; margin-left: calc(var(--gz, var(--gutter, 7vw)) * -1); width: calc(100vw / var(--fz, 1)); max-width: calc(100vw / var(--fz, 1)); position: relative; }
 .side-stage { display: flex; flex-direction: column; gap: 16px; }
-.side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gutter, 7vw) 16px; align-items: stretch; scroll-snap-type: none; scroll-padding-inline: var(--gutter, 7vw); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
+.side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gz, var(--gutter, 7vw)) 16px; align-items: stretch; scroll-snap-type: none; scroll-padding-inline: var(--gz, var(--gutter, 7vw)); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
 .side-track > * { flex: 0 0 auto; min-width: 0; }
 .side-track > .card, .side-track > .note { width: var(--cw, clamp(280px, 27vw, 340px)); }
 .side-track > .card.b-big, .side-track > .note.wide { width: var(--cw, clamp(300px, 36vw, 460px)); }
@@ -1517,8 +1520,8 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .side-top, .side-bar { display: none; }
 .side[data-mode="slide"] { margin-top: 14px; }
 .side[data-mode="slide"] .side-stage { gap: 8px; }
-.side[data-mode="slide"] .side-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: var(--gutter, 7vw); }
-.side[data-mode="slide"] .side-bar { display: block; margin-inline: var(--gutter, 7vw); height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; max-width: 420px; }
+.side[data-mode="slide"] .side-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: var(--gz, var(--gutter, 7vw)); }
+.side[data-mode="slide"] .side-bar { display: block; margin-inline: var(--gz, var(--gutter, 7vw)); height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; max-width: 420px; }
 .side-bar i { display: block; height: 100%; background: var(--mint); box-shadow: var(--glow); transform-origin: left; transform: scaleX(0); }
 .side-count { display: flex; align-items: baseline; gap: 5px; font-family: var(--body); line-height: 1.2; overflow: hidden; }
 .side-count b { display: inline-block; font-size: 18px; font-weight: 700; color: var(--mint-deep); } /* the body font: some display fonts' small digits don't read at this size */
@@ -1602,7 +1605,7 @@ section[data-layout="windows"] .side::before { content: ""; position: absolute; 
 section[data-layout="windows"] .side-stage { position: relative; }
 section[data-layout="windows"] .side-bar { display: none !important; }
 /* the dock */
-.dock { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: fit-content; max-width: calc(100vw - 2 * var(--gutter, 7vw)); margin: 0 auto; padding: 7px 10px; border: .5px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--card) 90%, transparent); box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--fg) 55%, transparent); }
+.dock { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: fit-content; max-width: calc(100vw / var(--fz, 1) - 2 * var(--gz, var(--gutter, 7vw))); margin: 0 auto; padding: 7px 10px; border: .5px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--card) 90%, transparent); box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--fg) 55%, transparent); }
 html[data-skin="techy"] .site .dock { border-radius: 4px; }
 .dock-i { position: relative; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--mint); color: var(--on-mint); text-decoration: none; transform-origin: 50% 100%; transition: scale .18s cubic-bezier(.2,1.4,.4,1), translate .18s cubic-bezier(.2,1.4,.4,1); }
 .dock-i:nth-child(3n+2) { background: var(--pop2); }
@@ -2527,8 +2530,8 @@ html.lite .cmp-pow { display: none; }
 .grid3:not(.side-track) > .aw-cell { padding-top: 42px; }
 .side-track :is(.aw-cell, .aw-more)::before { content: ""; position: absolute; z-index: -1; left: -10px; right: -10px; top: 0; height: 12px; background: var(--wood-deep); box-shadow: 0 3px 0 var(--wood); }
 .side-track .aw-cell::after { content: ""; position: absolute; z-index: -1; left: -10px; right: -10px; bottom: -24px; height: 12px; background: repeating-linear-gradient(90deg, var(--wood) 0 56px, var(--wood-deep) 56px 58px); }
-.side-track .aw-cell.first::before, .side-track .aw-cell.first::after { left: calc(var(--gutter, 7vw) * -1); }
-.side-track .aw-cell.last::before, .side-track .aw-cell.last::after { right: calc(var(--gutter, 7vw) * -1); }
+.side-track .aw-cell.first::before, .side-track .aw-cell.first::after { left: calc(var(--gz, var(--gutter, 7vw)) * -1); }
+.side-track .aw-cell.last::before, .side-track .aw-cell.last::after { right: calc(var(--gz, var(--gutter, 7vw)) * -1); }
 /* how wide the display font is per letter at its heaviest: Syne, the widest, is the default */
 html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-skin="paper"], [data-skin="techy"], [data-skin="retro"]) .site .trip.tkt.aw { --ch: .76; }
 .site .trip.tkt.aw { --ch: 1.06; --pic: .3; --ink: var(--fg); container: aw-card / size; border: 2px solid var(--ink); border-radius: 13px; background: var(--card); transform-origin: 50% -34px; box-shadow: 0 16px 26px -14px color-mix(in srgb, var(--fg) 50%, transparent); }
@@ -3206,7 +3209,7 @@ html.lite .cw-halo, html.lite .cw-main::before, html.lite .cw-dot::after, html.l
 .cw-count { min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--pop2); color: #fff; font: 700 11px/19px var(--display); text-align: center; }
 .cw-wb-badge { padding: 5px 11px 5px 9px; border-radius: 999px; background: #ffe9a8; box-shadow: 0 3px 0 var(--fg); transition: translate .2s, box-shadow .2s; }
 .cw-wb-badge:hover, .cw-wb-badge:focus-visible { translate: 0 -2px; box-shadow: 0 5px 0 var(--fg); }
-.cw-pin { display: inline-block; transform-origin: 50% 90%; }
+.cw-wb-pin { display: inline-block; transform-origin: 50% 90%; } /* not .cw-pin, which is a pinned testimonial card */
 .cw-wb-tab { position: absolute; z-index: 4; right: -4px; top: 46%; translate: 0 -50%; writing-mode: vertical-rl; padding: 14px 8px 14px 11px; border-right: 0; border-radius: 14px 0 0 14px; background: #ffe36e; box-shadow: -3px 3px 0 var(--fg); font-size: 13px; transform-origin: 100% 50%; }
 .cw-wb-tab .cw-count { writing-mode: horizontal-tb; }
 .cw-wb-tab:hover, .cw-wb-tab:focus-visible { translate: -6px -50%; }
@@ -3271,7 +3274,7 @@ html.lite .cw-halo, html.lite .cw-main::before, html.lite .cw-dot::after, html.l
 .cw-toast-x { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--fg) 8%, transparent); color: var(--fg); font-size: 18px; line-height: 1; cursor: pointer; }
 @media (max-width: 760px) { .site.has-bbar .cw-toast { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); } .cw-wb-tab { top: 40%; } }
 /* the Wall comes alive (chatfx) */
-.site.fx-chatfx .cw-live .cw-pin { animation: cw-wobble 2.8s ease-in-out infinite; }
+.site.fx-chatfx .cw-live .cw-wb-pin { animation: cw-wobble 2.8s ease-in-out infinite; }
 .site.fx-chatfx .cw-live .cw-wb .cw-count { animation: cw-beat 2.8s ease-in-out infinite; }
 .site.fx-chatfx .cw-live .cw-wb-tab:not(:hover):not(:focus-visible) { animation: cw-peek 3.4s ease-in-out infinite; }
 .site.fx-chatfx .cw-live .cw-wb-fab::before, .site.fx-chatfx .cw-live .cw-wb-fab::after { animation: cw-ring 2.4s ease-out infinite; }
@@ -3287,8 +3290,41 @@ html.lite .cw-halo, html.lite .cw-main::before, html.lite .cw-dot::after, html.l
 @keyframes cw-sway { 0%, 100% { rotate: calc(var(--r) - 2deg); } 50% { rotate: calc(var(--r) + 2deg); } }
 @keyframes cw-toast { from { translate: -50% 140%; opacity: 0; } }
 @keyframes cw-glow-in { 50% { scale: 1.04; } }
-html.lite .cw-pin, html.lite .cw-wb .cw-count, html.lite .cw-wb-tab, html.lite .cw-wb-fab::before, html.lite .cw-wb-fab::after { animation: none !important; }
+html.lite .cw-wb-pin, html.lite .cw-wb .cw-count, html.lite .cw-wb-tab, html.lite .cw-wb-fab::before, html.lite .cw-wb-fab::after { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .cw-board, .cw-toast { transition: none !important; animation: none !important; } }
+
+/* --- G8 on phones: short enough that the one-screen fit hardly shrinks it. The face and name sit in one line, the links become a sideways strip
+   of logos, testimonials that are on the Wall don't repeat under the chat (.pins-wall), and the chat takes what the screen has left --- */
+@media (max-width: 760px) {
+  .cw-side { grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; padding: 12px 12px 10px; }
+  .cw-face { width: 46px; height: 46px; margin: 3px 0 0 3px; }
+  .cw-pic { font-size: 17px; }
+  .cw-badge { width: 14px; height: 14px; border-width: 2px; }
+  .cw-me b { font-size: 18px; }
+  .cw-me small, .cw-reply { display: none; }
+  .cw-online { margin-top: 2px; font-size: 12px; }
+  .cw-links { flex-direction: row; gap: 6px; overflow: auto hidden; overscroll-behavior: contain; scrollbar-width: none; margin: 0 -12px; padding: 2px 12px; }
+  .cw-links::-webkit-scrollbar { display: none; }
+  .cw-links .cw-h { display: none; }
+  .cw-link { flex: none; gap: 7px; padding: 5px 12px 5px 5px; border-radius: 999px; }
+  .cw-link:hover, .cw-link:focus-visible { translate: none; }
+  .cw-link .cw-logo { width: 28px; height: 28px; border-radius: 50%; font-size: 15px; }
+  .cw-link b { font-size: 13.5px; }
+  .cw-link small, .cw-link .cw-go { display: none; }
+  .cw-main { height: clamp(360px, calc(100svh - 300px), 560px); }
+  .cw.pins-wall .cw-pins { display: none; }
+}
+.pv-narrow .cw-side { grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; padding: 12px 12px 10px; }
+.pv-narrow .cw-face { width: 46px; height: 46px; margin: 3px 0 0 3px; }
+.pv-narrow .cw-me b { font-size: 18px; }
+.pv-narrow .cw-me small, .pv-narrow .cw-reply { display: none; }
+.pv-narrow .cw-links { flex-direction: row; gap: 6px; overflow: auto hidden; margin: 0 -12px; padding: 2px 12px; scrollbar-width: none; }
+.pv-narrow .cw-links .cw-h { display: none; }
+.pv-narrow .cw-link { flex: none; gap: 7px; padding: 5px 12px 5px 5px; border-radius: 999px; }
+.pv-narrow .cw-link .cw-logo { width: 28px; height: 28px; border-radius: 50%; font-size: 15px; }
+.pv-narrow .cw-link small, .pv-narrow .cw-link .cw-go { display: none; }
+.pv-narrow .cw-main { height: 520px; }
+.pv-narrow .cw.pins-wall .cw-pins { display: none; }
 
 /* --- Say Hello: the form on top, the wall in its own row below --- */
 .connect-grid.solo { grid-template-columns: minmax(0, 620px); }

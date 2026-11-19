@@ -26,7 +26,7 @@ export function fitParts(root: ParentNode) {
     if (inner) parts.push({ box, inner: [inner] });
   });
   // reset, then read everything, then write everything
-  for (const p of parts) for (const el of p.inner) el.style.zoom = "";
+  for (const p of parts) for (const el of p.inner) { el.style.zoom = ""; el.style.removeProperty("--fz"); }
   const plan = parts.map(({ box, inner }) => {
     const shown = inner.filter((el) => el.offsetHeight > 0);
     const screen = parseFloat(getComputedStyle(box).minHeight) || window.innerHeight;
@@ -34,7 +34,8 @@ export function fitParts(root: ParentNode) {
     if (!content || tall <= screen + 1) return { shown, z: 1 };
     return { shown, z: Math.max(MIN_ZOOM, Math.min(1, (screen - (tall - content)) / content)) };
   });
-  plan.forEach(({ shown, z }) => { if (z < 0.999) for (const el of shown) el.style.zoom = String(Math.floor(z * 1000) / 1000); });
+  // --fz tells what's inside how much it was shrunk, so rows that run the screen's full width can make up for it (`.side`)
+  plan.forEach(({ shown, z }) => { if (z < 0.999) for (const el of shown) { const v = String(Math.floor(z * 1000) / 1000); el.style.zoom = v; el.style.setProperty("--fz", v); } });
 }
 
 export default function FitScreens() {

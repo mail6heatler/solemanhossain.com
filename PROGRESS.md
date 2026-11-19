@@ -58,6 +58,18 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-19: Rows cut off on phones; the chat on phones; the Wall button's pin
+
+The owner sent a phone screenshot (Messenger's in-app browser) of G1's row cut off on the right. Cause: FitScreens shrinks a tall section with `zoom`, and the row's full-screen width (`100vw`) and gutter shrink with it, so a row ended 36 to 96px short of the screen's right edge (more on smaller phones). FitScreens now also sets `--fz` (the shrink) on what it zooms, and `.side`, its track's padding, its top and bar, the dock and the achievement wall's rail divide by it (`--gz` is the gutter in shrunk pixels). Measured on the local copy at 320×568, 360×740, 390×844, 414×896 and 768×1024: every row now runs exactly from 0 to the screen's width, and nothing scrolls sideways.
+
+Also on phones the chat window was shrunk to about half (zoom 0.525 on the live site at 390×844), because its phone layout was very tall. On phones now: face and name on one line, the links a sideways strip of logo chips, testimonials not repeated under the chat when they're on the Wall (`.pins-wall`), and the chat as tall as the screen allows (`clamp(360px, 100svh - 300px, 560px)`); the editor's phone preview follows (`.pv-narrow`).
+
+And a bug from the Wall release: the badge's 📌 used the class `.cw-pin`, which is the pinned testimonial card, so the button was drawn as a big dark box in a stretched pill, on computers too. Renamed `.cw-wb-pin`.
+
+### 2026-11-19: One heading on Connect's page; nothing about Connect in Settings
+
+The owner pasted G8's dashboard page showing two headings ("G8 · Find me elsewhere" twice, with "Let's connect · 0 entries · visible" and View on site between). The section page's old heading is now skipped for a Chat window section, whose live editor has its own. The Settings page's "Let's connect · social links" note is gone, as asked ("anything related with connect in settings remove it"); its subtitle no longer mentions links.
+
 ### 2026-11-19: The owner decides the Wall; quick buttons on chats (kept)
 
 The owner kept the Inbox tabs and Select, and asked for quick actions when pointing at a chat (pin, delete, hide from the Wall), a Hide button in Select too, so the Wall is protected by their choice, and no need for the visitor's permission to put a note up (visitors can still ask).
