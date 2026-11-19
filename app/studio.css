@@ -331,3 +331,23 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .stu-guide { position: absolute; z-index: 6; pointer-events: none; background: #ff3d7f; box-shadow: 0 0 0 .5px rgba(255,255,255,.7); }
 .stu-guide.v { top: 0; bottom: 0; width: 1px; }
 .stu-guide.h { left: 0; right: 0; height: 1px; }
+
+/* Connect's live editor (G8, ConnectStudio.tsx): the hero editor's layout, a preview of the section and its chat window, and the links editor */
+.cst-site { overflow: clip; position: relative; }
+.cst-site .cst-chap { min-height: 0; padding: 48px clamp(16px, 5%, 64px) 56px; }
+.cst-site .chap-inner { max-width: 1180px; }
+.cst-site.pv-narrow .cst-chap { padding: 32px 16px 40px; }
+.cst-site .stitle, .cst-site .ssub { opacity: 1; transform: none; }
+.cst-add { display: flex; gap: 6px; }
+.cst-add .inp { flex: 1; min-width: 0; }
+.cst-link { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--card-border); border-radius: 14px; background: color-mix(in srgb, var(--card-bg) 70%, transparent); }
+.cst-link-top { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto auto auto; gap: 6px; align-items: center; }
+.cst-logo { display: grid; place-items: center; width: 38px; height: 38px; overflow: hidden; border-radius: 11px; background: var(--card-border); color: var(--text-strong); font-size: 20px; font-style: normal; }
+.cst-logo > i { font-style: normal; }
+.cst-logo.pic { background: #fff; }
+.cst-logo img { width: 100%; height: 100%; object-fit: contain; }
+.cst-more { justify-self: start; display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px; border: 0; background: none; color: var(--text-muted); font: 600 12px inherit; cursor: pointer; }
+.cst-more:hover { color: var(--text-strong); }
+.cst-logo-ed { display: grid; gap: 8px; padding: 8px 0 2px; border-top: 1px dashed var(--card-border); }
+.cst-av { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cw-av, #2fbf71); vertical-align: 1px; }
+.cst-av.av-online { --cw-av: #2fbf71; } .cst-av.av-busy { --cw-av: #e5484d; } .cst-av.av-away { --cw-av: #e8b93a; } .cst-av.av-holiday { --cw-av: #8b6fd6; } .cst-av.av-off { --cw-av: #9aa0a6; }

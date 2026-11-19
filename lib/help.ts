@@ -407,6 +407,12 @@ export const HELP: Record<string, Help> = {
     how: ["Switch on and save.", "To use it on another section, choose “Scrapbook pages” as its layout, under Section settings."],
     preview: "/?demo=scrapfx",
   },
+  chatfx: {
+    title: "Chat window comes alive: messages pop in, typing dots, hearts, a moving wallpaper",
+    what: "A Connect section laid out as Chat window (like Connect) shows your links, the wall and the Say hello box as one messenger window. With this on, it moves like a real chat: when someone scrolls to it the notes pop in one by one, you show typing dots and your greeting bubbles arrive one after another; your photo has a turning ring and your availability dot pulses; links slide in and their logos bounce when pointed at; while a visitor types, their own typing bubble shows; a double-tap on any bubble pops a heart; sending sets off a little burst; and the wallpaper drifts. With it off, the chat is the same, standing still. Everything in the window (photo, name, availability, links and their logos, greeting, automatic reply, quick starters, wallpaper, bubbles, pieces) is set in Connect's live editor in the dashboard.",
+    how: ["Switch on and save.", "To change what the chat says or how it looks, open Connect (G8) in the dashboard."],
+    preview: "/?demo=chatfx",
+  },
   comicfx: {
     title: "Comic strip: a brain flies along and pops each panel",
     what: "A section laid out as Comic strip (like Feed) shows each entry as a comic panel. Its Subsection picks the panel: hot takes get a jagged shout with flames, poems a night sky, sayings a fridge door with magnets, on repeat a spinning record, vibing waves in the Mood's colour, a brain dump a bin of thoughts, chaos words on scraps with paint flying, quick fire a quiz show, and anything else a speech bubble. Polls are voted on by tapping the art: overrated or underrated gets a balance scale that tips, quick fire gets buzzers, and any other poll goes by its options: 2 a face-off, 3 slashes, 4 small panels, 5 or more big buttons. With this on, a small brain flies along the row, and the panel it reaches comes alive. With it off, the panels stay and votes still work, without the brain or the movement. What each panel shows, and its sound effect, are on the entry's page in the dashboard.",

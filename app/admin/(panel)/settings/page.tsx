@@ -1,17 +1,19 @@
-import { getSettings, getStats } from "@/lib/data";
+import { getSections, getSettings, getStats } from "@/lib/data";
+import { isConnectLayout } from "@/lib/settings";
 import { query } from "@/lib/db";
 import { logout, logoutEverywhere, saveSite } from "@/app/actions";
 import { PasswordForm } from "@/components/admin/Forms";
-import { ConfirmSubmit, LinksEditor } from "@/components/admin/Widgets";
+import { ConfirmSubmit } from "@/components/admin/Widgets";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
 
 export default async function SettingsPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
-  const [s, stats, files] = await Promise.all([
+  const [s, stats, files, sections] = await Promise.all([
     getSettings(), getStats(),
-    query("SELECT COUNT(*)::int AS n, COALESCE(SUM(size),0)::bigint AS bytes FROM files"),
+    query("SELECT COUNT(*)::int AS n, COALESCE(SUM(size),0)::bigint AS bytes FROM files"), getSections(),
   ]);
+  const connect = sections.find((x) => isConnectLayout(x.layout));
   const mb = (Number(files[0]?.bytes ?? 0) / 1024 / 1024).toFixed(1);
 
   return (
@@ -37,8 +39,7 @@ export default async function SettingsPage() {
 
         <div className="adm-label">Let&apos;s connect · social links</div>
         <div className="c f">
-          <LinksEditor name="socials" initial={s.socials} withIcon addLabel="Add link" />
-          <div className="fl"><label>Hello form heading</label><input className="inp" name="connectFormTitle" defaultValue={s.connectFormTitle} /></div>
+          <div className="hint" style={{ fontSize: 12.5 }}>Your {s.socials.length} links, their logos and everything the chat says now live in {connect ? <a href={`/admin/s/${connect.id}`}>Connect&apos;s live editor</a> : <>the Connect section&apos;s live editor</>}, where you see them change as you type.</div>
         </div>
 
         <div className="adm-label">Login username</div>

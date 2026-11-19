@@ -5,6 +5,7 @@ import { cleanComic } from "@/lib/comicItem";
 import { cleanAward } from "@/lib/awardItem";
 import { cleanScrap } from "@/lib/scrapItem";
 import { cleanHeroDesign } from "@/lib/heroLook";
+import { cleanConnect, cleanSocials, type ConnectDesign } from "@/lib/connectLook";
 import { cleanCard } from "@/lib/cardLook";
 import { cleanBoxes } from "@/lib/boxes";
 import { COMMENT_MAX, TALK_FEATURES, cleanTalk } from "@/lib/talk";
@@ -184,6 +185,40 @@ export async function saveHeroStudio(raw: HeroSave): Promise<{ ok: true } | { ok
   }
 }
 
+/** What Connect's live editor sends: the chat window's design, the links, the greeting heading, its two switches and the section's own header words. */
+export type ConnectSave = {
+  connect: ConnectDesign; socials: Social[]; connectFormTitle: string; chatfx: boolean; plane: boolean;
+  section: { id: number; title: string; eyebrow: string; eyebrow_emoji: string; subtitle: string; nav_label: string; nav_emoji: string; code: string };
+};
+
+/** Connect's live editor's one Save (G8). Everything is cleaned the same way it's read (lib/connectLook.ts). */
+export async function saveConnectStudio(raw: ConnectSave): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    const t = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
+    const sec = raw.section ?? ({} as ConnectSave["section"]);
+    const id = Number(sec.id);
+    const title = t(sec.title, 160);
+    if (!title) return { ok: false, error: "The section's big title can't be empty." };
+    if (Number.isInteger(id) && id > 0) {
+      await query("UPDATE sections SET title=$1, eyebrow=$2, eyebrow_emoji=$3, subtitle=$4, nav_label=$5, nav_emoji=$6, code=$7 WHERE id=$8",
+        [title, t(sec.eyebrow, 80), t(sec.eyebrow_emoji, 16), t(sec.subtitle, 400), t(sec.nav_label, 40), t(sec.nav_emoji, 16), t(sec.code, 8), id]);
+    }
+    const now = await getSettings();
+    await saveSettingsData({
+      connect: cleanConnect(raw.connect),
+      socials: cleanSocials(raw.socials),
+      connectFormTitle: t(raw.connectFormTitle, 80),
+      effects: { ...now.effects, chatfx: raw.chatfx !== false, plane: raw.plane !== false },
+    });
+    refresh();
+    return { ok: true };
+  } catch (e) {
+    console.error("saveConnectStudio", e);
+    return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." };
+  }
+}
+
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */
 export async function setHeroHidden(fd: FormData) {
   await requireAdmin();
@@ -195,8 +230,9 @@ export async function setHeroHidden(fd: FormData) {
 // ---------- site settings ----------
 export async function saveSite(fd: FormData) {
   await requireAdmin();
-  let socials: Social[] = [];
-  try {
+  // the links moved to Connect's live editor: only change them if this form still sends them
+  let socials: Social[] | undefined;
+  if (fd.has("socials")) try {
     const arr = JSON.parse(str(fd, "socials", 20000));
     socials = (Array.isArray(arr) ? arr : []).flatMap((r) => {
       const [l] = parseLinks([r]);
@@ -208,9 +244,9 @@ export async function saveSite(fd: FormData) {
     siteDescription: str(fd, "siteDescription", 300),
     footerLeft: str(fd, "footerLeft", 200),
     footerRight: str(fd, "footerRight", 200),
-    connectFormTitle: str(fd, "connectFormTitle", 80),
+    ...(fd.has("connectFormTitle") ? { connectFormTitle: str(fd, "connectFormTitle", 80) } : {}),
     adminUsername: str(fd, "adminUsername", 60) || "admin",
-    socials,
+    ...(socials ? { socials } : {}),
   });
   refresh();
   redirect(`/admin/settings?${saved()}`);

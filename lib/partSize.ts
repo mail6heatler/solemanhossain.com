@@ -14,7 +14,8 @@ export const SIZED_PARTS = ["sub", "title", "subtitle", "body", "pic", "gallery"
   "reacts", "comments", "open", "face", "sticker", "specs", "stats", "bars", "art", "band", "code",
   "url", "codeview", "sheet", "term", "board", "screen", "brand", "controls",
   "route", "passinfo", "times", "stub", "ticks", "passname", "spine", "line", "shot", "panel", "bubble", "sfx", "record", "company", "span", "chips", "reader", "sign", "seal", "owner", "map", "days", "streak",
-  "head", "live", "roles", "now", "clock", "greeting", "buttons", "photo", "skills", "cue", "mast", "lines"] as const;
+  "head", "live", "roles", "now", "clock", "greeting", "buttons", "photo", "skills", "cue", "mast", "lines",
+  "cw-face", "cw-me", "cw-links", "cw-pins", "cw-head", "cw-thread", "cw-form", "cw-quick"] as const;
 
 const num = (v: unknown, [lo, hi]: readonly [number, number], step = 1) => {
   const n = Number(v);

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getLookCounts, getSampleItem, getSection, getSettings, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
+import { getLookCounts, getMessages, getSampleItem, getSection, getSettings, getItems, getReactionCountsFor, type ReactionCounts } from "@/lib/data";
+import ConnectStudio from "@/components/admin/studio/ConnectStudio";
 import { LAYOUTS, MOODS, hasStudio, isConnectLayout } from "@/lib/settings";
 import { loadStudio } from "@/lib/studioData";
 import Studio from "@/components/admin/studio/Studio";
@@ -43,10 +44,13 @@ export default async function SectionAdmin({ params, searchParams }: P) {
   const loose = items.filter((i) => !i.category);
   if (loose.length || names.length === 0) groups.push({ name: "", items: loose });
   const isConnect = isConnectLayout(section.layout);
+  const isChat = section.layout === "chat";
+  // Connect as a Chat window has its own live editor on top; the boxes below keep its testimonials, size and look, and the rest of its settings
+  const wall = isChat ? (await getMessages("public")).slice(0, 30).reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) })) : [];
   const open = (name: string, first = true) => boxOpen(section.boxes, name, first);
 
   return (
-    <div className="adm-page" key={section.id}>
+    <div className={`adm-page${isChat ? " hst-page" : ""}`} key={section.id}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 className="adm-h">{section.code && `${section.code} · `}{section.title}</h1>
@@ -58,7 +62,17 @@ export default async function SectionAdmin({ params, searchParams }: P) {
       </div>
 
       <BoxMemory />
-      {isConnect && (
+      {isChat && (
+        <div style={{ marginBottom: 18 }}>
+          <ConnectStudio key={`cst-${section.id}`} settings={settings} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} notes={wall}
+            pins={items.filter((it) => it.visible).map((it) => ({ id: it.id, title: it.title, body: it.body, subtitle: it.subtitle, category: it.category }))}
+            first={{ connect: settings.connect, socials: settings.socials, connectFormTitle: settings.connectFormTitle, chatfx: settings.effects.chatfx, plane: settings.effects.plane,
+              section: { id: section.id, title: section.title, eyebrow: section.eyebrow, eyebrow_emoji: section.eyebrow_emoji, subtitle: section.subtitle, nav_label: section.nav_label, nav_emoji: section.nav_emoji, code: section.code } }} />
+          <h2 className="adm-h" style={{ fontSize: 18, marginTop: 26 }}>Testimonials and more settings</h2>
+          <p className="adm-sub">Testimonials are pinned in the chat window under your links. The live editor above holds everything else in the window.</p>
+        </div>
+      )}
+      {isConnect && !isChat && (
         <Box name="about" title="About this section" icon="info-circle" open={open("about")}>
           <div style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
             This section shows your social links (edit them in <a href="/admin/settings">Settings</a>),
@@ -115,7 +129,7 @@ export default async function SectionAdmin({ params, searchParams }: P) {
         )}
       </Box>
 
-      <form action={updateSection} id="settings">
+      <form action={updateSection} id="settings" key={`set-${section.title}-${section.eyebrow}-${section.subtitle}-${section.code}-${section.nav_label}-${section.nav_emoji}-${section.eyebrow_emoji}`}>
         <input type="hidden" name="id" value={section.id} />
         <input type="hidden" name="boxes" />
         <Box name="settings" title="Section settings: titles, layout, subsections, emojis" icon="settings" open={open("settings", false)}>

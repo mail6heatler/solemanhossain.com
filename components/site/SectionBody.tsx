@@ -17,9 +17,9 @@ import { ShelfDecor, ShelfLamp } from "./StudyFrame";
 import { ComicMore } from "./ComicFrame";
 import { AwardMore } from "./AwardFrame";
 import { Pencil, ScrapMore } from "./ScrapFrame";
-import ChatWall from "./ChatWall";
+import ChatWindow from "./ChatWindow";
 import NoteCard from "./NoteCard";
-import WinCard, { shortUrl } from "./WinCard";
+import WinCard from "./WinCard";
 import TripCard from "./TripCard";
 import StudyCard from "./StudyCard";
 import ComicCard from "./ComicCard";
@@ -47,15 +47,6 @@ function medalFor(it: Item) {
   if (/lesson|hard|fail|learn/.test(c)) return "bulb";
   return "flag";
 }
-
-/** What a link is for, under its name in the chat's contacts; anything unknown shows where it goes. */
-const LINK_NOTES: Record<string, string> = {
-  mail: "Write to me directly", "brand-linkedin": "Work and career", "brand-github": "What I'm building", "brand-x": "Thoughts, short and often", "brand-twitter": "Thoughts, short and often",
-  "brand-instagram": "Pictures from my days", "brand-facebook": "Friends and family", "brand-youtube": "Videos", "brand-tiktok": "Short videos", "brand-whatsapp": "Message me",
-  "brand-telegram": "Message me", phone: "Call me", world: "My other corner of the web", "brand-dribbble": "Designs", "brand-behance": "Designs", "brand-medium": "Longer writing",
-};
-const linkNote = (s: { icon: string; url: string }) => LINK_NOTES[s.icon] ?? linkHint(s.url);
-const linkHint = (url: string) => (url.startsWith("mailto:") ? url.slice(7).split("?")[0] : url.startsWith("tel:") ? url.slice(4) : shortUrl(url));
 
 function Empty({ text }: { text: string }) {
   const shown = !text || /dashboard/i.test(text) ? "Coming soon." : text;
@@ -86,50 +77,22 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     ? <div className={`${className} reveal r3${st}`}>{children}</div>
     : <SideRow className={`${className}${st}`} fx={rowFx} after={after}>{children}</SideRow>;
 
-  // Connect as one chat window: the approved notes are the history, the links are contacts on the left, testimonials are pinned under them,
-  // and the box at the bottom is the same Say hello form (ChatWall.tsx)
+  // Connect as one chat window (ChatWindow.tsx): the approved notes are the history, the links are contacts on the left, testimonials are pinned
+  // under them as full cards, and the box at the bottom is the same Say hello form. What it says and how it looks is settings.connect.
   if (L === "chat") {
-    const owner = settings.nickname.trim() || settings.fullName.trim().split(/\s+/)[0] || "me";
     const notes = (wall ?? []).slice().reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) }));
-    return (
-      <div className="cw reveal r3">
-        <div className="cw-side">
-          <i className="cw-face">{settings.avatarUrl ? <img src={settings.avatarUrl} alt="" loading="lazy" /> : settings.initials || owner.slice(0, 1)}</i>
-          <div className="cw-me"><b>{owner}</b>{settings.fullName && settings.fullName !== owner && <small>{settings.fullName}</small>}<span className="cw-online">● reads every message</span></div>
-          {settings.socials.length > 0 && (
-            <>
-              <h3 className="cw-h">Other ways to reach me</h3>
-              {settings.socials.map((s, i) => (
-                <a key={i} className="cw-link" href={s.url} {...(s.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                  <i className={`ti ti-${s.icon}`} aria-hidden /><span><b>{s.label}</b><small>{linkNote(s)}</small></span>
-                </a>
-              ))}
-            </>
-          )}
-        </div>
-        <div className="cw-pins" data-lenis-prevent>
-          <div className="cw-pins-in">
-            {items.length > 0 ? items.map((it) => { const l = lookFor(it); return (
-              <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
-                <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
-                  <CardLink to={href(section, it)} label={it.title} />
-                  <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
-                  <p className="cw-quote">{it.body || it.title}</p>
-                  <div className="by">{it.subtitle || it.title}</div>
-                  <LinkButtons it={it} />
-                </Box>
-              </div>
-            ); }) : (
-              <div className="cw-note">
-                <b>📌 The wall</b>
-                Messages land in my inbox. Tap 📌 when you write, and once I approve it, everyone can read it in this chat.
-              </div>
-            )}
-          </div>
-        </div>
-        <ChatWall title={settings.connectFormTitle} owner={owner} avatar={settings.avatarUrl} initials={settings.initials || owner.slice(0, 1)} notes={notes} plane={fx.plane} />
+    const pins = items.length > 0 ? items.map((it) => { const l = lookFor(it); return (
+      <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
+        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+          <CardLink to={href(section, it)} label={it.title} />
+          <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
+          <p className="cw-quote">{it.body || it.title}</p>
+          <div className="by">{it.subtitle || it.title}</div>
+          <LinkButtons it={it} />
+        </Box>
       </div>
-    );
+    ); }) : null;
+    return <ChatWindow s={settings} notes={notes} pins={pins} />;
   }
 
   if (L === "connect") {
@@ -165,7 +128,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
           <div className={`connectrow reveal r3${grid ? "" : " beside"}`}>
             {settings.socials.map((s, i) => (
               <a key={i} href={s.url} {...(s.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                <i className={`ti ti-${s.icon}`} />{s.label}
+                {s.logo ? <img className="link-logo" src={s.logo} alt="" loading="lazy" /> : <i className={`ti ti-${s.icon}`} />}{s.label}
               </a>
             ))}
           </div>

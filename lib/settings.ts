@@ -1,12 +1,14 @@
 import { cleanBoxes, type BoxState } from "./boxes";
 import { cleanHeroDesign, DEFAULT_HERO_DESIGN, type HeroDesign } from "./heroLook";
+import { cleanConnect, DEFAULT_CONNECT, type ConnectDesign } from "./connectLook";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
 // so new fields can be added later without a migration.
 
 export type Link = { label: string; url: string };
-export type Social = { label: string; url: string; icon: string };
+/** A link in the Connect section. `note` is the owner's own line under it, `logo` an uploaded picture used instead of the icon. */
+export type Social = { label: string; url: string; icon: string; note?: string; logo?: string };
 
 export const REACTION_EMOJIS = ["❤️", "🔥", "😂", "🤯", "👏"] as const;
 
@@ -169,6 +171,7 @@ export const EFFECTS = [
   { key: "notefx", group: "Layout", label: "Notes: a manual, a protest sign, a story and a collectible card come alive" },
   { key: "fullfx", group: "Layout", label: "Full view: an opened note arrives piece by piece, and its details and picture move" },
   { key: "scrapfx", group: "Layout", label: "Scrapbook pages: a pencil travels along and each page comes alive" },
+  { key: "chatfx", group: "Layout", label: "Chat window comes alive: messages pop in, typing dots, hearts, a moving wallpaper" },
   { key: "windowfx", group: "Layout", label: "App windows pop open and their apps come alive, with a bouncing dock" },
   { key: "bento", group: "Layout", label: "Bento grid for card sections" },
   { key: "flip", group: "Layout", label: "Flip cards for list sections" },
@@ -240,6 +243,8 @@ export type SiteSettings = {
   heroBoxes: BoxState;
   /** the hero's look, background, pieces, numbers, extra buttons and headlines that take turns (lib/heroLook.ts) */
   heroDesign: HeroDesign;
+  /** the Connect section's chat window: its own photo, availability, words, wallpaper, bubbles and pieces (lib/connectLook.ts) */
+  connect: ConnectDesign;
   /** How thick the sliding belts between sections are, percent of the normal size (RIBBON_SIZE). */
   ribbonSize: number;
   socials: Social[];
@@ -287,6 +292,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroHidden: false,
   heroBoxes: {},
   heroDesign: DEFAULT_HERO_DESIGN,
+  connect: DEFAULT_CONNECT,
   ribbonSize: 100,
   socials: [
     { label: "Email", url: "mailto:you@example.com", icon: "mail" },
@@ -328,6 +334,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     contentStyle: cleanStyle(obj.contentStyle),
     heroBoxes: cleanBoxes(obj.heroBoxes),
     heroDesign: cleanHeroDesign(obj.heroDesign),
+    connect: cleanConnect(obj.connect),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;
