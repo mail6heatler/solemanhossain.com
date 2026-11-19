@@ -51,15 +51,18 @@ export default async function SectionAdmin({ params, searchParams }: P) {
 
   return (
     <div className={`adm-page${isChat ? " hst-page" : ""}`} key={section.id}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <h1 className="adm-h">{section.code && `${section.code} · `}{section.title}</h1>
-          <p className="adm-sub">{section.eyebrow_emoji} {section.eyebrow} · {items.length} entries · {section.visible ? "visible" : "hidden from the site"}</p>
+      {/* a Chat window section's live editor has its own heading and View on site */}
+      {!isChat && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <h1 className="adm-h">{section.code && `${section.code} · `}{section.title}</h1>
+            <p className="adm-sub">{section.eyebrow_emoji} {section.eyebrow} · {items.length} entries · {section.visible ? "visible" : "hidden from the site"}</p>
+          </div>
+          <div className="btns">
+            <a href={`/#${section.slug}`} target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a>
+          </div>
         </div>
-        <div className="btns">
-          <a href={`/#${section.slug}`} target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a>
-        </div>
-      </div>
+      )}
 
       <BoxMemory />
       {isChat && (

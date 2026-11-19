@@ -1,5 +1,4 @@
-import { getSections, getSettings, getStats } from "@/lib/data";
-import { isConnectLayout } from "@/lib/settings";
+import { getSettings, getStats } from "@/lib/data";
 import { query } from "@/lib/db";
 import { logout, logoutEverywhere, saveSite } from "@/app/actions";
 import { PasswordForm } from "@/components/admin/Forms";
@@ -9,17 +8,16 @@ import SaveBox from "@/components/admin/SaveBox";
 
 export default async function SettingsPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
-  const [s, stats, files, sections] = await Promise.all([
+  const [s, stats, files] = await Promise.all([
     getSettings(), getStats(),
-    query("SELECT COUNT(*)::int AS n, COALESCE(SUM(size),0)::bigint AS bytes FROM files"), getSections(),
+    query("SELECT COUNT(*)::int AS n, COALESCE(SUM(size),0)::bigint AS bytes FROM files"),
   ]);
-  const connect = sections.find((x) => isConnectLayout(x.layout));
   const mb = (Number(files[0]?.bytes ?? 0) / 1024 / 1024).toFixed(1);
 
   return (
     <div className="adm-page">
       <h1 className="adm-h">Settings</h1>
-      <p className="adm-sub">Account, appearance, links and your data</p>
+      <p className="adm-sub">Your site&apos;s name, footer, login and data</p>
 
       <form action={saveSite}>
         <div className="adm-label">Site &amp; appearance</div>
@@ -35,11 +33,6 @@ export default async function SettingsPage() {
           <div className="fl"><span className="lab">Themes &amp; effects</span>
             <div className="hint" style={{ fontSize: 12.5 }}>Theme, mood and every effect now live on the <a href="/admin/appearance">Appearance</a> page.</div>
           </div>
-        </div>
-
-        <div className="adm-label">Let&apos;s connect · social links</div>
-        <div className="c f">
-          <div className="hint" style={{ fontSize: 12.5 }}>Your {s.socials.length} links, their logos and everything the chat says now live in {connect ? <a href={`/admin/s/${connect.id}`}>Connect&apos;s live editor</a> : <>the Connect section&apos;s live editor</>}, where you see them change as you type.</div>
         </div>
 
         <div className="adm-label">Login username</div>
