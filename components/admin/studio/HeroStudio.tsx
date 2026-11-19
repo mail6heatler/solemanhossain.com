@@ -2,13 +2,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LIVE_THEMES, MOODS, SKIN_LABELS, isConnectLayout, type SiteSettings, type Skin } from "@/lib/settings";
-import { HERO_BGS, HERO_LOOKS, HERO_PIECES, MAX_HERO_BUTTONS, MAX_ROTATE, type HeroDesign, type HeroLook, type HeroPiece } from "@/lib/heroLook";
+import { DEFAULT_MAG_PHOTO, HERO_BGS, HERO_LOOKS, HERO_PIECES, MAX_HERO_BUTTONS, MAX_ROTATE, magSpot, type MagPhoto, type HeroDesign, type HeroLook, type HeroPiece } from "@/lib/heroLook";
 import type { PartSize } from "@/lib/partSize";
 import { saveHeroStudio, type HeroSave } from "@/app/actions";
 import HeroView, { heroStats } from "@/components/site/HeroView";
 import { fitParts } from "@/components/site/FitScreens";
 import { UploadField } from "@/components/admin/Widgets";
 import { Surface, type Typing } from "./Surface";
+import { Slider } from "./Fields";
 
 type Draft = Omit<HeroSave, "heroDesign"> & { heroDesign: HeroDesign };
 type Hist = { list: Draft[]; at: number; saved: Draft; tag: string; time: number };
@@ -270,6 +271,19 @@ export default function HeroStudio({ first, settings, sections, counts, reaction
           <G lit={lit} g="photo" title="Photo and résumé">
             <UploadField key={`a${rev}`} name="avatarUrl" initial={d.avatarUrl} fallback={d.initials} useBlob={useBlob} onChange={(u) => set("avatarUrl", u)} />
             <div className="hint">A PNG with a transparent background becomes a cut-out sticker in the hanging look.</div>
+            {(h.look === "magazine" || h.phoneLook === "magazine") && (() => {
+              const m = h.magPhoto ?? DEFAULT_MAG_PHOTO, at = magSpot(m), setM = (patch: Partial<MagPhoto>, tag?: string) => setD({ magPhoto: { ...m, ...patch } }, tag);
+              return <div className="fl hst-mag">
+                <span className="lab">Magazine cover photo</span>
+                <div className="hst-chips">
+                  {chip(m.fit === "whole", "Show whole (nothing cut)", () => setM({ fit: "whole", x: undefined, y: undefined }), "whole")}
+                  {chip(m.fit === "fill", "Fill the cover", () => setM({ fit: "fill", x: undefined, y: undefined }), "fill")}
+                </div>
+                {m.fit === "whole" && <Slider label="Size" value={m.size} range={[40, 100]} unit="%" fallback={100} onChange={(n) => setM({ size: n }, "mag-size")} />}
+                <Slider label={m.fit === "whole" ? "Left ↔ right" : "Show more of the left ↔ right"} value={m.x} range={[0, 100]} unit="%" fallback={at.x} onChange={(n) => setM({ x: n }, "mag-x")} onClear={() => setM({ x: undefined })} />
+                <Slider label={m.fit === "whole" ? "Up ↕ down" : "Show more of the top ↕ bottom"} value={m.y} range={[0, 100]} unit="%" fallback={at.y} onChange={(n) => setM({ y: n }, "mag-y")} onClear={() => setM({ y: undefined })} />
+              </div>;
+            })()}
             {txt("initials", "Initials (shown without a photo)", 3)}
             <div className="fl"><span className="lab">Résumé (PDF)</span><UploadField key={`r${rev}`} name="resumeUrl" initial={d.resumeUrl} kind="pdf" useBlob={useBlob} onChange={(u) => set("resumeUrl", u)} /></div>
             {txt("ctaPrimaryLabel", "Résumé button text", 40, "The button shows once a résumé is uploaded.")}

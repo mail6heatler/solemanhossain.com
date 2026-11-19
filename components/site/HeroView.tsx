@@ -1,6 +1,6 @@
 import type { Section } from "@/lib/data";
 import { MOODS, type SiteSettings } from "@/lib/settings";
-import type { HeroDesign, HeroLook, HeroPiece } from "@/lib/heroLook";
+import { DEFAULT_MAG_PHOTO, magSpot, type HeroDesign, type HeroLook, type HeroPiece } from "@/lib/heroLook";
 import { Accent } from "./Markdown";
 import { Clock, TypeOnce } from "./Typewriters";
 import { AvatarTilt, DecodeText, Greeting, LivePill, Sticker } from "./HeroFx";
@@ -119,7 +119,11 @@ export default function HeroView({ s, d, stats, edit = false, layers, emojis, ph
     }
     if (k === "magazine") return <>
       {/* the cover photo fills the whole hero, so it sits outside the part that sinks away while scrolling */}
-      <div className="mg-photo" {...p("photo")}>{photo}</div>
+      {(() => {
+        const m = d.magPhoto ?? DEFAULT_MAG_PHOTO, at = magSpot(m);
+        const vars = { "--mg-x": `${at.x}%`, "--mg-y": `${at.y}%`, "--mg-yf": at.y / 100, "--mg-h": `${m.size}%` } as React.CSSProperties;
+        return <div className={`mg-photo ${m.fit}`} {...p("photo", vars)}>{photo}</div>;
+      })()}
       <div className="hero-inner hl hl-mag">
         <div className="mg-top" {...p("band")}><span>Issue Nº {new Date().getFullYear() % 100} · {place || "Home"}</span>{clock}</div>
         <div className="mg-mast" {...p("mast")}>{(d.mast || owner).toUpperCase()}</div>

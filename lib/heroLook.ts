@@ -49,15 +49,32 @@ export type HeroDesign = {
   prompt: string;
   /** the photo's shape in the looks that crop it */
   shape: "round" | "square" | "arch";
+  /** the magazine's photo: shown whole (nothing cut) or filling the cover; its size (whole only, % of the hero's height) and where it sits (%) */
+  magPhoto: MagPhoto;
   parts?: PartSizes;
 };
 
+export type MagPhoto = { fit: "whole" | "fill"; size: number; x?: number; y?: number };
+export const DEFAULT_MAG_PHOTO: MagPhoto = { fit: "whole", size: 100 };
+/** where the photo sits when the owner hasn't moved it: a whole photo stands on the bottom at the right, a filling one keeps the face in view */
+export const magSpot = (m: MagPhoto) => ({ x: m.x ?? (m.fit === "whole" ? 88 : 70), y: m.y ?? (m.fit === "whole" ? 100 : 20) });
+
 export const MAX_HERO_BUTTONS = 6, MAX_ROTATE = 6;
-export const DEFAULT_HERO_DESIGN: HeroDesign = { look: "hang", phoneLook: "", bg: "own", hide: {}, rotate: [], rotateOn: false, stats: [], buttons: [], mast: "", presents: "", prompt: "", shape: "arch" };
+export const DEFAULT_HERO_DESIGN: HeroDesign = { look: "hang", phoneLook: "", bg: "own", hide: {}, rotate: [], rotateOn: false, stats: [], buttons: [], mast: "", presents: "", prompt: "", shape: "arch", magPhoto: DEFAULT_MAG_PHOTO };
 
 const LOOK_KEYS = HERO_LOOKS.map(([k]) => k) as string[];
 const text = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
 const safe = (u: string) => (/^(https?:\/\/|mailto:|tel:|\/|#)/i.test(u) ? u : "");
+
+const pct = (v: unknown, lo: number, hi: number) => (typeof v === "number" && isFinite(v) ? Math.round(Math.min(hi, Math.max(lo, v))) : undefined);
+function cleanMag(v: unknown): MagPhoto {
+  const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+  const m: MagPhoto = { fit: o.fit === "fill" ? "fill" : "whole", size: pct(o.size, 40, 100) ?? 100 };
+  const x = pct(o.x, 0, 100), y = pct(o.y, 0, 100);
+  if (x !== undefined) m.x = x;
+  if (y !== undefined) m.y = y;
+  return m;
+}
 
 export function cleanHeroDesign(raw: unknown): HeroDesign {
   let o: Record<string, unknown> = {};
@@ -83,6 +100,7 @@ export function cleanHeroDesign(raw: unknown): HeroDesign {
     presents: text(o.presents, 60),
     prompt: text(o.prompt, 24).replace(/\s+/g, "-"),
     shape: o.shape === "round" || o.shape === "square" ? o.shape : "arch",
+    magPhoto: cleanMag(o.magPhoto),
     ...(Object.keys(parts).length ? { parts } : {}),
   };
 }

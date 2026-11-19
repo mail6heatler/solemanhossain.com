@@ -103,13 +103,15 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     document.addEventListener("click", aimAtLink);
     cleanups.push(() => { document.removeEventListener("click", aimAtLink); stopAiming(); });
 
-    // A device that stays under about 25 frames per second while scrolling gets the lighter version for this visit.
-    // Needs several seconds of slow scrolling to trigger, so one busy moment or a fast device never sets it off.
+    // A device that stays under about 20 frames per second while scrolling gets the lighter version for this page only; the next page
+    // starts full again (it used to be remembered for the visit, and the owner saw their emojis, background marks and neon vanish after a
+    // reload). The first 6 seconds don't count, because pictures, fonts, the 3D and screen fitting all land then, and it needs three slow
+    // stretches in a row, so a busy moment never sets it off.
     if (fx.autolite && !reduced && !html.classList.contains("lite")) {
       let prev = 0, sum = 0, n = 0, strikes = 0, raf = 0, until = 0;
+      const from = performance.now() + 6000;
       const goLite = () => {
         html.classList.add("lite");
-        try { sessionStorage.setItem("lc_lite", "1"); } catch {}
         window.dispatchEvent(new Event("lc-lite"));
         window.removeEventListener("scroll", wake);
       };
@@ -117,11 +119,12 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
         raf = 0;
         if (prev && t - prev < 300) { sum += t - prev; n++; }
         prev = t;
+        if (t < from) { sum = 0; n = 0; }
         if (n >= 40) {
-          const slow = sum / n > 40;
+          const slow = sum / n > 50;
           sum = 0; n = 0;
           strikes = slow ? strikes + 1 : 0;
-          if (strikes >= 2) { goLite(); return; }
+          if (strikes >= 3) { goLite(); return; }
         }
         if (performance.now() < until) raf = requestAnimationFrame(watch);
         else prev = 0;

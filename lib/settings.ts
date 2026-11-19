@@ -394,8 +394,7 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
 export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects">) {
-  // lt: a device already found to be too slow stays on the lighter version for this visit (see Effects.tsx)
-  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SELECTABLE, pv: SKINS, t: LIVE_THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, lt: s.effects.autolite, f: THEME_FONTS }).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SELECTABLE, pv: SKINS, t: LIVE_THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, f: THEME_FONTS }).replace(/</g, "\\u003c");
   // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
     `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
@@ -403,7 +402,8 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
     `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
     `h.setAttribute("data-skin",s);h.setAttribute("data-skin-pref",p);` +
-    `try{if(c.lt&&sessionStorage.getItem("lc_lite"))h.classList.add("lite")}catch(e){}` +
+    `try{sessionStorage.removeItem("lc_lite")}catch(e){}` + // the light version is no longer carried to the next page; clears what older visits stored
+
     // a fan theme's fonts download only when that theme is showing, now or after switching
     `var ff=function(){var k=h.getAttribute("data-skin"),u=c.f[k];if(!u||document.getElementById("lf-"+k))return;var l=document.createElement("link");l.id="lf-"+k;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+u+"&display=swap";document.head.appendChild(l)};ff();try{new MutationObserver(ff).observe(h,{attributes:true,attributeFilter:["data-skin"]})}catch(e){}` +
     // photo morph + page glide: browsers that support cross-page view transitions animate, others just navigate

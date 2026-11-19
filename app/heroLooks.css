@@ -30,7 +30,14 @@ html.lite .hero-blur { filter: none; opacity: .18; }
 /* ----- magazine cover (follows the theme) ----- */
 .hero-inner.hl-mag { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "top top" "mast mast" "lines ." "story story"; gap: 14px 30px; align-items: end; }
 .mg-photo { position: absolute; inset: 0; z-index: 1; }
-.mg-photo img, .mg-photo .avatar-ph { width: 100%; height: 100%; object-fit: cover; object-position: 70% 20%; border: 0; border-radius: 0; box-shadow: none; }
+.mg-photo img, .mg-photo .avatar-ph { width: 100%; height: 100%; object-fit: cover; object-position: var(--mg-x, 70%) var(--mg-y, 20%); border: 0; border-radius: 0; box-shadow: none; }
+/* "Show whole" (the default): the whole photo, never cut, at the chosen share of the hero's height, standing where the owner put it.
+   It starts under the menu bar and ends above the next section's overlapping sheet, so neither covers it. */
+.mg-photo.whole { top: clamp(64px, 9svh, 90px); }
+.site.fx-sheets .mg-photo.whole { bottom: var(--sheet, 0px); }
+.mg-photo.whole img, .mg-photo.whole .avatar-ph { position: absolute; left: 0; width: 100%; height: var(--mg-h, 100%); top: calc((100% - var(--mg-h, 100%)) * var(--mg-yf, 1)); object-fit: contain; object-position: var(--mg-x, 88%) 50%; }
+.mg-photo.whole .avatar-ph { width: auto; aspect-ratio: 3 / 4; left: auto; right: calc(100% - var(--mg-x, 88%)); display: grid; place-items: center; }
+.mg-photo.whole::after { background: linear-gradient(90deg, color-mix(in srgb, var(--hero-bg) 82%, transparent) 0, color-mix(in srgb, var(--hero-bg) 22%, transparent) 55%, transparent); }
 .mg-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--hero-bg) 88%, transparent) 0, color-mix(in srgb, var(--hero-bg) 30%, transparent) 60%, transparent), linear-gradient(transparent 40%, color-mix(in srgb, var(--hero-bg) 92%, transparent)); }
 .mg-top { grid-area: top; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 700 11px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--hero-muted); }
 .mg-top .hero-clock { margin: 0; }
