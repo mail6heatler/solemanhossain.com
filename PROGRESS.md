@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-19: Menu bar and footer kept; three fixes queued
+
+The owner kept them ("keep this") and listed what's next, checked on the live site the same day: (1) the mini photo at the menu bar's left after the hero isn't wanted (the `ava` extra, on by default); (2) the name should always type itself through `brandPhrases` (it's fixed now because `whole` defaulted on, and the Now playing look shows the track instead of the name); (3) the Menu bar and Footer editors need a computer and a phone preview, live and at real size like the hero editor's screens, with nothing cut (today the preview is the dashboard's width and the phone frame shows only what's saved). The live site's menu was already switched to Classic by the owner. On the task board as the next job; not started.
+
 ### 2026-11-19: The menu bar and footer, all ideas built, with their own dashboard pages
 
 The owner said "go for all those", with the footer compact (a fixed size, smaller than a section) and the receipt rolled up at the bottom with View (the whole receipt in a box in the middle), Cut (a PDF) and Print again, "useful for the visitor", everything controlled from the dashboard. Restore point `before-menu-footer`.
