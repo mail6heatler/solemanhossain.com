@@ -58,7 +58,17 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-19: Private chats with replies, and the Wall
+### 2026-11-19: Inbox tabs, Select in Chats, G8's heading
+
+The owner kept the chats and the Wall and asked for: one title on G8's dashboard page (the website's), Inbox buttons for All, Chats, Comments, Reactions and Mark all read, each holding its own things, and in Chats selecting several to delete, delete all, pin or unpin, reply, and so on.
+
+- G8's editor heading is now the section's own title (as on the site), not the word "Connect".
+- Inbox tabs: **All** (every chat message, comment and reaction, newest first, each leading to where it's handled; the default), **Chats**, **Comments**, **Reactions**, and one **Mark all read** in every tab. Old links to Unread or On the wall open All. The bell's message alerts open that chat.
+- Chats → **Select**: tick chats (or Select all), then Read, Unread, Pin (only notes whose writer ticked 📌), Unpin, Reply (one reply sent to each, with saved replies; older chats are skipped), Delete (asks first) or Delete all (asks first, says it empties the Wall too). Every message in a chat also has its own delete (tap twice).
+
+The new database commands were run against a throwaway database first; nothing else was tested (the owner's rule). Waiting for keep or undo.
+
+### 2026-11-19: Private chats with replies, and the Wall (kept)
 
 The owner said "go" on the Wall and replies preview without picking, so the starred options are the defaults and every option is a choice in Connect's editor (The Wall and Replies groups). Restore point `before-chat-replies`.
 

@@ -1,9 +1,8 @@
 import { countUnread, getCommentTotals, getRecentComments, getSections, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
-import { listChats } from "@/lib/chat";
+import { listChats, recentVisitorMessages } from "@/lib/chat";
 import ChatInbox from "@/components/admin/ChatInbox";
 import { isConnectLayout } from "@/lib/settings";
 import { messageAction } from "@/app/actions";
-
 import CommentTools from "@/components/admin/CommentTools";
 import { requireAdmin } from "@/lib/auth";
 import { REACTION_EMOJIS } from "@/lib/settings";
@@ -15,58 +14,64 @@ const fmt = (iso: string, timeZone: string) => {
   catch { return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }); }
 };
 
+/**
+ * The Inbox: All (everything people sent, newest first), Chats (ChatInbox, like Messenger), Comments and Reactions, and one Mark all read.
+ * The old Unread and On the wall tabs are filters inside Chats; their old links open All.
+ */
 export default async function Inbox({ searchParams }: P) {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const { f, c } = await searchParams;
-  // messages are chats now (ChatInbox); the old Unread and On the wall tabs are filters inside it
-  const filter = f === "reactions" || f === "comments" ? f : "all";
-  const [chats, settings, totals, talks, unreadMsgs, sections] = await Promise.all([filter === "all" ? listChats() : Promise.resolve([]), getSettings(), getReactionTotals(), getCommentTotals(), countUnread(), getSections()]);
+  const filter = f === "chats" || f === "reactions" || f === "comments" ? f : "all";
+  const [chats, settings, totals, talks, unreadMsgs, sections] = await Promise.all([filter === "chats" ? listChats() : Promise.resolve([]), getSettings(), getReactionTotals(), getCommentTotals(), countUnread(), getSections()]);
   const connect = sections.find((x) => isConnectLayout(x.layout));
   const anyNew = unreadMsgs + totals.fresh + talks.fresh;
   // every form here says which tab it was on, so the page comes back to it
   const tab = <input type="hidden" name="f" value={filter} />;
   const tz = settings.timezone || "UTC";
-  const tabs: [string, string][] = [["all", `Chats${unreadMsgs ? ` · ${unreadMsgs} new` : ""}`], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`], ["comments", `Comments${talks.fresh ? ` · ${talks.fresh} new` : ""}`]];
+  const n = (k: number) => (k ? ` · ${k} new` : "");
+  const tabs: [string, string, string][] = [["all", "inbox", `All${n(anyNew)}`], ["chats", "messages", `Chats${n(unreadMsgs)}`], ["comments", "message-circle", `Comments${n(talks.fresh)}`], ["reactions", "heart", `Reactions${n(totals.fresh)}`]];
 
   return (
     <div className="adm-page">
       <h1 className="adm-h">Inbox</h1>
-      <p className="adm-sub">Chats with the people who write to you, and the reactions and comments people leave on your entries.</p>
+      <p className="adm-sub">Chats with the people who write to you, and the comments and reactions people leave on your entries.</p>
       <div className="btns" style={{ marginBottom: 16 }}>
-        {tabs.map(([k, l]) => (
-          <a key={k} href={k === "all" ? "/admin/inbox" : `/admin/inbox?f=${k}`} className={filter === k ? "b-dark b-sm" : "b-out b-sm"}>{l}</a>
+        {tabs.map(([k, icon, l]) => (
+          <a key={k} href={k === "all" ? "/admin/inbox" : `/admin/inbox?f=${k}`} className={filter === k ? "b-dark b-sm" : "b-out b-sm"}><i className={`ti ti-${icon}`} />{l}</a>
         ))}
-        {filter === "reactions" ? (
-          totals.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="reactions-seen" /><input type="hidden" name="id" value="0" />{tab}
-            <button className="b-out b-sm"><i className="ti ti-checks" />Mark all seen</button></form>
-        ) : filter === "comments" ? (
-          talks.fresh > 0 && <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="comments-seen" /><input type="hidden" name="id" value="0" />{tab}
-            <button className="b-out b-sm"><i className="ti ti-checks" />Mark all seen</button></form>
-        ) : (
-          <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="allread" /><input type="hidden" name="id" value="0" />{tab}
-            <button className="b-out b-sm" disabled={!anyNew} title={anyNew ? "Marks every message, reaction and comment as read" : "Nothing new to mark"}><i className="ti ti-checks" />Mark all read</button></form>
-        )}
+        <form action={messageAction} style={{ marginLeft: "auto" }}><input type="hidden" name="op" value="allread" /><input type="hidden" name="id" value="0" />{tab}
+          <button className="b-out b-sm" disabled={!anyNew} title={anyNew ? "Marks every chat message, comment and reaction as read" : "Nothing new to mark"}><i className="ti ti-checks" />Mark all read</button></form>
       </div>
+      {filter === "all" && <AllList tz={tz} />}
       {filter === "reactions" && <ReactionList tz={tz} total={totals.total} fresh={totals.fresh} />}
       {filter === "comments" && <CommentList tz={tz} />}
-      {filter === "all" && talks.fresh > 0 && (
-        <a href="/admin/inbox?f=comments" className="c hov c-row" style={{ textDecoration: "none" }}>
-          <span className="chipi"><i className="ti ti-message-circle" /></span>
-          <div className="grow"><div className="c-title">{talks.fresh} new comment{talks.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who said what →</div></div>
-          <span className="tagx red">new</span>
-        </a>
-      )}
-      {filter === "all" && totals.fresh > 0 && (
-        <a href="/admin/inbox?f=reactions" className="c hov c-row" style={{ textDecoration: "none" }}>
-          <span className="chipi"><i className="ti ti-heart" /></span>
-          <div className="grow"><div className="c-title">{totals.fresh} new reaction{totals.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who reacted to what →</div></div>
-          <span className="tagx red">new</span>
-        </a>
-      )}
-      {filter === "all" && (
+      {filter === "chats" && (
         <ChatInbox initial={chats} startOpen={c && chats.some((x) => x.key === c) ? c : chats[0]?.key ?? ""} owner={settings.connect.name || settings.nickname || settings.fullName}
           avatar={settings.connect.face || settings.avatarUrl} saved={settings.connect.saved} reactOn={settings.connect.react} editorHref={connect ? `/admin/s/${connect.id}` : "/admin"} />
       )}
+    </div>
+  );
+}
+
+/** Everything people sent lately in one list, newest first: chat messages, comments and reactions, each leading to where it's handled. */
+async function AllList({ tz }: { tz: string }) {
+  const [msgs, comments, reactions] = await Promise.all([recentVisitorMessages(120), getRecentComments(120), getRecentReactions(120)]);
+  type Row = { k: string; at: string; icon: string; who: string; kind: string; text: string; href: string; fresh: boolean };
+  const rows: Row[] = [
+    ...msgs.map((m) => ({ k: `m${m.id}`, at: m.at, icon: "💬", who: m.name, kind: "Chat", text: m.body, href: `/admin/inbox?f=chats&c=${m.key}`, fresh: !m.read })),
+    ...comments.map((x) => ({ k: `c${x.id}`, at: x.created_at, icon: "🗨️", who: x.name, kind: `Comment on ${x.title}`, text: x.body, href: `/admin/items/${x.item_id}#comments`, fresh: !x.seen })),
+    ...reactions.map((r, i) => ({ k: `r${r.item_id}-${r.emoji}-${i}`, at: r.created_at, icon: r.emoji, who: r.visitor, kind: `Reacted to ${r.title}`, text: "", href: `/admin/items/${r.item_id}`, fresh: !r.seen })),
+  ].sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 150);
+  if (!rows.length) return <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>Nothing yet. Chat messages, comments and reactions all show up here, newest first.</div>;
+  return (
+    <div className="ib-all">
+      {rows.map((r) => (
+        <a key={r.k} href={r.href} className={`ib-row${r.fresh ? " un" : ""}`}>
+          <span className="ib-ic" aria-hidden>{r.icon}</span>
+          <span style={{ minWidth: 0 }}><b>{r.who}</b><span className="ib-k">{r.kind}</span>{r.fresh && <span className="tagx red" style={{ marginLeft: 6 }}>new</span>}{r.text && <p>{r.text}</p>}</span>
+          <small>{fmt(r.at, tz)}</small>
+        </a>
+      ))}
     </div>
   );
 }

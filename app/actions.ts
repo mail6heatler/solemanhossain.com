@@ -6,7 +6,7 @@ import { cleanAward } from "@/lib/awardItem";
 import { cleanScrap } from "@/lib/scrapItem";
 import { cleanHeroDesign } from "@/lib/heroLook";
 import { cleanConnect, cleanSocials, type ConnectDesign } from "@/lib/connectLook";
-import { KEY_RE, chatThread, hashKey, isConvId, listChats, markChatSeen, ownerPing, type ChatMsg, type ChatSummary } from "@/lib/chat";
+import { KEY_RE, chatThread, chatWhere, hashKey, isConvId, listChats, markChatSeen, ownerPing, type ChatMsg, type ChatSummary } from "@/lib/chat";
 import { cleanCard } from "@/lib/cardLook";
 import { cleanBoxes } from "@/lib/boxes";
 import { COMMENT_MAX, TALK_FEATURES, cleanTalk } from "@/lib/talk";
@@ -726,4 +726,45 @@ export async function inboxSaved(list: string[]) {
   await requireAdmin();
   const now = await getSettings();
   await saveSettingsData({ connect: cleanConnect({ ...now.connect, saved: list }) });
+}
+
+export type BulkOp = "read" | "unread" | "pin" | "unpin" | "delete" | "reply";
+/**
+ * Something done to several chats at once (the Inbox's Select): mark read or unread, put on the Wall or take off it (only notes whose
+ * writer ticked 📌 go up), delete, or send the same reply to each (only chats that can take one). Says how many it changed and skipped.
+ */
+export async function inboxBulk(op: BulkOp, keys: string[], body = ""): Promise<{ ok: true; done: number; skipped: number } | { ok: false; error: string }> {
+  await requireAdmin();
+  const list = (Array.isArray(keys) ? keys : []).map(chatKey).filter(Boolean).slice(0, 500);
+  if (!list.length) return { ok: false, error: "Pick at least one chat first." };
+  const text = String(body ?? "").trim().slice(0, 2000);
+  if (op === "reply" && !text) return { ok: false, error: "Write the reply first." };
+  const s = op === "reply" ? await getSettings() : null;
+  let done = 0, skipped = 0;
+  for (const key of list) {
+    const w = chatWhere(key);
+    if (!w) { skipped++; continue; }
+    const [cond, arg] = w;
+    if (op === "read") await query(`UPDATE messages SET read=TRUE, seen_at=COALESCE(seen_at, NOW()) WHERE ${cond} AND NOT from_owner`, [arg]);
+    else if (op === "unread") await query(`UPDATE messages SET read=FALSE WHERE ${cond} AND NOT from_owner`, [arg]);
+    else if (op === "pin") { const r = await query(`UPDATE messages SET approved=TRUE, read=TRUE WHERE ${cond} AND NOT from_owner AND wants_public RETURNING id`, [arg]); if (!r.length) { skipped++; continue; } }
+    else if (op === "unpin") await query(`UPDATE messages SET approved=FALSE WHERE ${cond} AND NOT from_owner`, [arg]);
+    else if (op === "delete") await query(`DELETE FROM messages WHERE ${cond}`, [arg]);
+    else if (op === "reply") {
+      if (!isConvId(key)) { skipped++; continue; }
+      await query("INSERT INTO messages (name, email, body, conv, from_owner, read) VALUES ($1, '', $2, $3, TRUE, TRUE)", [s!.connect.name || s!.nickname || s!.fullName || "Me", text, key]);
+      await query("UPDATE messages SET read=TRUE WHERE conv=$1 AND NOT from_owner", [key]);
+    } else return { ok: false, error: "Unknown action." };
+    done++;
+  }
+  if (op === "pin" || op === "unpin" || op === "delete") refresh();
+  return { ok: true, done, skipped };
+}
+
+/** Deletes every chat and message, after the Inbox's confirmation. */
+export async function inboxDeleteAll(): Promise<{ ok: true }> {
+  await requireAdmin();
+  await query("DELETE FROM messages");
+  refresh();
+  return { ok: true };
 }

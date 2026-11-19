@@ -230,7 +230,7 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
   return (
     <div className="stu hstu cstu">
       <header className="stu-top">
-        <div className="stu-name"><h1 className="adm-h">{d.section.code ? `${d.section.code} · ` : ""}Connect</h1><p className="adm-sub">Your chat window: links, the wall and Say hello{dirty ? " · changes not saved" : ""}</p></div>
+        <div className="stu-name"><h1 className="adm-h">{d.section.code ? `${d.section.code} · ` : ""}{d.section.title || "Connect"}</h1><p className="adm-sub">Your chat window: links, the wall and Say hello{dirty ? " · changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns">
           <label className="switch"><input type="checkbox" checked={labels} onChange={(e) => { setLabels(e.target.checked); try { localStorage.setItem("lc_stu_labels", e.target.checked ? "1" : "0"); } catch {} }} />Labels</label>
           <select className="stu-skin" value={skin} aria-label="Theme the preview wears" onChange={(e) => setSkin(e.target.value)}>{LIVE_THEMES.map((t) => <option key={t} value={t}>{SKIN_LABELS[t as Skin] ?? t}</option>)}</select>
@@ -344,7 +344,7 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
           </G>
 
           <G lit={lit} g="replies" title="Replies">
-            <div className="hint" style={{ marginTop: 0 }}>Everyone who writes gets a private chat with you. Reply from your <a href="/admin/inbox">Inbox</a>: they see it in their chat here, and get a &ldquo;new reply&rdquo; badge when they come back (on the same phone or computer).</div>
+            <div className="hint" style={{ marginTop: 0 }}>Everyone who writes gets a private chat with you. Reply from your <a href="/admin/inbox?f=chats">Inbox</a>: they see it in their chat here, and get a &ldquo;new reply&rdquo; badge when they come back (on the same phone or computer).</div>
             <label className="switch"><input type="checkbox" checked={c.seen} onChange={(e) => setC({ seen: e.target.checked })} />They see &ldquo;Seen&rdquo; when you&apos;ve read their message</label>
             <label className="switch"><input type="checkbox" checked={c.typing} onChange={(e) => setC({ typing: e.target.checked })} />They see you typing</label>
             <label className="switch"><input type="checkbox" checked={c.online} onChange={(e) => setC({ online: e.target.checked })} />You show &ldquo;Online now&rdquo; while your Inbox is open</label>

@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMsg, ChatSummary } from "@/lib/chat";
-import { inboxDelete, inboxPoll, inboxReact, inboxReply, inboxSaved, inboxWall } from "@/app/actions";
+import { inboxBulk, inboxDelete, inboxDeleteAll, inboxPoll, inboxReact, inboxReply, inboxSaved, inboxWall, type BulkOp } from "@/app/actions";
 
 const REACTS = ["❤️", "😂", "👍", "🙏", "😮", "🔥"];
 const AVC = ["#e5487b", "#2bb3c0", "#9b6ef3", "#f2a33d", "#2f9e6a", "#e8663d"];
@@ -41,6 +41,12 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
   const [confirmDel, setConfirmDel] = useState(false);
   const [wallDraft, setWallDraft] = useState<Record<number, string>>({});
   const [showThread, setShowThread] = useState(!!startOpen);
+  // Select: several chats at once
+  const [selecting, setSelecting] = useState(false);
+  const [sel, setSel] = useState<string[]>([]);
+  const [ask, setAsk] = useState<"" | "reply" | "delete" | "all">("");
+  const [bulkText, setBulkText] = useState("");
+  const [delMsg, setDelMsg] = useState(0);
   const typedAt = useRef(0), pingedAt = useRef(0);
   const openRef = useRef(open);
   openRef.current = open;
@@ -66,7 +72,36 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
   const cur = chats.find((c) => c.key === open);
   const list = chats.filter((c) => filter === "all" || (filter === "unread" ? c.unread > 0 : c.wallAsk || c.onWall));
   const unread = chats.filter((c) => c.unread > 0).length;
-  const pick = (k: string) => { setOpen(k); setShowThread(true); setText(""); };
+  const pick = (k: string) => {
+    if (selecting) { setSel((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k])); return; }
+    setOpen(k); setShowThread(true); setText("");
+  };
+  const stopSelecting = () => { setSelecting(false); setSel([]); setAsk(""); setBulkText(""); };
+  const bulk = async (op: BulkOp) => {
+    if (!sel.length || busy) return;
+    setBusy(true);
+    const r = await inboxBulk(op, sel, bulkText).catch(() => null);
+    setBusy(false);
+    if (!r) { say("That didn't work. Check your connection and try again.", true); return; }
+    if (!r.ok) { say(r.error, true); return; }
+    const what = { read: "marked read", unread: "marked unread", pin: "put on the Wall", unpin: "taken off the Wall", delete: "deleted", reply: "replied to" }[op];
+    const why = op === "pin" ? " (their writers didn't tick 📌)" : op === "reply" ? " (they wrote before replies existed)" : "";
+    say(`${r.done} ${r.done === 1 ? "chat" : "chats"} ${what}.${r.skipped ? ` ${r.skipped} skipped${why}.` : ""}`);
+    if (op === "delete" && sel.includes(open)) { setOpen(""); setShowThread(false); }
+    stopSelecting(); poll();
+  };
+  const deleteAll = async () => {
+    setBusy(true);
+    await inboxDeleteAll().catch(() => null);
+    setBusy(false); stopSelecting(); setOpen(""); setShowThread(false); say("Every chat deleted."); poll();
+  };
+  const delOne = async (id: number) => {
+    if (delMsg !== id) { setDelMsg(id); window.setTimeout(() => setDelMsg((d) => (d === id ? 0 : d)), 4000); return; }
+    setDelMsg(0);
+    setThread((t) => t && t.filter((x) => x.id !== id));
+    await inboxDelete(open, id).catch(() => say("That didn't delete. Try again.", true));
+    poll();
+  };
 
   const send = async (body = text) => {
     if (!open || !body.trim() || busy) return;
@@ -106,15 +141,47 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
       <aside className="ci-list">
         <div className="ci-list-top">
           <b>Chats</b>{unread > 0 && <span className="ci-cnt">{unread} new</span>}
+          <button type="button" className={`ci-selbtn${selecting ? " on" : ""}`} onClick={() => (selecting ? stopSelecting() : setSelecting(true))} disabled={!chats.length && !selecting}>{selecting ? "Done" : "Select"}</button>
           <a className="ci-set" href={editorHref} title="What visitors see: Connect's live editor"><i className="ti ti-settings" /></a>
         </div>
+        {selecting && (
+          <div className="ci-bulk">
+            <label className="ci-chk"><input type="checkbox" checked={list.length > 0 && list.every((c) => sel.includes(c.key))} onChange={(e) => setSel(e.target.checked ? list.map((c) => c.key) : [])} />{sel.length ? `${sel.length} selected` : "Select all"}</label>
+            <div className="ci-bulk-row">
+              <button type="button" disabled={!sel.length || busy} onClick={() => bulk("read")}><i className="ti ti-checks" />Read</button>
+              <button type="button" disabled={!sel.length || busy} onClick={() => bulk("unread")}><i className="ti ti-mail" />Unread</button>
+              <button type="button" disabled={!sel.length || busy} onClick={() => bulk("pin")}><i className="ti ti-pin" />Pin</button>
+              <button type="button" disabled={!sel.length || busy} onClick={() => bulk("unpin")}><i className="ti ti-pinned-off" />Unpin</button>
+              <button type="button" disabled={!sel.length || busy} className={ask === "reply" ? "on" : ""} onClick={() => setAsk(ask === "reply" ? "" : "reply")}><i className="ti ti-send" />Reply</button>
+              <button type="button" disabled={!sel.length || busy} className={`bad${ask === "delete" ? " on" : ""}`} onClick={() => setAsk(ask === "delete" ? "" : "delete")}><i className="ti ti-trash" />Delete</button>
+              <button type="button" disabled={busy || !chats.length} className={`bad${ask === "all" ? " on" : ""}`} onClick={() => setAsk(ask === "all" ? "" : "all")}><i className="ti ti-trash-x" />Delete all</button>
+            </div>
+            {ask === "reply" && (
+              <div className="ci-ask">
+                <textarea className="inp" rows={2} value={bulkText} maxLength={2000} placeholder={`One reply, sent to each of the ${sel.length} selected chats`} onChange={(e) => setBulkText(e.target.value)} />
+                {saved.length > 0 && <div className="ci-saved" style={{ padding: 0 }}>{saved.map((sv, i) => <button key={i} type="button" onClick={() => setBulkText(sv)}>{sv}</button>)}</div>}
+                <div className="ci-ask-btns"><button type="button" className="b-mint b-sm" disabled={!bulkText.trim() || busy} onClick={() => bulk("reply")}><i className="ti ti-send" />Send to {sel.length}</button><button type="button" className="b-out b-sm" onClick={() => setAsk("")}>Cancel</button></div>
+              </div>
+            )}
+            {ask === "delete" && (
+              <div className="ci-ask bad">Delete the {sel.length} selected {sel.length === 1 ? "chat" : "chats"} for good, with every message in them? Notes among them leave the Wall too.
+                <div className="ci-ask-btns"><button type="button" className="b-danger b-sm" disabled={busy} onClick={() => bulk("delete")}>Yes, delete</button><button type="button" className="b-out b-sm" onClick={() => setAsk("")}>No</button></div>
+              </div>
+            )}
+            {ask === "all" && (
+              <div className="ci-ask bad">Delete every chat ({chats.length}) and every message for good, including the notes on the Wall? This can&apos;t be undone.
+                <div className="ci-ask-btns"><button type="button" className="b-danger b-sm" disabled={busy} onClick={deleteAll}>Yes, delete everything</button><button type="button" className="b-out b-sm" onClick={() => setAsk("")}>No</button></div>
+              </div>
+            )}
+          </div>
+        )}
         <div className="ci-filters" role="group" aria-label="Show">
           {([["all", "All"], ["unread", "Unread"], ["wall", "📌 Wall"]] as const).map(([k, l]) => <button key={k} type="button" className={filter === k ? "on" : ""} onClick={() => setFilter(k)}>{l}</button>)}
         </div>
         {list.length === 0 && <p className="ci-empty">{filter === "all" ? "No messages yet. When someone writes in your chat, it shows up here." : "Nothing here."}</p>}
         {list.map((c) => (
-          <button key={c.key} type="button" className={`ci-conv${c.key === open ? " on" : ""}${c.unread ? " un" : ""}`} onClick={() => pick(c.key)}>
-            <span className="ci-av" style={{ background: color(c.name) }}>{first(c.name)}</span>
+          <button key={c.key} type="button" className={`ci-conv${c.key === open && !selecting ? " on" : ""}${c.unread ? " un" : ""}${sel.includes(c.key) ? " sel" : ""}`} onClick={() => pick(c.key)} aria-pressed={selecting ? sel.includes(c.key) : undefined}>
+            <span className="ci-av" style={{ background: selecting && sel.includes(c.key) ? "var(--mint)" : color(c.name) }}>{selecting && sel.includes(c.key) ? <i className="ti ti-check" /> : first(c.name)}</span>
             <span className="ci-mid"><b>{c.name}</b><small>{c.lastFromOwner ? "You: " : ""}{c.last}</small></span>
             <span className="ci-end"><small>{ago(c.lastAt)}</small>{c.unread > 0 ? <i className="ci-dot" aria-label={`${c.unread} unread`} /> : c.wallAsk ? <em title="Asked to be on the Wall">📌</em> : null}</span>
           </button>
@@ -143,6 +210,7 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
                 <div key={m.id} className="ci-m me">
                   <p>{m.body}</p>
                   <small>{stamp(m.at)} · {m.seen ? "Seen" : "Sent"}</small>
+                  <span className="ci-tools"><button type="button" className={`ci-del${delMsg === m.id ? " ask" : ""}`} onClick={() => delOne(m.id)} aria-label="Delete this reply">{delMsg === m.id ? "Delete? Tap again" : <i className="ti ti-trash" />}</button></span>
                 </div>
               ) : (
                 <div key={m.id} className="ci-m">
@@ -151,6 +219,7 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
                   <span className="ci-tools">
                     {reactOn && REACTS.map((e) => <button key={e} type="button" className={m.react === e ? "on" : ""} onClick={() => react(m, e)} aria-label={`React ${e}`}>{e}</button>)}
                     {m.wantsPublic && <button type="button" className="ci-wallbtn" onClick={() => wall(m, !m.approved)}>{m.approved ? "Take off the Wall" : "📌 Put on the Wall"}</button>}
+                    <button type="button" className={`ci-del${delMsg === m.id ? " ask" : ""}`} onClick={() => delOne(m.id)} aria-label="Delete this message">{delMsg === m.id ? "Delete? Tap again" : <i className="ti ti-trash" />}</button>
                   </span>
                   {m.approved && (
                     <span className="ci-wallreply">

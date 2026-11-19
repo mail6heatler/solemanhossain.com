@@ -61,6 +61,20 @@ export async function chatThread(key: string): Promise<ChatMsg[]> {
   return rows.map(toMsg);
 }
 
+/** What a chat's id picks out of messages: the SQL condition and its parameter, or null for an id that isn't one. */
+export function chatWhere(key: string): [string, unknown] | null {
+  const id = legacyId(key);
+  if (id) return ["id=$1 AND conv IS NULL", id];
+  if (isConvId(key)) return ["conv=$1", key];
+  return null;
+}
+
+/** Everything visitors wrote lately, newest first, for the Inbox's All tab. */
+export async function recentVisitorMessages(limit = 120) {
+  const rows = await query("SELECT id, conv, name, body, read, created_at FROM messages WHERE NOT from_owner ORDER BY created_at DESC, id DESC LIMIT $1", [limit]);
+  return rows.map((r) => ({ id: Number(r.id), key: r.conv ? String(r.conv) : `m${r.id}`, name: String(r.name), body: String(r.body), read: !!r.read, at: iso(r.created_at) }));
+}
+
 /** The owner opened a chat: what the visitor wrote is read and seen. */
 export async function markChatSeen(key: string) {
   const id = legacyId(key);

@@ -485,3 +485,34 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
   .ci-m { max-width: 90%; }
 }
 @media (prefers-reduced-motion: reduce) { .ci-m { animation: none; } }
+
+/* Select: several chats at once, and deleting one message */
+.ci-selbtn { margin-left: auto; padding: 4px 11px; border: 1px solid var(--card-border); border-radius: 99px; background: var(--card-bg); color: var(--text-strong); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.ci-selbtn.on { background: var(--text-strong); border-color: var(--text-strong); color: var(--card-bg); }
+.ci-selbtn + .ci-set { margin-left: 4px; }
+.ci-bulk { display: grid; gap: 8px; margin: 0 10px 10px; padding: 10px; border: 1px solid var(--card-border); border-radius: 14px; background: color-mix(in srgb, var(--mint) 7%, var(--card-bg)); }
+.ci-chk { display: inline-flex; align-items: center; gap: 7px; color: var(--text-strong); font-size: 13px; font-weight: 600; cursor: pointer; }
+.ci-chk input { width: 16px; height: 16px; accent-color: var(--mint); }
+.ci-bulk-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.ci-bulk-row button { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border: 1px solid var(--card-border); border-radius: 99px; background: var(--card-bg); color: var(--text-strong); font-size: 12px; font-weight: 600; cursor: pointer; }
+.ci-bulk-row button:hover:not(:disabled), .ci-bulk-row button.on { border-color: var(--mint); background: color-mix(in srgb, var(--mint) 18%, var(--card-bg)); }
+.ci-bulk-row button.bad { color: var(--danger); }
+.ci-bulk-row button.bad:hover:not(:disabled), .ci-bulk-row button.bad.on { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, var(--card-bg)); }
+.ci-bulk-row button:disabled { opacity: .45; cursor: default; }
+.ci-ask { display: grid; gap: 7px; color: var(--text-strong); font-size: 12.5px; }
+.ci-ask.bad { color: var(--danger); font-weight: 600; }
+.ci-ask-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.ci-conv.sel { background: color-mix(in srgb, var(--mint) 22%, transparent); }
+.ci-del { color: var(--text-muted); font-size: 13px !important; }
+.ci-del.ask { padding: 1px 8px !important; border-radius: 99px !important; background: color-mix(in srgb, var(--danger) 14%, transparent) !important; color: var(--danger); font-size: 11.5px !important; font-weight: 700; }
+.ci-m.me .ci-tools { justify-content: flex-end; }
+/* the All tab: everything new in one list */
+.ib-all { display: grid; gap: 6px; }
+.ib-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 14px; background: var(--card-bg); color: var(--text-strong); text-decoration: none; transition: border-color .15s; }
+.ib-row:hover { border-color: var(--mint); }
+.ib-row.un { border-left: 4px solid #e5487b; }
+.ib-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--chip-bg); font-size: 16px; }
+.ib-row b { font-size: 13.5px; }
+.ib-row .ib-k { margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: var(--chip-bg); color: var(--text-muted); font-size: 11px; font-weight: 600; }
+.ib-row p { margin: 2px 0 0; overflow: hidden; color: var(--text-soft); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.ib-row small { color: var(--text-faint); font-size: 11.5px; white-space: nowrap; }

@@ -25,7 +25,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   ]);
   // the bell and the inbox badge count new messages and new reactions together, newest first
   const notifs = [
-    ...unreadMsgs.slice(0, 5).map((m) => ({ key: `m${m.id}`, at: m.created_at, name: m.name, body: m.body, href: "/admin/inbox", icon: "message-2" })),
+    ...unreadMsgs.slice(0, 5).map((m) => ({ key: `m${m.id}`, at: m.created_at, name: m.name, body: m.body, href: `/admin/inbox?f=chats&c=${m.conv ?? `m${m.id}`}`, icon: "message-2" })),
     ...newReactions.map((r) => ({ key: `r${r.item_id}${r.emoji}${r.visitor}${r.created_at}`, at: r.created_at, name: `${r.emoji} ${r.visitor}`, body: `reacted to “${r.title}”`, href: "/admin/inbox?f=reactions", icon: "heart" })),
     ...newComments.map((c) => ({ key: `c${c.id}`, at: c.created_at, name: c.name, body: c.body, href: "/admin/inbox?f=comments", icon: "message-circle" })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6).map(({ at, ...n }) => ({ ...n, when: ago(at) }));
