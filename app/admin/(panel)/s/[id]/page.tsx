@@ -46,7 +46,7 @@ export default async function SectionAdmin({ params, searchParams }: P) {
   const isConnect = isConnectLayout(section.layout);
   const isChat = section.layout === "chat";
   // Connect as a Chat window has its own live editor on top; the boxes below keep its testimonials, size and look, and the rest of its settings
-  const wall = isChat ? (await getMessages("public")).slice(0, 30).reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) })) : [];
+  const wall = isChat ? (await getMessages("public")).slice(0, 30).reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), reply: m.wall_reply, hearts: m.hearts })) : [];
   const open = (name: string, first = true) => boxOpen(section.boxes, name, first);
 
   return (

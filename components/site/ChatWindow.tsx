@@ -1,6 +1,6 @@
 import type { SiteSettings } from "@/lib/settings";
 import { connectView, linkView, type ConnectPiece } from "@/lib/connectLook";
-import ChatWall, { type ChatNote } from "./ChatWall";
+import ChatWall, { type ChatNote, type WallPin } from "./ChatWall";
 import { partFn } from "./cardParts";
 
 /** What the chat window needs from the site's settings. */
@@ -13,8 +13,8 @@ export type ChatSettings = Pick<SiteSettings, "nickname" | "fullName" | "avatarU
  * looks comes from settings.connect (lib/connectLook.ts), set in the dashboard's live editor, which draws this with `edit`: every piece is named
  * (`data-part`) for its labels and nothing moves or sends.
  */
-export default function ChatWindow({ s, notes, pins, edit = false, motion }: {
-  s: ChatSettings; notes: ChatNote[]; pins?: React.ReactNode; edit?: boolean;
+export default function ChatWindow({ s, notes, pins, testi, edit = false, motion, boardOpen }: {
+  s: ChatSettings; notes: ChatNote[]; pins?: React.ReactNode; /** the testimonials again, for the Wall */ testi?: WallPin[]; edit?: boolean; /** the editor shows the Wall open */ boardOpen?: boolean;
   /** the movement switch; the editor passes its own draft */ motion?: boolean;
 }) {
   const c = s.connect;
@@ -74,8 +74,8 @@ export default function ChatWindow({ s, notes, pins, edit = false, motion }: {
           </div>
         </div>
       )}
-      <ChatWall c={c} title={v.title} owner={v.owner} avatar={v.face} initials={v.initials} greet={v.greet} emojis={v.emojis} notes={notes}
-        plane={s.effects.plane} live={live} edit={edit} />
+      <ChatWall c={c} title={v.title} owner={v.owner} avatar={v.face} initials={v.initials} greet={v.greet} emojis={v.emojis} notes={notes} testi={testi}
+        plane={s.effects.plane} live={live} edit={edit} boardOpen={boardOpen} />
     </div>
   );
 }

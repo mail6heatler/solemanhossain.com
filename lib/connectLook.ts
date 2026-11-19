@@ -28,11 +28,16 @@ export type BubbleShape = (typeof BUBBLES)[number][0];
 export const BUBBLE_COLORS = [["fg", "Dark (text colour)"], ["pop2", "Accent 1"], ["pop3", "Accent 2"], ["mint", "Main colour"]] as const;
 export type BubbleColor = (typeof BUBBLE_COLORS)[number][0];
 
+export const WALL_BTNS = [["badge", "Pin badge in the top bar"], ["tab", "Sticky tab on the side"], ["fab", "Round cork button"]] as const;
+export type WallBtn = (typeof WALL_BTNS)[number][0];
+export const BOARDS = [["cork", "Cork board"], ["fridge", "Fridge door"], ["chalk", "Chalkboard"], ["line", "Clothesline"]] as const;
+export type Board = (typeof BOARDS)[number][0];
+
 /** Pieces of the chat window that can be turned off one by one. */
 export const CONNECT_PIECES = [
   ["face", "Photo"], ["sub", "Second name line"], ["avail", "Availability"], ["reply", "Reply time"], ["links", "Links"], ["pins", "Pinned testimonials / wall note"],
   ["headnote", "Line beside the title"], ["days", "Day lines in the chat"], ["quick", "Quick starters"], ["emoji", "Emoji button"], ["email", "Email box"],
-  ["wall", "📌 Wall button"], ["autoreply", "Automatic reply"], ["typing", "Typing dots"], ["hearts", "Double-tap hearts"],
+  ["wall", "📌 Wall tick in the box"], ["wallbtn", "The Wall button and board"], ["autoreply", "Automatic reply"], ["typing", "Typing dots"], ["hearts", "Double-tap hearts"],
 ] as const;
 export type ConnectPiece = (typeof CONNECT_PIECES)[number][0];
 
@@ -69,22 +74,46 @@ export type ConnectDesign = {
   theirs: BubbleColor;
   /** links' logos in each brand's own colour, or the theme's */
   brandColors: boolean;
+  /** the Wall: its button and notice board, and what the board shows */
+  wallBtn: WallBtn;
+  board: Board;
+  boardReply: boolean;
+  boardHearts: boolean;
+  boardTesti: boolean;
+  /** approved notes also stay in the chat, as before the Wall */
+  wallInChat: boolean;
+  /** replies: what the visitor sees, and the owner's saved replies in the Inbox */
+  seen: boolean;
+  typing: boolean;
+  online: boolean;
+  react: boolean;
+  badge: boolean;
+  chatLink: boolean;
+  saved: string[];
   hide: Partial<Record<ConnectPiece, true>>;
   parts?: PartSizes;
 };
 
 export const DEFAULT_CONNECT: ConnectDesign = {
   face: "", name: "", sub: "", avail: "online", availText: "", replyTime: "Usually replies within a day",
-  linksTitle: "Other ways to reach me", headNote: "🌍 The wall: approved notes, everyone can read them",
+  linksTitle: "Other ways to reach me", headNote: "🔒 Private: only I see what you write here",
   greet: [], autoReply: "Got it, {name}! 🙌 I'll read it soon.",
   quick: ["👋 Just saying hi", "💼 I have a work idea", "☕ Let's meet up", "😂 Your site made me smile"],
-  wallNote: "Messages land in my inbox. Tap 📌 when you write, and once I approve it, everyone can read it in this chat.",
+  wallNote: "Messages land in my inbox and I reply right here. Tap 📌 when you write, and once I approve your note it goes up on the Wall for everyone.",
   namePh: "Your name", emailPh: "Email, if you'd like a reply", msgPh: "What's on your mind?", wallLabel: "Wall",
   emojis: "😀 😂 😍 🥹 👋 🙌 👏 🔥 ❤️ ✨ 🎉 🙏 ☕ 🚀 🤝 💡",
   wallpaper: "dots", wallPic: "", bubbles: "round", mine: "fg", theirs: "pop2", brandColors: true, hide: {},
+  wallBtn: "badge", board: "cork", boardReply: true, boardHearts: true, boardTesti: true, wallInChat: false,
+  seen: true, typing: true, online: true, react: true, badge: true, chatLink: false,
+  saved: ["Thank you so much! 🙌", "I'll get back to you soon.", "Let's talk on LinkedIn?", "Glad you liked it ❤️"],
+};
+/** Words the window said before it was a private chat; a saved copy of one of them follows the new default. */
+const OLD_DEFAULTS: Record<string, string[]> = {
+  headNote: ["🌍 The wall: approved notes, everyone can read them"],
+  wallNote: ["Messages land in my inbox. Tap 📌 when you write, and once I approve it, everyone can read it in this chat."],
 };
 
-export const MAX_LINKS = 16, MAX_GREET = 5, MAX_QUICK = 6;
+export const MAX_LINKS = 16, MAX_GREET = 5, MAX_QUICK = 6, MAX_SAVED = 10;
 
 const text = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
 const pick = <T extends string>(v: unknown, list: readonly (readonly [T, ...string[]])[], d: T): T => (list.some(([k]) => k === v) ? (v as T) : d);
@@ -98,7 +127,8 @@ export function cleanConnect(raw: unknown): ConnectDesign {
   } catch { /* unreadable: the defaults */ }
   const d = DEFAULT_CONNECT;
   const has = (k: string) => typeof o[k] === "string";
-  const t = (k: keyof ConnectDesign, max: number) => (has(k) ? text(o[k], max) : (d[k] as string));
+  const t = (k: keyof ConnectDesign, max: number) => (has(k) && !OLD_DEFAULTS[k]?.includes(String(o[k])) ? text(o[k], max) : (d[k] as string));
+  const yes = (k: keyof ConnectDesign) => (typeof o[k] === "boolean" ? (o[k] as boolean) : (d[k] as boolean));
   const list = (k: keyof ConnectDesign, n: number, max: number) => (Array.isArray(o[k]) ? (o[k] as unknown[]).map((x) => text(x, max)).filter(Boolean).slice(0, n) : (d[k] as string[]));
   const hide: ConnectDesign["hide"] = {};
   if (o.hide && typeof o.hide === "object") for (const [k] of CONNECT_PIECES) if ((o.hide as Record<string, unknown>)[k] === true) hide[k] = true;
@@ -112,6 +142,10 @@ export function cleanConnect(raw: unknown): ConnectDesign {
     wallpaper: pick(o.wallpaper, WALLPAPERS, d.wallpaper), wallPic: safeImg(text(o.wallPic, 500)),
     bubbles: pick(o.bubbles, BUBBLES, d.bubbles), mine: pick(o.mine, BUBBLE_COLORS, d.mine), theirs: pick(o.theirs, BUBBLE_COLORS, d.theirs),
     brandColors: o.brandColors !== false, hide,
+    wallBtn: pick(o.wallBtn, WALL_BTNS, d.wallBtn), board: pick(o.board, BOARDS, d.board),
+    boardReply: yes("boardReply"), boardHearts: yes("boardHearts"), boardTesti: yes("boardTesti"), wallInChat: yes("wallInChat"),
+    seen: yes("seen"), typing: yes("typing"), online: yes("online"), react: yes("react"), badge: yes("badge"), chatLink: yes("chatLink"),
+    saved: list("saved", MAX_SAVED, 200),
     ...(Object.keys(parts).length ? { parts } : {}),
   };
 }

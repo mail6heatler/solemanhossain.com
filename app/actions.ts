@@ -6,6 +6,7 @@ import { cleanAward } from "@/lib/awardItem";
 import { cleanScrap } from "@/lib/scrapItem";
 import { cleanHeroDesign } from "@/lib/heroLook";
 import { cleanConnect, cleanSocials, type ConnectDesign } from "@/lib/connectLook";
+import { KEY_RE, chatThread, hashKey, isConvId, listChats, markChatSeen, ownerPing, type ChatMsg, type ChatSummary } from "@/lib/chat";
 import { cleanCard } from "@/lib/cardLook";
 import { cleanBoxes } from "@/lib/boxes";
 import { COMMENT_MAX, TALK_FEATURES, cleanTalk } from "@/lib/talk";
@@ -543,11 +544,14 @@ export async function sendHello(_prev: HelloState | undefined, fd: FormData): Pr
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
   const now = Date.now();
-  if (now - (recent.get(ip) ?? 0) < 30_000) return { error: "Easy there, try again in a few seconds.", values };
+  // a chat goes back and forth, so a visitor in a conversation may send more often than a one-off form
+  const key = str(fd, "conv", 80);
+  const conv = KEY_RE.test(key) ? hashKey(key) : null;
+  if (now - (recent.get(ip) ?? 0) < (conv ? 4_000 : 20_000)) return { error: "Easy there, try again in a few seconds.", values };
   recent.set(ip, now);
 
-  await query("INSERT INTO messages (name, email, body, wants_public) VALUES ($1,$2,$3,$4)",
-    [name, email, body, bool(fd, "public")]);
+  await query("INSERT INTO messages (name, email, body, wants_public, conv) VALUES ($1,$2,$3,$4,$5)",
+    [name, email, body, bool(fd, "public"), conv]);
   return { ok: true };
 }
 
@@ -658,4 +662,68 @@ export async function studioReset(kind: "reactions" | "votes", itemId: number, o
   const id = Number(itemId);
   await query(kind === "votes" ? "DELETE FROM votes WHERE item_id=$1" : "DELETE FROM reactions WHERE item_id=$1", [id]);
   return { reactions: await getReactionCounts(id), people: await getReactionPeople(id), votes: await getPollCounts(id, Math.max(0, Math.min(8, Number(options) || 0))) };
+}
+
+// ---------- the Inbox as chats (components/admin/ChatInbox.tsx) ----------
+const REACTS = ["❤️", "😂", "👍", "🙏", "😮", "🔥"];
+const chatKey = (k: unknown) => { const s = String(k ?? ""); return isConvId(s) || /^m\d{1,10}$/.test(s) ? s : ""; };
+
+/**
+ * The Inbox checks in every few seconds: the owner is around (and typing in `typing`, if given), the open chat is read and seen,
+ * and it gets every chat's summary and the open chat's messages back. It changes no page, so nothing is revalidated.
+ */
+export async function inboxPoll(open: string, typing = false): Promise<{ chats: ChatSummary[]; thread: ChatMsg[] | null }> {
+  await requireAdmin();
+  const key = chatKey(open);
+  await ownerPing(typing && isConvId(key) ? key : "");
+  if (key) await markChatSeen(key);
+  const [chats, thread] = await Promise.all([listChats(), key ? chatThread(key) : Promise.resolve(null)]);
+  return { chats, thread };
+}
+
+/** The owner's reply in a chat. It reaches the visitor in their chat on the site, so only chats with a private key can take one. */
+export async function inboxReply(open: string, body: string): Promise<{ ok: true; thread: ChatMsg[] } | { ok: false; error: string }> {
+  await requireAdmin();
+  const key = chatKey(open), text = String(body ?? "").trim().slice(0, 2000);
+  if (!text) return { ok: false, error: "Write something first." };
+  if (!isConvId(key)) return { ok: false, error: "This person wrote before replies existed, so a reply can't reach them on the site. Use Reply in Gmail if they left an email." };
+  const s = await getSettings();
+  await query("INSERT INTO messages (name, email, body, conv, from_owner, read) VALUES ($1, '', $2, $3, TRUE, TRUE)", [s.connect.name || s.nickname || s.fullName || "Me", text, key]);
+  await ownerPing("");
+  return { ok: true, thread: await chatThread(key) };
+}
+
+/** The owner's emoji on one of a visitor's messages; the same one again takes it off. */
+export async function inboxReact(id: number, emoji: string) {
+  await requireAdmin();
+  const e = REACTS.includes(emoji) ? emoji : "";
+  await query("UPDATE messages SET react = CASE WHEN react = $2 THEN '' ELSE $2 END WHERE id=$1 AND NOT from_owner", [Number(id), e]);
+}
+
+/** Puts a note on the Wall (only one its writer asked to be there) or takes it off, with the owner's public reply under it. */
+export async function inboxWall(id: number, on: boolean, reply: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  const row = await queryOne("SELECT wants_public FROM messages WHERE id=$1 AND NOT from_owner", [Number(id)]);
+  if (!row) return { ok: false, error: "That message is gone. Reload the page." };
+  if (on && !row.wants_public) return { ok: false, error: "They didn't tick 📌 Wall, so this stays private." };
+  await query("UPDATE messages SET approved=$2, wall_reply=$3, read=TRUE WHERE id=$1", [Number(id), !!on, String(reply ?? "").trim().slice(0, 300)]);
+  refresh();
+  return { ok: true };
+}
+
+/** Deletes a whole chat, or one message of it. */
+export async function inboxDelete(open: string, id?: number) {
+  await requireAdmin();
+  const key = chatKey(open);
+  if (id) await query("DELETE FROM messages WHERE id=$1", [Number(id)]);
+  else if (isConvId(key)) await query("DELETE FROM messages WHERE conv=$1", [key]);
+  else if (key) await query("DELETE FROM messages WHERE id=$1 AND conv IS NULL", [Number(key.slice(1))]);
+  refresh();
+}
+
+/** The saved replies the Inbox offers under the box. */
+export async function inboxSaved(list: string[]) {
+  await requireAdmin();
+  const now = await getSettings();
+  await saveSettingsData({ connect: cleanConnect({ ...now.connect, saved: list }) });
 }

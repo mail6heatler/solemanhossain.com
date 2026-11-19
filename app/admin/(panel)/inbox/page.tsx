@@ -1,42 +1,37 @@
-import { countUnread, getCommentTotals, getMessages, getRecentComments, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
+import { countUnread, getCommentTotals, getRecentComments, getSections, getSettings, getRecentReactions, getReactionTotals, getReactionTotalsByEmoji, type ReactionEvent } from "@/lib/data";
+import { listChats } from "@/lib/chat";
+import ChatInbox from "@/components/admin/ChatInbox";
+import { isConnectLayout } from "@/lib/settings";
 import { messageAction } from "@/app/actions";
-import { ConfirmSubmit, CopyButton } from "@/components/admin/Widgets";
+
 import CommentTools from "@/components/admin/CommentTools";
 import { requireAdmin } from "@/lib/auth";
-import type { Message } from "@/lib/data";
 import { REACTION_EMOJIS } from "@/lib/settings";
 
-type P = { searchParams: Promise<{ f?: string }> };
+type P = { searchParams: Promise<{ f?: string; c?: string }> };
 
 const fmt = (iso: string, timeZone: string) => {
   try { return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone }); }
   catch { return new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }); }
 };
 
-/** Opens a pre-filled reply in Gmail (browser), so no email app is needed. */
-function gmailReply(m: Message, timeZone: string) {
-  const subject = "Re: your message on my website";
-  const when = fmt(m.created_at, timeZone);
-  const quoted = m.body.slice(0, 1500).split(/\r?\n/).map((l) => `> ${l}`).join("\n");
-  const body = `Hi ${m.name},\n\n\n\n---\nOn ${when}, you wrote:\n${quoted}`;
-  return "https://mail.google.com/mail/?" + new URLSearchParams({ view: "cm", fs: "1", to: m.email, su: subject, body });
-}
-
 export default async function Inbox({ searchParams }: P) {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
-  const { f } = await searchParams;
-  const filter = f === "unread" || f === "public" || f === "reactions" || f === "comments" ? f : "all";
-  const [msgs, settings, totals, talks, unreadMsgs] = await Promise.all([filter === "reactions" || filter === "comments" ? Promise.resolve([]) : getMessages(filter), getSettings(), getReactionTotals(), getCommentTotals(), countUnread()]);
+  const { f, c } = await searchParams;
+  // messages are chats now (ChatInbox); the old Unread and On the wall tabs are filters inside it
+  const filter = f === "reactions" || f === "comments" ? f : "all";
+  const [chats, settings, totals, talks, unreadMsgs, sections] = await Promise.all([filter === "all" ? listChats() : Promise.resolve([]), getSettings(), getReactionTotals(), getCommentTotals(), countUnread(), getSections()]);
+  const connect = sections.find((x) => isConnectLayout(x.layout));
   const anyNew = unreadMsgs + totals.fresh + talks.fresh;
   // every form here says which tab it was on, so the page comes back to it
   const tab = <input type="hidden" name="f" value={filter} />;
   const tz = settings.timezone || "UTC";
-  const tabs: [string, string][] = [["all", "All"], ["unread", `Unread${anyNew ? ` · ${anyNew}` : ""}`], ["public", "On the wall"], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`], ["comments", `Comments${talks.fresh ? ` · ${talks.fresh} new` : ""}`]];
+  const tabs: [string, string][] = [["all", `Chats${unreadMsgs ? ` · ${unreadMsgs} new` : ""}`], ["reactions", `Reactions${totals.fresh ? ` · ${totals.fresh} new` : ""}`], ["comments", `Comments${talks.fresh ? ` · ${talks.fresh} new` : ""}`]];
 
   return (
     <div className="adm-page">
       <h1 className="adm-h">Inbox</h1>
-      <p className="adm-sub">Messages from the &ldquo;say hello&rdquo; form, and the reactions and comments people leave on your entries.</p>
+      <p className="adm-sub">Chats with the people who write to you, and the reactions and comments people leave on your entries.</p>
       <div className="btns" style={{ marginBottom: 16 }}>
         {tabs.map(([k, l]) => (
           <a key={k} href={k === "all" ? "/admin/inbox" : `/admin/inbox?f=${k}`} className={filter === k ? "b-dark b-sm" : "b-out b-sm"}>{l}</a>
@@ -54,52 +49,24 @@ export default async function Inbox({ searchParams }: P) {
       </div>
       {filter === "reactions" && <ReactionList tz={tz} total={totals.total} fresh={totals.fresh} />}
       {filter === "comments" && <CommentList tz={tz} />}
-      {(filter === "all" || filter === "unread") && talks.fresh > 0 && (
+      {filter === "all" && talks.fresh > 0 && (
         <a href="/admin/inbox?f=comments" className="c hov c-row" style={{ textDecoration: "none" }}>
           <span className="chipi"><i className="ti ti-message-circle" /></span>
           <div className="grow"><div className="c-title">{talks.fresh} new comment{talks.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who said what →</div></div>
           <span className="tagx red">new</span>
         </a>
       )}
-      {(filter === "all" || filter === "unread") && totals.fresh > 0 && (
+      {filter === "all" && totals.fresh > 0 && (
         <a href="/admin/inbox?f=reactions" className="c hov c-row" style={{ textDecoration: "none" }}>
           <span className="chipi"><i className="ti ti-heart" /></span>
           <div className="grow"><div className="c-title">{totals.fresh} new reaction{totals.fresh === 1 ? "" : "s"}</div><div className="c-desc">See who reacted to what →</div></div>
           <span className="tagx red">new</span>
         </a>
       )}
-      {filter !== "reactions" && filter !== "comments" && msgs.length === 0 && <div className="c" style={{ fontSize: 13, color: "var(--text-muted)" }}>{filter === "unread" ? (anyNew ? "No unread messages. The new reactions and comments are above." : "You're all caught up ✨") : "No messages here yet."}</div>}
-      {msgs.map((m) => (
-        <div key={m.id} className={`c msg ${m.read ? "" : "unread"}`}>
-          <span className="chipi"><i className="ti ti-user" /></span>
-          <div className="grow" style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <span className="who">{m.name}</span>
-              {m.email && <span className="when">{m.email}</span>}
-              {!m.email && <span className="when">· no email left, can&apos;t reply</span>}
-              <span className="when">· {fmt(m.created_at, tz)}</span>
-              {!m.read && <span className="tagx red">new</span>}
-              {m.wants_public && !m.approved && <span className="tagx amber">wants to be on the wall</span>}
-              {m.approved && <span className="tagx">on the wall</span>}
-            </div>
-            <p>{m.body}</p>
-            <div className="btns" style={{ marginTop: 10 }}>
-              {m.email && (
-                <>
-                  <a href={gmailReply(m, tz)} target="_blank" rel="noopener noreferrer" className="b-dark b-sm" title="Opens a reply in Gmail (new tab)"><i className="ti ti-mail-forward" />Reply in Gmail</a>
-                  <CopyButton text={m.email} label="Copy email" />
-                </>
-              )}
-              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="approve" />{tab}
-                <button className="b-out b-sm"><i className={`ti ${m.approved ? "ti-eye-off" : "ti-pin"}`} />{m.approved ? "Remove from wall" : "Show on wall"}</button></form>
-              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="read" />{tab}
-                <button className="b-out b-sm">{m.read ? "Mark unread" : "Mark read"}</button></form>
-              <form action={messageAction}><input type="hidden" name="id" value={m.id} /><input type="hidden" name="op" value="delete" />{tab}
-                <ConfirmSubmit title="Delete this message?" message="It's removed for good. This can't be undone." yes="Yes, delete" className="b-danger b-sm"><i className="ti ti-trash" />Delete</ConfirmSubmit></form>
-            </div>
-          </div>
-        </div>
-      ))}
+      {filter === "all" && (
+        <ChatInbox initial={chats} startOpen={c && chats.some((x) => x.key === c) ? c : chats[0]?.key ?? ""} owner={settings.connect.name || settings.nickname || settings.fullName}
+          avatar={settings.connect.face || settings.avatarUrl} saved={settings.connect.saved} reactOn={settings.connect.react} editorHref={connect ? `/admin/s/${connect.id}` : "/admin"} />
+      )}
     </div>
   );
 }

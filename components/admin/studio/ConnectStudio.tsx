@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LIVE_THEMES, MOODS, SKIN_LABELS, type SiteSettings, type Skin, type Social } from "@/lib/settings";
 import {
-  AVAILS, BUBBLES, BUBBLE_COLORS, CONNECT_PIECES, LOGO_CHOICES, MAX_GREET, MAX_LINKS, MAX_QUICK, WALLPAPERS, linkBrand, linkView, normaliseLink,
+  AVAILS, BOARDS, BUBBLES, BUBBLE_COLORS, CONNECT_PIECES, LOGO_CHOICES, MAX_GREET, MAX_LINKS, MAX_QUICK, MAX_SAVED, WALLPAPERS, WALL_BTNS, linkBrand, linkView, normaliseLink,
   type ConnectDesign, type ConnectPiece,
 } from "@/lib/connectLook";
 import type { PartSize } from "@/lib/partSize";
@@ -23,10 +23,11 @@ const SCREENS: [string, string, number][] = [["computer", "Computer", 1280], ["t
 const NAMES: Record<string, string> = {
   "sec-eyebrow": "Small label", "sec-title": "Big title", "sec-sub": "Subtitle", "cw-face": "Photo", "cw-me": "Name & availability", "cw-links": "Links",
   "cw-pins": "Pinned / wall note", "cw-head": "Chat title", "cw-thread": "Chat & greeting", "cw-form": "Message box", "cw-quick": "Quick starters",
+  "cw-wb": "Wall button", "cw-board": "The Wall",
 };
 const GROUP: Record<string, string> = {
   "sec-eyebrow": "header", "sec-title": "header", "sec-sub": "header", "cw-face": "face", "cw-me": "face", "cw-links": "links", "cw-pins": "pins",
-  "cw-head": "chat", "cw-thread": "chat", "cw-form": "box", "cw-quick": "box",
+  "cw-head": "chat", "cw-thread": "chat", "cw-form": "box", "cw-quick": "box", "cw-wb": "wall", "cw-board": "wall",
 };
 
 /** One group of controls. It lives outside the editor, so typing in it never rebuilds it (which would lose the box being typed in). */
@@ -116,6 +117,7 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
   const [toast, setToast] = useState<{ text: string; n: number; bad?: boolean } | null>(null);
   const [rev, setRev] = useState(0);
   const [paste, setPaste] = useState("");
+  const [boardPv, setBoardPv] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const prevBox = useRef<HTMLDivElement>(null);
   const say = (text: string, bad = false) => setToast((t) => ({ text, n: (t?.n ?? 0) + 1, bad }));
@@ -256,7 +258,8 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
                       <h2 className="stitle" data-part="sec-title">{d.section.title}</h2>
                       {d.section.subtitle && <p className="ssub" data-part="sec-sub">{d.section.subtitle}</p>}
                     </div></div>
-                    <ChatWindow s={s} notes={notes} pins={pinCards} edit motion={d.chatfx} />
+                    <ChatWindow s={s} notes={notes} pins={pinCards} edit motion={d.chatfx} boardOpen={boardPv}
+                      testi={pins.map((it) => ({ id: it.id, title: it.title, body: it.body || it.title, by: it.subtitle, href: "" }))} />
                   </div>
                 </section>
               </div>
@@ -325,6 +328,33 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
               <div className="hint">Little buttons above the box. A tap writes that line in, ready to send or change.</div></div>
             <div className="f3">{txtC("namePh", "Name box says", 40, "Your name")}{txtC("emailPh", "Email box says", 60, "Email, if you'd like a reply")}{txtC("msgPh", "Message box says", 60, "What's on your mind?")}</div>
             <div className="f2">{txtC("wallLabel", "📌 button says", 20, "Wall")}{txtC("emojis", "Emojis in the 😊 tray", 200, "😀 😂 😍 👋 ❤️ 🔥", "Separate with spaces.")}</div>
+          </G>
+
+          <G lit={lit} g="wall" title="The Wall">
+            <label className="switch"><input type="checkbox" checked={boardPv} onChange={(e) => setBoardPv(e.target.checked)} />Show the Wall open in the preview</label>
+            <span className="lab">Button</span>
+            <div className="hst-chips">{WALL_BTNS.map(([k, label]) => chip(c.wallBtn === k, label, () => setC({ wallBtn: k }), k))}</div>
+            <span className="lab">Notice board</span>
+            <div className="hst-chips">{BOARDS.map(([k, label]) => chip(c.board === k, label, () => { setC({ board: k }); setBoardPv(true); }, k))}</div>
+            <label className="switch"><input type="checkbox" checked={c.boardReply} onChange={(e) => setC({ boardReply: e.target.checked })} />Your public reply shows on the note</label>
+            <label className="switch"><input type="checkbox" checked={c.boardHearts} onChange={(e) => setC({ boardHearts: e.target.checked })} />Visitors can heart a note</label>
+            <label className="switch"><input type="checkbox" checked={c.boardTesti} onChange={(e) => setC({ boardTesti: e.target.checked })} />Testimonials go on the board too</label>
+            <label className="switch"><input type="checkbox" checked={c.wallInChat} onChange={(e) => setC({ wallInChat: e.target.checked })} />Approved notes also stay in the chat (as before)</label>
+            <div className="hint">Notes go on the Wall when you press 📌 Put on the Wall on them in your Inbox (only notes whose writer ticked 📌). The button shows how many there are. Turn the whole Wall off under Pieces in the window.</div>
+          </G>
+
+          <G lit={lit} g="replies" title="Replies">
+            <div className="hint" style={{ marginTop: 0 }}>Everyone who writes gets a private chat with you. Reply from your <a href="/admin/inbox">Inbox</a>: they see it in their chat here, and get a &ldquo;new reply&rdquo; badge when they come back (on the same phone or computer).</div>
+            <label className="switch"><input type="checkbox" checked={c.seen} onChange={(e) => setC({ seen: e.target.checked })} />They see &ldquo;Seen&rdquo; when you&apos;ve read their message</label>
+            <label className="switch"><input type="checkbox" checked={c.typing} onChange={(e) => setC({ typing: e.target.checked })} />They see you typing</label>
+            <label className="switch"><input type="checkbox" checked={c.online} onChange={(e) => setC({ online: e.target.checked })} />You show &ldquo;Online now&rdquo; while your Inbox is open</label>
+            <label className="switch"><input type="checkbox" checked={c.react} onChange={(e) => setC({ react: e.target.checked })} />React to their messages with an emoji</label>
+            <label className="switch"><input type="checkbox" checked={c.badge} onChange={(e) => setC({ badge: e.target.checked })} />&ldquo;New reply&rdquo; badge when they come back</label>
+            <label className="switch"><input type="checkbox" checked={c.chatLink} onChange={(e) => setC({ chatLink: e.target.checked })} />A link to carry the chat on to another phone</label>
+            <div className="fl"><label htmlFor="c-saved">Saved replies, one per line (up to {MAX_SAVED})</label>
+              <Lines id="c-saved" value={c.saved} onChange={(v) => setC({ saved: v.slice(0, MAX_SAVED) }, "saved")} />
+              <div className="hint">Tap one under the reply box in your Inbox to use it.</div></div>
+            <div className="hint">Email replies need a free email-sending account first; say when you want them.</div>
           </G>
 
           <G lit={lit} g="pins" title="Pinned testimonials and the wall note">

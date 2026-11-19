@@ -80,7 +80,8 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   // Connect as one chat window (ChatWindow.tsx): the approved notes are the history, the links are contacts on the left, testimonials are pinned
   // under them as full cards, and the box at the bottom is the same Say hello form. What it says and how it looks is settings.connect.
   if (L === "chat") {
-    const notes = (wall ?? []).slice().reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) }));
+    const notes = (wall ?? []).slice().reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), reply: m.wall_reply, hearts: m.hearts }));
+    const testi = items.map((it) => ({ id: it.id, title: it.title, body: it.body || it.title, by: it.subtitle, href: href(section, it) }));
     const pins = items.length > 0 ? items.map((it) => { const l = lookFor(it); return (
       <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
         <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
@@ -92,7 +93,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
         </Box>
       </div>
     ); }) : null;
-    return <ChatWindow s={settings} notes={notes} pins={pins} />;
+    return <ChatWindow s={settings} notes={notes} pins={pins} testi={testi} />;
   }
 
   if (L === "connect") {

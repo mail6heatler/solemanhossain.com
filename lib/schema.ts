@@ -144,6 +144,22 @@ export const SCHEMA = [
     visitor TEXT PRIMARY KEY,
     last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`,
+  // Connect's chat as a real conversation (2026-11-19): each visitor's private key (stored as a hash), the owner's replies as rows of their own,
+  // when the other side saw a message, the owner's emoji on a visitor's message, the owner's public reply on a wall note, and its hearts
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS conv TEXT`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS from_owner BOOLEAN NOT NULL DEFAULT FALSE`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS seen_at TIMESTAMPTZ`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS react TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS wall_reply TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS hearts INT NOT NULL DEFAULT 0`,
+  `CREATE INDEX IF NOT EXISTS messages_conv ON messages (conv)`,
+  // when the owner last had the Inbox open, and which chat they're typing in (one row)
+  `CREATE TABLE IF NOT EXISTS owner_live (
+    id INT PRIMARY KEY,
+    seen_at TIMESTAMPTZ,
+    typing_conv TEXT NOT NULL DEFAULT '',
+    typing_at TIMESTAMPTZ
+  )`,
   // Changes to live content that must happen only once, however many times this list runs, so a later choice in the dashboard stands.
   `CREATE TABLE IF NOT EXISTS done_once (key TEXT PRIMARY KEY)`,
   // G2's new look, agreed with the owner on 2026-11-07. The old cards stay a choice under Section settings.

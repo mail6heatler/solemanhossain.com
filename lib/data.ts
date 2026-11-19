@@ -53,6 +53,17 @@ export type Item = {
 export type Message = {
   id: number; name: string; email: string; body: string; wants_public: boolean; approved: boolean;
   read: boolean; created_at: string;
+  /** the conversation it belongs to (a hash of the visitor's private key); empty for messages from before replies */
+  conv: string | null;
+  /** the owner's own reply in a chat */
+  from_owner: boolean;
+  /** when the other side saw it */
+  seen_at: string | null;
+  /** the owner's emoji on a visitor's message */
+  react: string;
+  /** the owner's public reply under it on the Wall */
+  wall_reply: string;
+  hearts: number;
 };
 
 const splitList = (s: string) => String(s || "").split(",").map((t) => t.trim()).filter(Boolean);
@@ -78,7 +89,8 @@ const toItem = (r: Row): Item => ({
   card: cleanCard(r.card),
   fv: cleanFv(r.fv),
 });
-const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString() });
+const toMessage = (r: Row): Message => ({ ...(r as any), id: Number(r.id), created_at: new Date(r.created_at).toISOString(), seen_at: r.seen_at ? new Date(r.seen_at).toISOString() : null,
+  conv: r.conv ?? null, from_owner: !!r.from_owner, react: r.react ?? "", wall_reply: r.wall_reply ?? "", hearts: Number(r.hearts ?? 0) });
 
 // ---------- settings ----------
 export async function getSettings(): Promise<SiteSettings> {
@@ -261,12 +273,13 @@ export async function getLiveCount() {
 
 // ---------- messages ----------
 export async function getMessages(filter: "all" | "unread" | "public" = "all") {
-  const where = filter === "unread" ? "WHERE NOT read" : filter === "public" ? "WHERE approved" : "";
+  // the owner's own replies are messages too; these lists are what visitors sent
+  const where = filter === "unread" ? "WHERE NOT read AND NOT from_owner" : filter === "public" ? "WHERE approved AND NOT from_owner" : "WHERE NOT from_owner";
   return (await query(`SELECT * FROM messages ${where} ORDER BY created_at DESC LIMIT 200`)).map(toMessage);
 }
 
 export async function countUnread() {
-  const r = await queryOne("SELECT COUNT(*)::int AS n FROM messages WHERE NOT read");
+  const r = await queryOne("SELECT COUNT(*)::int AS n FROM messages WHERE NOT read AND NOT from_owner");
   return Number(r?.n ?? 0);
 }
 
