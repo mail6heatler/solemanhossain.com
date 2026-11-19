@@ -307,6 +307,14 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .hst-site.pv-tiny .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
 .hst-site.pv-xs #hero { padding: 100px calc(var(--pv-w) * .05) 110px; }
 .hst-site.pv-xs #hero .hero-inner:not(.hl) h1 { font-size: clamp(28px, calc(var(--pv-w) * .082), 44px); }
+.hst-site #hero .status, .hst-site #hero .hero-clock { font-size: clamp(12px, calc(var(--pv-w) * .009), 13.5px); }
+.hst-site #hero :is(.mood-pill, .live-pill) { font-size: clamp(11.5px, calc(var(--pv-w) * .0085), 13px); }
+.hst-site #hero .hero-sub { font-size: clamp(16px, calc(var(--pv-w) * .013), 20px); }
+.hst-site #hero .roles span { font-size: clamp(12.5px, calc(var(--pv-w) * .01), 14.5px); }
+.hst-site #hero :is(.now-pill, .greet) { font-size: clamp(12.5px, calc(var(--pv-w) * .0095), 14px); }
+.hst-site.pv-xs #hero .hero-sub { font-size: 15.5px; }
+.hst-site.pv-xs #hero .roles span { font-size: 12.5px; padding: 6px 13px; }
+.hst-site.pv-xs #hero :is(.status, .hero-clock, .greet) { font-size: 12px; }
 .hst-prev.real { overflow: auto; max-height: calc(100vh - 140px); justify-items: start; }
 .hst-prev.real > :is(.hst-screens, .hint) { position: sticky; left: 0; }
 /* the hero editor uses the whole window, and the bar between the preview and the controls drags */

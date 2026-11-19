@@ -168,6 +168,9 @@ export const SCHEMA = [
   // 2026-11-19: the owner asked for the hero photo back where it hung (it had been dragged up past the top edge in the editor).
   `WITH first AS (INSERT INTO done_once (key) VALUES ('hero-photo-reset') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE settings SET data = (data::jsonb #- '{heroDesign,parts,photo}')::text WHERE data LIKE '{%' AND EXISTS (SELECT 1 FROM first)`,
+  // 2026-11-19: the role chips had been dragged to 2x and the Résumé buttons narrowed; the owner asked for the hero's sizes to be redone, so its saved sizes go
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('hero-parts-reset-2') ON CONFLICT DO NOTHING RETURNING key)
+  UPDATE settings SET data = (data::jsonb #- '{heroDesign,parts}')::text WHERE data LIKE '{%' AND EXISTS (SELECT 1 FROM first)`,
 ];
 
 type SeedItem = {

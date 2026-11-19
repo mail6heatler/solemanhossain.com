@@ -1336,6 +1336,24 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
   .site #hero.hero-hang .hero-pills { max-width: 52vw; }
 }
 
+/* the hero's type scale (2026-11-19): headline, then the subtitle, then the roles, then the small print, each a clear step down,
+   growing a little with the screen so a large monitor doesn't leave them tiny and a phone doesn't make them shout */
+#hero .status { font-size: clamp(12px, .9vw, 13.5px); }
+#hero :is(.mood-pill, .live-pill) { font-size: clamp(11.5px, .85vw, 13px); padding: 5px 12px; }
+#hero .hero-sub { font-size: clamp(16px, 1.3vw, 20px); line-height: 1.5; margin-top: clamp(16px, 2.2vh, 24px); min-height: 3em; }
+#hero .roles { gap: 8px 10px; margin-top: clamp(18px, 3vh, 28px); }
+#hero .roles span { font-size: clamp(12.5px, 1vw, 14.5px); font-weight: 500; padding: .55em 1.15em; line-height: 1.2; border-width: 1px;
+  background: color-mix(in srgb, var(--hero-fg) 5%, transparent); color: var(--hero-fg); }
+#hero .now-pill { font-size: clamp(12.5px, .95vw, 14px); }
+#hero .hero-clock { font-size: clamp(12px, .9vw, 13.5px); margin-top: clamp(14px, 2.4vh, 22px); }
+#hero .hero-clock b { font-size: 1.08em; }
+#hero .greet { font-size: clamp(12.5px, .95vw, 14px); }
+@media (max-width: 480px) {
+  #hero .hero-sub { font-size: 15.5px; min-height: 3.1em; }
+  #hero .roles span { font-size: 12.5px; padding: 6px 13px; }
+  #hero .status, #hero .hero-clock, #hero .greet { font-size: 12px; }
+}
+
 /* a solid menu bar, so what's tucked behind it doesn't show through */
 .site .nav { background: var(--bg); }
 
