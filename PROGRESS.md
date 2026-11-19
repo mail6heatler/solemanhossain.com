@@ -58,7 +58,13 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-19: Connect (G8) gets its live editor and comes alive
+### 2026-11-19: The Wall and Messenger-style replies, waiting for picks
+
+The owner kept G8 ("keep it") and asked for two things: in the chat window, a "dynamic animated lively" Wall button that opens a notice board of every note they approve; and replying to any visitor's message, "a chat system like messenger", shown on a preview with options first. Nothing built yet. Private preview (https://claude.ai/artifact/A5i4Nw7AJx1MjNTqaCyu4F): Part 1, button (pin badge in the top bar, sticky tab on the side, round cork button) by board (cork board, fridge door, chalkboard, clothesline), with extras (owner's reply on a note, hearts, testimonials on the board, notes also kept in the chat). Part 2, a live visitor chat beside a Messenger-style Inbox (chats list beside the chat, or phone style); replies reach the visitor in their chat on the site (their browser remembers them), optionally by email (needs an email-sending account and key, for example Resend) and as a public reply under wall notes; extras: seen ticks, typing dots, "online" while the dashboard is open, saved replies, emoji reactions, a "new reply" badge on return, a chat link for another phone.
+
+**To build when picked:** visitors need a private conversation key (random, kept in localStorage, sent with each message) so their thread can be shown back to them and only to them; messages get a conversation id and a `from_owner` flag (new columns via `SCHEMA`); the Inbox becomes chats; the chat window shows the visitor's own thread instead of the public notes, which move to the board. Real "seen" and "online" need the dashboard to report when a chat is open (like `presence`).
+
+### 2026-11-19: Connect (G8) gets its live editor and comes alive (kept)
 
 The owner said "go g8", then picked the messenger look ("go with messenger theme and make sure everything is addable changeable"), asked for the chat to be "dynamic, lively, animated (not like the artifact)", logo upload, adding links, and "other settings as per you idea". Restore point `before-g8-studio`. This PC's copy was 101 commits behind GitHub and Node.js was missing, so the copy was fast-forwarded and a portable Node was used from the scratch folder.
 
@@ -66,7 +72,7 @@ The owner said "go g8", then picked the messenger look ("go with messenger theme
 
 **Lively (new switch `chatfx`, on by default):** notes pop in one by one when the chat is first scrolled to, then the owner "types" each greeting bubble with dots and the top bar saying so; the photo's ring turns and availability dots pulse; links slide in and their logos wiggle; the wallpaper drifts; quick starters and the emoji tray bounce in; visitors see their own typing bubble; a double-tap hearts a bubble; sending sets off a small burst; the send button breathes when there's text. Only transform and opacity, paused off screen, off on light devices and with reduced motion.
 
-Built and pushed, not tested beyond the build (the owner's rule). Waiting for keep or undo. Ideas not built: "last seen" from real activity, a live "seen" receipt when the owner opens a message in the Inbox.
+Built and pushed, not tested beyond the build (the owner's rule). Kept the same day ("keep it"). Ideas not built: "last seen" from real activity, a live "seen" receipt when the owner opens a message in the Inbox.
 
 ### 2026-11-19: Hero keeps two looks; a new job for the whole site
 
