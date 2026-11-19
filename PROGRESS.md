@@ -58,7 +58,9 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-19: Rows cut off on phones; the chat on phones; the Wall button's pin
+### 2026-11-19: Rows cut off on phones; the chat on phones; the Wall button's pin (kept)
+
+Kept by the owner the same day. Commits from this PC are signed `myself <mail6heatler@users.noreply.github.com>` (this repository's git config), because git here had no identity and a privacy guard refuses the owner's own email in commands; Vercel accepts these commits.
 
 The owner sent a phone screenshot (Messenger's in-app browser) of G1's row cut off on the right. Cause: FitScreens shrinks a tall section with `zoom`, and the row's full-screen width (`100vw`) and gutter shrink with it, so a row ended 36 to 96px short of the screen's right edge (more on smaller phones). FitScreens now also sets `--fz` (the shrink) on what it zooms, and `.side`, its track's padding, its top and bar, the dock and the achievement wall's rail divide by it (`--gz` is the gutter in shrunk pixels). Measured on the local copy at 320×568, 360×740, 390×844, 414×896 and 768×1024: every row now runs exactly from 0 to the screen's width, and nothing scrolls sideways.
 
