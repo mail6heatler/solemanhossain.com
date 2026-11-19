@@ -1,6 +1,7 @@
 import { cleanBoxes, type BoxState } from "./boxes";
 import { cleanHeroDesign, DEFAULT_HERO_DESIGN, type HeroDesign } from "./heroLook";
 import { cleanConnect, DEFAULT_CONNECT, type ConnectDesign } from "./connectLook";
+import { cleanFooter, cleanMenu, DEFAULT_FOOTER, DEFAULT_MENU, type FooterDesign, type MenuDesign } from "./chrome";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
@@ -245,6 +246,9 @@ export type SiteSettings = {
   heroDesign: HeroDesign;
   /** the Connect section's chat window: its own photo, availability, words, wallpaper, bubbles and pieces (lib/connectLook.ts) */
   connect: ConnectDesign;
+  /** the menu bar's and the footer's looks and words (lib/chrome.ts) */
+  menu: MenuDesign;
+  footer: FooterDesign;
   /** How thick the sliding belts between sections are, percent of the normal size (RIBBON_SIZE). */
   ribbonSize: number;
   socials: Social[];
@@ -293,6 +297,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   heroBoxes: {},
   heroDesign: DEFAULT_HERO_DESIGN,
   connect: DEFAULT_CONNECT,
+  menu: DEFAULT_MENU,
+  footer: DEFAULT_FOOTER,
   ribbonSize: 100,
   socials: [
     { label: "Email", url: "mailto:you@example.com", icon: "mail" },
@@ -335,6 +341,8 @@ export function mergeSettings(raw: unknown): SiteSettings {
     heroBoxes: cleanBoxes(obj.heroBoxes),
     heroDesign: cleanHeroDesign(obj.heroDesign),
     connect: cleanConnect(obj.connect),
+    menu: cleanMenu(obj.menu),
+    footer: cleanFooter(obj.footer),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;

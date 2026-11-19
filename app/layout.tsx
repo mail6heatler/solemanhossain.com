@@ -3,6 +3,7 @@ import "./site.css";
 import "./themes.css";
 import "./banner.css";
 import "./heroLooks.css";
+import "./chrome.css";
 import "./admin.css";
 import { getSettings } from "@/lib/data";
 import { skinScript } from "@/lib/settings";

@@ -272,6 +272,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
     setMeTyping(false); setTray(false);
     const isFirst = !mine.some((m) => !m.owner) && !outs.length;
     setOuts((l) => [...l, { key: Date.now(), name, body, pub: fd.get("public") === "on", phase: "sending", first: isFirst }]);
+    window.dispatchEvent(new Event("lc-chat-sent")); // the visit receipt counts it
     if (live) { const r = send.current?.getBoundingClientRect(); if (r) float(r.left + r.width / 2, r.top + r.height / 2, BURST, 120); }
   };
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -320,6 +321,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
     const was = hearted.includes(n.id);
     const next = was ? hearted.filter((x) => x !== n.id) : [...hearted, n.id];
     setHearted(next); store.set("lc_hearts", JSON.stringify(next.slice(-300)));
+    if (!was) window.dispatchEvent(new Event("lc-heart"));
     setHeartN((h) => ({ ...h, [n.id]: Math.max(0, (h[n.id] ?? n.hearts ?? 0) + (was ? -1 : 1)) }));
     fetch("/api/chat/heart", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: n.id, on: !was }) })
       .then((r) => r.json()).then((d) => { if (d?.ok) setHeartN((h) => ({ ...h, [n.id]: d.hearts })); }).catch(() => {});

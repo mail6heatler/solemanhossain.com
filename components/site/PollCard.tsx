@@ -21,7 +21,7 @@ export function usePoll(id: number, confetti = false, still = false) {
     try {
       const r = await fetch("/api/vote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, option }) });
       const d = await r.json();
-      if (Array.isArray(d.counts)) { setCounts(d.counts); setMine(d.mine); if (confetti) confettiFrom(el, { count: 60, spread: 60 }); }
+      if (Array.isArray(d.counts)) { setCounts(d.counts); setMine(d.mine); if (confetti) confettiFrom(el, { count: 60, spread: 60 }); window.dispatchEvent(new Event("lc-vote")); /* the visit receipt counts it */ }
     } finally { setBusy(false); }
   };
 

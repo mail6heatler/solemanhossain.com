@@ -26,12 +26,8 @@ export default async function SettingsPage() {
             <div className="fl"><label>Browser tab title</label><input className="inp" name="siteTitle" defaultValue={s.siteTitle} /></div>
             <div className="fl"><label>Description (shown in Google and link previews)</label><input className="inp" name="siteDescription" defaultValue={s.siteDescription} /></div>
           </div>
-          <div className="f2">
-            <div className="fl"><label>Footer left</label><input className="inp" name="footerLeft" defaultValue={s.footerLeft} /><div className="hint">{"{year}"} becomes the current year.</div></div>
-            <div className="fl"><label>Footer right</label><input className="inp" name="footerRight" defaultValue={s.footerRight} /></div>
-          </div>
           <div className="fl"><span className="lab">Themes &amp; effects</span>
-            <div className="hint" style={{ fontSize: 12.5 }}>Theme, mood and every effect now live on the <a href="/admin/appearance">Appearance</a> page.</div>
+            <div className="hint" style={{ fontSize: 12.5 }}>Theme, mood and every effect now live on the <a href="/admin/appearance">Appearance</a> page. The menu bar and the footer (with its two lines) have their own pages: <a href="/admin/menu">Menu bar</a> and <a href="/admin/footer">Footer</a>.</div>
           </div>
         </div>
 

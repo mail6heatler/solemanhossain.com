@@ -21,7 +21,7 @@ export default async function HeroPage() {
       <HeroStudio first={first} settings={s} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} reactions={reactions.total}
         sections={sections.map((x) => ({ id: x.id, slug: x.slug, layout: x.layout, nav_label: x.nav_label, title: x.title, nav_emoji: x.nav_emoji }))}
         counts={Object.fromEntries(counts)}
-        nav={<div className="hst-nav" inert aria-hidden><Nav settings={s} sections={sections} onHome /></div>} />
+        nav={<div className="hst-nav" inert aria-hidden><Nav settings={s} sections={sections} onHome preview /></div>} />
     {s.heroHidden ? (
       <form action={setHeroHidden} className="c c-row" style={{ marginTop: 14 }}>
         <input type="hidden" name="hidden" value="0" />

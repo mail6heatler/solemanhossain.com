@@ -6,6 +6,7 @@ import { cleanAward } from "@/lib/awardItem";
 import { cleanScrap } from "@/lib/scrapItem";
 import { cleanHeroDesign } from "@/lib/heroLook";
 import { cleanConnect, cleanSocials, type ConnectDesign } from "@/lib/connectLook";
+import { cleanFooter, cleanMenu, type FooterDesign, type MenuDesign } from "@/lib/chrome";
 import { KEY_RE, chatThread, chatWhere, hashKey, isConvId, listChats, markChatSeen, ownerPing, type ChatMsg, type ChatSummary } from "@/lib/chat";
 import { cleanCard } from "@/lib/cardLook";
 import { cleanBoxes } from "@/lib/boxes";
@@ -220,6 +221,24 @@ export async function saveConnectStudio(raw: ConnectSave): Promise<{ ok: true } 
   }
 }
 
+/** The menu bar's dashboard page (/admin/menu): its look, background, phone menu, extras, ticker lines and which sections it lists. */
+export async function saveMenu(raw: MenuDesign): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try { await saveSettingsData({ menu: cleanMenu(raw) }); refresh(); return { ok: true }; }
+  catch (e) { console.error("saveMenu", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
+/** The footer's dashboard page (/admin/footer): its look, its words and extras, and the two footer lines (which moved here from Settings). */
+export async function saveFooter(raw: { footer: FooterDesign; footerLeft: string; footerRight: string }): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    const t = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
+    await saveSettingsData({ footer: cleanFooter(raw.footer), footerLeft: t(raw.footerLeft, 200), footerRight: t(raw.footerRight, 200) });
+    refresh();
+    return { ok: true };
+  } catch (e) { console.error("saveFooter", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */
 export async function setHeroHidden(fd: FormData) {
   await requireAdmin();
@@ -243,8 +262,8 @@ export async function saveSite(fd: FormData) {
   await saveSettingsData({
     siteTitle: str(fd, "siteTitle", 120),
     siteDescription: str(fd, "siteDescription", 300),
-    footerLeft: str(fd, "footerLeft", 200),
-    footerRight: str(fd, "footerRight", 200),
+    // the footer's lines moved to the Footer page; only change them if this form still sends them
+    ...(fd.has("footerLeft") ? { footerLeft: str(fd, "footerLeft", 200), footerRight: str(fd, "footerRight", 200) } : {}),
     ...(fd.has("connectFormTitle") ? { connectFormTitle: str(fd, "connectFormTitle", 80) } : {}),
     adminUsername: str(fd, "adminUsername", 60) || "admin",
     ...(socials ? { socials } : {}),

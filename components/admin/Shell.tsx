@@ -28,8 +28,10 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
 
   const links = useMemo(() => [
     { href: "/admin", label: "Overview", icon: "layout-dashboard" },
+    { href: "/admin/menu", label: "Menu bar", icon: "layout-navbar" },
     { href: "/admin/hero", label: "G0 · Hero", icon: "home" },
     ...sections.map((s) => ({ href: `/admin/s/${s.id}`, label: `${s.code ? s.code + " · " : ""}${(s.nav_label || s.title).toLowerCase()}`, icon: s.icon, hidden: !s.visible })),
+    { href: "/admin/footer", label: "Footer", icon: "layout-bottombar" },
     { href: "/admin/inbox", label: "Inbox", icon: "inbox", badge: unread },
     { href: "/admin/banner", label: "Hanging banner", icon: "speakerphone" },
     { href: "/admin/content", label: "Content sizes", icon: "adjustments" },

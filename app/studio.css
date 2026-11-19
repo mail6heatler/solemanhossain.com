@@ -351,3 +351,24 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cst-logo-ed { display: grid; gap: 8px; padding: 8px 0 2px; border-top: 1px dashed var(--card-border); }
 .cst-av { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cw-av, #2fbf71); vertical-align: 1px; }
 .cst-av.av-online { --cw-av: #2fbf71; } .cst-av.av-busy { --cw-av: #e5484d; } .cst-av.av-away { --cw-av: #e8b93a; } .cst-av.av-holiday { --cw-av: #8b6fd6; } .cst-av.av-off { --cw-av: #9aa0a6; }
+
+/* The menu bar's and the footer's editors (ChromeStudio.tsx): the live preview on top, the controls and a phone frame of the real site under it */
+.cs-site { position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 0 0 .5px var(--card-border), 0 20px 40px -26px rgba(20,30,25,.45); margin-bottom: 16px; min-height: 0; }
+.cs-site .nav { position: relative !important; }
+.cs-page { padding: 34px 5vw 40px; }
+.cs-page .stitle { margin: 6px 0; font-size: clamp(26px, 3vw, 40px); }
+.cs-page .ssub { max-width: 60ch; }
+.cs-site footer.ft2 { border-radius: 0; }
+.cs-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+@media (max-width: 1100px) { .cs-grid { grid-template-columns: minmax(0, 1fr); } }
+.cs-panel { display: grid; gap: 12px; min-width: 0; padding-bottom: 80px; }
+.cs-looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.cs-look { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 14px; background: var(--card-bg); color: var(--text-strong); text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.cs-look b { display: flex; align-items: center; gap: 6px; font: 700 14px "Space Grotesk", sans-serif; }
+.cs-look b em { padding: 1px 7px; border-radius: 99px; background: #ffe2ec; color: #c2185b; font: 600 10.5px inherit; font-style: normal; }
+.cs-look small { color: var(--text-muted); font-size: 12px; line-height: 1.35; }
+.cs-look:hover { border-color: var(--mint); }
+.cs-look.on { border-color: var(--mint); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 30%, transparent); }
+.cs-phone { position: sticky; top: 12px; display: grid; justify-items: center; gap: 6px; }
+.cs-phone iframe { width: 360px; max-width: 100%; height: min(720px, calc(100vh - 160px)); border: 10px solid #15151b; border-radius: 34px; background: #fff; }
+.cs-site .stitle, .cs-site .ssub, .cs-site .eyebrow { opacity: 1; transform: none; }

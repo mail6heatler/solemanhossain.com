@@ -1,16 +1,17 @@
 import type { Section } from "@/lib/data";
 import { bannerView, MOODS, type SiteSettings } from "@/lib/settings";
-import { BrandTypewriter } from "./Typewriters";
-import MobileMenu from "./MobileMenu";
 import Effects from "./Effects";
-import ThemeSwitch from "./ThemeSwitch";
 import DemoMode from "./Demo";
 import Living from "./Living";
 import ThemeFx from "./ThemeFx";
 import HangingBanner from "./HangingBanner";
 import FitScreens from "./FitScreens";
-import { Split } from "./Split";
 import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
+import { Nav } from "./SiteNav";
+import { Footer } from "./SiteFooter";
+import PhoneMenu from "./PhoneMenu";
+import VisitTracker from "./VisitTracker";
+export { Nav, Footer };
 
 const CLEAN_URL = /^(https?:\/\/|\/)[\w\-./:%?=&~+#,]+$/;
 /** Pictures the owner added to themes, as CSS. Only a URL with no quotes, brackets or spaces can get in here. */
@@ -22,42 +23,6 @@ function themePicCss(pics: Record<string, string>) {
 function themeCreditCss(pics: Record<string, string>) {
   const keys = Array.from(new Set([...FAN_THEMES, ...Object.keys(THEME_CREDITS)]));
   return keys.map((k) => `html[data-skin="${k}"] .tc-${k}{display:block}`).join("") + Object.keys(pics).map((k) => (/^[a-z0-9]+$/.test(k) ? `.tc-${k} .tc-pic{display:none}` : "")).join("");
-}
-
-export function Nav({ settings, sections, onHome }: { settings: SiteSettings; sections: Section[]; onHome: boolean }) {
-  const href = (s: Section) => (onHome ? `#${s.slug}` : `/#${s.slug}`);
-  return (
-    <nav className="nav">
-      <a href="/" className="brand" aria-label={settings.fullName}>
-        <span className="dot" />
-        <span className="brand-text">
-          <BrandTypewriter phrases={settings.brandPhrases.length ? settings.brandPhrases : [settings.fullName]} animate={settings.effects.typewriter} />
-        </span>
-      </a>
-      <div className="nav-right">
-        <ul className="navlinks">
-          {settings.effects.navpill && <li className="nav-pill" aria-hidden />}
-          {sections.map((s) => {
-            const label = s.nav_label || s.title;
-            return (
-              <li key={s.id}>
-                <a href={href(s)} data-link={s.slug}><span className="ne">{s.nav_emoji}</span>
-                  {settings.effects.navpill ? <span className="roll"><span>{label}</span><span aria-hidden>{label}</span></span> : label}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-        {settings.effects.surprise && (
-          <a className="icon-btn dice-btn" href="/surprise" aria-label="Surprise me: open a random entry" title="Surprise me">🎲</a>
-        )}
-        {settings.themeSwitch && (
-          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} wipe={settings.effects.themewipe} />
-        )}
-        <MobileMenu links={sections.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
-      </div>
-    </nav>
-  );
 }
 
 export function Rail({ sections, hero }: { sections: Section[]; hero: boolean }) {
@@ -107,30 +72,6 @@ export function FloatingEmojis({ emojis, enabled, hero }: { emojis: string; enab
   );
 }
 
-export function Footer({ settings }: { settings: SiteSettings }) {
-  const year = String(new Date().getFullYear());
-  const giant = settings.nickname || settings.fullName;
-  return (
-    <footer>
-      {settings.effects.footername && giant && (
-        <div className="foot-giant" aria-hidden style={{ ["--n" as string]: Array.from(giant).length }}><Split text={giant} /></div>
-      )}
-      <span>{settings.footerLeft.replace("{year}", year)}</span>
-      {settings.effects.surprise && <a href="/surprise" className="dice-btn-text">🎲 Surprise me</a>}
-      <span>{settings.footerRight}</span>
-      {Array.from(new Set([...FAN_THEMES, ...Object.keys(THEME_CREDITS)])).map((k) => {
-        const c = THEME_CREDITS[k];
-        return (
-          <p key={k} className={`theme-credit tc-${k}`}>
-            {FAN_THEMES.includes(k) && "Unofficial fan theme: not affiliated with or endorsed by anyone named or shown. "}
-            {c && <span className="tc-pic">Photo: <a href={c.page} target="_blank" rel="noopener noreferrer">{c.title}</a> by {c.author}, {c.licenseUrl ? <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer">{c.license}</a> : c.license}, cropped.</span>}
-          </p>
-        );
-      })}
-    </footer>
-  );
-}
-
 /** Effects that are purely CSS: they switch on through a fx-<key> class on the page wrapper. */
 const LOOKS = ["intro", "cardtilt", "spotlight", "ambient", "liquid", "navpill", "sheets", "splittext", "themefx", "reactfx", "windowfx", "tripfx", "studyfx", "comicfx", "awardfx", "scrapfx", "notefx", "fullfx", "chatfx"] as const;
 
@@ -139,8 +80,12 @@ export function SiteShell({ settings, sections, onHome, children }:
   const fx = settings.effects;
   const mood = MOODS[settings.mood];
   const style = (mood ? { "--m": mood.color, "--m-deep": mood.deep } : {}) as React.CSSProperties;
+  // the phone's way around: the bottom bar as before, or the menu bar's orb or sheet (settings.menu.phone)
+  const phone = settings.menu.phone;
+  const bbar = fx.bottombar && phone === "bottom";
+  const menuLinks = sections.filter((s) => !settings.menu.hidden.includes(s.slug)).map((s) => ({ href: onHome ? `#${s.slug}` : `/#${s.slug}`, label: s.nav_label || s.title, emoji: s.nav_emoji }));
   return (
-    <div className={`site ${onHome ? "home " : ""}${fx.bottombar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
+    <div className={`site ${onHome ? "home " : ""}${bbar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
       <Effects
         cursor={fx.cursor} track totop={fx.totop}
         fx={{ autolite: fx.autolite, smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
@@ -156,8 +101,10 @@ export function SiteShell({ settings, sections, onHome, children }:
       <Nav settings={settings} sections={sections} onHome={onHome} />
       {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}
       {children}
-      <Footer settings={settings} />
-      {fx.bottombar && <BottomBar sections={sections} onHome={onHome} />}
+      <Footer settings={settings} sections={sections} onHome={onHome} />
+      {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
+      {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
+      <VisitTracker />
     </div>
   );
 }
