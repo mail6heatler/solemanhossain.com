@@ -58,7 +58,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-19: The owner decides the Wall; quick buttons on chats
+### 2026-11-19: The owner decides the Wall; quick buttons on chats (kept)
 
 The owner kept the Inbox tabs and Select, and asked for quick actions when pointing at a chat (pin, delete, hide from the Wall), a Hide button in Select too, so the Wall is protected by their choice, and no need for the visitor's permission to put a note up (visitors can still ask).
 
@@ -67,7 +67,7 @@ The owner kept the Inbox tabs and Select, and asked for quick actions when point
 - Any visitor message can go on the Wall; the 📌 tick is only a request (🙋 in the list, "asked to be on the Wall" on the message). Putting a whole chat up picks the messages that asked, or else its newest message.
 - A visitor whose message the owner put up sees "📌 On the Wall" under it.
 
-Built; nothing tested beyond the build (the owner's rule). Waiting for keep or undo.
+Built; nothing tested beyond the build (the owner's rule). Kept the same day ("keep it").
 
 ### 2026-11-19: Inbox tabs, Select in Chats, G8's heading (kept)
 
