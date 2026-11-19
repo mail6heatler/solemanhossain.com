@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-19: Menu bar and footer ideas, waiting for picks
+
+The owner kept the later jobs for later and asked for ideas for the menu bar (top) and the footer (bottom of the sections), shown on a preview. Nothing built yet. Private, working preview (https://claude.ai/artifact/6bgaziF1gNeXq4fcK96gni): what's weak in each (the name typing itself reads half-written, eight links crowd laptops, the phone's bottom bar cuts its first item and covers the footer, three ways to move around at once, no search, no menu bar dashboard page; the footer is a pale giant name with faint lines, no links or goodbye, its words on Settings). Menu bar looks: today's bar tidied, floating island, metro line, emoji dock, folder tabs, departure board; phone menus: bottom bar, orb that blooms, pull-up sheet, full-screen menu; extras: hide while scrolling down, progress line, mini photo after the hero, Say hello button, "new since your last visit" dots, search with /, the name kept whole. Footer looks: giant name (today), end credits, signed letter, Dhaka at night (skyline with a section per building and a rickshaw), visit receipt, map and links; extras: links, Dhaka time, visitors today, ride back to the top, an easter egg. Both would get a live dashboard page.
+
 ### 2026-11-19: Rows cut off on phones; the chat on phones; the Wall button's pin (kept)
 
 Kept by the owner the same day. Commits from this PC are signed `myself <mail6heatler@users.noreply.github.com>` (this repository's git config), because git here had no identity and a privacy guard refuses the owner's own email in commands; Vercel accepts these commits.
