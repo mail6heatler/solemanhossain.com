@@ -400,7 +400,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
                       {!cont && <span className="cw-by">{myName}</span>}
                       <p className={m.react ? "reacted" : undefined} data-r={m.react || undefined}>{m.body}</p>
                       {m === lastMine && <span className={`cw-st${m.seen ? " read" : ""}`}>{m.seen ? `✓✓ Seen by ${owner}` : "✓✓ Delivered"}</span>}
-                      {m === lastMine && m.pub && <span className={`cw-tag${m.wall ? " on" : ""}`}>{m.wall ? "📌 On the Wall" : `⏳ Goes on the Wall once ${owner} approves it`}</span>}
+                      {m === lastMine && (m.pub || m.wall) && <span className={`cw-tag${m.wall ? " on" : ""}`}>{m.wall ? "📌 On the Wall" : `⏳ Goes on the Wall once ${owner} approves it`}</span>}
                     </div>
                   </div>
                 )}

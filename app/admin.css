@@ -516,3 +516,18 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .ib-row .ib-k { margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: var(--chip-bg); color: var(--text-muted); font-size: 11px; font-weight: 600; }
 .ib-row p { margin: 2px 0 0; overflow: hidden; color: var(--text-soft); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .ib-row small { color: var(--text-faint); font-size: 11.5px; white-space: nowrap; }
+
+/* quick buttons on a chat in the list: pin or hide from the Wall, delete (pointing at the chat shows them; always shown on touch screens) */
+.ci-row { position: relative; }
+.ci-quick { position: absolute; top: 50%; right: 10px; translate: 0 -50%; display: flex; gap: 4px; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.ci-row:hover .ci-quick, .ci-row:focus-within .ci-quick { opacity: 1; pointer-events: auto; }
+.ci-row:hover .ci-end, .ci-row:focus-within .ci-end { opacity: 0; }
+.ci-quick button { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 6px; border: 1px solid var(--card-border); border-radius: 99px; background: var(--card-bg); color: var(--text-strong); font-size: 14px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.08); transition: scale .15s, border-color .15s; }
+.ci-quick button:hover { scale: 1.08; border-color: var(--mint); }
+.ci-quick button.bad { color: var(--danger); }
+.ci-quick button.bad:hover { border-color: var(--danger); }
+.ci-quick button.ask { background: color-mix(in srgb, var(--danger) 14%, var(--card-bg)); font-size: 11.5px; font-weight: 700; }
+@media (hover: none) {
+  .ci-quick { position: static; translate: none; justify-content: flex-end; padding: 0 12px 8px; opacity: 1; pointer-events: auto; }
+  .ci-row:hover .ci-end { opacity: 1; }
+}

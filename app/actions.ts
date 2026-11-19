@@ -700,12 +700,11 @@ export async function inboxReact(id: number, emoji: string) {
   await query("UPDATE messages SET react = CASE WHEN react = $2 THEN '' ELSE $2 END WHERE id=$1 AND NOT from_owner", [Number(id), e]);
 }
 
-/** Puts a note on the Wall (only one its writer asked to be there) or takes it off, with the owner's public reply under it. */
+/** Puts a message on the Wall or hides it from there, with the owner's public reply under it. The owner decides; a visitor's 📌 is only a request. */
 export async function inboxWall(id: number, on: boolean, reply: string): Promise<{ ok: true } | { ok: false; error: string }> {
   await requireAdmin();
-  const row = await queryOne("SELECT wants_public FROM messages WHERE id=$1 AND NOT from_owner", [Number(id)]);
+  const row = await queryOne("SELECT id FROM messages WHERE id=$1 AND NOT from_owner", [Number(id)]);
   if (!row) return { ok: false, error: "That message is gone. Reload the page." };
-  if (on && !row.wants_public) return { ok: false, error: "They didn't tick 📌 Wall, so this stays private." };
   await query("UPDATE messages SET approved=$2, wall_reply=$3, read=TRUE WHERE id=$1", [Number(id), !!on, String(reply ?? "").trim().slice(0, 300)]);
   refresh();
   return { ok: true };
@@ -730,8 +729,9 @@ export async function inboxSaved(list: string[]) {
 
 export type BulkOp = "read" | "unread" | "pin" | "unpin" | "delete" | "reply";
 /**
- * Something done to several chats at once (the Inbox's Select): mark read or unread, put on the Wall or take off it (only notes whose
- * writer ticked 📌 go up), delete, or send the same reply to each (only chats that can take one). Says how many it changed and skipped.
+ * Something done to several chats at once (the Inbox's Select, and the quick buttons on a chat): mark read or unread, put on the Wall (the
+ * messages that asked to go there, or else the newest message) or hide from it, delete, or send the same reply to each (only chats that can
+ * take one). Says how many it changed and skipped.
  */
 export async function inboxBulk(op: BulkOp, keys: string[], body = ""): Promise<{ ok: true; done: number; skipped: number } | { ok: false; error: string }> {
   await requireAdmin();
@@ -747,7 +747,14 @@ export async function inboxBulk(op: BulkOp, keys: string[], body = ""): Promise<
     const [cond, arg] = w;
     if (op === "read") await query(`UPDATE messages SET read=TRUE, seen_at=COALESCE(seen_at, NOW()) WHERE ${cond} AND NOT from_owner`, [arg]);
     else if (op === "unread") await query(`UPDATE messages SET read=FALSE WHERE ${cond} AND NOT from_owner`, [arg]);
-    else if (op === "pin") { const r = await query(`UPDATE messages SET approved=TRUE, read=TRUE WHERE ${cond} AND NOT from_owner AND wants_public RETURNING id`, [arg]); if (!r.length) { skipped++; continue; } }
+    else if (op === "pin") {
+      const asked = await query(`UPDATE messages SET approved=TRUE, read=TRUE WHERE ${cond} AND NOT from_owner AND wants_public RETURNING id`, [arg]);
+      if (!asked.length) {
+        const newest = await queryOne(`SELECT id FROM messages WHERE ${cond} AND NOT from_owner ORDER BY created_at DESC, id DESC LIMIT 1`, [arg]);
+        if (!newest) { skipped++; continue; }
+        await query("UPDATE messages SET approved=TRUE, read=TRUE WHERE id=$1", [newest.id]);
+      }
+    }
     else if (op === "unpin") await query(`UPDATE messages SET approved=FALSE WHERE ${cond} AND NOT from_owner`, [arg]);
     else if (op === "delete") await query(`DELETE FROM messages WHERE ${cond}`, [arg]);
     else if (op === "reply") {

@@ -58,7 +58,18 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-19: Inbox tabs, Select in Chats, G8's heading
+### 2026-11-19: The owner decides the Wall; quick buttons on chats
+
+The owner kept the Inbox tabs and Select, and asked for quick actions when pointing at a chat (pin, delete, hide from the Wall), a Hide button in Select too, so the Wall is protected by their choice, and no need for the visitor's permission to put a note up (visitors can still ask).
+
+- Pointing at a chat in Inbox → Chats shows 📌 Put on the Wall (or 🙈 Hide from the Wall when it's up) and 🗑 Delete (tap twice). Always shown on touch screens.
+- Select's Unpin is now **Hide from Wall**.
+- Any visitor message can go on the Wall; the 📌 tick is only a request (🙋 in the list, "asked to be on the Wall" on the message). Putting a whole chat up picks the messages that asked, or else its newest message.
+- A visitor whose message the owner put up sees "📌 On the Wall" under it.
+
+Built; nothing tested beyond the build (the owner's rule). Waiting for keep or undo.
+
+### 2026-11-19: Inbox tabs, Select in Chats, G8's heading (kept)
 
 The owner kept the chats and the Wall and asked for: one title on G8's dashboard page (the website's), Inbox buttons for All, Chats, Comments, Reactions and Mark all read, each holding its own things, and in Chats selecting several to delete, delete all, pin or unpin, reply, and so on.
 

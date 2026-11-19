@@ -84,11 +84,23 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
     setBusy(false);
     if (!r) { say("That didn't work. Check your connection and try again.", true); return; }
     if (!r.ok) { say(r.error, true); return; }
-    const what = { read: "marked read", unread: "marked unread", pin: "put on the Wall", unpin: "taken off the Wall", delete: "deleted", reply: "replied to" }[op];
-    const why = op === "pin" ? " (their writers didn't tick 📌)" : op === "reply" ? " (they wrote before replies existed)" : "";
+    const what = { read: "marked read", unread: "marked unread", pin: "put on the Wall", unpin: "hidden from the Wall", delete: "deleted", reply: "replied to" }[op];
+    const why = op === "pin" ? " (nothing from them to pin)" : op === "reply" ? " (they wrote before replies existed)" : "";
     say(`${r.done} ${r.done === 1 ? "chat" : "chats"} ${what}.${r.skipped ? ` ${r.skipped} skipped${why}.` : ""}`);
     if (op === "delete" && sel.includes(open)) { setOpen(""); setShowThread(false); }
     stopSelecting(); poll();
+  };
+  const [quickDel, setQuickDel] = useState("");
+  /** A quick button on one chat in the list: put it on the Wall, hide it from there, or delete it (a second tap confirms). */
+  const quick = async (e: React.MouseEvent, c: ChatSummary, op: "pin" | "unpin" | "delete") => {
+    e.stopPropagation();
+    if (op === "delete" && quickDel !== c.key) { setQuickDel(c.key); window.setTimeout(() => setQuickDel((k) => (k === c.key ? "" : k)), 4000); return; }
+    setQuickDel("");
+    const r = await inboxBulk(op, [c.key]).catch(() => null);
+    if (!r || !r.ok) { say(r && !r.ok ? r.error : "That didn't work. Try again.", true); return; }
+    say(op === "pin" ? `${c.name}'s note is on the Wall.` : op === "unpin" ? `${c.name} is hidden from the Wall.` : `Chat with ${c.name} deleted.`);
+    if (op === "delete" && c.key === open) { setOpen(""); setShowThread(false); }
+    poll();
   };
   const deleteAll = async () => {
     setBusy(true);
@@ -124,7 +136,7 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
   const wall = async (m: ChatMsg, on: boolean) => {
     const r = await inboxWall(m.id, on, wallDraft[m.id] ?? m.wallReply).catch(() => null);
     if (!r || !r.ok) { say(r && !r.ok ? r.error : "That didn't save. Try again.", true); return; }
-    say(on ? "It's on the Wall now." : "Taken off the Wall."); poll();
+    say(on ? "It's on the Wall now." : "Hidden from the Wall."); poll();
   };
   const del = async () => {
     await inboxDelete(open).catch(() => null);
@@ -151,7 +163,7 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
               <button type="button" disabled={!sel.length || busy} onClick={() => bulk("read")}><i className="ti ti-checks" />Read</button>
               <button type="button" disabled={!sel.length || busy} onClick={() => bulk("unread")}><i className="ti ti-mail" />Unread</button>
               <button type="button" disabled={!sel.length || busy} onClick={() => bulk("pin")}><i className="ti ti-pin" />Pin</button>
-              <button type="button" disabled={!sel.length || busy} onClick={() => bulk("unpin")}><i className="ti ti-pinned-off" />Unpin</button>
+              <button type="button" disabled={!sel.length || busy} onClick={() => bulk("unpin")}><i className="ti ti-eye-off" />Hide from Wall</button>
               <button type="button" disabled={!sel.length || busy} className={ask === "reply" ? "on" : ""} onClick={() => setAsk(ask === "reply" ? "" : "reply")}><i className="ti ti-send" />Reply</button>
               <button type="button" disabled={!sel.length || busy} className={`bad${ask === "delete" ? " on" : ""}`} onClick={() => setAsk(ask === "delete" ? "" : "delete")}><i className="ti ti-trash" />Delete</button>
               <button type="button" disabled={busy || !chats.length} className={`bad${ask === "all" ? " on" : ""}`} onClick={() => setAsk(ask === "all" ? "" : "all")}><i className="ti ti-trash-x" />Delete all</button>
@@ -180,11 +192,21 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
         </div>
         {list.length === 0 && <p className="ci-empty">{filter === "all" ? "No messages yet. When someone writes in your chat, it shows up here." : "Nothing here."}</p>}
         {list.map((c) => (
-          <button key={c.key} type="button" className={`ci-conv${c.key === open && !selecting ? " on" : ""}${c.unread ? " un" : ""}${sel.includes(c.key) ? " sel" : ""}`} onClick={() => pick(c.key)} aria-pressed={selecting ? sel.includes(c.key) : undefined}>
+          <div key={c.key} className="ci-row">
+          <button type="button" className={`ci-conv${c.key === open && !selecting ? " on" : ""}${c.unread ? " un" : ""}${sel.includes(c.key) ? " sel" : ""}`} onClick={() => pick(c.key)} aria-pressed={selecting ? sel.includes(c.key) : undefined}>
             <span className="ci-av" style={{ background: selecting && sel.includes(c.key) ? "var(--mint)" : color(c.name) }}>{selecting && sel.includes(c.key) ? <i className="ti ti-check" /> : first(c.name)}</span>
             <span className="ci-mid"><b>{c.name}</b><small>{c.lastFromOwner ? "You: " : ""}{c.last}</small></span>
-            <span className="ci-end"><small>{ago(c.lastAt)}</small>{c.unread > 0 ? <i className="ci-dot" aria-label={`${c.unread} unread`} /> : c.wallAsk ? <em title="Asked to be on the Wall">📌</em> : null}</span>
+            <span className="ci-end"><small>{ago(c.lastAt)}</small>{c.unread > 0 ? <i className="ci-dot" aria-label={`${c.unread} unread`} /> : c.onWall ? <em title="On the Wall">📌</em> : c.wallAsk ? <em title="Asked to be on the Wall">🙋</em> : null}</span>
           </button>
+          {!selecting && (
+            <span className="ci-quick" role="group" aria-label={`Quick actions for ${c.name}`}>
+              {c.onWall
+                ? <button type="button" onClick={(e) => quick(e, c, "unpin")} title="Hide from the Wall" aria-label={`Hide ${c.name} from the Wall`}><i className="ti ti-eye-off" /></button>
+                : <button type="button" onClick={(e) => quick(e, c, "pin")} title={c.wallAsk ? "Put on the Wall (they asked)" : "Put their newest message on the Wall"} aria-label={`Put ${c.name} on the Wall`}><i className="ti ti-pin" /></button>}
+              <button type="button" className={`bad${quickDel === c.key ? " ask" : ""}`} onClick={(e) => quick(e, c, "delete")} title="Delete this chat" aria-label={`Delete the chat with ${c.name}`}>{quickDel === c.key ? "Delete?" : <i className="ti ti-trash" />}</button>
+            </span>
+          )}
+          </div>
         ))}
       </aside>
 
@@ -215,10 +237,10 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
               ) : (
                 <div key={m.id} className="ci-m">
                   <p>{m.body}{m.react && <span className="ci-rx">{m.react}</span>}</p>
-                  <small>{stamp(m.at)}{m.wantsPublic ? (m.approved ? " · 📌 on the Wall" : " · asked to be on the Wall") : ""}{m.hearts ? ` · ❤️ ${m.hearts}` : ""}</small>
+                  <small>{stamp(m.at)}{m.approved ? " · 📌 on the Wall" : m.wantsPublic ? " · 🙋 asked to be on the Wall" : ""}{m.hearts ? ` · ❤️ ${m.hearts}` : ""}</small>
                   <span className="ci-tools">
                     {reactOn && REACTS.map((e) => <button key={e} type="button" className={m.react === e ? "on" : ""} onClick={() => react(m, e)} aria-label={`React ${e}`}>{e}</button>)}
-                    {m.wantsPublic && <button type="button" className="ci-wallbtn" onClick={() => wall(m, !m.approved)}>{m.approved ? "Take off the Wall" : "📌 Put on the Wall"}</button>}
+                    <button type="button" className="ci-wallbtn" onClick={() => wall(m, !m.approved)}>{m.approved ? "🙈 Hide from the Wall" : "📌 Put on the Wall"}</button>
                     <button type="button" className={`ci-del${delMsg === m.id ? " ask" : ""}`} onClick={() => delOne(m.id)} aria-label="Delete this message">{delMsg === m.id ? "Delete? Tap again" : <i className="ti ti-trash" />}</button>
                   </span>
                   {m.approved && (

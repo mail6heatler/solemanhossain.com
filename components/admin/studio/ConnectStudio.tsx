@@ -340,7 +340,7 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
             <label className="switch"><input type="checkbox" checked={c.boardHearts} onChange={(e) => setC({ boardHearts: e.target.checked })} />Visitors can heart a note</label>
             <label className="switch"><input type="checkbox" checked={c.boardTesti} onChange={(e) => setC({ boardTesti: e.target.checked })} />Testimonials go on the board too</label>
             <label className="switch"><input type="checkbox" checked={c.wallInChat} onChange={(e) => setC({ wallInChat: e.target.checked })} />Approved notes also stay in the chat (as before)</label>
-            <div className="hint">Notes go on the Wall when you press 📌 Put on the Wall on them in your Inbox (only notes whose writer ticked 📌). The button shows how many there are. Turn the whole Wall off under Pieces in the window.</div>
+            <div className="hint">You decide what goes on the Wall: in your Inbox, point at a chat or a message and press 📌 to put it up or 🙈 to hide it. Visitors can only ask, by ticking 📌. The button shows how many there are. Turn the whole Wall off under Pieces in the window.</div>
           </G>
 
           <G lit={lit} g="replies" title="Replies">
