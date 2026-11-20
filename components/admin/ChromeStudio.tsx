@@ -145,8 +145,8 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
   return (
     <div className="stu cs">
       <header className="stu-top">
-        <div className="stu-name"><h1 className="adm-h">Menu bar</h1><p className="adm-sub">On top of every page{dirty ? " · changes not saved" : ""}</p></div>
-        <div className="btns stu-topbtns">{picker}<a href="/" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
+        <div className="stu-name"><h1 className="adm-h">Menu bar</h1><p className="adm-sub">{d.show ? "On top of every page" : "Hidden: visitors don't see it (the previews still show it, so you can edit it)"}{dirty ? " · changes not saved" : ""}</p></div>
+        <div className="btns stu-topbtns"><label className="switch cs-show"><input type="checkbox" checked={d.show} onChange={(e) => set({ show: e.target.checked })} />{d.show ? "Showing on site" : "Hidden on site"}</label>{picker}<a href="/" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
       <div className="cs-work">
       <Screens part="menu" settings={s} skin={skin} />
@@ -238,8 +238,8 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
   return (
     <div className="stu cs">
       <header className="stu-top">
-        <div className="stu-name"><h1 className="adm-h">Footer</h1><p className="adm-sub">At the bottom of every page, under Connect{dirty ? " · changes not saved" : ""}</p></div>
-        <div className="btns stu-topbtns">{picker}<a href="/#connect" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
+        <div className="stu-name"><h1 className="adm-h">Footer</h1><p className="adm-sub">{f.show ? "At the bottom of every page, under Connect" : "Hidden: visitors don't see it (the previews still show it, so you can edit it)"}{dirty ? " · changes not saved" : ""}</p></div>
+        <div className="btns stu-topbtns"><label className="switch cs-show"><input type="checkbox" checked={f.show} onChange={(e) => setF({ show: e.target.checked })} />{f.show ? "Showing on site" : "Hidden on site"}</label>{picker}<a href="/#connect" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
       <div className="cs-work">
       <Screens part="footer" settings={s} skin={skin} />

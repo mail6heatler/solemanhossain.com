@@ -85,10 +85,10 @@ export function SiteShell({ settings, sections, onHome, children }:
       <Living fx={{ reactfx: fx.reactfx && fx.reactions, sectionfx: fx.sectionfx, cardtilt: fx.cardtilt, spotlight: fx.spotlight, liquid: fx.liquid, navpill: fx.navpill, kinetic: fx.kinetic, smartcursor: fx.smartcursor && fx.cursor, splittext: fx.splittext, imgreveal: fx.imgreveal, ambient: fx.ambient, magnetic: fx.magnetic, heroexit: fx.heroexit, ghost: fx.ghost, wordscrub: fx.wordscrub, velocity: fx.velocity, footername: fx.footername }} />
       {onHome && <FitScreens />}
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
-      <Nav settings={settings} sections={sections} onHome={onHome} />
+      {settings.menu.show && <Nav settings={settings} sections={sections} onHome={onHome} />}
       {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}
       {children}
-      <Footer settings={settings} sections={sections} onHome={onHome} />
+      {settings.footer.show && <Footer settings={settings} sections={sections} onHome={onHome} />}
       {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
       <VisitTracker />

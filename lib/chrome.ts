@@ -48,13 +48,15 @@ export type MenuDesign = {
   /** sections left out of the menu (by slug); they stay on the page */
   hidden: string[];
   helloLabel: string;
+  /** the menu bar shows on the site (the owner's switch on its dashboard page); off hides the bar on top, the phone menus stay */
+  show: boolean;
   /** sizes the owner sets (2026-11-20): the name and the links as percentages, the space between links in px, the bar's height as a percentage */
   size: MenuSize;
 };
 export type MenuSize = { name: number; links: number; gap: number; height: number };
 export const MENU_SIZE_LIMITS: Record<keyof MenuSize, [number, number, number]> = { name: [60, 170, 100], links: [60, 150, 100], gap: [0, 30, 2], height: [50, 180, 100] };
 export const DEFAULT_MENU: MenuDesign = {
-  look: "play", bg: "own", phone: "bottom", sky: "now",
+  look: "play", bg: "own", phone: "bottom", sky: "now", show: true,
   extras: { react: true, slim: true, hide: false, prog: true, hello: true, newdots: true, search: true },
   ticker: ["● Online now", "🕐 {time} in Dhaka", "👋 Say hello, I read every message"],
   hidden: [], helloLabel: "Say hello 👋",
@@ -91,13 +93,15 @@ export type FooterDesign = {
   tagline: string;
   /** the receipt footer's line under your name */
   hi: string;
+  /** the footer shows on the site (the owner's switch on its dashboard page) */
+  show: boolean;
   /** the receipt footer's sizes: its height in px, the machine and its keys as percentages */
   size: FooterSize;
 };
 export type FooterSize = { height: number; machine: number; buttons: number };
 export const FOOTER_SIZE_LIMITS: Record<keyof FooterSize, [number, number, number]> = { height: [300, 640, 420], machine: [70, 130, 100], buttons: [70, 150, 100] };
 export const DEFAULT_FOOTER: FooterDesign = {
-  look: "receipt", extras: { links: true, time: true, top: true, egg: true, surprise: true },
+  look: "receipt", extras: { links: true, time: true, top: true, egg: true, surprise: true }, show: true,
   shop: "SHOUROBH'S CHRONICLE", thanks: "THANK YOU · COME BACK SOON", coupon: "1 FREE HELLO · redeem in the chat · never expires",
   airline: "SHOUROBH AIR", mapTitle: "Shourobh's isles",
   letter: "Thanks for scrolling all the way down. If something here made you smile, say hello: I read every message.",
@@ -124,6 +128,7 @@ export function cleanMenu(raw: unknown): MenuDesign {
     ticker: Array.isArray(o.ticker) ? o.ticker.map((x) => text(x, 120)).filter(Boolean).slice(0, 8) : d.ticker,
     hidden: Array.isArray(o.hidden) ? o.hidden.map((x) => text(x, 60)).filter((x) => /^[a-z0-9-]+$/.test(x)).slice(0, 40) : d.hidden,
     helloLabel: typeof o.helloLabel === "string" ? text(o.helloLabel, 30) : d.helloLabel,
+    show: typeof o.show === "boolean" ? o.show : true,
     size: cleanSize(o.size),
   };
 }
@@ -143,7 +148,7 @@ export function cleanFooter(raw: unknown): FooterDesign {
   return {
     look: pick(o.look, FOOTER_LOOKS, d.look), extras: flags(o.extras, FOOTER_EXTRAS, d.extras),
     shop: t("shop", 40), thanks: t("thanks", 60), coupon: t("coupon", 90), airline: t("airline", 30), mapTitle: t("mapTitle", 40),
-    letter: t("letter", 400), signature: t("signature", 40), tagline: t("tagline", 60), hi: t("hi", 80),
+    letter: t("letter", 400), signature: t("signature", 40), tagline: t("tagline", 60), hi: t("hi", 80), show: typeof o.show === "boolean" ? o.show : true,
     size: (() => {
       const z = obj(o.size), out = {} as FooterSize;
       for (const k of Object.keys(FOOTER_SIZE_LIMITS) as (keyof FooterSize)[]) {

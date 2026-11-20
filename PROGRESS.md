@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Show or hide the menu bar and the footer
+
+The owner asked for a show button on the Menu bar and Footer pages. Each has a "Showing on site" switch at the top, saved with the page's Save (`menu.show`, `footer.show`, on by default). Built, not tested beyond the build.
+
 ### 2026-11-20: Security upgrade: Next.js 16.4.6, jsPDF 4.2.1
 
 The owner said "yes upgrade" to the security upgrade the build kept recommending. Done by hand in a separate git worktree (not with `next upgrade --agent`, which downloads a canary CLI and hands off to an agent): Next.js 16.4.3 → 16.4.6 (seven moderate advisories for 16.0.0 to 16.4.4: cache leaks and poisoning in `use cache`, an SVG bypass in image optimisation, cookie exposure on Edge routes, response injection when self-hosting) and jsPDF 2.5.2 → 4.2.1 (a critical advisory, plus DOMPurify under it; the receipt PDF only uses `new jsPDF`, `addImage` and `save`, which are unchanged). `npm audit`: 0 known vulnerabilities. Type check and build pass, and the build no longer stops with the security notice.
