@@ -60,7 +60,7 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ### 2026-11-20: Show or hide the menu bar and the footer
 
-The owner asked for a show button on the Menu bar and Footer pages. Each has a "Showing on site" switch at the top, saved with the page's Save (`menu.show`, `footer.show`, on by default). Built, not tested beyond the build.
+The owner asked for a show button on the Menu bar and Footer pages. Each has a "Showing on site" switch at the top, saved with the page's Save (`menu.show`, `footer.show`, on by default). Built, not tested beyond the build. Kept the same day.
 
 ### 2026-11-20: Security upgrade: Next.js 16.4.6, jsPDF 4.2.1
 
