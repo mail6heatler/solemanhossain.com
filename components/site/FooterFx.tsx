@@ -221,10 +221,12 @@ const Scissors = () => (
 
 /**
  * The footer's receipts (settings.footer.look): the visit receipt and the receipt that is also the site's map and your contact card.
- * A printer with a screen and three keys (Print, View, Cut). The first time a visit reaches the footer it prints by itself (GSAP): the
- * head shakes, the screen says PRINTING, the paper feeds out line by line, and a receipt longer than the window winds onto the roll. On the
- * visit's later pages only the printer shows, ready. Cut: the scissors snip across at the slot (blades opening and closing, paper bits
- * flying), the receipt flutters down, the screen says SAVED, and the PDF (a picture of this very receipt) downloads. View shows it whole.
+ * A handheld POS machine (the owner's word, 2026-11-20): a colour screen, a number pad and three big keys (green Print, yellow View, red
+ * Cut). The paper comes out of the slot on top. The first time a visit reaches the footer it prints by itself (GSAP): the machine shakes,
+ * the screen says PRINTING, the paper rises out line by line, and a receipt taller than the window winds onto the roll above. On the
+ * visit's later pages only the machine shows, ready. Cut: the scissors snip across at the slot (blades opening and closing, paper bits
+ * flying), the receipt flutters up and away, the screen says SAVED, and the PDF (a picture of this very receipt) downloads. The number
+ * pad types a PIN for fun (the visit's lucky number wins). View shows the receipt whole.
  * Without JavaScript, with reduced motion or on html.lite, the receipt is simply there.
  */
 export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
@@ -234,6 +236,19 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
   const [out, setOut] = useState(true); // the paper is out of the printer (true until JS decides, so without it the receipt shows)
   const [busy, setBusy] = useState(false);
   const [lcd, setLcd] = useState("READY ●");
+  const [pin, setPin] = useState("");
+  const [tick, setTick] = useState("");
+  useEffect(() => { setTick(clock.time); }, [clock.time]);
+  /** The number pad: a pretend PIN; the visit's lucky number is the jackpot. */
+  const press = (k: string) => {
+    if (busy) return;
+    const p = (k === "*" || k === "#") ? "" : (pin + k).slice(-4);
+    setPin(p);
+    if (!p) { setLcd(k === "#" ? "THANK YOU ✓" : "CLEARED"); return; }
+    if (+p === r.lucky) { setLcd(`🎉 JACKPOT! ${r.lucky} IS LUCKY`); setPin(""); return; }
+    if (p.length === 4) { setLcd("WRONG PIN · RIGHT VIBES ✓"); setPin(""); return; }
+    setLcd(`PIN ${"•".repeat(p.length)}${"_".repeat(4 - p.length)}`);
+  };
   const dlg = useRef<HTMLDialogElement>(null);
   const box = useRef<HTMLDivElement>(null), head = useRef<HTMLDivElement>(null), win = useRef<HTMLDivElement>(null), scroller = useRef<HTMLDivElement>(null);
   const feed = useRef<HTMLDivElement>(null), roll = useRef<HTMLElement>(null), turn = useRef<HTMLElement>(null);
@@ -251,19 +266,19 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
     tl.current?.kill();
     const gsap = still() ? null : await loadGsap().catch(() => null);
     if (!gsap) { el.style.transform = ""; return; }
-    sc.scrollTop = 0;
+    sc.scrollTop = sc.scrollHeight; // the receipt's end sits at the slot
     const H = el.offsetHeight, W = w.clientHeight, rest = Math.max(0, H - W);
     const dur = fast ? 1 : Math.min(5, Math.max(1.8, H / 300)), steps = Math.max(8, Math.round(H / 21));
     setBusy(true); setLcd("PRINTING…");
     await new Promise<void>((done) => {
       const t = gsap.timeline({ onComplete: () => { gsap.set(el, { clearProps: "transform,opacity,rotation,x" }); done(); } });
-      t.set(el, { y: -H, x: 0, rotation: 0, opacity: 1 }).set(line.current, { scaleX: 0, opacity: 0 }).set(scis.current, { opacity: 0 }).set(roll.current, { scaleY: 1 })
-        .to(head.current, { x: 1.2, duration: .045, repeat: Math.round(dur / .045), yoyo: true, ease: "none" }, 0)
+      t.set(el, { y: H, x: 0, rotation: 0, opacity: 1 }).set(line.current, { scaleX: 0, opacity: 0 }).set(scis.current, { opacity: 0 }).set(roll.current, { scaleY: 1 })
+        .to(head.current, { rotation: .5, duration: .045, repeat: Math.round(dur / .045), yoyo: true, ease: "none" }, 0)
         .to(el, { y: 0, duration: dur, ease: `steps(${steps})` }, .15)
-        .to(head.current, { x: 0, duration: .1 });
+        .to(head.current, { rotation: 0, duration: .1 });
       if (rest > 0 && roll.current && turn.current) {
         const start = .15 + dur * (W / H), spin = dur - dur * (W / H);
-        t.fromTo(turn.current, { y: 0 }, { y: -24, duration: .35, repeat: Math.max(1, Math.round(spin / .35)), ease: "none" }, start)
+        t.fromTo(turn.current, { y: -24 }, { y: 0, duration: .35, repeat: Math.max(1, Math.round(spin / .35)), ease: "none" }, start)
           .to(roll.current, { scaleY: 1 + Math.min(.55, rest / 1400), duration: spin, ease: "none" }, start);
       }
       tl.current = t;
@@ -279,7 +294,7 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
     let done = false;
     try { done = !!id && localStorage.getItem("lc_rc_printed") === id; } catch { /* */ }
     if (done) { setOut(false); return; }
-    el.style.transform = "translateY(-110%)"; // waiting to be printed
+    el.style.transform = "translateY(110%)"; // waiting inside the machine to be printed
     const io = new IntersectionObserver((es) => {
       if (!es.some((e) => e.isIntersecting)) return;
       io.disconnect();
@@ -315,13 +330,13 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
       const el = feed.current, s = scis.current, ln = line.current, w = win.current;
       if (gsap && el && s && ln && w) {
         tl.current?.kill();
-        if (scroller.current) scroller.current.scrollTop = 0;
+        if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight;
         const width = w.clientWidth, H = w.clientHeight;
         const pieces = Array.from(bits.current?.children ?? []) as HTMLElement[];
         await new Promise<void>((done) => {
           const t = gsap.timeline({ onComplete: done });
           t.set(s, { x: -44, opacity: 1, rotation: 0 }).set(ln, { scaleX: 0, opacity: 1 }).set(pieces, { x: 0, y: 0, opacity: 0, rotation: 0 })
-            .to(head.current, { y: -3, duration: .12, yoyo: true, repeat: 1 }, 0)
+            .to(head.current, { y: 3, duration: .12, yoyo: true, repeat: 1 }, 0)
             .to(s, { x: width + 10, duration: 1.4, ease: "none" }, .15)
             .to(s.querySelector(".sc-a"), { rotation: -16, svgOrigin: "23 16", duration: .1, repeat: 13, yoyo: true, ease: "sine.inOut" }, .15)
             .to(s.querySelector(".sc-b"), { rotation: 16, svgOrigin: "23 16", duration: .1, repeat: 13, yoyo: true, ease: "sine.inOut" }, .15)
@@ -330,12 +345,12 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
           pieces.forEach((p, i) => {
             const at = .25 + (i / pieces.length) * 1.2;
             t.set(p, { x: (i / pieces.length) * width, y: 0, opacity: 1 }, at)
-              .to(p, { y: 60 + (i % 3) * 30, x: `+=${(i % 2 ? 1 : -1) * (10 + (i % 4) * 8)}`, rotation: (i % 2 ? 1 : -1) * 260, opacity: 0, duration: .9, ease: "power1.in" }, at);
+              .to(p, { y: -(50 + (i % 3) * 30), x: `+=${(i % 2 ? 1 : -1) * (10 + (i % 4) * 8)}`, rotation: (i % 2 ? 1 : -1) * 260, opacity: 0, duration: .9, ease: "power1.in" }, at);
           });
           t.to(s, { opacity: 0, scale: .6, duration: .2 }, 1.55)
             .to(ln, { opacity: 0, duration: .2 }, 1.6)
-            // the cut receipt flutters down and away, swaying like paper
-            .to(el, { y: H + 140, duration: 1.5, ease: "power1.in" }, 1.65)
+            // the torn-off receipt flutters up and away, swaying like paper
+            .to(el, { y: -(H + el.offsetHeight + 60), duration: 1.6, ease: "power1.in" }, 1.65)
             .to(el, { x: 26, rotation: 9, duration: .38, yoyo: true, repeat: 3, ease: "sine.inOut" }, 1.65)
             .to(el, { opacity: 0, duration: .4 }, 2.75)
             .fromTo(dl.current, { y: -8, opacity: 0, scale: .6 }, { y: 0, opacity: 1, scale: 1, duration: .45, ease: "back.out(3)" }, 2.6)
@@ -355,20 +370,6 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
 
   return (
     <div className={`rc${out ? " out" : ""}`} ref={box}>
-      <div ref={head} className={`rc-printer${busy ? " printing" : ""}`}>
-        <div className="rc-p-top">
-          <span className="rc-brand">{map ? "MAP · LINKS · HELLO" : `${d.owner.toUpperCase()} · RECEIPTS`}</span>
-          <span className="rc-lcd" aria-live="polite">{lcd}</span>
-          <i className="rc-led" />
-        </div>
-        <div className="rc-keys">
-          <button type="button" onClick={() => print()} disabled={busy}><i>🖨</i>Print</button>
-          <button type="button" onClick={() => dlg.current?.showModal()}><i>👁</i>View</button>
-          <button type="button" className="cut" onClick={cut} disabled={busy}><i>✂</i>Cut PDF</button>
-        </div>
-        <i className="rc-slot" aria-hidden />
-        <span className="rc-dl" ref={dl} aria-hidden>⬇</span>
-      </div>
       <div className="rc-win" ref={win}>
         <div className={`rc-scroll${busy ? " busy" : ""}`} ref={scroller} data-lenis-prevent>
           <div className="rc-feed" ref={feed}><ReceiptPaper d={d} r={r} map={map} clock={clock} /></div>
@@ -377,6 +378,21 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
         <span className="rc-scis" ref={scis} aria-hidden><Scissors /></span>
         <span className="rc-bits" ref={bits} aria-hidden>{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</span>
         <i className="rc-roll" ref={roll} aria-hidden><i className="rc-turn" ref={turn} /></i>
+      </div>
+      <div ref={head} className={`rc-printer${busy ? " printing" : ""}`}>
+        <i className="rc-slot" aria-hidden />
+        <div className="rc-screen">
+          <div className="rc-sbar"><span>{map ? "MAP · LINKS · HELLO" : `${d.owner.toUpperCase()} · POS`}</span><span>{tick || "--:--"} ▂▄▆ ▮▮▮</span></div>
+          <span className="rc-lcd" aria-live="polite">{lcd}</span>
+        </div>
+        <div className="rc-pad">{["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((k) => <button key={k} type="button" tabIndex={-1} aria-hidden onClick={() => press(k)}>{k}</button>)}</div>
+        <div className="rc-keys">
+          <button type="button" className="go" onClick={() => print()} disabled={busy}><i>🖨</i>Print</button>
+          <button type="button" className="see" onClick={() => dlg.current?.showModal()}><i>👁</i>View</button>
+          <button type="button" className="cut" onClick={cut} disabled={busy}><i>✂</i>Cut PDF</button>
+        </div>
+        <div className="rc-base"><i className="rc-led" /><span>TAP · INSERT · SMILE</span><i className="rc-nfc">)))</i></div>
+        <span className="rc-dl" ref={dl} aria-hidden>⬇</span>
       </div>
       <dialog ref={dlg} className="rc-view" aria-label="Your receipt" onClick={(e) => { if (e.target === dlg.current) dlg.current?.close(); }}>
         <div className="rc-view-in">
