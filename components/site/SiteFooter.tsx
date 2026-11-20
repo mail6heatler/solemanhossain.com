@@ -20,7 +20,7 @@ export function Footer({ settings, sections = [], onHome = true, preview = false
   const links = settings.socials.map((s) => { const v = linkView(s); return { label: s.label, url: s.url, icon: v.icon, logo: v.logo, color: v.color, ink: v.ink }; });
   const d: FootData = {
     sections: sections.map((s) => ({ slug: s.slug, label: s.nav_label || s.title, emoji: s.nav_emoji, code: s.code, href: href(s) })),
-    links, owner, full: settings.fullName, connectHref: connect ? href(connect) : "/", design: f, preview,
+    links, owner, full: settings.fullName, photo: settings.avatarUrl || "", connectHref: connect ? href(connect) : "/", design: f, preview,
   };
   const name = <EggName on={!!ex.egg}>{owner}</EggName>;
   let body: React.ReactNode = null;

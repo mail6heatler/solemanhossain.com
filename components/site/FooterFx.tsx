@@ -1,16 +1,29 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FooterDesign } from "@/lib/chrome";
-import { readVisit, type Visit } from "./visit";
+import { readVisit, visitTimes, type Visit } from "./visit";
 
 export type FootSection = { slug: string; label: string; emoji: string; code: string; href: string };
 export type FootLink = { label: string; url: string; icon: string; logo: string; color: string; ink: string };
-export type FootData = { sections: FootSection[]; links: FootLink[]; owner: string; full: string; connectHref: string; design: FooterDesign; preview?: boolean };
+export type FootData = { sections: FootSection[]; links: FootLink[]; owner: string; full: string; photo?: string; connectHref: string; design: FooterDesign; preview?: boolean };
 
 const dhakaTime = () => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Dhaka" });
 const dhakaDate = () => new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dhaka" });
 const dateOf = (iso: string) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
 const mmss = (s: number) => `${(s / 60) | 0}:${String(s % 60).padStart(2, "0")}`;
+/** Time as the receipt says it: 4:05, or 1H 12M once it's over an hour. */
+const dur = (s: number) => (s >= 3600 ? `${(s / 3600) | 0}H ${String(((s % 3600) / 60) | 0).padStart(2, "0")}M` : mmss(s));
+/** A small steady number from a text, so a visit's receipt number, fortune and lucky number stay the same all visit. */
+const seedOf = (t: string) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
+const FORTUNES = [
+  "A message you send today gets a smile back.", "Something good is loading. Please wait.", "You will scroll back here. Everyone does.",
+  "Your next adventure starts with a small yes.", "The best plans are made over tea.", "Someone is proud of you today.",
+  "Luck favours the curious. You qualify.", "A new friend is one hello away.", "Today's mood: main character.",
+  "Good things come to those who scroll.", "You have excellent taste in websites.", "Drink water. Then do the brave thing.",
+  "An old idea will feel new again soon.", "You are someone's favourite notification.", "The view is better from where you're going.",
+  "Keep this receipt. Future you will smile.",
+];
+const RANKS: [number, string][] = [[0, "WINDOW SHOPPER"], [.01, "TOURIST"], [.34, "EXPLORER"], [.67, "ADVENTURER"], [1, "LEGEND: SAW IT ALL"]];
 const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("lite");
 
 /** The visitor's visit, kept current as they browse; the site's newest entry per section and the counts, asked once. */
@@ -43,8 +56,12 @@ type Ln = { t: "title" | "c" | "sub" | "ln" | "hr" | "big" | "bar" | "btn"; a?: 
 function receiptLines(d: FootData, v: Visit | null, now: number, srv: { newest: Record<string, string>; counts: Record<string, number> }, map: boolean, clock: { date: string; time: string }): Ln[] {
   const f = d.design, seen = new Set(v?.seen ?? []);
   const secs = d.sections;
+  const seed = seedOf(v?.start || "visit");
   const L: Ln[] = [{ t: "title", a: f.shop || d.owner.toUpperCase() }, { t: "c", a: clock.date ? `Dhaka, Bangladesh · ${clock.date} · ${clock.time}` : "Dhaka, Bangladesh" }];
-  if (v) L.push({ t: "c", a: v.visits > 1 ? `VISIT #${v.visits} · FRIEND SINCE ${dateOf(v.first).toUpperCase()}` : "FIRST VISIT · WELCOME!" });
+  if (v) {
+    L.push({ t: "c", a: `RECEIPT NO. ${String(v.visits).padStart(4, "0")}-${(seed % 0xffff).toString(16).toUpperCase().padStart(4, "0")} · CASHIER: ${d.owner.toUpperCase()}` });
+    L.push({ t: "c", a: v.visits > 1 ? `VISIT #${v.visits} · FRIEND SINCE ${dateOf(v.first).toUpperCase()}` : "FIRST VISIT · WELCOME!" });
+  }
   L.push({ t: "hr" }, { t: "sub", a: map ? "QTY  YOUR MAP OF THIS SITE  SEEN" : "SEEN THIS VISIT" });
   for (const s of secs) {
     const n = srv.counts[s.slug];
@@ -58,10 +75,12 @@ function receiptLines(d: FootData, v: Visit | null, now: number, srv: { newest: 
   if (fresh.length) { L.push({ t: "sub", a: "NEW SINCE YOUR LAST VISIT" }); for (const s of fresh) L.push({ t: "ln", a: `${s.emoji} ${s.label.toUpperCase()}`, b: "NEW", href: s.href }); }
   if (v?.opened.length) { L.push({ t: "sub", a: "YOU OPENED" }); for (const o of v.opened.slice(-6)) L.push({ t: "ln", a: `📄 ${o.t}`, b: "↗", href: o.h }); }
   L.push({ t: "hr" });
-  const secsHere = v ? Math.max(0, Math.round((now - new Date(v.start).getTime()) / 1000)) : 0;
-  L.push({ t: "ln", a: "TIME HERE", b: mmss(secsHere) });
+  const tm = v ? visitTimes(v, now) : { here: 0, all: 0 };
+  L.push({ t: "ln", a: "TIME THIS VISIT", b: dur(tm.here) });
   if (v) {
-    L.push({ t: "ln", a: "SECTIONS SEEN", b: `${seen.size}/${secs.length}` }, { t: "ln", a: "REACTIONS GIVEN", b: String(v.reactions) });
+    if (v.visits > 1) L.push({ t: "ln", a: "TIME, ALL VISITS", b: dur(tm.all) }, { t: "ln", a: "VISITS SO FAR", b: String(v.visits) });
+    const n = secs.filter((s) => seen.has(s.slug)).length;
+    L.push({ t: "ln", a: "SECTIONS SEEN", b: `${n}/${secs.length}` }, { t: "ln", a: "ENTRIES OPENED", b: String(v.opened.length) }, { t: "ln", a: "REACTIONS GIVEN", b: String(v.reactions) });
     if (v.votes) L.push({ t: "ln", a: "POLLS VOTED", b: String(v.votes) });
     if (v.messages) L.push({ t: "ln", a: "MESSAGES SENT", b: String(v.messages) });
     if (v.comments) L.push({ t: "ln", a: "COMMENTS", b: String(v.comments) });
@@ -71,6 +90,18 @@ function receiptLines(d: FootData, v: Visit | null, now: number, srv: { newest: 
     L.push({ t: "hr" }, { t: "sub", a: "WAYS TO PAY (REACH ME)" });
     for (const l of d.links) L.push({ t: "ln", a: `💳 ${l.label.toUpperCase()}`, b: "↗", href: l.url });
     L.push({ t: "ln", a: "💬 SAY HELLO", b: "↗", href: d.connectHref });
+  }
+  // the fun part: a rank, a loyalty card stamped once per visit, a fortune and a lucky number, all steady for the whole visit
+  if (v) {
+    const share = secs.length ? secs.filter((s) => seen.has(s.slug)).length / secs.length : 0;
+    const rank = RANKS.reduce((r, [min, name]) => (share >= min ? name : r), RANKS[0][1]);
+    const stamps = ((v.visits - 1) % 10) + 1;
+    L.push({ t: "hr" }, { t: "ln", a: "YOUR RANK", b: rank });
+    L.push({ t: "sub", a: "LOYALTY CARD · ONE STAMP PER VISIT" }, { t: "c", a: `${"●".repeat(stamps)}${"○".repeat(10 - stamps)}  ${stamps}/10` });
+    if (stamps === 10) L.push({ t: "c", a: "CARD FULL! YOU'RE OFFICIALLY A REGULAR" });
+    L.push({ t: "sub", a: "TODAY'S FORTUNE" }, { t: "c", a: FORTUNES[seed % FORTUNES.length] });
+    L.push({ t: "ln", a: "LUCKY NUMBER", b: String((seed % 99) + 1) }, { t: "ln", a: "TIP", b: "A SMILE (INCLUDED)" });
+    L.push({ t: "c", a: "KEEP THIS: PROOF YOU WERE HERE" });
   }
   L.push({ t: "hr" }, { t: "big", a: "TOTAL", b: map ? "PRICELESS" : "1 HAPPY VISITOR" }, { t: "c", a: f.thanks }, { t: "bar" });
   return L;
@@ -100,14 +131,30 @@ type QRCode = { addData(s: string): void; make(): void; getModuleCount(): number
 type QRFactory = (type: number, level: string) => QRCode;
 
 /** The receipt as a PDF, 80mm wide like a real till roll, in Courier; letters a PDF's built-in font can't draw are left out. */
-async function cutPdf(lines: Ln[], qrText: string, name: string) {
+/** The owner's photo for the PDF, in black and white like a thermal print; nothing if it can't be read. */
+async function photoData(url: string): Promise<string> {
+  try {
+    const b = await (await fetch(url, { mode: "cors" })).blob();
+    const img = await createImageBitmap(b);
+    const c = document.createElement("canvas"), z = 240;
+    c.width = z; c.height = z;
+    const g = c.getContext("2d")!, k = Math.max(z / img.width, z / img.height);
+    g.filter = "grayscale(1) contrast(1.35)";
+    g.drawImage(img, (z - img.width * k) / 2, Math.min(0, (z - img.height * k) * .18), img.width * k, img.height * k);
+    return c.toDataURL("image/jpeg", .85);
+  } catch { return ""; }
+}
+
+async function cutPdf(lines: Ln[], qrText: string, name: string, photo = "") {
   const { jsPDF } = await import("jspdf");
-  const clean = (s = "") => s.normalize("NFKD").replace(/[^\x20-\x7E]/g, "").replace(/\s+/g, " ").trim();
+  const pic = photo ? await photoData(photo) : "";
+  const clean = (s = "") => s.replace(/●/g, "*").replace(/○/g, "o").normalize("NFKD").replace(/[^\x20-\x7E]/g, "").replace(/\s+/g, " ").trim();
   const W = 80, L = 6, R = W - 6, lh = 4.6;
-  const h = 16 + lines.length * lh + (qrText ? 42 : 0) + 18;
+  const h = 16 + lines.length * lh + (qrText ? 42 : 0) + (pic ? 24 : 0) + 18;
   const doc = new jsPDF({ unit: "mm", format: [W, Math.max(110, h)] });
   doc.setFont("courier", "normal"); doc.setFontSize(8.6);
   let y = 10;
+  if (pic) { doc.addImage(pic, "JPEG", W / 2 - 10, 6, 20, 20); y = 32; }
   for (const l of lines) {
     if (l.t === "title") { doc.setFont("courier", "bold"); doc.setFontSize(11); doc.text(clean(l.a), W / 2, y, { align: "center" }); doc.setFont("courier", "normal"); doc.setFontSize(8.6); y += lh + 1; continue; }
     if (l.t === "c" || l.t === "sub") { doc.setFontSize(l.t === "sub" ? 7.4 : 8.6); doc.text(clean(l.a), l.t === "c" ? W / 2 : L, y, { align: l.t === "c" ? "center" : "left" }); doc.setFontSize(8.6); y += lh; continue; }
@@ -194,7 +241,15 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
     if (!el || !b || still()) return;
     if (!seenOnce.current) {
       el.style.transform = "translateY(-110%)"; // waiting to be printed
-      const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); seenOnce.current = true; print(); } }, { threshold: .3 });
+      const io = new IntersectionObserver((es) => {
+        if (!es.some((e) => e.isIntersecting)) return;
+        io.disconnect(); seenOnce.current = true;
+        // printed once per visit: on the visit's later pages the receipt is already out of the printer
+        const id = readVisit()?.start ?? "";
+        let done = false;
+        try { done = !!id && localStorage.getItem("lc_rc_printed") === id; if (id) localStorage.setItem("lc_rc_printed", id); } catch { /* */ }
+        if (done) el.style.transform = ""; else print();
+      }, { threshold: .3 });
       io.observe(b);
       return () => io.disconnect();
     }
@@ -237,7 +292,7 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
           tl.current = t;
         });
       }
-      await cutPdf(lines, map ? site : "", d.design.shop || d.owner);
+      await cutPdf(lines, map ? site : "", d.design.shop || d.owner, d.photo);
       if (inView) { dlg.current?.close(); if (gsap && viewPaper.current) gsap.set(viewPaper.current, { clearProps: "all" }); }
       setRun((r) => r + 1); // a fresh receipt prints
     } finally { setBusy(false); }
@@ -253,6 +308,7 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
   ) : null;
   const paper = (full: boolean) => (
     <div className={`rc-paper${full ? " whole" : ""}`}>
+      {d.photo && <div className="rc-photo" style={{ backgroundImage: `url("${d.photo.replace(/["\\]/g, "")}")` }} role="img" aria-label={d.full} />}
       {lines.slice(0, lines.length - 4).map((l, i) => <Line key={i} l={l} edit={d.preview} />)}
       {extras}
       {lines.slice(lines.length - 4).map((l, i) => <Line key={`e${i}`} l={l} edit={d.preview} />)}

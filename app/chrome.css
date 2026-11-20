@@ -222,6 +222,7 @@
 .rc-cut { position: absolute; left: 0; right: 0; top: 3px; z-index: 4; height: 0; border-top: 2px dashed #c2185b; opacity: 0; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
 .rc-scis { position: absolute; left: 0; top: -9px; z-index: 5; font-size: 22px; line-height: 1; color: #2a2633; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 2px #0004); }
 .rc-view-paper { position: relative; overflow: hidden; }
+.rc-photo { width: 64px; height: 64px; margin: 0 auto 8px; border-radius: 50%; background: center 18% / cover no-repeat; filter: grayscale(1) contrast(1.35); box-shadow: 0 0 0 2px #2a2633, 0 0 0 5px #fffdf8, 0 0 0 6.5px #2a263366; }
 .rc-view-paper .rc-cut { top: 4px; }
 .rc-view-paper .rc-scis { top: -6px; }
 .rc-paper.whole { animation: none; padding-bottom: 26px; -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; }

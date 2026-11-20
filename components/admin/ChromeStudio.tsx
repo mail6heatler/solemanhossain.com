@@ -48,18 +48,24 @@ const pick = (key: string, n: number, max: number) => { try { const v = Number(l
 
 /**
  * The editors' previews: a computer screen and a phone screen side by side, each a real page drawn at that screen's real size
- * (/admin/preview, ChromePreview) and scaled so both fit the width, never cut. The draft goes into both with postMessage on every change,
- * so they show what isn't saved yet. Sizes are chosen by presets, remembered in lc_cs_desk and lc_cs_phone.
+ * (/admin/preview, ChromePreview) and scaled so they fit the left side's width and the window's height, never cut; they stay put while the
+ * settings on the right scroll. The draft goes into both with postMessage on every change, so they show what isn't saved yet. Sizes are
+ * chosen by presets (lc_cs_desk, lc_cs_phone), and Both, Computer or Phone shows one bigger (lc_cs_view).
  */
 function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: SiteSettings; skin: string }) {
-  const [di, setDi] = useState(1), [pi, setPi] = useState(1), [w, setW] = useState(0);
+  const [di, setDi] = useState(1), [pi, setPi] = useState(1), [w, setW] = useState(0), [vh, setVh] = useState(800);
+  const [view, setView] = useState<"both" | "desk" | "phone">("both");
   const box = useRef<HTMLDivElement>(null);
   const frames = useRef<(HTMLIFrameElement | null)[]>([]);
-  useEffect(() => { setDi(pick("lc_cs_desk", 1, DESKS.length)); setPi(pick("lc_cs_phone", 1, PHONES.length)); }, []);
+  useEffect(() => {
+    setDi(pick("lc_cs_desk", 1, DESKS.length)); setPi(pick("lc_cs_phone", 1, PHONES.length));
+    try { const v = localStorage.getItem("lc_cs_view"); if (v === "desk" || v === "phone") setView(v); } catch { /* */ }
+  }, []);
   useEffect(() => {
     const el = box.current; if (!el) return;
     const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); setW(el.clientWidth);
-    return () => ro.disconnect();
+    const tall = () => setVh(innerHeight); tall(); addEventListener("resize", tall);
+    return () => { ro.disconnect(); removeEventListener("resize", tall); };
   }, []);
   // send the draft in, now and whenever a screen says it's ready
   const draft = useRef<ChromeDraft>({ type: "lc-chrome-draft", settings, skin });
@@ -72,25 +78,28 @@ function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: 
   }, []);
   const [dw, dh] = DESKS[di], [pw, ph] = PHONES[pi];
   const gap = 18, bez = 10;
-  // one height for both, so together they fill the width; stacked when the room is narrow
-  const stack = w > 0 && w < 760;
-  const capH = typeof window === "undefined" ? 700 : Math.max(320, innerHeight * .7);
-  let H = w ? (w - gap - 2 * bez) / (dw / dh + pw / ph) : 0;
-  if (H > capH) H = capH;
-  const kd = stack ? w / dw : H / dh, kp = stack ? Math.min(1, (w * .7 - 2 * bez) / pw) : H / ph;
+  // one height for both, as big as the left side's width and the window's height allow
+  const capH = Math.max(260, vh - 210);
+  let kd = 0, kp = 0;
+  if (view === "desk") kd = Math.min(w / dw, capH / dh);
+  else if (view === "phone") kp = Math.min((w - 2 * bez) / pw, (capH - 2 * bez) / ph, 1.2);
+  else { const H = Math.min(capH, w ? (w - gap - 2 * bez) / (dw / dh + pw / ph) : 0); kd = H / dh; kp = (H - 2 * bez) / ph; }
+  const setV = (v: typeof view) => { setView(v); try { localStorage.setItem("lc_cs_view", v); } catch { /* */ } };
   const src = `/admin/preview?part=${part}`;
   return (
     <div className="cs-screens">
       <div className="cs-sizes">
+        <span>{([["both", "Both"], ["desk", "Computer"], ["phone", "Phone"]] as const).map(([k, label]) => <button key={k} type="button" className={`hst-chip${view === k ? " on" : ""}`} onClick={() => setV(k)}>{label}</button>)}</span>
         <span><i className="ti ti-device-laptop" />{DESKS.map(([x, y, label], i) => <button key={label} type="button" className={`hst-chip${i === di ? " on" : ""}`} title={`${x} × ${y}`} onClick={() => { setDi(i); try { localStorage.setItem("lc_cs_desk", String(i)); } catch {} }}>{label} <small>{x}</small></button>)}</span>
         <span><i className="ti ti-device-mobile" />{PHONES.map(([x, y, label], i) => <button key={label} type="button" className={`hst-chip${i === pi ? " on" : ""}`} title={`${x} × ${y}`} onClick={() => { setPi(i); try { localStorage.setItem("lc_cs_phone", String(i)); } catch {} }}>{label} <small>{x}</small></button>)}</span>
       </div>
-      <div ref={box} className={`cs-row${stack ? " stack" : ""}`}>
+      <div ref={box} className="cs-row">
         {w > 0 && <>
-          <div className="cs-screen desk" style={{ width: dw * kd, height: dh * kd }}>
+          {/* both frames stay loaded when one is hidden, so switching is instant */}
+          <div className="cs-screen desk" hidden={view === "phone"} style={{ width: dw * kd, height: dh * kd }}>
             <iframe ref={(f) => { frames.current[0] = f; }} src={src} title="Your site on a computer" style={{ width: dw, height: dh, transform: `scale(${kd})` }} />
           </div>
-          <div className="cs-screen phone" style={{ width: pw * kp + 2 * bez, height: ph * kp + 2 * bez }}>
+          <div className="cs-screen phone" hidden={view === "desk"} style={{ width: pw * kp + 2 * bez, height: ph * kp + 2 * bez }}>
             <iframe ref={(f) => { frames.current[1] = f; }} src={src} title="Your site on a phone" style={{ width: pw, height: ph, transform: `scale(${kp})` }} />
           </div>
         </>}
@@ -138,6 +147,7 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
         <div className="stu-name"><h1 className="adm-h">Menu bar</h1><p className="adm-sub">On top of every page{dirty ? " · changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns">{picker}<a href="/" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
+      <div className="cs-work">
       <Screens part="menu" settings={s} skin={skin} />
       <div className="cs-grid">
         <div className="cs-panel">
@@ -184,6 +194,7 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
           </div></details>
         </div>
       </div>
+      </div>
       <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setD(saved)} />
       {note && <div className={`adm-toast stu-toast${note.bad ? " bad" : ""}`} role="status">{note.t}</div>}
     </div>
@@ -229,6 +240,7 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
         <div className="stu-name"><h1 className="adm-h">Footer</h1><p className="adm-sub">At the bottom of every page, under Connect{dirty ? " · changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns">{picker}<a href="/#connect" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
+      <div className="cs-work">
       <Screens part="footer" settings={s} skin={skin} />
       <div className="cs-grid">
         <div className="cs-panel">
@@ -256,6 +268,7 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
             <div className="hint" style={{ margin: 0 }}>Each visitor&apos;s receipt is built in their own browser: the sections they saw (each line leads there), what&apos;s still to see, what&apos;s new since their last visit, the entries they opened, how long they&apos;ve stayed, their reactions, votes, messages and comments, how many times they&apos;ve visited and since when. Nothing of it is sent to you or anyone. View shows it whole, Cut downloads it as a PDF, Print again prints a fresh one.</div>
           </div>
         </div>
+      </div>
       </div>
       <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setD(saved)} />
       {note && <div className={`adm-toast stu-toast${note.bad ? " bad" : ""}`} role="status">{note.t}</div>}

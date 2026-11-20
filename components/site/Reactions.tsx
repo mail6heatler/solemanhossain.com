@@ -90,6 +90,7 @@ export default function Reactions({ id, compact = false, talk, href, attrs }: { 
       const d = await r.json();
       if (!r.ok) { setCounts(before.counts); setMine(before.mine); }
       if (d.counts) window.dispatchEvent(new CustomEvent("lc-react", { detail: { id, counts: d.counts, mine: d.mine ?? [] } }));
+      if (r.ok && adding) window.dispatchEvent(new Event("lc-reacted")); // the visit receipt counts reactions given, not taken back
     } catch {} finally { setBusy(false); }
   };
 

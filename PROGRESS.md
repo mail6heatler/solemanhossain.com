@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Editors' previews stay put; receipt once per visit, with real numbers and fun
+
+The owner asked: settings on the right scroll while both previews stay; a receipt prints once per visit, then just shows; its numbers must be right; add fun so visitors keep the PDF; add their top photo small. Done; visits now end after 30 minutes away rather than per tab, and reactions taken back no longer count. Built, not tested beyond the build. They were also asked whether to run Next.js's recommended security upgrade (not answered yet).
+
 ### 2026-11-20: Name never cut, menu sizes, printing receipts
 
 The owner saw the menu bar fixes and asked for more: the typing name was cut by the links on the right, sizes should be adjustable, receipts should print when the visitor reaches the footer (rolling up if long) using an animation framework, and Cut should cut with an animation before the download. Done: the name keeps the room of its longest phrase and the links shrink to fit; a Sizes box on the Menu bar page (name, links, space between links, bar height); receipts print and cut with GSAP. Built, not tested beyond the build.

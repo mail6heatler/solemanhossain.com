@@ -353,7 +353,11 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cst-av.av-online { --cw-av: #2fbf71; } .cst-av.av-busy { --cw-av: #e5484d; } .cst-av.av-away { --cw-av: #e8b93a; } .cst-av.av-holiday { --cw-av: #8b6fd6; } .cst-av.av-off { --cw-av: #9aa0a6; }
 
 /* The menu bar's and the footer's editors (ChromeStudio.tsx): the live preview on top, the controls and a phone frame of the real site under it */
-.cs-grid { display: block; }
+/* the Menu bar and Footer editors: previews on the left stay put, the settings on the right scroll on their own */
+.cs-work { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 20px; align-items: start; }
+.cs-work > .cs-screens { position: sticky; top: 0; margin: 0; }
+.cs-work > .cs-grid { max-height: calc(100vh - 150px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+@media (max-width: 1100px) { .cs-work { grid-template-columns: minmax(0, 1fr); } .cs-work > .cs-screens { position: static; } .cs-work > .cs-grid { max-height: none; overflow: visible; } }
 /* the Menu bar and Footer editors' screens: a computer and a phone, each a real page at a real size, scaled (Screens in ChromeStudio.tsx) */
 .cs-screens { display: grid; gap: 10px; margin-bottom: 18px; }
 .cs-sizes { display: flex; flex-wrap: wrap; gap: 8px 22px; }
@@ -361,7 +365,7 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cs-sizes > span > .ti { font-size: 18px; color: var(--text-muted); }
 .cs-sizes small { opacity: .6; font-size: 11px; }
 .cs-row { display: flex; align-items: flex-start; justify-content: center; gap: 18px; min-height: 120px; }
-.cs-row.stack { flex-direction: column; align-items: center; }
+.cs-screen[hidden] { display: none; }
 .cs-screen { position: relative; flex: none; overflow: hidden; background: #000; }
 .cs-screen iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: #fff; }
 .cs-screen.desk { border-radius: 10px; box-shadow: 0 0 0 1px var(--card-border), 0 22px 44px -28px rgba(20,30,25,.5); }
@@ -370,8 +374,7 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cs-hint { margin: 0; text-align: center; }
 .cs-slider label { display: flex; justify-content: space-between; }
 .cs-slider input[type=range] { width: 100%; accent-color: var(--mint); }
-.cs-panel { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); align-items: start; }
-@media (max-width: 900px) { .cs-panel { grid-template-columns: minmax(0, 1fr); } }
+.cs-panel { grid-template-columns: minmax(0, 1fr); align-items: start; }
 /* inside a preview screen (/admin/preview): a short page under the menu bar */
 .cpv-hero, .cpv-sec { min-height: 62vh; padding: 120px 6vw 40px; display: grid; align-content: center; gap: 8px; border-bottom: 1px solid var(--line); }
 .cpv-hero { min-height: 90vh; background: var(--hero-bg, var(--bg)); color: var(--hero-fg, var(--fg)); }
