@@ -4,7 +4,7 @@ import { menuBg, type MenuDesign } from "@/lib/chrome";
 import { BrandTypewriter } from "./Typewriters";
 import MobileMenu from "./MobileMenu";
 import ThemeSwitch from "./ThemeSwitch";
-import NavFx, { NowPlaying, SearchButton } from "./NavFx";
+import NavFx, { NavFit, NowPlaying, SearchButton } from "./NavFx";
 
 /** Light text over these backgrounds. */
 const DARK_BGS = new Set(["eq", "aurora", "brick", "dhaka", "sky"]);
@@ -58,7 +58,7 @@ export function Nav({ settings, sections, onHome, preview = false }: { settings:
   // the name always types itself through its phrases (the owner's rule, 2026-11-19), in every look
   const name = <BrandTypewriter phrases={settings.brandPhrases.length ? settings.brandPhrases : [settings.fullName]} animate={settings.effects.typewriter} />;
   return (
-    <nav className={cls} data-sky={m.sky}>
+    <nav className={cls} data-sky={m.sky} style={{ "--nm": m.size.name / 100, "--lk": m.size.links / 100, "--lg": `${m.size.gap}px`, "--nh": m.size.height / 100 } as React.CSSProperties}>
       {!plain && <NavBg bg={bg} />}
       {m.look === "ticker" && (
         <div className="mb-tick" aria-hidden>
@@ -99,6 +99,7 @@ export function Nav({ settings, sections, onHome, preview = false }: { settings:
         )}
       </div>
       {ex.prog && <i className="mb-prog" aria-hidden />}
+      <NavFit dep={`${m.look}|${m.size.name}|${m.size.links}|${m.size.gap}|${m.size.height}|${shown.length}|${settings.brandPhrases.join("|")}`} />
       {!plain || ex.hide || ex.slim || ex.prog || ex.newdots ? <NavFx look={m.look} sky={m.sky} extras={ex} preview={preview} /> : null}
     </nav>
   );

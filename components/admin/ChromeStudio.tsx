@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import type { Section } from "@/lib/data";
 import { LIVE_THEMES, SKIN_LABELS, type SiteSettings, type Skin } from "@/lib/settings";
 import {
-  FOOTER_EXTRAS, FOOTER_LOOKS, MENU_BGS, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
-  type FooterDesign, type FooterExtra, type MenuDesign, type MenuExtra,
+  FOOTER_EXTRAS, FOOTER_LOOKS, MENU_BGS, MENU_SIZE_LIMITS, DEFAULT_MENU, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
+  type FooterDesign, type FooterExtra, type MenuDesign, type MenuExtra, type MenuSize,
 } from "@/lib/chrome";
 import { saveFooter, saveMenu } from "@/app/actions";
 import type { ChromeDraft } from "./ChromePreview";
@@ -100,6 +100,8 @@ function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: 
   );
 }
 
+const SIZE_ROWS: [keyof MenuSize, string, string][] = [["name", "Your name's size", "%"], ["links", "Section links' size", "%"], ["gap", "Space between links", "px"], ["height", "Bar's height", "%"]];
+
 function Look({ on, title, desc, onClick, tag }: { on: boolean; title: string; desc: string; onClick: () => void; tag?: string }) {
   return <button type="button" className={`cs-look${on ? " on" : ""}`} onClick={onClick} aria-pressed={on}><b>{title}{tag && <em>{tag}</em>}</b><small>{desc}</small></button>;
 }
@@ -141,6 +143,18 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
         <div className="cs-panel">
           <details className="c box" open><summary><span>Look</span><i className="ti ti-chevron-down" /></summary><div className="f cs-looks">
             {MENU_LOOKS.map(([k, label, desc]) => <Look key={k} on={d.look === k} title={label} desc={desc} onClick={() => set({ look: k })} />)}
+          </div></details>
+          <details className="c box" open><summary><span>Sizes</span><i className="ti ti-chevron-down" /></summary><div className="f">
+            {SIZE_ROWS.map(([k, label, unit]) => {
+              const [lo, hi, def] = MENU_SIZE_LIMITS[k];
+              return (
+                <div key={k} className="fl cs-slider"><label htmlFor={`m-sz-${k}`}>{label} <b>{d.size[k]}{unit}</b></label>
+                  <input id={`m-sz-${k}`} type="range" min={lo} max={hi} value={d.size[k]} onChange={(e) => set({ size: { ...d.size, [k]: +e.target.value } })} onDoubleClick={() => set({ size: { ...d.size, [k]: def } })} />
+                </div>
+              );
+            })}
+            <div className="btns"><button type="button" className="b-out b-sm" onClick={() => set({ size: DEFAULT_MENU.size })}>Back to normal sizes</button></div>
+            <div className="hint">Your name always gets the room of its longest phrase, so it&apos;s never cut while it types. If the links don&apos;t fit beside it, they shrink a little by themselves. A double click on a slider puts it back.</div>
           </div></details>
           <details className="c box" open><summary><span>Background</span><i className="ti ti-chevron-down" /></summary><div className="f">
             <div className="hst-chips">{MENU_BGS.map(([k, label]) => <button key={k} type="button" className={`hst-chip${d.bg === k ? " on" : ""}`} onClick={() => set({ bg: k })}>{k === "own" ? `${label} (${ownBg})` : label}</button>)}</div>

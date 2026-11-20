@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Name never cut, menu sizes, printing receipts
+
+The owner saw the menu bar fixes and asked for more: the typing name was cut by the links on the right, sizes should be adjustable, receipts should print when the visitor reaches the footer (rolling up if long) using an animation framework, and Cut should cut with an animation before the download. Done: the name keeps the room of its longest phrase and the links shrink to fit; a Sizes box on the Menu bar page (name, links, space between links, bar height); receipts print and cut with GSAP. Built, not tested beyond the build.
+
 ### 2026-11-20: Menu bar's three fixes
 
 The owner said "go" for the job queued on 2026-11-19. (1) The mini photo after the hero is gone, with its extra. (2) The name always types itself (the "name stays whole" extra is gone); Now playing shows it as the artist, with the section and track number on the line above. (3) The Menu bar and Footer editors show a computer and a phone screen side by side, live with the draft, each a real page at a real screen size scaled to fit (sizes by presets). Built, not tested beyond the build, as is their rule.

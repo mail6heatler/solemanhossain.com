@@ -210,9 +210,20 @@
 .rc { display: flex; flex-direction: column; align-items: center; height: 100%; padding: 0 5vw 10px; }
 .rc-printer { position: relative; z-index: 3; flex: none; display: flex; align-items: center; justify-content: space-between; width: min(360px, 100%); height: 42px; padding: 0 16px 8px; border-radius: 0 0 16px 16px; background: linear-gradient(#3a3542, #2b2733); box-shadow: inset 0 -8px 0 #19161f, 0 10px 18px -10px #000a; color: #cfc8da; font: 700 10px ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; letter-spacing: .12em; }
 .rc-led { width: 8px; height: 8px; border-radius: 50%; background: #2fbf71; box-shadow: 0 0 8px #2fbf71; opacity: .5; }
-.rc-printer.printing .rc-led { opacity: 1; animation: ft-blink .3s steps(1) 10; }
+.rc-printer.printing .rc-led { opacity: 1; animation: ft-blink .3s steps(1) infinite; }
 .rc-win { position: relative; flex: 1; min-height: 0; width: min(320px, 92%); margin-top: -6px; overflow: hidden; }
-.rc-paper { position: relative; padding: 18px 18px 60px; background: #fffdf8; color: #2a2633; font: 400 12.5px/1.65 ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; box-shadow: inset 0 18px 18px -18px #0003; animation: ft-feed 2.6s steps(26) both; }
+.rc-paper { position: relative; padding: 18px 18px 60px; background: #fffdf8; color: #2a2633; font: 400 12.5px/1.65 ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; box-shadow: inset 0 18px 18px -18px #0003; }
+/* the window the paper feeds into: it scrolls once printed (the roll turns with it); printing and cutting are GSAP's (FooterFx) */
+.rc-scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.rc-scroll::-webkit-scrollbar { display: none; }
+.rc-scroll.busy { overflow: hidden; }
+.rc-roll { overflow: hidden; transform-origin: 50% 100%; }
+.rc-turn { position: absolute; inset: 0 0 -100%; background: repeating-linear-gradient(#0000 0 9px, #00000018 9px 12px); }
+.rc-cut { position: absolute; left: 0; right: 0; top: 3px; z-index: 4; height: 0; border-top: 2px dashed #c2185b; opacity: 0; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.rc-scis { position: absolute; left: 0; top: -9px; z-index: 5; font-size: 22px; line-height: 1; color: #2a2633; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 2px #0004); }
+.rc-view-paper { position: relative; overflow: hidden; }
+.rc-view-paper .rc-cut { top: 4px; }
+.rc-view-paper .rc-scis { top: -6px; }
 .rc-paper.whole { animation: none; padding-bottom: 26px; -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; }
 /* the round fold: the paper curls into a roll at the bottom of the window */
 .rc-win::after { content: ""; position: absolute; left: 0; right: 0; bottom: 22px; height: 70px; z-index: 1; pointer-events: none; background: linear-gradient(transparent, #2a263318 60%, #2a263330); }
@@ -323,7 +334,18 @@ html.lite .lt-sig { clip-path: none; }
   .lt-sig { clip-path: none; }
 }
 
-/* the brand gives way before the links do: a long "Now playing" title shortens instead of running under them */
+/* the name keeps the room of its longest phrase (.bt-ghost); the links shrink to make room (NavFit sets --fit), and only on a screen too
+   narrow for even that does the name give way. The owner's sizes: --nm (name), --lk (links), --lg (space between links), --nh (bar height). */
 .site .nav.mb .brand { flex: 0 1 auto; overflow: hidden; }
-.mb-now { max-width: 240px; overflow: hidden; }
-.mb-now small, .mb-now b, .mb-now em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mb-now { overflow: hidden; }
+.mb-now small, .mb-now em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mb-now b { white-space: nowrap; }
+.bt { display: inline-grid; white-space: nowrap; }
+.bt > .bt-ghost, .bt > .bt-live { grid-area: 1 / 1; }
+.bt-ghost { display: grid; visibility: hidden; pointer-events: none; }
+.bt-ghost > span { grid-area: 1 / 1; }
+.site .nav .brand { zoom: var(--nm, 1); }
+.site .nav .navlinks { zoom: calc(var(--lk, 1) * var(--fit, 1)); gap: var(--lg, 2px); }
+.site .nav { padding-top: calc(14px * var(--nh, 1)); padding-bottom: calc(14px * var(--nh, 1)); }
+.site .nav.mb-slim { padding-top: calc(7px * var(--nh, 1)); padding-bottom: calc(7px * var(--nh, 1)); }
+.site .nav.mb-measure .brand { flex: none; }

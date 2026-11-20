@@ -368,6 +368,8 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cs-screen.phone { border-radius: 30px; background: #15151b; box-shadow: 0 22px 44px -28px rgba(20,30,25,.5); }
 .cs-screen.phone iframe { top: 10px; left: 10px; border-radius: 22px; }
 .cs-hint { margin: 0; text-align: center; }
+.cs-slider label { display: flex; justify-content: space-between; }
+.cs-slider input[type=range] { width: 100%; accent-color: var(--mint); }
 .cs-panel { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); align-items: start; }
 @media (max-width: 900px) { .cs-panel { grid-template-columns: minmax(0, 1fr); } }
 /* inside a preview screen (/admin/preview): a short page under the menu bar */

@@ -265,10 +265,11 @@ export function startHoverFx(fx: HoverFxFlags) {
       const moveTo = (a: HTMLElement | null | undefined) => {
         if (!a) { pill.style.opacity = "0"; return; }
         const r = a.getBoundingClientRect(), p = list.getBoundingClientRect();
+        const z = p.width / (list.offsetWidth || p.width) || 1; // the menu's sizes zoom the links (--lk, --fit): place in the list's own pixels
         pill.style.opacity = "1";
-        pill.style.width = `${r.width}px`;
-        pill.style.transform = `translate(${r.left - p.left}px, ${r.top - p.top}px)`;
-        pill.style.height = `${r.height}px`;
+        pill.style.width = `${r.width / z}px`;
+        pill.style.transform = `translate(${(r.left - p.left) / z}px, ${(r.top - p.top) / z}px)`;
+        pill.style.height = `${r.height / z}px`;
       };
       const active = () => list.querySelector<HTMLElement>("a.active");
       let hovering = false;

@@ -37,8 +37,9 @@ export default function NavFx({ look, sky, extras, preview }: { look: MenuLook; 
       if (!deco || !links) return;
       if (!a) { deco.style.opacity = "0"; return; }
       const lr = links.getBoundingClientRect(), r = a.getBoundingClientRect();
+      const z = lr.width / (links.offsetWidth || lr.width) || 1; // the links may be zoomed (--lk, --fit)
       deco.style.opacity = "1";
-      deco.style.transform = `translateX(${r.left - lr.left}px) scaleX(${r.width / 100})`;
+      deco.style.transform = `translateX(${(r.left - lr.left) / z}px) scaleX(${r.width / z / 100})`;
     };
     const active = () => nav.querySelector<HTMLElement>(".navlinks a.active");
     const onSpy = () => place(active());
@@ -110,6 +111,40 @@ export default function NavFx({ look, sky, extras, preview }: { look: MenuLook; 
     cleanups.push(() => { removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); clearTimeout(fastTimer); });
     return () => cleanups.forEach((f) => f());
   }, [look, sky, extras, preview]);
+  return <span ref={ref} hidden />;
+}
+
+/**
+ * Keeps the whole name in view: the name takes the room of its longest phrase, and if the links don't fit beside it and the buttons, they
+ * shrink together (`--fit`, a CSS zoom on .navlinks, never under .55) rather than the name being cut. Measured on load, after fonts, when the
+ * width changes and when the owner's sizes change; never while scrolling.
+ */
+export function NavFit({ dep }: { dep: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const nav = ref.current?.closest<HTMLElement>(".nav");
+    if (!nav) return;
+    const fit = () => {
+      const links = nav.querySelector<HTMLElement>(".navlinks"), brand = nav.querySelector<HTMLElement>(".brand"), right = nav.querySelector<HTMLElement>(".nav-right");
+      nav.style.setProperty("--fit", "1");
+      if (!links || !brand || !right || getComputedStyle(links).display === "none") return;
+      nav.classList.add("mb-measure");
+      const cs = getComputedStyle(nav);
+      const room = nav.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - (parseFloat(cs.columnGap) || 0);
+      const bw = brand.getBoundingClientRect().width, rw = right.getBoundingClientRect().width, lw = links.getBoundingClientRect().width;
+      nav.classList.remove("mb-measure");
+      const over = bw + rw - room + 4;
+      if (over > 0 && lw > 0) nav.style.setProperty("--fit", Math.max(.55, (lw - over) / lw).toFixed(3));
+      dispatchEvent(new Event("lc-spy")); // the highlights under the links re-measure
+    };
+    let w = innerWidth, raf = 0;
+    const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    const onResize = () => { if (innerWidth !== w) { w = innerWidth; later(); } };
+    later();
+    document.fonts?.ready.then(later).catch(() => {});
+    addEventListener("resize", onResize);
+    return () => { removeEventListener("resize", onResize); cancelAnimationFrame(raf); };
+  }, [dep]);
   return <span ref={ref} hidden />;
 }
 

@@ -48,12 +48,17 @@ export type MenuDesign = {
   /** sections left out of the menu (by slug); they stay on the page */
   hidden: string[];
   helloLabel: string;
+  /** sizes the owner sets (2026-11-20): the name and the links as percentages, the space between links in px, the bar's height as a percentage */
+  size: MenuSize;
 };
+export type MenuSize = { name: number; links: number; gap: number; height: number };
+export const MENU_SIZE_LIMITS: Record<keyof MenuSize, [number, number, number]> = { name: [60, 170, 100], links: [60, 150, 100], gap: [0, 30, 2], height: [50, 180, 100] };
 export const DEFAULT_MENU: MenuDesign = {
   look: "play", bg: "own", phone: "bottom", sky: "now",
   extras: { react: true, slim: true, hide: false, prog: true, hello: true, newdots: true, search: true },
   ticker: ["● Online now", "🕐 {time} in Dhaka", "👋 Say hello, I read every message"],
   hidden: [], helloLabel: "Say hello 👋",
+  size: { name: 100, links: 100, gap: 2, height: 100 },
 };
 
 export const FOOTER_LOOKS = [
@@ -113,7 +118,17 @@ export function cleanMenu(raw: unknown): MenuDesign {
     ticker: Array.isArray(o.ticker) ? o.ticker.map((x) => text(x, 120)).filter(Boolean).slice(0, 8) : d.ticker,
     hidden: Array.isArray(o.hidden) ? o.hidden.map((x) => text(x, 60)).filter((x) => /^[a-z0-9-]+$/.test(x)).slice(0, 40) : d.hidden,
     helloLabel: typeof o.helloLabel === "string" ? text(o.helloLabel, 30) : d.helloLabel,
+    size: cleanSize(o.size),
   };
+}
+
+function cleanSize(raw: unknown): MenuSize {
+  const o = obj(raw), out = {} as MenuSize;
+  for (const k of Object.keys(MENU_SIZE_LIMITS) as (keyof MenuSize)[]) {
+    const [lo, hi, def] = MENU_SIZE_LIMITS[k], v = Number(o[k]);
+    out[k] = Number.isFinite(v) && o[k] !== null && o[k] !== "" ? Math.round(Math.min(hi, Math.max(lo, v))) : def;
+  }
+  return out;
 }
 
 export function cleanFooter(raw: unknown): FooterDesign {

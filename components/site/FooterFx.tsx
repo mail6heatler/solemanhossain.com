@@ -133,19 +133,116 @@ async function cutPdf(lines: Ln[], qrText: string, name: string) {
   doc.save(`receipt-${clean(name).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "visit"}-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
+type Gsap = typeof import("gsap").gsap;
+let gsapP: Promise<Gsap> | null = null;
+/** GSAP, the animation library the receipt's printing and cutting run on; downloaded only when a receipt is on the page. */
+const loadGsap = () => (gsapP ??= import("gsap").then((m) => m.gsap));
+
 /**
- * The footer's receipts (settings.footer.look): the visit receipt and the receipt that is also the site's map and your contact card. The paper
- * comes out of a printer and rolls up at the bottom; View shows it whole in a box in the middle of the screen, Cut downloads it as a PDF, and
- * Print again prints a fresh one. Lines lead to their section or entry.
+ * The footer's receipts (settings.footer.look): the visit receipt and the receipt that is also the site's map and your contact card.
+ * When the footer comes into view the printer prints it (GSAP): the head shakes, the light blinks, the paper feeds out line by line, and
+ * a receipt longer than the window winds onto the roll at the bottom, which turns and grows fatter. Afterwards the window scrolls, and the
+ * roll turns with it. Print again prints a fresh one. Cut runs the scissors along the paper at the printer, the receipt drops away, then the
+ * PDF downloads and a new one prints. View shows it whole in a box in the middle of the screen. Lines lead to their section or entry.
+ * Only JavaScript hides the paper before it prints, so without it (or with reduced motion, or html.lite) the receipt is simply there.
  */
 export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
   const { v, srv, now, clock } = useVisit(d.preview);
   const [run, setRun] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const dlg = useRef<HTMLDialogElement>(null);
+  const box = useRef<HTMLDivElement>(null), head = useRef<HTMLDivElement>(null), win = useRef<HTMLDivElement>(null), scroller = useRef<HTMLDivElement>(null);
+  const feed = useRef<HTMLDivElement>(null), roll = useRef<HTMLElement>(null), turn = useRef<HTMLElement>(null), scis = useRef<HTMLSpanElement>(null), line = useRef<HTMLElement>(null);
+  const viewPaper = useRef<HTMLDivElement>(null), viewScis = useRef<HTMLSpanElement>(null), viewLine = useRef<HTMLElement>(null);
+  const tl = useRef<{ kill(): unknown } | null>(null);
+  const seenOnce = useRef(false);
   const lines = useMemo(() => receiptLines(d, v, now, srv, map, clock), [d, v, now, srv, map, clock]);
   const site = clock.site;
   const seen = new Set(v?.seen ?? []);
+  const still = () => typeof window === "undefined" || calm();
+
+  /** Prints the receipt: the paper feeds out of the printer in line-sized steps; what doesn't fit winds onto the roll. */
+  const print = async () => {
+    const el = feed.current, w = win.current, sc = scroller.current;
+    if (!el || !w || !sc) return;
+    tl.current?.kill();
+    if (still()) { el.style.transform = ""; return; }
+    const gsap = await loadGsap().catch(() => null);
+    if (!gsap) { el.style.transform = ""; return; }
+    sc.scrollTop = 0;
+    const H = el.offsetHeight, W = w.clientHeight, rest = Math.max(0, H - W);
+    const dur = Math.min(4.6, Math.max(1.6, H / 260)), steps = Math.max(8, Math.round(H / 21));
+    setPrinting(true);
+    const t = gsap.timeline({ onComplete: () => { setPrinting(false); gsap.set(el, { clearProps: "transform,opacity" }); } });
+    t.set(el, { y: -H, rotation: 0, opacity: 1 }).set(line.current, { scaleX: 0, opacity: 0 }).set(scis.current, { opacity: 0 })
+      .set(roll.current, { scaleY: 1 })
+      .to(head.current, { x: 1.2, duration: .045, repeat: Math.round(dur / .045), yoyo: true, ease: "none" }, 0)
+      .to(el, { y: 0, duration: dur, ease: `steps(${steps})` }, .15)
+      .to(head.current, { x: 0, duration: .1 });
+    if (rest > 0 && roll.current && turn.current) {
+      const start = .15 + dur * (W / H), spin = dur - dur * (W / H);
+      t.fromTo(turn.current, { y: 0 }, { y: -24, duration: .35, repeat: Math.max(1, Math.round(spin / .35)), ease: "none" }, start)
+        .to(roll.current, { scaleY: 1 + Math.min(.55, rest / 1400), duration: spin, ease: "none" }, start);
+    }
+    tl.current = t;
+  };
+
+  // print when the footer comes into view (once per page), and again on Print again
+  useEffect(() => {
+    const el = feed.current, b = box.current;
+    if (!el || !b || still()) return;
+    if (!seenOnce.current) {
+      el.style.transform = "translateY(-110%)"; // waiting to be printed
+      const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); seenOnce.current = true; print(); } }, { threshold: .3 });
+      io.observe(b);
+      return () => io.disconnect();
+    }
+    print();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run]);
+  useEffect(() => () => { tl.current?.kill(); }, []);
+
+  // the roll turns as the visitor scrolls the receipt in its window
+  useEffect(() => {
+    const sc = scroller.current, tn = turn.current;
+    if (!sc || !tn) return;
+    let raf = 0;
+    const on = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; tn.style.transform = `translateY(${-(sc.scrollTop % 24)}px)`; }); };
+    sc.addEventListener("scroll", on, { passive: true });
+    return () => { sc.removeEventListener("scroll", on); cancelAnimationFrame(raf); };
+  }, []);
+
+  /** Cut: the scissors snip along the paper at the printer, the receipt drops away, then the PDF downloads and a fresh one prints. */
+  const cut = async (inView: boolean) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const paperEl = inView ? viewPaper.current : feed.current, s = inView ? viewScis.current : scis.current, ln = inView ? viewLine.current : line.current;
+      const gsap = still() ? null : await loadGsap().catch(() => null);
+      if (gsap && paperEl && s && ln) {
+        tl.current?.kill();
+        if (!inView && scroller.current) scroller.current.scrollTop = 0;
+        const width = s.parentElement?.clientWidth ?? 300;
+        const drop = inView ? innerHeight : (win.current?.clientHeight ?? 400) + 60;
+        await new Promise<void>((done) => {
+          const t = gsap.timeline({ onComplete: done });
+          t.set(s, { x: -30, opacity: 1, rotation: 0 }).set(ln, { scaleX: 0, opacity: 1 })
+            .to(s, { x: width + 6, duration: 1, ease: "power1.inOut" }, 0)
+            .to(s, { rotation: -22, duration: .09, repeat: 11, yoyo: true, ease: "sine.inOut" }, 0)
+            .to(ln, { scaleX: 1, duration: 1, ease: "power1.inOut" }, 0)
+            .to(s, { opacity: 0, duration: .15 })
+            .to(paperEl, { y: `+=${drop}`, rotation: inView ? 6 : 9, opacity: 0, duration: .75, ease: "power2.in" }, ">-0.05")
+            .to(ln, { opacity: 0, duration: .2 }, "<");
+          tl.current = t;
+        });
+      }
+      await cutPdf(lines, map ? site : "", d.design.shop || d.owner);
+      if (inView) { dlg.current?.close(); if (gsap && viewPaper.current) gsap.set(viewPaper.current, { clearProps: "all" }); }
+      setRun((r) => r + 1); // a fresh receipt prints
+    } finally { setBusy(false); }
+  };
+
   const extras = map ? (
     <>
       <div className="rc-sub">WHERE YOU&apos;VE BEEN</div>
@@ -155,27 +252,35 @@ export function ReceiptFooter({ d, map }: { d: FootData; map: boolean }) {
     </>
   ) : null;
   const paper = (full: boolean) => (
-    <div className={`rc-paper${full ? " whole" : ""}`} key={full ? "w" : run}>
+    <div className={`rc-paper${full ? " whole" : ""}`}>
       {lines.slice(0, lines.length - 4).map((l, i) => <Line key={i} l={l} edit={d.preview} />)}
       {extras}
       {lines.slice(lines.length - 4).map((l, i) => <Line key={`e${i}`} l={l} edit={d.preview} />)}
     </div>
   );
-  const cut = async () => { if (busy) return; setBusy(true); try { await cutPdf(lines, map ? site : "", d.design.shop || d.owner); } finally { setBusy(false); } };
   return (
-    <div className="rc">
-      <div className={`rc-printer${run ? " printing" : ""}`} key={`p${run}`}><span>{map ? "MAP · LINKS · HELLO" : `${d.owner.toUpperCase()} · RECEIPTS`}</span><i className="rc-led" /></div>
-      <div className="rc-win">{paper(false)}<i className="rc-roll" aria-hidden /></div>
+    <div className="rc" ref={box}>
+      <div ref={head} className={`rc-printer${printing ? " printing" : ""}`}><span>{map ? "MAP · LINKS · HELLO" : `${d.owner.toUpperCase()} · RECEIPTS`}</span><i className="rc-led" /></div>
+      <div className="rc-win" ref={win}>
+        <div className={`rc-scroll${printing ? " busy" : ""}`} ref={scroller} data-lenis-prevent>
+          <div className="rc-feed" ref={feed}>{paper(false)}</div>
+        </div>
+        <i className="rc-cut" ref={line} aria-hidden /><span className="rc-scis" ref={scis} aria-hidden>✂</span>
+        <i className="rc-roll" ref={roll} aria-hidden><i className="rc-turn" ref={turn} /></i>
+      </div>
       <div className="rc-btns">
         <button type="button" onClick={() => dlg.current?.showModal()}>👁 View</button>
-        <button type="button" onClick={cut} disabled={busy}>✂ {busy ? "Cutting…" : "Cut (PDF)"}</button>
-        <button type="button" onClick={() => setRun((r) => r + 1)}>🖨 Print again</button>
+        <button type="button" onClick={() => cut(false)} disabled={busy}>✂ {busy ? "Cutting…" : "Cut (PDF)"}</button>
+        <button type="button" onClick={() => setRun((r) => r + 1)} disabled={busy}>🖨 Print again</button>
       </div>
       <dialog ref={dlg} className="rc-view" aria-label="Your receipt" onClick={(e) => { if (e.target === dlg.current) dlg.current?.close(); }}>
         <div className="rc-view-in">
-          {paper(true)}
+          <div className="rc-view-paper">
+            <div ref={viewPaper}>{paper(true)}</div>
+            <i className="rc-cut" ref={viewLine} aria-hidden /><span className="rc-scis" ref={viewScis} aria-hidden>✂</span>
+          </div>
           <div className="rc-btns">
-            <button type="button" onClick={cut} disabled={busy}>✂ {busy ? "Cutting…" : "Cut (PDF)"}</button>
+            <button type="button" onClick={() => cut(true)} disabled={busy}>✂ {busy ? "Cutting…" : "Cut (PDF)"}</button>
             <button type="button" onClick={() => dlg.current?.close()}>Close</button>
           </div>
         </div>

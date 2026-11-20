@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 
-/** Loops through phrases: type, pause, delete, next. */
+/**
+ * Loops through phrases: type, pause, delete, next. Every phrase is also laid out, invisible, in the same spot (`.bt-ghost`), so the name
+ * always takes the room of its longest phrase: nothing beside it moves while it types, and the menu bar can make room for all of it (NavFit).
+ */
 export function BrandTypewriter({ phrases, animate }: { phrases: string[]; animate: boolean }) {
   const list = phrases.length ? phrases : [""];
   const [text, setText] = useState(list[0]);
@@ -24,7 +27,12 @@ export function BrandTypewriter({ phrases, animate }: { phrases: string[]; anima
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animate, list.join("|")]);
-  return <>{text}<span className="blink-cursor" /></>;
+  return (
+    <span className="bt">
+      <span className="bt-ghost" aria-hidden>{list.map((p, i) => <span key={i}>{p}<span className="blink-cursor" /></span>)}</span>
+      <span className="bt-live">{text}<span className="blink-cursor" /></span>
+    </span>
+  );
 }
 
 /** Types the hero subtitle once. The full text is rendered for search engines and no-JS. */
