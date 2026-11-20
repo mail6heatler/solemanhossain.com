@@ -2,14 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Section } from "@/lib/data";
-import { LIVE_THEMES, MOODS, SKIN_LABELS, type SiteSettings, type Skin } from "@/lib/settings";
+import { LIVE_THEMES, SKIN_LABELS, type SiteSettings, type Skin } from "@/lib/settings";
 import {
   FOOTER_EXTRAS, FOOTER_LOOKS, MENU_BGS, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
   type FooterDesign, type FooterExtra, type MenuDesign, type MenuExtra,
 } from "@/lib/chrome";
 import { saveFooter, saveMenu } from "@/app/actions";
-import { Nav } from "@/components/site/SiteNav";
-import { Footer } from "@/components/site/SiteFooter";
+import type { ChromeDraft } from "./ChromePreview";
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -22,7 +21,7 @@ function useSkin(settings: SiteSettings) {
   }, [settings.defaultTheme]);
   useEffect(() => { if (!skin) return; document.documentElement.setAttribute("data-skin", skin); return () => document.documentElement.removeAttribute("data-skin"); }, [skin]);
   const picker = <select className="stu-skin" value={skin} aria-label="Theme the preview wears" onChange={(e) => setSkin(e.target.value)}>{LIVE_THEMES.map((t) => <option key={t} value={t}>{SKIN_LABELS[t as Skin] ?? t}</option>)}</select>;
-  return picker;
+  return [picker, skin] as const;
 }
 
 /** The save bar every editor has: Discard and Save, shown only when something changed; Ctrl+S saves. */
@@ -43,12 +42,60 @@ function SaveBar({ dirty, saving, onSave, onDiscard }: { dirty: boolean; saving:
   );
 }
 
-/** The real site on a phone, in a frame: what's saved, reloaded after every save. */
-function PhoneFrame({ path, rev }: { path: string; rev: number }) {
+const DESKS = [[1280, 800, "Laptop"], [1440, 900, "Large laptop"], [1920, 1080, "Big screen"]] as const;
+const PHONES = [[360, 780, "Small phone"], [390, 844, "Phone"], [430, 932, "Big phone"]] as const;
+const pick = (key: string, n: number, max: number) => { try { const v = Number(localStorage.getItem(key)); return v >= 0 && v < max ? v : n; } catch { return n; } };
+
+/**
+ * The editors' previews: a computer screen and a phone screen side by side, each a real page drawn at that screen's real size
+ * (/admin/preview, ChromePreview) and scaled so both fit the width, never cut. The draft goes into both with postMessage on every change,
+ * so they show what isn't saved yet. Sizes are chosen by presets, remembered in lc_cs_desk and lc_cs_phone.
+ */
+function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: SiteSettings; skin: string }) {
+  const [di, setDi] = useState(1), [pi, setPi] = useState(1), [w, setW] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  const frames = useRef<(HTMLIFrameElement | null)[]>([]);
+  useEffect(() => { setDi(pick("lc_cs_desk", 1, DESKS.length)); setPi(pick("lc_cs_phone", 1, PHONES.length)); }, []);
+  useEffect(() => {
+    const el = box.current; if (!el) return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  // send the draft in, now and whenever a screen says it's ready
+  const draft = useRef<ChromeDraft>({ type: "lc-chrome-draft", settings, skin });
+  draft.current = { type: "lc-chrome-draft", settings, skin };
+  useEffect(() => { frames.current.forEach((f) => f?.contentWindow?.postMessage(draft.current, location.origin)); }, [settings, skin]);
+  useEffect(() => {
+    const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === "lc-chrome-ready") (e.source as Window | null)?.postMessage(draft.current, location.origin); };
+    addEventListener("message", on);
+    return () => removeEventListener("message", on);
+  }, []);
+  const [dw, dh] = DESKS[di], [pw, ph] = PHONES[pi];
+  const gap = 18, bez = 10;
+  // one height for both, so together they fill the width; stacked when the room is narrow
+  const stack = w > 0 && w < 760;
+  const capH = typeof window === "undefined" ? 700 : Math.max(320, innerHeight * .7);
+  let H = w ? (w - gap - 2 * bez) / (dw / dh + pw / ph) : 0;
+  if (H > capH) H = capH;
+  const kd = stack ? w / dw : H / dh, kp = stack ? Math.min(1, (w * .7 - 2 * bez) / pw) : H / ph;
+  const src = `/admin/preview?part=${part}`;
   return (
-    <div className="cs-phone">
-      <iframe key={rev} src={path} title="Your site on a phone" loading="lazy" />
-      <span className="hint">Your site on a phone, as saved. It reloads after you save.</span>
+    <div className="cs-screens">
+      <div className="cs-sizes">
+        <span><i className="ti ti-device-laptop" />{DESKS.map(([x, y, label], i) => <button key={label} type="button" className={`hst-chip${i === di ? " on" : ""}`} title={`${x} × ${y}`} onClick={() => { setDi(i); try { localStorage.setItem("lc_cs_desk", String(i)); } catch {} }}>{label} <small>{x}</small></button>)}</span>
+        <span><i className="ti ti-device-mobile" />{PHONES.map(([x, y, label], i) => <button key={label} type="button" className={`hst-chip${i === pi ? " on" : ""}`} title={`${x} × ${y}`} onClick={() => { setPi(i); try { localStorage.setItem("lc_cs_phone", String(i)); } catch {} }}>{label} <small>{x}</small></button>)}</span>
+      </div>
+      <div ref={box} className={`cs-row${stack ? " stack" : ""}`}>
+        {w > 0 && <>
+          <div className="cs-screen desk" style={{ width: dw * kd, height: dh * kd }}>
+            <iframe ref={(f) => { frames.current[0] = f; }} src={src} title="Your site on a computer" style={{ width: dw, height: dh, transform: `scale(${kd})` }} />
+          </div>
+          <div className="cs-screen phone" style={{ width: pw * kp + 2 * bez, height: ph * kp + 2 * bez }}>
+            <iframe ref={(f) => { frames.current[1] = f; }} src={src} title="Your site on a phone" style={{ width: pw, height: ph, transform: `scale(${kp})` }} />
+          </div>
+        </>}
+      </div>
+      <p className="hint cs-hint">Both screens show your changes as you make them, before saving, at a real {dw}×{dh} computer and {pw}×{ph} phone, scaled to fit. Scroll and click inside them: they work like the site.</p>
     </div>
   );
 }
@@ -58,8 +105,7 @@ function Look({ on, title, desc, onClick, tag }: { on: boolean; title: string; d
 }
 
 /**
- * The menu bar's dashboard page (/admin/menu). The real menu bar is drawn live at the top in the site's theme over a slice of the page,
- * and the real site runs in a phone frame beside the controls. Look, background (and the sky's time), phone menu, extras, the ticker's
+ * The menu bar's dashboard page (/admin/menu). A computer and a phone screen at the top show the real menu bar live, draft included (Screens). Look, background (and the sky's time), phone menu, extras, the ticker's
  * lines, the Say hello button's words and which sections the menu lists. One Save writes it all (saveMenu).
  */
 export function MenuStudio({ first, settings, sections }: { first: MenuDesign; settings: SiteSettings; sections: Section[] }) {
@@ -68,8 +114,7 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
   const [d, setD] = useState(first);
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState<{ t: string; bad?: boolean } | null>(null);
-  const [rev, setRev] = useState(0);
-  const picker = useSkin(settings);
+  const [picker, skin] = useSkin(settings);
   const dirty = !same(d, saved);
   const set = (patch: Partial<MenuDesign>) => setD((x) => ({ ...x, ...patch }));
   const setEx = (k: MenuExtra, v: boolean) => setD((x) => ({ ...x, extras: { ...x.extras, [k]: v } }));
@@ -79,10 +124,9 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
     const r = await saveMenu(d).catch(() => null);
     setSaving(false);
     if (!r || !r.ok) { setNote({ t: r && !r.ok ? r.error : "That didn't save. Check your connection and try again.", bad: true }); return; }
-    setSaved(d); setRev((n) => n + 1); setNote({ t: "Saved. It's live on your site." }); router.refresh();
+    setSaved(d); setNote({ t: "Saved. It's live on your site." }); router.refresh();
   };
   const s = useMemo(() => ({ ...settings, menu: d }) as SiteSettings, [settings, d]);
-  const mood = MOODS[settings.mood];
   const ownBg = MENU_BGS.find(([k]) => k === OWN_BG[d.look])?.[1];
   useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), 4000); return () => clearTimeout(t); }, [note]);
   const lines = useRef(d.ticker.join("\n"));
@@ -92,10 +136,7 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
         <div className="stu-name"><h1 className="adm-h">Menu bar</h1><p className="adm-sub">On top of every page{dirty ? " · changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns">{picker}<a href="/" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
-      <div className={`site stu-site cs-site${settings.effects.navpill ? " fx-navpill" : ""}`} style={(mood ? { "--m": mood.color, "--m-deep": mood.deep } : {}) as React.CSSProperties}>
-        <Nav settings={s} sections={sections} onHome preview />
-        <div className="cs-page"><span className="eyebrow">G1 · {sections[0]?.nav_emoji} {sections[0]?.eyebrow}</span><h2 className="stitle">{sections[0]?.title ?? "Your first section"}</h2><p className="ssub">The menu bar sits on top of every section. Point at it: the links and the decoration move like on the site; scrolling effects play on the real site.</p></div>
-      </div>
+      <Screens part="menu" settings={s} skin={skin} />
       <div className="cs-grid">
         <div className="cs-panel">
           <details className="c box" open><summary><span>Look</span><i className="ti ti-chevron-down" /></summary><div className="f cs-looks">
@@ -128,7 +169,6 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
             <div className="hint">Off leaves a section out of the menu only; it stays on the page. Their order follows your sections&apos; order.</div>
           </div></details>
         </div>
-        <PhoneFrame path="/" rev={rev} />
       </div>
       <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setD(saved)} />
       {note && <div className={`adm-toast stu-toast${note.bad ? " bad" : ""}`} role="status">{note.t}</div>}
@@ -138,8 +178,8 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
 
 type FootDraft = { footer: FooterDesign; footerLeft: string; footerRight: string };
 /**
- * The footer's dashboard page (/admin/footer). The real footer is drawn live at the top (a receipt shows this browser's own visit), and the
- * real site runs in a phone frame. Look, the words each look uses, extras, and the two footer lines (moved here from Settings). Save: saveFooter.
+ * The footer's dashboard page (/admin/footer). A computer and a phone screen at the top show the real footer live, draft included (Screens;
+ * a receipt shows this browser's own visit). Look, the words each look uses, extras, and the two footer lines (moved here from Settings). Save: saveFooter.
  */
 export function FooterStudio({ first, settings, sections }: { first: FootDraft; settings: SiteSettings; sections: Section[] }) {
   const router = useRouter();
@@ -147,8 +187,7 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
   const [d, setD] = useState(first);
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState<{ t: string; bad?: boolean } | null>(null);
-  const [rev, setRev] = useState(0);
-  const picker = useSkin(settings);
+  const [picker, skin] = useSkin(settings);
   const dirty = !same(d, saved);
   const f = d.footer;
   const setF = (patch: Partial<FooterDesign>) => setD((x) => ({ ...x, footer: { ...x.footer, ...patch } }));
@@ -159,11 +198,10 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
     const r = await saveFooter(d).catch(() => null);
     setSaving(false);
     if (!r || !r.ok) { setNote({ t: r && !r.ok ? r.error : "That didn't save. Check your connection and try again.", bad: true }); return; }
-    setSaved(d); setRev((n) => n + 1); setNote({ t: "Saved. It's live on your site." }); router.refresh();
+    setSaved(d); setNote({ t: "Saved. It's live on your site." }); router.refresh();
   };
   useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), 4000); return () => clearTimeout(t); }, [note]);
   const s = useMemo(() => ({ ...settings, footer: f, footerLeft: d.footerLeft, footerRight: d.footerRight }) as SiteSettings, [settings, f, d.footerLeft, d.footerRight]);
-  const mood = MOODS[settings.mood];
   const txt = (k: keyof FooterDesign, label: string, max: number, hint?: string, area = false) => (
     <div className="fl"><label htmlFor={`f-${k}`}>{label}</label>
       {area ? <textarea id={`f-${k}`} className="inp" rows={3} maxLength={max} value={String(f[k] ?? "")} onChange={(e) => setF({ [k]: e.target.value } as Partial<FooterDesign>)} />
@@ -177,9 +215,7 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
         <div className="stu-name"><h1 className="adm-h">Footer</h1><p className="adm-sub">At the bottom of every page, under Connect{dirty ? " · changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns">{picker}<a href="/#connect" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
-      <div className="site stu-site cs-site" style={(mood ? { "--m": mood.color, "--m-deep": mood.deep } : {}) as React.CSSProperties}>
-        <Footer settings={s} sections={sections} onHome preview />
-      </div>
+      <Screens part="footer" settings={s} skin={skin} />
       <div className="cs-grid">
         <div className="cs-panel">
           <details className="c box" open><summary><span>Look</span><i className="ti ti-chevron-down" /></summary><div className="f cs-looks">
@@ -206,7 +242,6 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
             <div className="hint" style={{ margin: 0 }}>Each visitor&apos;s receipt is built in their own browser: the sections they saw (each line leads there), what&apos;s still to see, what&apos;s new since their last visit, the entries they opened, how long they&apos;ve stayed, their reactions, votes, messages and comments, how many times they&apos;ve visited and since when. Nothing of it is sent to you or anyone. View shows it whole, Cut downloads it as a PDF, Print again prints a fresh one.</div>
           </div>
         </div>
-        <PhoneFrame path="/#connect" rev={rev} />
       </div>
       <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setD(saved)} />
       {note && <div className={`adm-toast stu-toast${note.bad ? " bad" : ""}`} role="status">{note.t}</div>}

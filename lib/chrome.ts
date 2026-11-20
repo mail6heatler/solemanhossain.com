@@ -32,8 +32,8 @@ export type SkyTime = (typeof SKY_TIMES)[number][0];
 
 export const MENU_EXTRAS = [
   ["react", "Reacts to scroll speed"], ["slim", "Slims down after the hero"], ["hide", "Hides while scrolling down, back on the way up"],
-  ["prog", "Reading progress line"], ["ava", "Your mini photo after the hero"], ["hello", "Say hello button"], ["newdots", "\"New since your last visit\" dots"],
-  ["search", "Search (press / )"], ["whole", "Your name stays whole (doesn't type itself)"],
+  ["prog", "Reading progress line"], ["hello", "Say hello button"], ["newdots", "\"New since your last visit\" dots"],
+  ["search", "Search (press / )"],
 ] as const;
 export type MenuExtra = (typeof MENU_EXTRAS)[number][0];
 
@@ -51,7 +51,7 @@ export type MenuDesign = {
 };
 export const DEFAULT_MENU: MenuDesign = {
   look: "play", bg: "own", phone: "bottom", sky: "now",
-  extras: { react: true, slim: true, hide: false, prog: true, ava: true, hello: true, newdots: true, search: true, whole: true },
+  extras: { react: true, slim: true, hide: false, prog: true, hello: true, newdots: true, search: true },
   ticker: ["● Online now", "🕐 {time} in Dhaka", "👋 Say hello, I read every message"],
   hidden: [], helloLabel: "Say hello 👋",
 };

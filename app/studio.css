@@ -353,14 +353,28 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cst-av.av-online { --cw-av: #2fbf71; } .cst-av.av-busy { --cw-av: #e5484d; } .cst-av.av-away { --cw-av: #e8b93a; } .cst-av.av-holiday { --cw-av: #8b6fd6; } .cst-av.av-off { --cw-av: #9aa0a6; }
 
 /* The menu bar's and the footer's editors (ChromeStudio.tsx): the live preview on top, the controls and a phone frame of the real site under it */
-.cs-site { position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 0 0 .5px var(--card-border), 0 20px 40px -26px rgba(20,30,25,.45); margin-bottom: 16px; min-height: 0; }
-.cs-site .nav { position: relative !important; }
-.cs-page { padding: 34px 5vw 40px; }
-.cs-page .stitle { margin: 6px 0; font-size: clamp(26px, 3vw, 40px); }
-.cs-page .ssub { max-width: 60ch; }
-.cs-site footer.ft2 { border-radius: 0; }
-.cs-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
-@media (max-width: 1100px) { .cs-grid { grid-template-columns: minmax(0, 1fr); } }
+.cs-grid { display: block; }
+/* the Menu bar and Footer editors' screens: a computer and a phone, each a real page at a real size, scaled (Screens in ChromeStudio.tsx) */
+.cs-screens { display: grid; gap: 10px; margin-bottom: 18px; }
+.cs-sizes { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.cs-sizes > span { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cs-sizes > span > .ti { font-size: 18px; color: var(--text-muted); }
+.cs-sizes small { opacity: .6; font-size: 11px; }
+.cs-row { display: flex; align-items: flex-start; justify-content: center; gap: 18px; min-height: 120px; }
+.cs-row.stack { flex-direction: column; align-items: center; }
+.cs-screen { position: relative; flex: none; overflow: hidden; background: #000; }
+.cs-screen iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: #fff; }
+.cs-screen.desk { border-radius: 10px; box-shadow: 0 0 0 1px var(--card-border), 0 22px 44px -28px rgba(20,30,25,.5); }
+.cs-screen.phone { border-radius: 30px; background: #15151b; box-shadow: 0 22px 44px -28px rgba(20,30,25,.5); }
+.cs-screen.phone iframe { top: 10px; left: 10px; border-radius: 22px; }
+.cs-hint { margin: 0; text-align: center; }
+.cs-panel { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); align-items: start; }
+@media (max-width: 900px) { .cs-panel { grid-template-columns: minmax(0, 1fr); } }
+/* inside a preview screen (/admin/preview): a short page under the menu bar */
+.cpv-hero, .cpv-sec { min-height: 62vh; padding: 120px 6vw 40px; display: grid; align-content: center; gap: 8px; border-bottom: 1px solid var(--line); }
+.cpv-hero { min-height: 90vh; background: var(--hero-bg, var(--bg)); color: var(--hero-fg, var(--fg)); }
+.cpv .stitle, .cpv .ssub, .cpv .eyebrow { opacity: 1; transform: none; margin: 0; }
+.cpv .ssub { max-width: 60ch; }
 .cs-panel { display: grid; gap: 12px; min-width: 0; padding-bottom: 80px; }
 .cs-looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
 .cs-look { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 14px; background: var(--card-bg); color: var(--text-strong); text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
@@ -369,6 +383,3 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .cs-look small { color: var(--text-muted); font-size: 12px; line-height: 1.35; }
 .cs-look:hover { border-color: var(--mint); }
 .cs-look.on { border-color: var(--mint); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 30%, transparent); }
-.cs-phone { position: sticky; top: 12px; display: grid; justify-items: center; gap: 6px; }
-.cs-phone iframe { width: 360px; max-width: 100%; height: min(720px, calc(100vh - 160px)); border: 10px solid #15151b; border-radius: 34px; background: #fff; }
-.cs-site .stitle, .cs-site .ssub, .cs-site .eyebrow { opacity: 1; transform: none; }

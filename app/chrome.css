@@ -15,8 +15,6 @@
 .nav.mb .navlinks a { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 4px; border-radius: 99px; transition: color .25s, translate .2s; }
 .nav.mb .navlinks a:hover { translate: 0 -2px; background: none; }
 .mb-prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--mint); transform-origin: left; transform: scaleX(0); pointer-events: none; }
-.mb-ava { flex: none; width: 0; height: 30px; border-radius: 50%; background: center 18% / cover no-repeat; box-shadow: 0 0 0 2px currentColor; scale: 0; transition: width .3s, margin .3s, scale .35s cubic-bezier(.3,1.6,.5,1); }
-.nav.mb-past .mb-ava { width: 30px; scale: 1; margin-right: 2px; }
 .mb-new { display: none; }
 .navlinks a.is-new .mb-new { display: block; position: absolute; top: 1px; right: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--pop2); box-shadow: 0 0 0 2px var(--bg); animation: mb-beat 1.8s ease-in-out infinite; }
 .mb-hello { flex: none; padding: 7px 14px; border-radius: 99px; background: var(--pop2); color: #fff; font: 700 13px var(--display); text-decoration: none; white-space: nowrap; box-shadow: 0 3px 0 color-mix(in srgb, var(--pop2) 55%, #000); animation: mb-nudge 5s ease-in-out infinite; }
@@ -327,5 +325,5 @@ html.lite .lt-sig { clip-path: none; }
 
 /* the brand gives way before the links do: a long "Now playing" title shortens instead of running under them */
 .site .nav.mb .brand { flex: 0 1 auto; overflow: hidden; }
-.mb-now { max-width: 210px; overflow: hidden; }
+.mb-now { max-width: 240px; overflow: hidden; }
 .mb-now small, .mb-now b, .mb-now em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

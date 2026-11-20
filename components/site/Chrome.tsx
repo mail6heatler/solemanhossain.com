@@ -11,7 +11,8 @@ import { Nav } from "./SiteNav";
 import { Footer } from "./SiteFooter";
 import PhoneMenu from "./PhoneMenu";
 import VisitTracker from "./VisitTracker";
-export { Nav, Footer };
+import { BottomBar } from "./BottomBar";
+export { Nav, Footer, BottomBar };
 
 const CLEAN_URL = /^(https?:\/\/|\/)[\w\-./:%?=&~+#,]+$/;
 /** Pictures the owner added to themes, as CSS. Only a URL with no quotes, brackets or spaces can get in here. */
@@ -35,20 +36,6 @@ export function Rail({ sections, hero }: { sections: Section[]; hero: boolean })
         </a>
       ))}
     </div>
-  );
-}
-
-/** App-style menu at the bottom of the screen on phones. */
-export function BottomBar({ sections, onHome }: { sections: Section[]; onHome: boolean }) {
-  return (
-    <nav className="bbar" aria-label="Sections">
-      <a href={onHome ? "#hero" : "/"} data-link="hero"><span className="e" aria-hidden>🏠</span>Home</a>
-      {sections.map((s) => (
-        <a key={s.id} href={onHome ? `#${s.slug}` : `/#${s.slug}`} data-link={s.slug}>
-          <span className="e" aria-hidden>{s.nav_emoji || "✦"}</span>{s.nav_label || s.title}
-        </a>
-      ))}
-    </nav>
   );
 }
 

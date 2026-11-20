@@ -55,6 +55,8 @@ export function Nav({ settings, sections, onHome, preview = false }: { settings:
   const cls = ["nav", plain ? "" : `mb mb-${m.look} nbg-${bg}${DARK_BGS.has(bg) ? " mb-dark" : ""}`, m.look === "ticker" ? "mb-hastick" : "",
     `ph-${m.phone}`, preview ? "mb-preview" : ""].filter(Boolean).join(" ");
   const tick = m.ticker.length ? m.ticker : ["● Online now"];
+  // the name always types itself through its phrases (the owner's rule, 2026-11-19), in every look
+  const name = <BrandTypewriter phrases={settings.brandPhrases.length ? settings.brandPhrases : [settings.fullName]} animate={settings.effects.typewriter} />;
   return (
     <nav className={cls} data-sky={m.sky}>
       {!plain && <NavBg bg={bg} />}
@@ -64,14 +66,9 @@ export function Nav({ settings, sections, onHome, preview = false }: { settings:
         </div>
       )}
       <a href="/" className="brand" aria-label={settings.fullName}>
-        {ex.ava && settings.avatarUrl && <i className="mb-ava" style={{ backgroundImage: `url("${settings.avatarUrl.replace(/["\\]/g, "")}")` }} aria-hidden />}
         <span className="dot" />
-        {m.look === "play" ? <NowPlaying sections={shown.map((s) => ({ slug: s.slug, label: s.nav_label || s.title, emoji: s.nav_emoji }))} /> : (
-          <span className="brand-text">
-            {ex.whole ? (m.look === "neon" ? settings.nickname || settings.fullName : settings.fullName)
-              : <BrandTypewriter phrases={settings.brandPhrases.length ? settings.brandPhrases : [settings.fullName]} animate={settings.effects.typewriter} />}
-          </span>
-        )}
+        {m.look === "play" ? <NowPlaying name={name} sections={shown.map((s) => ({ slug: s.slug, label: s.nav_label || s.title, emoji: s.nav_emoji }))} />
+          : <span className="brand-text">{name}</span>}
       </a>
       <div className="nav-right">
         <ul className="navlinks">
@@ -102,7 +99,7 @@ export function Nav({ settings, sections, onHome, preview = false }: { settings:
         )}
       </div>
       {ex.prog && <i className="mb-prog" aria-hidden />}
-      {!plain || ex.hide || ex.slim || ex.prog || ex.newdots || ex.ava ? <NavFx look={m.look} sky={m.sky} extras={ex} preview={preview} /> : null}
+      {!plain || ex.hide || ex.slim || ex.prog || ex.newdots ? <NavFx look={m.look} sky={m.sky} extras={ex} preview={preview} /> : null}
     </nav>
   );
 }

@@ -113,8 +113,8 @@ export default function NavFx({ look, sky, extras, preview }: { look: MenuLook; 
   return <span ref={ref} hidden />;
 }
 
-/** "Now playing" in the brand's place: the section you're in as a track, with a timer that runs as you read. */
-export function NowPlaying({ sections }: { sections: { slug: string; label: string; emoji: string }[] }) {
+/** "Now playing" in the brand's place: the owner's name typing itself as the artist, the section you're in as the track, a timer that runs as you read. */
+export function NowPlaying({ name, sections }: { name: React.ReactNode; sections: { slug: string; label: string; emoji: string }[] }) {
   const [at, setAt] = useState(-1);
   const [time, setTime] = useState("0:00");
   useEffect(() => {
@@ -137,8 +137,8 @@ export function NowPlaying({ sections }: { sections: { slug: string; label: stri
   const s = at >= 0 ? sections[at] : null;
   return (
     <span className="mb-now">
-      <small>▶ Now playing{s ? ` · track ${at + 1} of ${sections.length}` : ""}</small>
-      <b>{s ? `${s.emoji} ${s.label}` : "✨ Intro"}</b>
+      <small>▶ {s ? `${s.emoji} ${s.label} · ${at + 1}/${sections.length}` : "✨ Intro"}</small>
+      <b className="brand-text">{name}</b>
       <em>{time}</em>
     </span>
   );

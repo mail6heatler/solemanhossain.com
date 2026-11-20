@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Menu bar's three fixes
+
+The owner said "go" for the job queued on 2026-11-19. (1) The mini photo after the hero is gone, with its extra. (2) The name always types itself (the "name stays whole" extra is gone); Now playing shows it as the artist, with the section and track number on the line above. (3) The Menu bar and Footer editors show a computer and a phone screen side by side, live with the draft, each a real page at a real screen size scaled to fit (sizes by presets). Built, not tested beyond the build, as is their rule.
+
 ### 2026-11-19: Menu bar and footer kept; three fixes queued
 
 The owner kept them ("keep this") and listed what's next, checked on the live site the same day: (1) the mini photo at the menu bar's left after the hero isn't wanted (the `ava` extra, on by default); (2) the name should always type itself through `brandPhrases` (it's fixed now because `whole` defaulted on, and the Now playing look shows the track instead of the name); (3) the Menu bar and Footer editors need a computer and a phone preview, live and at real size like the hero editor's screens, with nothing cut (today the preview is the dashboard's width and the phone frame shows only what's saved). The live site's menu was already switched to Classic by the owner. On the task board as the next job; not started.
