@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Receipt machine stays centred, smooth printing, fits every screen
+
+The owner saw the machine jump up when printing, Cut PDF's word spill out of its key, jerky printing and cut-off words on the screen, and asked for everything to adjust to any screen. Done as in CLAUDE.md ("Receipt footer, round two"). Built, not tested beyond the build.
+
 ### 2026-11-20: Receipt machine chosen: handheld POS, paper underneath
 
 The owner picked machine A from the Receipt Machine Picker with the stub setting and the three-column smaller footer, asking for the paper to print downwards and the machine not to move while printing. Built: one receipt look (map & links merged in), Sizes on the Footer page (height, machine, keys). Built, not tested beyond the build.
