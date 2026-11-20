@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Dashboard theme, saved for later
+
+The owner wants the dashboard to have its own theme. Four preview rounds on https://claude.ai/artifact/TdC3axx8K37gZ2zFxZ4YiJ: plain palettes ("too basic"), animated control-centre scenes ("too bright, no fun"), pastels in an illustrated room with Mini Shourobh ("girl-like; not Mini, a cartoon figure like a settings manager"), and now muted masculine colours (Slate & Sand, Olive Workshop, Steel Harbour, Charcoal & Teal) in an illustrated workshop (Dhaka window by real time, a dog, globe, football, cricket bat) with Bolt, a cartoon robot site manager, playful reactions (confetti, paper plane) and five hidden surprises. They said "keep it for later". Nothing built. When it comes back: start from round four and ask what still feels off.
+
 ### 2026-11-20: Show or hide the menu bar and the footer
 
 The owner asked for a show button on the Menu bar and Footer pages. Each has a "Showing on site" switch at the top, saved with the page's Save (`menu.show`, `footer.show`, on by default). Built, not tested beyond the build. Kept the same day.
