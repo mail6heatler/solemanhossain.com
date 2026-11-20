@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Realistic printing, torn off by hand, View scrolls
+
+The owner found the smooth printing unreal, didn't like the scissors and asked for a tear by human hands, and View wouldn't scroll. Done as in CLAUDE.md ("Receipt footer, round three"). Built, not tested beyond the build.
+
 ### 2026-11-20: Receipt machine stays centred, smooth printing, fits every screen
 
 The owner saw the machine jump up when printing, Cut PDF's word spill out of its key, jerky printing and cut-off words on the screen, and asked for everything to adjust to any screen. Done as in CLAUDE.md ("Receipt footer, round two"). Built, not tested beyond the build.

@@ -271,15 +271,20 @@
 .rc-slot::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: -4px; height: 5px; background: linear-gradient(-45deg, transparent 50%, #9aa0ab 50%) 0 0 / 6px 5px repeat-x; opacity: .85; }
 .rc-dl { position: absolute; right: -12px; top: -12px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #e8457a; color: #fff; font: 800 18px var(--rcd); box-shadow: 0 6px 12px -4px #000a; opacity: 0; pointer-events: none; }
 
-/* the paper under the slot: inside the machine's box, so it scales with it; the footer's edge cuts it off, the fade covers that */
-.rc-win { position: absolute; top: calc(100% - 13px); left: 20px; right: 20px; z-index: -1; height: 100vh; overflow: hidden; }
-.rc-feed { overflow: hidden; cursor: pointer; box-shadow: 0 8px 10px -8px #0006; }
-.rc-cut { position: absolute; left: 0; right: 0; top: 16px; z-index: 4; height: 0; border-top: 2px dashed #e8457a; opacity: 0; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
-.rc-scis { position: absolute; left: 0; top: 2px; z-index: 6; width: 46px; opacity: 0; pointer-events: none; filter: drop-shadow(0 3px 3px #0005); }
-.rc-scis svg { display: block; width: 46px; height: 31px; }
-.rc-bits { position: absolute; left: 0; right: 0; top: 16px; height: 0; z-index: 5; pointer-events: none; }
-.rc-bits i { position: absolute; left: 0; top: 0; width: 7px; height: 4px; background: #fffdf8; box-shadow: 0 0 0 .5px #2a263355; opacity: 0; }
-.rc-bits i:nth-child(3n) { background: #ffd23f; } .rc-bits i:nth-child(4n) { background: #f59ab8; }
+/* the paper under the slot: inside the machine's box, so it scales with it. Only its top is cut off (at the slot), so the tearing hand can
+   reach past its sides; the footer's edge cuts off the bottom, and the fade covers that */
+.rc-win { position: absolute; top: calc(100% - 13px); left: 20px; right: 20px; z-index: -1; height: 100vh; clip-path: inset(0 -400px -400px -400px); }
+.rc-win::before { content: ""; position: absolute; left: 0; right: 0; top: 0; z-index: 3; height: 15px; pointer-events: none; background: linear-gradient(#0007, transparent); }
+.rc-feed { position: relative; isolation: isolate; cursor: pointer; box-shadow: 0 8px 10px -8px #0006; }
+.rc-feed .rc-paper { z-index: 1; }
+.rc-hand { position: absolute; display: none; width: 96px; height: 112px; pointer-events: none; }
+.rc-hand svg { display: block; width: 100%; height: 100%; }
+.rc-hand.b { z-index: 0; } .rc-hand.t { z-index: 2; }
+.rc-stub { position: absolute; top: calc(100% - 13px); left: 20px; right: 20px; z-index: -1; height: 21px; background: #fffdf8; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.rc-bits { position: absolute; left: 0; right: 0; top: 9px; height: 0; z-index: 4; pointer-events: none; }
+.rc-bits i { position: absolute; left: 0; top: 0; width: 5px; height: 3px; border-radius: 1px; background: #fffdf8; box-shadow: 0 0 0 .5px #2a263355; opacity: 0; }
+.rc-bits i:nth-child(3n) { width: 3px; height: 6px; }
+.rc-printer.printing .rc-slot { box-shadow: inset 0 2px 3px #000, 0 1px 0 #ffffff1a, 0 0 7px #ff8a3d66; } /* the print head is warm */
 
 /* the paper: a colour print */
 .rc-paper { position: relative; padding: 16px 14px 30px; background: #fffdf8; color: #2a2633; font: 400 12px/1.55 ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; box-shadow: inset 0 18px 18px -18px #0003; }
