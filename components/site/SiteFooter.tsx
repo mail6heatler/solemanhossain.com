@@ -3,7 +3,7 @@ import { isConnectLayout, type SiteSettings } from "@/lib/settings";
 import { linkView } from "@/lib/connectLook";
 import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
 import { Split } from "./Split";
-import { DhakaClock, EggName, FooterOn, MapFooter, PassFooter, ReceiptFooter, Skyline, TopButton, type FootData } from "./FooterFx";
+import { DhakaClock, DhakaStreet, EggName, FooterOn, MapFooter, PassFooter, ReceiptFooter, Skyline, TopButton, type FootData } from "./FooterFx";
 
 /**
  * The footer (settings.footer, lib/chrome.ts), in one of nine looks the owner picks on its dashboard page: three receipts built from the
@@ -49,7 +49,7 @@ export function Footer({ settings, sections = [], onHome = true, preview = false
       <Skyline sections={d.sections} preview={preview} />
       <i className="sk-moon" aria-hidden />
       <div className="sk-title"><b>{name}</b><span>Good night from Dhaka 🌙 · <DhakaClock /></span></div>
-      <div className="sk-street"><span className="sk-rick" aria-hidden>🛺</span></div>
+      <DhakaStreet />
     </div>
   );
   else if (f.look === "map") body = (

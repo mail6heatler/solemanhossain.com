@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Receipt printer as a device, colour receipt full of fun, PDF identical; Dhaka traffic
+
+The owner asked: the Dhaka-at-night rickshaw drove backwards and one wasn't enough; the cut was too basic; remove the roll's two dots; print once automatically, afterwards show just the printer with the buttons on it; the PDF in colour, identical to the printed receipt, full of fun things, not just lines. Done as described in CLAUDE.md. Built, not tested beyond the build.
+
 ### 2026-11-20: Editors' previews stay put; receipt once per visit, with real numbers and fun
 
 The owner asked: settings on the right scroll while both previews stay; a receipt prints once per visit, then just shows; its numbers must be right; add fun so visitors keep the PDF; add their top photo small. Done; visits now end after 30 minutes away rather than per tab, and reactions taken back no longer count. Built, not tested beyond the build. They were also asked whether to run Next.js's recommended security upgrade (not answered yet).
