@@ -3,6 +3,7 @@ import { cleanHeroDesign, DEFAULT_HERO_DESIGN, type HeroDesign } from "./heroLoo
 import { cleanConnect, DEFAULT_CONNECT, type ConnectDesign } from "./connectLook";
 import { cleanFooter, cleanMenu, DEFAULT_FOOTER, DEFAULT_MENU, type FooterDesign, type MenuDesign } from "./chrome";
 import { cleanStyle, type ContentStyle } from "./contentStyle";
+import { cleanMascot, DEFAULT_MASCOT, type MascotSettings } from "./mascot";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
 // so new fields can be added later without a migration.
@@ -263,6 +264,8 @@ export type SiteSettings = {
   nowStatus: string;
   partyWord: string;
   banner: Banner;
+  /** Mini Shourobh, the mascot (lib/mascot.ts; dashboard page /admin/mascot). */
+  mascot: MascotSettings;
   /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
   themePics: Record<string, string>;
   /** Size and look for all content; sections and entries can override it (lib/contentStyle.ts). */
@@ -316,6 +319,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   nowStatus: "",
   partyWord: "shou",
   banner: DEFAULT_BANNER,
+  mascot: DEFAULT_MASCOT,
   themePics: {},
   contentStyle: {},
   effects: ALL_ON,
@@ -343,6 +347,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     connect: cleanConnect(obj.connect),
     menu: cleanMenu(obj.menu),
     footer: cleanFooter(obj.footer),
+    mascot: cleanMascot(obj.mascot),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;

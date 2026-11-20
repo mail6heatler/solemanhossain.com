@@ -5,6 +5,7 @@ import DemoMode from "./Demo";
 import Living from "./Living";
 import ThemeFx from "./ThemeFx";
 import HangingBanner from "./HangingBanner";
+import Mascot from "./Mascot";
 import FitScreens from "./FitScreens";
 import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
 import { Nav } from "./SiteNav";
@@ -89,6 +90,7 @@ export function SiteShell({ settings, sections, onHome, children }:
       {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}
       {children}
       {settings.footer.show && <Footer settings={settings} sections={sections} onHome={onHome} />}
+      {settings.mascot.show && <Mascot view={{ m: settings.mascot, timezone: settings.timezone }} />}
       {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
       <VisitTracker />

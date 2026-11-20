@@ -15,6 +15,7 @@ import { cleanFv } from "@/lib/fullView";
 import type { StudioData, StudioSave } from "@/lib/studio";
 import { loadStudio } from "@/lib/studioData";
 import { cleanPass } from "@/lib/tripPass";
+import { cleanMascot } from "@/lib/mascot";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -237,6 +238,16 @@ export async function saveFooter(raw: { footer: FooterDesign; footerLeft: string
     refresh();
     return { ok: true };
   } catch (e) { console.error("saveFooter", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
+/** The mascot's dashboard page (components/admin/MascotStudio.tsx) saves everything about him at once. */
+export async function saveMascot(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    await saveSettingsData({ mascot: cleanMascot(raw) });
+    refresh();
+    return { ok: true };
+  } catch (e) { console.error("saveMascot", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
 }
 
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */

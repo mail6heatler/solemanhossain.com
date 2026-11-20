@@ -25,7 +25,7 @@ function useSkin(settings: SiteSettings) {
 }
 
 /** The save bar every editor has: Discard and Save, shown only when something changed; Ctrl+S saves. */
-function SaveBar({ dirty, saving, onSave, onDiscard }: { dirty: boolean; saving: boolean; onSave: () => void; onDiscard: () => void }) {
+export function SaveBar({ dirty, saving, onSave, onDiscard }: { dirty: boolean; saving: boolean; onSave: () => void; onDiscard: () => void }) {
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); onSave(); } };
     addEventListener("keydown", key);

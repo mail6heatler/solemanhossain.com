@@ -1,0 +1,90 @@
+/* Mini Shourobh (components/site/mascotEngine.ts, mascotRig.ts). His drawing, the rocket, smoke and rain are
+   materials (the same in every theme); his speech bubble and chat take the theme's colours. Every class is
+   prefixed (mz-, z…) because the drawing's styles live here, not inside the SVG. */
+
+.mz-layer { position: fixed; inset: 0; z-index: 85; pointer-events: none; overflow: hidden; }
+@media (max-width: 760px) { .site.has-bbar .mz-layer { bottom: calc(66px + env(safe-area-inset-bottom)); } }
+.mz { position: absolute; bottom: 4px; right: 12px; width: 150px; pointer-events: auto; cursor: grab; transform-origin: 50% 100%; touch-action: none; -webkit-tap-highlight-color: transparent; z-index: 2; border-radius: 20px; }
+.mz.left { right: auto; left: 12px; }
+.mz:active { cursor: grabbing; }
+.mz:focus-visible { outline: 3px solid var(--mint, #ffc23a); outline-offset: 2px; }
+
+.mz-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.mz-svg .zo { stroke: var(--mz-ink); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.mz-svg .zsk { fill: var(--mz-skin); }
+.mz-svg .zhr { fill: var(--mz-hair); }
+.mz-svg .zhro { fill: var(--mz-ink); stroke: var(--mz-ink); stroke-width: 5; }
+.mz-svg .zbd { fill: var(--mz-beard); }
+.mz-svg .zstub { fill: var(--mz-beard); opacity: .34; }
+.mz-svg .zsh2 { fill: var(--mz-shirt-dk); }
+.mz-svg .zjn { fill: var(--mz-jeans); }
+.mz-svg .zjn2 { fill: var(--mz-jeans-dk); }
+.mz-svg .zshoe { fill: #fbfbf8; }
+.mz-svg .zhi { fill: none; stroke: #fff; stroke-opacity: .2; stroke-width: 2; stroke-linecap: round; }
+.mz-svg .zbrow { fill: none; stroke: var(--mz-hair); stroke-width: 4.6; stroke-linecap: round; }
+.mz-svg .zhap { fill: none; stroke: var(--mz-ink); stroke-width: 3.2; stroke-linecap: round; }
+.mz-svg .zln { fill: none; stroke: var(--mz-ink); stroke-width: 2.6; stroke-linecap: round; }
+.mz-svg .zsd { fill: rgba(110, 40, 10, .14); }
+.mz-svg .zcloth { transform-box: fill-box; transform-origin: 0% 50%; animation: mz-flag .45s ease-in-out infinite alternate; }
+.mz-svg .zflame { transform-box: fill-box; transform-origin: 50% 100%; animation: mz-fl .14s ease-in-out infinite alternate; }
+@keyframes mz-flag { from { transform: skewY(-7deg) scaleX(.93); } to { transform: skewY(6deg) scaleX(1); } }
+@keyframes mz-fl { from { transform: scale(.85, 1.1); } to { transform: scale(1.1, .9); } }
+
+.mz-bub { position: absolute; left: 0; top: 0; max-width: 230px; padding: 9px 13px; border-radius: 16px; background: var(--card, #fff); color: var(--fg, #1c1c28);
+  border: 1px solid var(--line, rgba(0, 0, 0, .1)); font: 600 13.5px/1.35 inherit; font-family: inherit; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); opacity: 0; pointer-events: none;
+  transform-origin: var(--tail, 50%) 100%; z-index: 4; overflow-wrap: anywhere; }
+.mz-bub::after { content: ""; position: absolute; left: var(--tail, 50%); bottom: -7px; width: 13px; height: 13px; background: var(--card, #fff); border: 1px solid var(--line, rgba(0, 0, 0, .1)); border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); border-radius: 0 0 3px 0; }
+
+.mz-p { position: absolute; font-size: 22px; line-height: 1; pointer-events: none; z-index: 5; will-change: transform; }
+.mz-p.zz { font-weight: 800; font-size: 20px; color: #b7a3ff; }
+.mz-p.bang { font-weight: 800; font-size: 24px; color: #ffc23a; white-space: nowrap; text-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
+.mz-p.ha { font-weight: 800; font-size: 16px; color: #ffc23a; }
+.mz-p.steam { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .75); }
+.mz-count { position: absolute; font-weight: 800; font-size: 38px; color: #fff; text-shadow: 0 3px 0 rgba(0, 0, 0, .35), 0 0 12px rgba(0, 0, 0, .3); pointer-events: none; z-index: 6; white-space: nowrap; }
+.mz-sign { position: absolute; font-size: 46px; line-height: 1; pointer-events: none; z-index: 6; }
+.mz-puff { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #e9ecf5; pointer-events: none; z-index: 1; }
+.mz-rk { position: absolute; display: none; pointer-events: none; z-index: 1; }
+.mz-rk svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.mz-rk-flame { transform-box: fill-box; transform-origin: 50% 0%; animation: mz-fl2 .09s ease-in-out infinite alternate; }
+@keyframes mz-fl2 { from { transform: scale(.85, .8); } to { transform: scale(1.08, 1.25); } }
+.mz-rain { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; display: none; }
+.mz-rain i { position: absolute; top: -24px; width: 2px; height: 18px; border-radius: 2px; background: linear-gradient(transparent, #9cc9ff); animation: mz-drop linear infinite; }
+@keyframes mz-drop { to { transform: translateY(110vh); } }
+.mz-night { position: absolute; inset: 0; pointer-events: none; z-index: 1; display: none; background: radial-gradient(70% 50% at 80% 10%, rgba(255, 240, 170, .1), transparent 60%), rgba(6, 8, 30, .22); }
+.mz-night i { position: absolute; font-style: normal; color: #fff6c9; font-size: 12px; animation: mz-tw 1.6s ease-in-out infinite alternate; }
+@keyframes mz-tw { from { opacity: .25; } to { opacity: 1; } }
+
+.mz-talk { position: absolute; bottom: 12px; left: 0; width: 250px; max-height: calc(100% - 24px); overflow: auto; overscroll-behavior: contain; background: var(--card, #fff); color: var(--fg, #1c1c28);
+  border: 1px solid var(--line, rgba(0, 0, 0, .12)); border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, .35); pointer-events: auto; padding: 10px; display: grid; gap: 8px; z-index: 7; font-size: 13px; line-height: 1.35; }
+.mz-talk[hidden] { display: none; }
+.mz-t-h { display: flex; align-items: center; gap: 8px; }
+.mz-t-h b { font-size: 14px; }
+.mz-t-hearts { margin-left: auto; font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
+.mz-t-x { border: 0; background: color-mix(in srgb, var(--fg, #000) 8%, transparent); border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 16px; line-height: 1; color: inherit; flex: none; }
+.mz-t-body { display: flex; flex-wrap: wrap; gap: 5px; }
+.mz-t-body button { font: inherit; font-weight: 600; font-size: 12.5px; border: 1.5px solid var(--line, rgba(0, 0, 0, .15)); background: color-mix(in srgb, var(--fg, #000) 5%, transparent); color: inherit; border-radius: 99px; padding: 6px 10px; cursor: pointer; }
+.mz-t-body button:hover { border-color: var(--mint, #ff5a46); }
+.mz-t-body .mz-t-rps { font-size: 24px; padding: 6px 14px; }
+.mz-t-score { width: 100%; font-size: 12px; opacity: .75; }
+.mz-t-f { display: flex; gap: 6px; }
+.mz-t-f input { flex: 1; min-width: 0; font: inherit; font-size: 13px; border: 1.5px solid var(--line, rgba(0, 0, 0, .15)); border-radius: 10px; padding: 7px 9px; background: var(--bg, #fff); color: inherit; }
+.mz-t-f button { font: inherit; font-weight: 700; font-size: 12.5px; border: 0; background: var(--mint, #ff5a46); color: var(--bg, #fff); border-radius: 10px; padding: 0 12px; cursor: pointer; }
+
+/* resting: decorative loops pause while the page scrolls; slow devices skip the rain */
+html.scrolling .mz-rain i, html.scrolling .mz-night i, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
+html.lite .mz-rain { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .mz-rain i, .mz-night i, .mz-svg .zcloth, .mz-svg .zflame, .mz-rk-flame { animation: none; } }
+
+/* the dashboard's preview (components/admin/MascotStudio.tsx): the same layer, inside a box */
+.mzs-stage { position: relative; height: 460px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border, #ddd);
+  background: radial-gradient(90% 70% at 50% 25%, color-mix(in srgb, #1d8783 18%, var(--card-bg, #fff)), var(--card-bg, #fff)); }
+.mzs-stage .mz-layer { position: absolute; z-index: 1; }
+.mzs-stage .mz { right: auto; left: 50%; margin-left: -75px; }
+.mzs-stage .mz.left { left: 50%; }
+.mzs-tries { display: grid; gap: 8px; margin-top: 10px; }
+.mzs-tries .lab { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted, #667); }
+.mzs-sw { width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--card-bg, #fff); outline: 1.5px solid var(--card-border, #ccc); cursor: pointer; padding: 0; }
+.mzs-sw.on { outline: 2.5px solid #ff5a46; }
+.mzs-qa { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--card-border, #ddd); border-radius: 12px; }
+.mzs-qa .hint { margin: 0; }
+.mzs-sub { display: grid; gap: 10px; padding-left: 12px; border-left: 2px solid var(--card-border, #ddd); }

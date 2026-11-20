@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./site.css";
 import "./themes.css";
 import "./banner.css";
+import "./mascot.css";
 import "./heroLooks.css";
 import "./chrome.css";
 import "./admin.css";
