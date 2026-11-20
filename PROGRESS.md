@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Menu bar, footer and receipt machine kept
+
+The owner said "perfect keep it" to the whole round: menu bar fixes and sizes, the editors' fixed computer and phone previews, and the footer's handheld POS machine (whole receipt printed in line feeds, torn off by hand, colour PDF identical, three-column smaller footer). Still open for them: the Next.js security upgrade the build recommended (asked, not answered; on the task board under Waiting for you).
+
 ### 2026-11-20: Whole receipt prints, smooth tear, visible hand
 
 The owner asked for a longer print showing every line, not just their own details, a smoother tear (it hung), and a more visible hand. Done as in CLAUDE.md ("Receipt footer, round four"). Built, not tested beyond the build.
