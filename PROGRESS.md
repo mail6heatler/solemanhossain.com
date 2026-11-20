@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Whole receipt prints, smooth tear, visible hand
+
+The owner asked for a longer print showing every line, not just their own details, a smoother tear (it hung), and a more visible hand. Done as in CLAUDE.md ("Receipt footer, round four"). Built, not tested beyond the build.
+
 ### 2026-11-20: Realistic printing, torn off by hand, View scrolls
 
 The owner found the smooth printing unreal, didn't like the scissors and asked for a tear by human hands, and View wouldn't scroll. Done as in CLAUDE.md ("Receipt footer, round three"). Built, not tested beyond the build.

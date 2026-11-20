@@ -235,7 +235,7 @@
 
 /* the middle column: the machine stays in its middle, whatever the paper does */
 .rc { position: relative; display: grid; place-items: center; height: 100%; min-width: 0; }
-.rc-fade { position: absolute; left: -24px; right: -24px; bottom: 0; z-index: 4; height: min(13%, 64px); pointer-events: none; background: linear-gradient(transparent, var(--rc-floor) 80%); }
+.rc-fade { position: absolute; left: -24px; right: -24px; bottom: 0; z-index: 4; height: min(10%, 46px); pointer-events: none; background: linear-gradient(transparent, var(--rc-floor) 80%); }
 .rc-more { position: absolute; left: 50%; bottom: 12px; z-index: 5; translate: -50% 0; padding: 5px 12px; border: .5px solid var(--line); border-radius: 99px; background: var(--card); color: var(--fg); font: 700 12px var(--rcd); white-space: nowrap; cursor: pointer; box-shadow: 0 6px 14px -8px #0006; transition: opacity .4s, translate .2s; }
 .rc-more:hover { translate: -50% -2px; }
 .rc:not(.out) :is(.rc-fade, .rc-more, .rc-win), .rc.waiting .rc-more { opacity: 0; pointer-events: none; }
@@ -277,7 +277,9 @@
 .rc-win::before { content: ""; position: absolute; left: 0; right: 0; top: 0; z-index: 3; height: 15px; pointer-events: none; background: linear-gradient(#0007, transparent); }
 .rc-feed { position: relative; isolation: isolate; cursor: pointer; box-shadow: 0 8px 10px -8px #0006; }
 .rc-feed .rc-paper { z-index: 1; }
-.rc-hand { position: absolute; display: none; width: 96px; height: 112px; pointer-events: none; }
+.rc-hand { position: absolute; display: none; width: 131px; height: 152px; pointer-events: none; filter: drop-shadow(0 5px 6px #0004); }
+.rc.busy :is(.rc-feed, .rc-hand) { will-change: transform; } /* one layer each while they move */
+.rc.busy .rc-more { opacity: 0; pointer-events: none; }
 .rc-hand svg { display: block; width: 100%; height: 100%; }
 .rc-hand.b { z-index: 0; } .rc-hand.t { z-index: 2; }
 .rc-stub { position: absolute; top: calc(100% - 13px); left: 20px; right: 20px; z-index: -1; height: 21px; background: #fffdf8; opacity: 0; pointer-events: none; transition: opacity .15s; }

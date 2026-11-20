@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { FooterDesign } from "@/lib/chrome";
 import { readVisit, visitTimes, type Visit } from "./visit";
 
@@ -209,7 +209,8 @@ const receiptFonts = () => (fontsP ??= (async () => {
 
 /**
  * The receipt as a PDF: a picture of the printed receipt itself (html-to-image), in colour, 80mm wide like a real till roll. The picture is
- * taken of a copy made at once, outside the machine (no zoom, no movement), at the width it has on screen, with the receipt's own fonts.
+ * taken of a copy outside the machine (no zoom, no movement, no torn edges), at the width it has on screen, with the receipt's own fonts.
+ * It's heavy, so it runs only after the tear has finished.
  */
 async function cutPdf(el: HTMLElement, name: string, width: number) {
   const host = document.createElement("div");
@@ -236,17 +237,17 @@ let gsapP: Promise<Gsap> | null = null;
 /** GSAP, the animation library the receipt's printing and tearing run on; downloaded only when a receipt is on the page. */
 const loadGsap = () => (gsapP ??= import("gsap").then((m) => m.gsap));
 
-/** A torn edge: a polygon with small teeth along the top (the receipt) or the bottom (the bit left in the slot). */
-const zig = (top: boolean, n = 40) => {
-  const pts = Array.from({ length: n + 1 }, (_, i) => `${((i / n) * 100).toFixed(2)}% ${i % 2 ? (top ? "0px" : "100%") : top ? "5px" : "calc(100% - 5px)"}`);
-  return top ? `polygon(${pts.join(", ")}, 100% 100%, 0% 100%)` : `polygon(0% 0%, 100% 0%, ${pts.reverse().join(", ")})`;
-};
-const ZIG_TOP = zig(true), ZIG_BOTTOM = zig(false);
+/** Torn edges: small teeth along the receipt's top and bottom (both ends were torn off a roll), and along the bottom of the bit left in the slot. */
+const teeth = (n: number, y: (i: number) => string) => Array.from({ length: n + 1 }, (_, i) => `${((i / n) * 100).toFixed(2)}% ${y(i)}`);
+const ZIG_BOTH = `polygon(${teeth(40, (i) => (i % 2 ? "0px" : "5px")).join(", ")}, ${teeth(40, (i) => (i % 2 ? "100%" : "calc(100% - 5px)")).reverse().join(", ")})`;
+const ZIG_BOTTOM = `polygon(0% 0%, 100% 0%, ${teeth(40, (i) => (i % 2 ? "100%" : "calc(100% - 5px)")).reverse().join(", ")})`;
 
 /**
  * The hand that tears the receipt off, an original drawing in two layers: the palm, fingers and a maroon sleeve go behind the paper, the
- * thumb in front of it, so it really pinches. Both share one box (96 × 112); the thumb's tip is at (14, 34), the paper's edge at x = 44.
+ * thumb in front of it, so it really pinches. Both share one box (drawn 96 × 112, shown at HAND × that); the thumb's tip is at (14, 34),
+ * the paper's edge at x = 44.
  */
+const HAND = 1.36;
 const HandBack = () => (
   <svg viewBox="0 0 96 112" aria-hidden>
     <path d="M42 74 L66 68 L96 98 L96 112 L56 112 Z" fill="#8b1e3f" />
@@ -262,19 +263,23 @@ const HandThumb = () => (
   </svg>
 );
 
+/** The receipt, drawn again only when what it says changes (it holds still while the machine works). */
+const Paper = memo(ReceiptPaper);
+
 /**
  * The footer's receipt (settings.footer.look "receipt"), chosen by the owner from the Receipt Machine Picker on 2026-11-20: machine A, the
- * handheld POS, in the middle of the footer, with the receipt coming out of its slot underneath and fading into the footer's bottom edge
+ * handheld POS, in the middle of the footer, with the receipt hanging from its slot underneath and fading into the footer's bottom edge
  * (click it, or View, for the whole receipt). The owner's rules: the machine stays in the middle and never moves; only its screen, progress
  * bar, light and keys do. The paper is inside the machine's box (`.rc-win`, under the slot), so it scales with it.
- * Printing looks like a real thermal printer (GSAP): a strip of paper comes out of the slot in short line-feed bursts with little pauses,
- * the text moving with the paper, curling slightly toward you, slower where the photo prints, then it settles flat. Cut is a tear by hand:
- * a hand in a maroon sleeve reaches up, pinches the receipt (thumb in front, fingers behind), pulls it against the tear bar so it turns about
- * one corner while fibres fly along the bar, it rips (torn teeth on the receipt and on the bit left in the slot), and the hand takes it
- * away; then the PDF (a picture of this very receipt) downloads. The machine fits any screen by itself (`fit`), its screen's words shrink
- * to fit (`fitLcd`), its keys' words follow their width (cqi). The first time a visit reaches the footer it prints by itself; on the
- * visit's later pages only the machine shows. The number pad types a pretend PIN (the visit's lucky number is a jackpot). Without
- * JavaScript, with reduced motion or on html.lite, the receipt simply hangs there.
+ * Printing is a real thermal printer (GSAP): the whole receipt comes out of the slot in line-feed bursts, the text moving with the paper,
+ * end first as a downward printer does, so every line passes by; slower over the photo, the QR code and the barcode; the screen counts the
+ * percent. Cut is a tear by hand: the fade steps aside, a hand in a maroon sleeve reaches up, pinches (thumb in front, fingers behind),
+ * tugs, the receipt turns about one corner while fibres fly along the tear bar, it rips (a torn bit stays in the slot), and the hand takes
+ * it away; only then is the PDF made (a picture of this very receipt), so the tear never stutters. While the machine works, the receipt
+ * isn't redrawn (its clock would otherwise redraw it every second), and the moving parts keep one layer each (force3D, will-change).
+ * The machine fits any screen by itself (`fit`), its screen's words shrink to fit (`fitLcd`), its keys' words follow their width (cqi).
+ * The first time a visit reaches the footer it prints by itself; on the visit's later pages only the machine shows. The number pad types
+ * a pretend PIN (the visit's lucky number is a jackpot). Without JavaScript, with reduced motion or on html.lite, the receipt just hangs.
  */
 export function ReceiptFooter({ d }: { d: FootData }) {
   const { v, srv, now, clock } = useVisit(d.preview);
@@ -288,14 +293,21 @@ export function ReceiptFooter({ d }: { d: FootData }) {
   const dlg = useRef<HTMLDialogElement>(null);
   const box = useRef<HTMLDivElement>(null), dev = useRef<HTMLDivElement>(null), win = useRef<HTMLDivElement>(null), feed = useRef<HTMLDivElement>(null);
   const screen = useRef<HTMLSpanElement>(null), prog = useRef<HTMLElement>(null), stub = useRef<HTMLElement>(null);
-  const bits = useRef<HTMLSpanElement>(null), dl = useRef<HTMLSpanElement>(null);
+  const fade = useRef<HTMLDivElement>(null), more = useRef<HTMLButtonElement>(null), bits = useRef<HTMLSpanElement>(null), dl = useRef<HTMLSpanElement>(null);
   const tl = useRef<{ kill(): unknown } | null>(null);
-  const r = useMemo(() => receiptData(d, v, now, srv, hour), [d, v, now, srv, hour]);
+  const live = useMemo(() => receiptData(d, v, now, srv, hour), [d, v, now, srv, hour]);
+  const held = useRef(live);
+  if (!busy) held.current = live; // while the machine works, the receipt holds still
+  const r = held.current;
   const still = () => typeof window === "undefined" || calm();
   const frame = () => new Promise<void>((ok) => requestAnimationFrame(() => requestAnimationFrame(() => ok())));
   const zoom = () => parseFloat(dev.current?.style.zoom || "") || 1;
   const machine = d.design.size?.machine ?? 100;
   const hands = () => Array.from(feed.current?.querySelectorAll<HTMLElement>(".rc-hand") ?? []);
+  const paperOf = () => feed.current?.querySelector<HTMLElement>(".rc-paper") ?? null;
+
+  // both ends of the receipt are torn edges; they hide under the slot and far below, and show when it moves
+  useEffect(() => { const p = paperOf(); if (p) p.style.clipPath = ZIG_BOTH; }, []);
 
   // the machine fits the footer at any screen size: no bigger than the owner's size, 62% of the height, 40% of the width (92% on phones)
   useEffect(() => {
@@ -346,40 +358,45 @@ export function ReceiptFooter({ d }: { d: FootData }) {
     return Math.max(40, b.getBoundingClientRect().bottom - w.getBoundingClientRect().top) / zoom();
   };
 
-  /** Prints: a strip comes out of the slot in line-feed bursts, the text moving with it, slower over the photo. Resolves when done. */
+  /** Prints the whole receipt: line-feed bursts out of the slot, slower over pictures, the screen counting. Resolves when done. */
   const print = async (fast = false) => {
-    const clip = feed.current, paper = clip?.querySelector<HTMLElement>(".rc-paper");
+    const clip = feed.current, paper = paperOf();
     if (!clip || !paper) return;
     tl.current?.kill();
     hands().forEach((h) => (h.style.cssText = ""));
-    paper.style.clipPath = "";
     if (stub.current) stub.current.style.opacity = "0";
     const anim = !still();
     if (anim) { clip.style.cssText = "transform: translateY(-100%)"; setWaiting(true); } // inside the machine, so it never flashes
-    setOut(true); await frame();
+    setBusy(true); setOut(true); await frame();
     const gsap = anim ? await loadGsap().catch(() => null) : null;
-    if (!gsap) { clip.style.cssText = ""; setWaiting(false); return; }
-    const H = clip.getBoundingClientRect().height / zoom(), L = Math.min(H, Math.ceil(visible() + 30));
-    setBusy(true); setLcd("PRINTING…");
+    if (!gsap) { clip.style.cssText = ""; setWaiting(false); setBusy(false); return; }
+    const z = zoom(), pr = paper.getBoundingClientRect(), H = pr.height / z;
+    // pictures print slower, as on a real thermal printer
+    const zones = Array.from(paper.querySelectorAll<HTMLElement>(".rc-photo, .rc-qr, .rc-bar")).map((e) => {
+      const b = e.getBoundingClientRect();
+      return [(b.top - pr.top) / z - 4, (b.bottom - pr.top) / z + 4] as const;
+    });
+    const slow = (o: number) => zones.some(([a, b]) => o >= a && o <= b);
+    setLcd("PRINTING… 0%");
     await new Promise<void>((done) => {
       const keys = Array.from(dev.current?.querySelectorAll<HTMLElement>(".rc-pad button") ?? []);
       const t = gsap.timeline({ onComplete: () => { gsap.set(clip, { clearProps: "all" }); clip.style.cssText = ""; gsap.set(keys, { clearProps: "filter" }); done(); } });
-      t.set(clip, { height: L, overflow: "hidden", y: -L, x: 0, rotation: 0, opacity: 1, rotationX: 9, transformPerspective: 700, transformOrigin: "50% 0%" })
-        .to({}, { duration: fast ? .1 : .3 }); // the head warms up
-      // line feeds: a quick push, a little pause; pictures print slower, as on a real thermal printer
-      let y = -L, n = 0;
+      t.set(clip, { y: -H, x: 0, rotation: 0, opacity: 1, force3D: true }).to({}, { duration: fast ? .1 : .35 }); // the head warms up
+      // line feeds: a quick push and a short pause, a little irregular; the receipt's end comes out first, as from a downward printer
+      let y = -H, n = 0;
+      const k0 = fast ? .5 : 1;
       while (y < -.5) {
-        const pic = y > -96;
-        const step = Math.min(pic ? 9 : 16, -y);
+        const s = slow(-y), step = Math.min(s ? 8 : 16, -y);
         y += step;
-        const k = (fast ? .55 : 1) * (.85 + ((n * 37) % 10) / 33);
-        t.to(clip, { y, duration: (pic ? .07 : .05) * k, ease: "power2.out" }).to({}, { duration: (pic ? .045 : .025) * k });
+        const k = k0 * (.85 + ((n * 37) % 10) / 33);
+        t.to(clip, { y, duration: (s ? .06 : .04) * k, ease: "power2.out", force3D: true }).to({}, { duration: (s ? .045 : .02) * k });
         n++;
       }
       const feedTime = t.duration();
-      t.to(clip, { rotationX: 0, duration: .35, ease: "sine.out" }) // the paper settles flat
-        .fromTo(prog.current, { scaleX: 0 }, { scaleX: 1, duration: feedTime, ease: "none" }, 0)
-        .to(keys, { filter: "brightness(1.9) hue-rotate(200deg)", duration: .12, stagger: { each: .05, repeat: 1, yoyo: true } }, 0);
+      t.fromTo(prog.current, { scaleX: 0 }, { scaleX: 1, duration: feedTime, ease: "none" }, 0)
+        .to(keys, { filter: "brightness(1.9) hue-rotate(200deg)", duration: .12, stagger: { each: .05, repeat: 1, yoyo: true }, repeat: Math.max(0, Math.floor(feedTime / 1.6) - 1), repeatDelay: .4 }, 0);
+      let last = -1;
+      t.eventCallback("onUpdate", () => { const p = Math.min(100, Math.floor(t.progress() * 10) * 10); if (p !== last) { last = p; setLcd(`PRINTING… ${p}%`); } });
       tl.current = t;
     });
     setBusy(false); setWaiting(false); setLcd("DONE ✓ ENJOY");
@@ -407,64 +424,73 @@ export function ReceiptFooter({ d }: { d: FootData }) {
   }, []);
   useEffect(() => () => { tl.current?.kill(); }, []);
 
-  /** Cut: prints first if nothing is out, copies the receipt for the PDF, a hand tears it off and takes it away, then it downloads. */
+  /** Cut: prints first if nothing is out; a hand tears the receipt off and takes it away; then the PDF is made and downloads. */
   const cut = async () => {
     if (busy) return;
     dlg.current?.close();
     if (!out) await print(true);
+    const clip = feed.current, paper = paperOf();
+    if (!clip || !paper) return;
     setBusy(true); setLcd("TEARING… ✋");
-    const clip = feed.current, paper = clip?.querySelector<HTMLElement>(".rc-paper");
+    const width = paper.getBoundingClientRect().width / zoom();
+    let gsap: Gsap | null = null;
     try {
-      const pdf = paper ? cutPdf(paper, d.design.shop || d.owner, paper.getBoundingClientRect().width / zoom()) : Promise.resolve();
-      const gsap = still() ? null : await loadGsap().catch(() => null);
+      gsap = still() ? null : await loadGsap().catch(() => null);
       const hs = hands();
-      if (gsap && clip && paper && hs.length) {
+      if (gsap && hs.length) {
         tl.current?.kill();
-        const W = paper.getBoundingClientRect().width / zoom(), V = visible();
-        const gy = Math.max(44, Math.min(V * .55, V - 40)); // where the thumb holds the receipt
-        hs.forEach((h) => { h.style.left = `${W - 44}px`; h.style.top = `${gy - 34}px`; h.style.display = "block"; });
+        const V = visible(), gy = Math.max(34, Math.min(V * .42, V - 30)); // where the thumb holds the receipt
+        hs.forEach((h) => { h.style.left = `${width - 44 * HAND}px`; h.style.top = `${gy - 34 * HAND}px`; h.style.display = "block"; });
         const pieces = Array.from(bits.current?.children ?? []) as HTMLElement[];
+        const g = gsap;
         await new Promise<void>((done) => {
-          const t = gsap.timeline({ onComplete: done });
-          t.set(hs, { x: 70, y: V + 70, rotation: 20, scale: 1, transformOrigin: "16px 34px", opacity: 1 })
-            .set(clip, { transformOrigin: "0% 0%", x: 0, y: 0, rotation: 0 })
+          const t = g.timeline({ onComplete: done });
+          t.set(hs, { x: 90, y: V + 90, rotation: 24, scale: 1, transformOrigin: `${14 * HAND}px ${34 * HAND}px`, opacity: 1, force3D: true })
+            .set(clip, { transformOrigin: "0% 0%", x: 0, y: 0, rotation: 0, force3D: true })
             .set(pieces, { x: 0, y: 0, opacity: 0, rotation: 0 })
+            .to([fade.current, more.current], { opacity: 0, duration: .25 }, 0) // the fade steps aside so the hand shows
             // the hand reaches up and pinches the receipt
-            .to(hs, { x: 0, y: 0, rotation: 0, duration: .6, ease: "power3.out" })
-            .to(hs, { scale: .93, duration: .1, ease: "power1.out" })
-            .to(clip, { y: 3, duration: .14, ease: "power1.out" }, "<") // a little tug: the paper tightens
-            .addLabel("tear", "+=.06")
-            // pulled down against the tear bar: the receipt turns about its far corner while the tear runs across
-            .add(() => { paper.style.clipPath = ZIG_TOP; if (stub.current) stub.current.style.opacity = "1"; setLcd("RRRIP! ✋"); }, "tear")
-            .to(clip, { rotation: 6, y: 7, duration: .5, ease: "power2.in" }, "tear")
-            .to(hs, { rotation: -6, duration: .5, ease: "power1.in" }, "tear");
+            .to(hs, { x: 0, y: 0, rotation: 0, duration: .7, ease: "power3.out" }, .05)
+            .to(hs, { scale: .92, duration: .12, ease: "power2.out" })
+            .to(clip, { y: 4, duration: .16, ease: "power2.out" }, "<") // a little tug: the paper tightens
+            .addLabel("tear", "+=.08")
+            // pulled against the tear bar: the receipt turns about its far corner while the tear runs across
+            .add(() => { if (stub.current) stub.current.style.opacity = "1"; setLcd("RRRIP! ✋"); }, "tear")
+            .to(clip, { rotation: 7, y: 9, duration: .55, ease: "power1.in" }, "tear")
+            .to(hs, { rotation: -7, duration: .55, ease: "power1.in" }, "tear");
           pieces.forEach((p, i) => {
             const at = `tear+=${((i / pieces.length) * .45).toFixed(3)}`;
-            t.set(p, { x: W * (1 - i / pieces.length), y: 0, opacity: 1 }, at)
+            t.set(p, { x: width * (1 - i / pieces.length), y: 0, opacity: 1 }, at)
               .to(p, { y: 26 + (i % 3) * 16, x: `+=${(i % 2 ? 1 : -1) * (5 + (i % 4) * 4)}`, rotation: (i % 2 ? 1 : -1) * 200, opacity: 0, duration: .7, ease: "power1.in" }, at);
           });
           // the last fibres give: it snaps free, then the hand takes it away
-          t.to(clip, { rotation: 9, y: 13, duration: .09, ease: "power3.out" })
-            .to(hs, { scale: 1, duration: .1 }, "<")
-            .to(clip, { y: V + 220, x: 80, rotation: 20, duration: .9, ease: "power2.in" }, "+=.1")
-            .fromTo(dl.current, { y: -8, opacity: 0, scale: .6 }, { y: 0, opacity: 1, scale: 1, duration: .45, ease: "back.out(3)" }, "-=.35")
-            .to(dl.current, { y: 6, duration: .25, yoyo: true, repeat: 3, ease: "sine.inOut" })
-            .to(dl.current, { opacity: 0, duration: .3 });
+          t.to(clip, { rotation: 10, y: 15, duration: .1, ease: "power3.out" })
+            .to(hs, { scale: 1, duration: .12 }, "<")
+            .to(clip, { y: V + 260, x: 90, rotation: 22, duration: .85, ease: "power2.in" }, "+=.12");
           tl.current = t;
         });
       }
-      await pdf;
-      setLcd("SAVED ✓ IN DOWNLOADS");
       setOut(false);
-      if (clip) clip.style.cssText = "";
+      clip.style.cssText = "";
       hands().forEach((h) => (h.style.cssText = ""));
+      if (fade.current) fade.current.style.opacity = "";
+      if (more.current) more.current.style.opacity = "";
+      // only now the heavy part, so the tear never stutters
+      setLcd("SAVING PDF…");
+      await frame();
+      await cutPdf(paper, d.design.shop || d.owner, width);
+      setLcd("SAVED ✓ IN DOWNLOADS");
+      if (gsap && dl.current) gsap.timeline()
+        .fromTo(dl.current, { y: -8, opacity: 0, scale: .6 }, { y: 0, opacity: 1, scale: 1, duration: .45, ease: "back.out(3)" })
+        .to(dl.current, { y: 6, duration: .25, yoyo: true, repeat: 3, ease: "sine.inOut" })
+        .to(dl.current, { opacity: 0, duration: .3 });
     } catch {
       setLcd("PAPER JAM, TRY AGAIN");
     } finally { setBusy(false); }
   };
 
   return (
-    <div className={`rc${out ? " out" : ""}${waiting ? " waiting" : ""}`} ref={box}>
+    <div className={`rc${out ? " out" : ""}${waiting ? " waiting" : ""}${busy ? " busy" : ""}`} ref={box}>
       <div className={`rc-printer${busy ? " printing" : ""}`} ref={dev}>
         <div className="rc-screen">
           <div className="rc-sbar"><span>{`${d.owner.toUpperCase()} · POS`}</span><span>{clock.time || "--:--"} ▂▄▆ ▮▮▮</span></div>
@@ -481,7 +507,7 @@ export function ReceiptFooter({ d }: { d: FootData }) {
         <div className="rc-win" ref={win}>
           <div className="rc-feed" ref={feed} onClick={() => !busy && dlg.current?.showModal()}>
             <span className="rc-hand b" aria-hidden><HandBack /></span>
-            <ReceiptPaper d={d} r={r} clock={clock} />
+            <Paper d={d} r={r} clock={clock} />
             <span className="rc-hand t" aria-hidden><HandThumb /></span>
           </div>
           <span className="rc-bits" ref={bits} aria-hidden>{Array.from({ length: 10 }, (_, i) => <i key={i} />)}</span>
@@ -490,11 +516,11 @@ export function ReceiptFooter({ d }: { d: FootData }) {
         <i className="rc-slot" aria-hidden />
         <span className="rc-dl" ref={dl} aria-hidden>⬇</span>
       </div>
-      <div className="rc-fade" aria-hidden />
-      <button type="button" className="rc-more" onClick={() => dlg.current?.showModal()}>▼ View the whole receipt</button>
+      <div className="rc-fade" ref={fade} aria-hidden />
+      <button type="button" className="rc-more" ref={more} onClick={() => dlg.current?.showModal()}>▼ View the whole receipt</button>
       <dialog ref={dlg} className="rc-view" aria-label="Your receipt" data-lenis-prevent onClick={(e) => { if (e.target === dlg.current) dlg.current?.close(); }}>
         <div className="rc-view-in" data-lenis-prevent>
-          <ReceiptPaper d={d} r={r} clock={clock} whole />
+          <Paper d={d} r={r} clock={clock} whole />
           <div className="rc-btns">
             <button type="button" onClick={cut} disabled={busy}>✂ Cut PDF</button>
             <button type="button" onClick={() => dlg.current?.close()}>Close</button>
