@@ -58,6 +58,10 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
+### 2026-11-20: Security upgrade: Next.js 16.4.6, jsPDF 4.2.1
+
+The owner said "yes upgrade" to the security upgrade the build kept recommending. Done by hand in a separate git worktree (not with `next upgrade --agent`, which downloads a canary CLI and hands off to an agent): Next.js 16.4.3 → 16.4.6 (seven moderate advisories for 16.0.0 to 16.4.4: cache leaks and poisoning in `use cache`, an SVG bypass in image optimisation, cookie exposure on Edge routes, response injection when self-hosting) and jsPDF 2.5.2 → 4.2.1 (a critical advisory, plus DOMPurify under it; the receipt PDF only uses `new jsPDF`, `addImage` and `save`, which are unchanged). `npm audit`: 0 known vulnerabilities. Type check and build pass, and the build no longer stops with the security notice.
+
 ### 2026-11-20: Menu bar, footer and receipt machine kept
 
 The owner said "perfect keep it" to the whole round: menu bar fixes and sizes, the editors' fixed computer and phone previews, and the footer's handheld POS machine (whole receipt printed in line feeds, torn off by hand, colour PDF identical, three-column smaller footer). Still open for them: the Next.js security upgrade the build recommended (asked, not answered; on the task board under Waiting for you).
