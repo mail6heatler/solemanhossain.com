@@ -320,10 +320,18 @@ export class Rig {
     const left = clamp(px - bw / 2, 8, Math.max(8, lw - bw - 8)), top = clamp(py - bh - 10, 8, Math.max(8, lh - bh - 8));
     b.style.left = left + "px"; b.style.top = top + "px"; b.style.setProperty("--tail", clamp(px - left, 16, bw - 16) + "px");
   }
+  /** set by the site while his chat is open: what he says goes into the chat instead of the bubble over his head */
+  sayHook: ((text: string) => boolean) | null = null;
   say(text: string, ms?: number) {
-    if (!text) return; const b = this.bub; b.textContent = text; this.bubOn = true; this.placeBub(); this.bubAt = performance.now();
+    if (!text) return;
+    if (this.sayHook?.(text)) { if (this.bubOn) this.hush(); this.flap(text); return; }
+    const b = this.bub; b.textContent = text; this.bubOn = true; this.placeBub(); this.bubAt = performance.now();
     G.killTweensOf(b); G.fromTo(b, { opacity: 0, scale: 0.7, y: 8 }, { opacity: 1, scale: 1, y: 0, duration: this.still ? 0.01 : 0.38, ease: "back.out(2.2)" });
     clearTimeout(this.sayT); this.sayT = window.setTimeout(() => G.to(b, { opacity: 0, scale: 0.9, duration: 0.25, onComplete: () => { this.bubOn = false; } }), ms || Math.max(2400, text.length * 75));
+    this.flap(text);
+  }
+  /** his mouth moves while he talks */
+  private flap(text: string) {
     if (this.sleeping || this.still) return; clearInterval(this.flapI); let n = Math.min(16, Math.ceil(text.length / 3.5)), o = false;
     this.flapI = window.setInterval(() => { if (this.sleeping || n-- <= 0) { clearInterval(this.flapI); if (!this.sleeping) this.setMouth(this.mouth); return; } o = !o; this.setMouth(o ? "open" : this.mouth, true); }, 105);
   }

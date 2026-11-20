@@ -43,10 +43,11 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const every = (ms: number, fn: () => void) => timers.push(window.setInterval(fn, ms));
 
   /* ---------- what's in the layer ---------- */
-  layer.innerHTML = `<div class="mz-rain"></div><div class="mz-night"></div><div class="mz-rk"></div><div class="mz" role="button" tabindex="0" aria-label="Mini Shourobh, the site's mascot. Press Enter to talk to him."></div>`;
-  const rainEl = layer.querySelector(".mz-rain") as HTMLElement, nightEl = layer.querySelector(".mz-night") as HTMLElement, rocket = layer.querySelector(".mz-rk") as HTMLElement, wrap = layer.querySelector(".mz") as HTMLElement;
-  for (let i = 0; i < 36; i++) { const d = document.createElement("i"); d.style.left = Math.random() * 100 + "%"; d.style.animationDuration = 0.55 + Math.random() * 0.4 + "s"; d.style.animationDelay = -Math.random() + "s"; rainEl.appendChild(d); }
-  for (let i = 0; i < 14; i++) { const d = document.createElement("i"); d.textContent = "✦"; d.style.left = Math.random() * 100 + "%"; d.style.top = Math.random() * 60 + "%"; d.style.animationDelay = -Math.random() * 2 + "s"; nightEl.appendChild(d); }
+  // rain and night stars belong to him (inside his own box), never laid over the site
+  layer.innerHTML = `<div class="mz-rk"></div><div class="mz" role="button" tabindex="0" aria-label="Mini Shourobh, the site's mascot. Press Enter to talk to him."><div class="mz-rain"></div><div class="mz-night"></div></div>`;
+  const rocket = layer.querySelector(".mz-rk") as HTMLElement, wrap = layer.querySelector(".mz") as HTMLElement, rainEl = wrap.querySelector(".mz-rain") as HTMLElement, nightEl = wrap.querySelector(".mz-night") as HTMLElement;
+  for (let i = 0; i < 16; i++) { const d = document.createElement("i"); d.style.left = Math.random() * 100 + "%"; d.style.animationDuration = 0.55 + Math.random() * 0.4 + "s"; d.style.animationDelay = -Math.random() + "s"; rainEl.appendChild(d); }
+  for (let i = 0; i < 7; i++) { const d = document.createElement("i"); d.textContent = i % 3 ? "✦" : "⋆"; d.style.left = 6 + Math.random() * 88 + "%"; d.style.top = Math.random() * 80 + "%"; d.style.animationDelay = -Math.random() * 2 + "s"; nightEl.appendChild(d); }
   rocket.innerHTML = ROCKET_SVG;
   const rkFace = rocket.querySelector(".mz-rk-face") as SVGGElement, rkFlame = rocket.querySelector(".mz-rk-flame") as SVGGElement;
   const paint = () => Object.entries(lookVars(cfg, MZ_SHIRTS, MZ_JEANS)).forEach(([k, v]) => layer.style.setProperty(k, v));
@@ -140,52 +141,86 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (intro && MOMENTS[m]) act(MOMENTS[m], { heart: "moment" });
   }
 
-  /* ---------- the chat ---------- */
-  const talkEl = document.createElement("div"); talkEl.className = "mz-talk"; talkEl.hidden = true; talkEl.setAttribute("data-lenis-prevent", "");
-  talkEl.innerHTML = `<div class="mz-t-h"><b>Talk to me</b><span class="mz-t-hearts" title="Friendship hearts"></span><button type="button" class="mz-t-x" aria-label="Close">×</button></div><div class="mz-t-body"></div><form class="mz-t-f"><input type="text" maxlength="80" placeholder="Or type something…" autocomplete="off" aria-label="Say something to him"><button type="submit">Send</button></form>`;
+  /* ---------- the chat: a little messenger beside him. While it's open, what he says appears in it as chat bubbles
+     (typed, after three dots) instead of over his head, so the chat never covers his answer. It never scrolls: the
+     last few messages show and older ones fade out at the top. ---------- */
+  const QA_EMOJI: Record<string, string> = { who: "😎", job: "💼", from: "📍", joke: "🥁", food: "🍜", single: "💘", sing: "🎤", trick: "🤸", game: "✊", tour: "🧭", bye: "👋" };
+  const FACE = `<svg viewBox="44 80 32 34" aria-hidden="true"><circle cx="60" cy="101" r="11" fill="var(--mz-skin)"/><path d="M50,104 Q60,117 70,104 Q67,111 60,112 Q53,111 50,104 Z" fill="var(--mz-beard)"/><circle cx="50" cy="93" r="5.2" fill="var(--mz-hair)"/><circle cx="56" cy="88.5" r="5.8" fill="var(--mz-hair)"/><circle cx="64" cy="88.5" r="5.8" fill="var(--mz-hair)"/><circle cx="70" cy="93" r="5.2" fill="var(--mz-hair)"/><circle cx="56" cy="100" r="1.7" fill="#140b07"/><circle cx="64" cy="100" r="1.7" fill="#140b07"/><path d="M55.5,105 Q60,109 64.5,105" stroke="#5c1f1b" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`;
+  const talkEl = document.createElement("div"); talkEl.className = "mz-talk"; talkEl.hidden = true; talkEl.setAttribute("role", "dialog"); talkEl.setAttribute("aria-label", "Chat with Mini Shourobh");
+  talkEl.innerHTML = `<div class="mz-t-top"><span class="mz-t-av">${FACE}</span><span class="mz-t-who"><b>Mini Shourobh</b><small><i></i>Online · ask me anything</small></span><span class="mz-t-hearts" title="Friendship hearts"></span><button type="button" class="mz-t-x" aria-label="Close the chat">×</button></div>
+<div class="mz-t-log" aria-live="polite"></div><div class="mz-t-chips"></div>
+<form class="mz-t-f"><input type="text" maxlength="80" placeholder="Say something…" autocomplete="off" aria-label="Say something to him"><button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2 19.8 4.2c.6-.3 1.2.3 1 .9l-5.6 15.2c-.2.6-1 .7-1.3.1l-2.6-4.9-5.3-2.3c-.6-.3-.6-1.1 0-1.4Z" fill="currentColor"/></svg></button></form>`;
   layer.appendChild(talkEl);
+  const log = talkEl.querySelector(".mz-t-log") as HTMLElement, chips = talkEl.querySelector(".mz-t-chips") as HTMLElement, input = talkEl.querySelector("input") as HTMLInputElement;
+  input.addEventListener("keydown", (e) => e.stopPropagation()); // the site's own keyboard shortcuts stay out of it
   let talkMode: "q" | "game" = "q"; const score = { you: 0, him: 0, draw: 0 };
+  const pop = (m: HTMLElement) => { if (!still) G.fromTo(m, { scale: 0.85, opacity: 0, y: 6 }, { scale: 1, opacity: 1, y: 0, duration: 0.28, ease: "back.out(2)" }); };
+  function addMsg(who: "him" | "you", text: string) {
+    const m = document.createElement("div"); m.className = "mz-m " + who;
+    if (who === "him" && !still) { m.classList.add("typing"); m.innerHTML = "<i></i><i></i><i></i>"; log.appendChild(m); pop(m); window.setTimeout(() => { m.classList.remove("typing"); m.textContent = text; }, 420); }
+    else { m.textContent = text; log.appendChild(m); pop(m); }
+    while (log.children.length > 6) log.firstElementChild?.remove();
+  }
+  rig.sayHook = (text) => { if (talkEl.hidden) return false; addMsg("him", text); return true; };
   function drawTalk() {
-    const b = talkEl.querySelector(".mz-t-body") as HTMLElement; b.innerHTML = "";
+    chips.innerHTML = "";
     (talkEl.querySelector(".mz-t-hearts") as HTMLElement).textContent = cfg.fun.hearts && !preview ? heartRow() : "";
-    const btn = (label: string, fn: () => void, cls = "") => { const x = document.createElement("button"); x.type = "button"; x.textContent = label; if (cls) x.className = cls; x.onclick = fn; b.appendChild(x); };
+    const btn = (label: string, fn: () => void, cls = "") => { const x = document.createElement("button"); x.type = "button"; x.textContent = label; if (cls) x.className = cls; x.onclick = fn; chips.appendChild(x); return x; };
     if (talkMode === "game") {
-      const sc = document.createElement("div"); sc.className = "mz-t-score"; sc.textContent = `You ${score.you} · Him ${score.him} · Draws ${score.draw}`; b.appendChild(sc);
-      ([["rock", "✊"], ["paper", "✋"], ["scissors", "✌️"]] as const).forEach(([k, e]) => btn(e, () => playRps(k), "mz-t-rps"));
-      btn("← Questions", () => { talkMode = "q"; drawTalk(); });
-    } else MZ_QA.forEach(([k]) => { const q = cfg.qa[k]; if (q.on && q.q) btn(q.q, () => ask(k)); });
+      const sc = document.createElement("div"); sc.className = "mz-t-score"; sc.textContent = `You ${score.you} · Him ${score.him} · Draws ${score.draw}`; chips.appendChild(sc);
+      ([["rock", "✊", "Rock"], ["paper", "✋", "Paper"], ["scissors", "✌️", "Scissors"]] as const).forEach(([k, e, l]) => btn(e, () => playRps(k), "mz-t-rps").setAttribute("aria-label", l));
+      btn("← Questions", () => { talkMode = "q"; drawTalk(); fitTalk(); }, "mz-t-back");
+    } else MZ_QA.forEach(([k]) => { const q = cfg.qa[k]; if (q.on && q.q) btn(`${QA_EMOJI[k] || "💬"} ${q.q}`, () => ask(k)); });
   }
+  /* beside him if there's room, otherwise above his head; the conversation gives up height before anything is cut */
+  let avail = 0;
   function positionTalk() {
-    const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), tw = Math.min(250, L.width - 24); talkEl.style.width = tw + "px";
-    const mid = W.left + W.width / 2 - L.left, left = mid > L.width / 2 ? W.left - L.left - tw - 6 : W.right - L.left + 6;
-    talkEl.style.left = clamp(left, 8, L.width - tw - 8) + "px";
+    const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), pad = 8;
+    const right = W.left + W.width / 2 - L.left > L.width / 2, room = right ? W.left - L.left - pad - 6 : L.right - W.right - pad - 6;
+    let bottom: number;
+    if (room >= 260) {
+      const tw = Math.min(320, room); talkEl.style.width = tw + "px";
+      talkEl.style.left = (right ? W.left - L.left - 6 - tw : W.right - L.left + 6) + "px";
+      bottom = Math.max(pad, L.bottom - W.bottom + 4); talkEl.style.transformOrigin = right ? "100% 100%" : "0% 100%";
+    } else {
+      const tw = Math.min(340, L.width - pad * 2); talkEl.style.width = tw + "px";
+      talkEl.style.left = clamp(W.left - L.left + W.width / 2 - tw / 2, pad, L.width - tw - pad) + "px";
+      bottom = Math.max(pad, L.bottom - W.top + 6); talkEl.style.transformOrigin = "50% 100%";
+    }
+    talkEl.style.bottom = bottom + "px"; avail = L.height - bottom - pad;
   }
+  function fitTalk() { talkEl.style.setProperty("--logh", "150px"); const over = talkEl.offsetHeight - avail; if (over > 0) talkEl.style.setProperty("--logh", Math.max(48, 150 - over) + "px"); }
   function openTalk() {
-    if (!visible() || away) return; drawTalk(); positionTalk(); if (!talkEl.hidden) return; talkEl.hidden = false;
-    G.fromTo(talkEl, { opacity: 0, y: 10, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: still ? 0.01 : 0.3, ease: "back.out(1.8)" });
-    if (!rig.sleeping && !busy) rig.say(pick(["Ask me anything! 👇", "Hey! What do you want to know?", "Ooh, a visitor! Ask away 👇"]), 1800);
+    if (!visible() || away) return; drawTalk(); positionTalk(); if (!talkEl.hidden) return;
+    rig.hush(); talkEl.hidden = false; fitTalk();
+    G.fromTo(talkEl, { opacity: 0, y: 12, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: still ? 0.01 : 0.34, ease: "back.out(1.7)" });
+    if (!still) G.fromTo(chips.children, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.25, stagger: 0.025, delay: 0.12, ease: "power2.out" });
+    if (!rig.sleeping && !busy) rig.say(pick(["Hey! Ask me anything 👇", "Ooh, a visitor! What do you want to know?", "Hi! Pick a question or type one 😄"]), 1800);
   }
-  function closeTalk() { talkEl.hidden = true; talkMode = "q"; }
+  function closeTalk() { talkEl.hidden = true; if (talkMode !== "q") { talkMode = "q"; drawTalk(); } }
   (talkEl.querySelector(".mz-t-x") as HTMLElement).onclick = closeTalk;
-  (talkEl.querySelector(".mz-t-f") as HTMLFormElement).addEventListener("submit", (e) => { e.preventDefault(); const inp = talkEl.querySelector("input") as HTMLInputElement; const v = inp.value.trim(); inp.value = ""; if (v) typed(v); });
+  (talkEl.querySelector(".mz-t-f") as HTMLFormElement).addEventListener("submit", (e) => { e.preventDefault(); const v = input.value.trim(); input.value = ""; if (v) typed(v); });
+  on(document, "pointerdown", (e: PointerEvent) => { if (!talkEl.hidden && e.target instanceof Node && !talkEl.contains(e.target) && !wrap.contains(e.target)) closeTalk(); }, { passive: true });
   function sayLines(lines: string[]) { let at = 0; lines.forEach((ln) => { window.setTimeout(() => rig.say(ln, Math.max(1500, ln.length * 60) + 250), at); at += Math.max(1500, ln.length * 60); }); }
   function typed(v: string) {
+    if (!talkEl.hidden) addMsg("you", v);
     markGesture(); const m = KEYS.find(([, re]) => re.test(v.toLowerCase()));
     if (!m) { if (still) rig.say("Hmm, I only know a few things. Try one of these 👇"); else act(TALK.shrug); return; }
     if (m[0] === "salam" || m[0] === "hello") { const line = m[0] === "salam" ? "Walaikum assalam! 👋" : pick(["Hello! 👋 Nice to meet you.", "Hey hey! 👋", "Hi there! 👋"]); if (still) rig.say(line); else act((r) => TALK.hello(r, line), { heart: "q-hello" }); return; }
     if (!cfg.qa[m[0] as MzQa]?.on) { if (still) rig.say("Hmm, ask me something else! 👇"); else act(TALK.shrug); return; }
-    ask(m[0]);
+    ask(m[0], false);
   }
-  function ask(k: string) {
+  function ask(k: string, echo = true) {
     markGesture(); const q = cfg.qa[k as MzQa]; if (!q) return;
+    if (echo && !talkEl.hidden) addMsg("you", q.q);
     if (still) { if (k === "game" || k === "trick" || k === "tour") { rig.say(rig.linesOf(k as MzQa)[0] || "Let's do that another time!"); return; } sayLines(rig.linesOf(k as MzQa)); return; }
     if (k === "bye") { closeTalk(); rocketBye(); return; }
     if (k === "trick") { nextTrick(); return; }
-    if (k === "game") { talkMode = "game"; drawTalk(); act((r) => TALK.intro(r, r.linesOf("game")[0] || "Rock, paper, scissors!"), { heart: "q-game" }); return; }
+    if (k === "game") { talkMode = "game"; drawTalk(); if (!talkEl.hidden) fitTalk(); act((r) => TALK.intro(r, r.linesOf("game")[0] || "Rock, paper, scissors!"), { heart: "q-game" }); return; }
     if (k === "tour") { closeTalk(); act((r) => TALK.guide(r, tourLine(), tourGo), { heart: "q-tour" }); return; }
     const fn = (TALK as unknown as Record<string, (r: Rig) => TL>)[k]; if (fn) act(fn, { heart: "q-" + k });
   }
-  function playRps(you: string) { markGesture(); act((r) => rps(r, you, (res) => { score[res]++; if (talkMode === "game") drawTalk(); }), { heart: "rps" }); }
+  function playRps(you: string) { markGesture(); if (!talkEl.hidden) addMsg("you", ({ rock: "✊", paper: "✋", scissors: "✌️" } as Record<string, string>)[you] || you); act((r) => rps(r, you, (res) => { score[res]++; if (talkMode === "game") drawTalk(); }), { heart: "rps" }); }
 
   /* ---------- the tour ---------- */
   const sectionEls = () => [...document.querySelectorAll<HTMLElement>("section[data-spy][id]")];
