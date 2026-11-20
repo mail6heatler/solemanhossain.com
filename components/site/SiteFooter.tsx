@@ -24,7 +24,26 @@ export function Footer({ settings, sections = [], onHome = true, preview = false
   };
   const name = <EggName on={!!ex.egg}>{owner}</EggName>;
   let body: React.ReactNode = null;
-  if (f.look === "receipt" || f.look === "rcmap") body = <ReceiptFooter d={d} map={f.look === "rcmap"} />;
+  if (f.look === "receipt") body = (
+    <div className="rcf">
+      <div className="rcf-side">
+        <b>{name}</b>{f.hi && <small>{f.hi}</small>}
+        {ex.links && <div className="rcf-pills">{links.map((l) => (
+          <a key={l.url} className="ft2-pill" href={preview ? undefined : l.url} {...(l.url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+            <i style={l.color && !l.logo ? { background: l.color, color: l.ink } : undefined}>{l.logo ? <img src={l.logo} alt="" loading="lazy" /> : <i className={`ti ti-${l.icon}`} />}</i>{l.label}
+          </a>
+        ))}</div>}
+      </div>
+      <ReceiptFooter d={d} />
+      <div className="rcf-side r">
+        <small>{settings.location || "Dhaka, Bangladesh"}</small>{ex.time && <DhakaClock />}
+        <div className="rcf-pills">
+          {ex.surprise && settings.effects.surprise && <a href={preview ? undefined : "/surprise"} className="ft2-pill dice-btn-text">🎲 Surprise me</a>}
+          {ex.top && <TopButton />}
+        </div>
+      </div>
+    </div>
+  );
   else if (f.look === "rcpass") body = <PassFooter d={d} />;
   else if (f.look === "tmap") body = <MapFooter d={d} />;
   else if (f.look === "credits") body = (
@@ -64,7 +83,7 @@ export function Footer({ settings, sections = [], onHome = true, preview = false
   ) : null;
 
   return (
-    <footer className={`ft2 ft-${f.look}${preview ? " ft-preview" : ""}`}>
+    <footer className={`ft2 ft-${f.look}${preview ? " ft-preview" : ""}`} style={{ "--rc-h": `${f.size.height}px`, "--ds": f.size.machine / 100, "--bs": f.size.buttons / 100 } as React.CSSProperties}>
       <div className="ft2-stage">{body}</div>
       <div className="ft2-strip">
         {ex.links && links.map((l) => (

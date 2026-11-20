@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import type { Section } from "@/lib/data";
 import { LIVE_THEMES, SKIN_LABELS, type SiteSettings, type Skin } from "@/lib/settings";
 import {
-  FOOTER_EXTRAS, FOOTER_LOOKS, MENU_BGS, MENU_SIZE_LIMITS, DEFAULT_MENU, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
-  type FooterDesign, type FooterExtra, type MenuDesign, type MenuExtra, type MenuSize,
+  FOOTER_EXTRAS, FOOTER_LOOKS, FOOTER_SIZE_LIMITS, DEFAULT_FOOTER, MENU_BGS, MENU_SIZE_LIMITS, DEFAULT_MENU, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
+  type FooterDesign, type FooterExtra, type FooterSize, type MenuDesign, type MenuExtra, type MenuSize,
 } from "@/lib/chrome";
 import { saveFooter, saveMenu } from "@/app/actions";
 import type { ChromeDraft } from "./ChromePreview";
@@ -109,6 +109,7 @@ function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: 
   );
 }
 
+const FOOT_SIZE_ROWS: [keyof FooterSize, string, string][] = [["height", "Footer height", "px"], ["machine", "Machine size", "%"], ["buttons", "Button size", "%"]];
 const SIZE_ROWS: [keyof MenuSize, string, string][] = [["name", "Your name's size", "%"], ["links", "Section links' size", "%"], ["gap", "Space between links", "px"], ["height", "Bar's height", "%"]];
 
 function Look({ on, title, desc, onClick, tag }: { on: boolean; title: string; desc: string; onClick: () => void; tag?: string }) {
@@ -247,9 +248,20 @@ export function FooterStudio({ first, settings, sections }: { first: FootDraft; 
           <details className="c box" open><summary><span>Look</span><i className="ti ti-chevron-down" /></summary><div className="f cs-looks">
             {FOOTER_LOOKS.map(([k, label, desc]) => <Look key={k} on={L === k} title={label} desc={desc} onClick={() => setF({ look: k })} tag={k === "receipt" ? "your favourite" : undefined} />)}
           </div></details>
+          {L === "receipt" && <details className="c box" open><summary><span>Sizes</span><i className="ti ti-chevron-down" /></summary><div className="f">
+            {FOOT_SIZE_ROWS.map(([k, label, unit]) => {
+              const [lo, hi, def] = FOOTER_SIZE_LIMITS[k];
+              return (
+                <div key={k} className="fl cs-slider"><label htmlFor={`f-sz-${k}`}>{label} <b>{f.size[k]}{unit}</b></label>
+                  <input id={`f-sz-${k}`} type="range" min={lo} max={hi} value={f.size[k]} onChange={(e) => setF({ size: { ...f.size, [k]: +e.target.value } })} onDoubleClick={() => setF({ size: { ...f.size, [k]: def } })} />
+                </div>
+              );
+            })}
+            <div className="btns"><button type="button" className="b-out b-sm" onClick={() => setF({ size: DEFAULT_FOOTER.size })}>Back to normal sizes</button></div>
+            <div className="hint">The keys show an icon over a short word, so they always fit; make them bigger or smaller here. A double click on a slider puts it back.</div>
+          </div></details>}
           <details className="c box" open><summary><span>Words</span><i className="ti ti-chevron-down" /></summary><div className="f">
-            {(L === "receipt" || L === "rcmap") && <>{txt("shop", "Receipt's shop name", 40)}{txt("thanks", "Receipt's last line", 60)}</>}
-            {L === "rcmap" && txt("coupon", "Coupon", 90, "Its Redeem button opens your chat.")}
+            {L === "receipt" && <>{txt("hi", "Line under your name", 80)}{txt("shop", "Receipt's shop name", 40)}{txt("thanks", "Receipt's last line", 60)}{txt("coupon", "Coupon", 90, "Its Redeem button opens your chat.")}</>}
             {L === "rcpass" && txt("airline", "Airline's name", 30)}
             {L === "tmap" && txt("mapTitle", "Map's title", 40)}
             {L === "letter" && <>{txt("letter", "The letter", 400, undefined, true)}{txt("signature", "Signature", 40, "Empty signs with your nickname.")}</>}

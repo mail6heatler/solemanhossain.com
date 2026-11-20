@@ -62,8 +62,7 @@ export const DEFAULT_MENU: MenuDesign = {
 };
 
 export const FOOTER_LOOKS = [
-  ["receipt", "Visit receipt", "A printer prints this visitor's own receipt: what they saw, what's left, what's new, their links"],
-  ["rcmap", "Receipt: map & links", "The receipt as the site's map and your contact card, with a coupon for a free hello"],
+  ["receipt", "Visit receipt", "A handheld POS machine prints this visitor's own colour receipt: what they saw, badges, a fortune, your links, a QR code and a coupon"],
   ["rcpass", "Boarding pass", "Thanks for flying with you: their route through the sections, your links on the stub"],
   ["tmap", "Treasure map", "Sections as islands, their trail between them, your links on the compass"],
   ["credits", "End credits", "Your sections roll up like a film's cast, then THE END"],
@@ -90,13 +89,20 @@ export type FooterDesign = {
   letter: string;
   signature: string;
   tagline: string;
+  /** the receipt footer's line under your name */
+  hi: string;
+  /** the receipt footer's sizes: its height in px, the machine and its keys as percentages */
+  size: FooterSize;
 };
+export type FooterSize = { height: number; machine: number; buttons: number };
+export const FOOTER_SIZE_LIMITS: Record<keyof FooterSize, [number, number, number]> = { height: [300, 640, 420], machine: [70, 130, 100], buttons: [70, 150, 100] };
 export const DEFAULT_FOOTER: FooterDesign = {
   look: "receipt", extras: { links: true, time: true, top: true, egg: true, surprise: true },
   shop: "SHOUROBH'S CHRONICLE", thanks: "THANK YOU · COME BACK SOON", coupon: "1 FREE HELLO · redeem in the chat · never expires",
   airline: "SHOUROBH AIR", mapTitle: "Shourobh's isles",
   letter: "Thanks for scrolling all the way down. If something here made you smile, say hello: I read every message.",
-  signature: "", tagline: "a life chronicle",
+  signature: "", tagline: "a life chronicle", hi: "Thanks for scrolling all the way down 👋",
+  size: { height: 420, machine: 100, buttons: 100 },
 };
 
 const text = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
@@ -137,7 +143,15 @@ export function cleanFooter(raw: unknown): FooterDesign {
   return {
     look: pick(o.look, FOOTER_LOOKS, d.look), extras: flags(o.extras, FOOTER_EXTRAS, d.extras),
     shop: t("shop", 40), thanks: t("thanks", 60), coupon: t("coupon", 90), airline: t("airline", 30), mapTitle: t("mapTitle", 40),
-    letter: t("letter", 400), signature: t("signature", 40), tagline: t("tagline", 60),
+    letter: t("letter", 400), signature: t("signature", 40), tagline: t("tagline", 60), hi: t("hi", 80),
+    size: (() => {
+      const z = obj(o.size), out = {} as FooterSize;
+      for (const k of Object.keys(FOOTER_SIZE_LIMITS) as (keyof FooterSize)[]) {
+        const [lo, hi, def] = FOOTER_SIZE_LIMITS[k], n = Number(z[k]);
+        out[k] = z[k] != null && z[k] !== "" && Number.isFinite(n) ? Math.round(Math.min(hi, Math.max(lo, n))) : def;
+      }
+      return out;
+    })(),
   };
 }
 export const menuBg = (m: MenuDesign): Exclude<MenuBg, "own"> => (m.bg === "own" ? OWN_BG[m.look] : m.bg);

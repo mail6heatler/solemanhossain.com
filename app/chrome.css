@@ -215,56 +215,65 @@
 .mp a:hover { text-decoration: underline; }
 @media (max-width: 760px) { .mp { grid-template-columns: 1fr 1fr; } .mp-me { grid-column: 1 / -1; } }
 
-/* ---------- receipts: a printer with a screen and keys, paper that feeds out and rolls up at the bottom (FooterFx: ReceiptFooter) ----------
-   The paper is a colour print and a material: the same in every theme. Printing and cutting are GSAP's; at rest nothing moves. */
-.ft-receipt .ft2-stage, .ft-rcmap .ft2-stage { height: clamp(420px, 66svh, 620px); background: linear-gradient(var(--bg), color-mix(in srgb, var(--fg) 6%, var(--bg))); }
-.rc { display: flex; flex-direction: column; align-items: center; height: 100%; padding: 6px 5vw 14px; }
-.rc:not(.out) { justify-content: center; }
+/* ---------- the receipt footer (FooterFx: ReceiptFooter), the owner's pick from the Receipt Machine Picker (2026-11-20): your name and links on
+   the left, a handheld POS in the middle with the receipt coming out underneath as a stub, Dhaka's time on the right. The machine and the paper
+   are materials, the same in every theme. --rc-h (footer height), --ds (machine size) and --bs (key size) come from the Footer page. ---------- */
+.ft-receipt .ft2-stage { height: var(--rc-h, 420px); background: linear-gradient(var(--bg), color-mix(in srgb, var(--fg) 6%, var(--bg))); }
+.ft-receipt .ft2-strip { display: none; }
+.rcf { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; height: 100%; padding: 14px 5vw 0; }
+.rcf-side { align-self: center; display: grid; gap: 8px; min-width: 0; }
+.rcf-side.r { justify-items: end; text-align: right; }
+.rcf-side > b { font: 800 clamp(20px, 2vw, 28px)/1.1 var(--display); }
+.rcf-side > small { color: var(--muted); font-size: 13.5px; }
+.rcf-side .dk-time { font: 800 clamp(26px, 2.6vw, 38px)/1 var(--display); font-variant-numeric: tabular-nums; }
+.rcf-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.rcf-side.r .rcf-pills { justify-content: flex-end; }
+@media (max-width: 760px) { .rcf { grid-template-columns: minmax(0, 1fr); } .rcf-side { display: none; } .ft-receipt .ft2-strip { display: flex; } }
+.rc { display: flex; flex-direction: column; align-items: center; height: 100%; min-height: 0; }
+.rc:not(.out) { justify-content: center; padding-bottom: 14px; }
 .rc:not(.out) .rc-win { display: none; }
-/* the window above the machine: the paper rises into it from the slot; a long receipt winds onto the roll at its top */
-.rc-win { position: relative; z-index: 1; flex: 1; min-height: 0; width: min(272px, 84%); margin-bottom: -16px; overflow: hidden; }
-.rc-scroll { position: absolute; inset: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
-.rc-scroll::-webkit-scrollbar { display: none; }
-.rc-scroll.busy { overflow: hidden; }
-.rc-feed { flex: none; margin-top: auto; }
-.rc-win::after { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 60px; z-index: 1; pointer-events: none; background: linear-gradient(#2a263330, #2a263318 40%, transparent); }
-.rc-roll { position: absolute; left: -4px; right: -4px; top: 0; z-index: 2; height: 30px; overflow: hidden; border-radius: 15px; transform-origin: 50% 0; background: linear-gradient(#bdb6a6, #e6e0d2 38%, #fffdf8 72%, #f4f1e8); box-shadow: 0 4px 10px -6px #0006, inset 0 3px 6px #0002; pointer-events: none; }
-.rc-turn { position: absolute; inset: -100% 0 0; background: repeating-linear-gradient(#0000 0 9px, #00000018 9px 12px); }
-.rc-cut { position: absolute; left: 0; right: 0; bottom: 18px; z-index: 4; height: 0; border-top: 2px dashed #e8457a; opacity: 0; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
-.rc-scis { position: absolute; left: 0; bottom: 4px; z-index: 6; width: 46px; opacity: 0; pointer-events: none; filter: drop-shadow(0 3px 3px #0005); }
+/* the stub: the paper hangs out of the slot under the machine; the rest is in View */
+.rc-win { position: relative; z-index: 1; flex: 1; min-height: 60px; width: min(260px, 100%); margin-top: -10px; overflow: hidden; }
+.rc-feed { cursor: pointer; }
+.rc-more { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 64px; padding: 0 0 8px; border: 0; display: grid; align-content: end; justify-items: center; background: linear-gradient(transparent, #fffdf8 62%); color: #e8457a; font: 700 11.5px var(--display); cursor: pointer; }
+.rc:not(.out) .rc-more { display: none; }
+.rc-cut { position: absolute; left: 0; right: 0; top: 12px; z-index: 4; height: 0; border-top: 2px dashed #e8457a; opacity: 0; transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.rc-scis { position: absolute; left: 0; top: -3px; z-index: 6; width: 46px; opacity: 0; pointer-events: none; filter: drop-shadow(0 3px 3px #0005); }
 .rc-scis svg { display: block; width: 46px; height: 31px; }
-.rc-bits { position: absolute; left: 0; right: 0; bottom: 18px; height: 0; z-index: 5; pointer-events: none; }
+.rc-bits { position: absolute; left: 0; right: 0; top: 12px; height: 0; z-index: 5; pointer-events: none; }
 .rc-bits i { position: absolute; left: 0; top: 0; width: 7px; height: 4px; background: #fffdf8; box-shadow: 0 0 0 .5px #2a263355; opacity: 0; }
 .rc-bits i:nth-child(3n) { background: #ffd23f; } .rc-bits i:nth-child(4n) { background: #f59ab8; }
 
-/* the handheld POS machine: a material, the same in every theme */
-.rc-printer { position: relative; z-index: 3; flex: none; display: grid; gap: 8px; width: min(310px, 100%); padding: 18px 14px 10px; border-radius: 26px 26px 30px 30px; background: linear-gradient(160deg, #3d3a46, #26232d 55%, #1b1920); box-shadow: inset 0 1px 0 #ffffff26, inset 0 -5px 0 #121016, 0 18px 30px -16px #000c, 0 0 0 1px #0006; color: #d9d4e4; transform-origin: 50% 100%; }
-.rc-slot { position: absolute; left: 18px; right: 18px; top: 6px; height: 8px; border-radius: 4px; background: #0b0a0e; box-shadow: inset 0 2px 3px #000, 0 1px 0 #ffffff1a; }
-.rc-slot::after { content: ""; position: absolute; left: 4px; right: 4px; top: -4px; height: 5px; background: linear-gradient(135deg, transparent 50%, #9aa0ab 50%) 0 0 / 6px 5px repeat-x; opacity: .8; }
-.rc-screen { display: grid; gap: 3px; padding: 7px 10px 9px; border-radius: 10px; background: linear-gradient(#1f4a86, #10274d); box-shadow: inset 0 0 0 2px #0a0f1a, inset 0 6px 14px #0007, 0 0 0 3px #15131a; }
-.rc-sbar { display: flex; justify-content: space-between; gap: 8px; color: #9fc2ff; font: 700 8.5px ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; letter-spacing: .08em; white-space: nowrap; overflow: hidden; }
+/* the handheld POS: it never moves; its screen, progress bar, light and keys do */
+.rc-printer { position: relative; z-index: 3; flex: none; display: grid; gap: 8px; width: 250px; zoom: var(--ds, 1); padding: 12px 14px 20px; border-radius: 26px 26px 30px 30px; background: linear-gradient(160deg, #3d3a46, #26232d 55%, #1b1920); box-shadow: inset 0 1px 0 #ffffff26, inset 0 -5px 0 #121016, 0 16px 26px -14px #000c, 0 0 0 1px #0006; color: #d9d4e4; }
+.rc-screen { display: grid; gap: 3px; padding: 6px 9px 8px; border-radius: 10px; background: linear-gradient(#1f4a86, #10274d); box-shadow: inset 0 0 0 2px #0a0f1a, inset 0 6px 14px #0007, 0 0 0 3px #15131a; }
+.rc-sbar { display: flex; justify-content: space-between; gap: 8px; color: #9fc2ff; font: 700 8px ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; letter-spacing: .08em; white-space: nowrap; overflow: hidden; }
 .rc-sbar span:first-child { overflow: hidden; text-overflow: ellipsis; }
-.rc-lcd { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #fff; text-align: center; font: 800 14px var(--display); letter-spacing: .04em; text-shadow: 0 0 8px #6fb3ff88; }
-.rc-pad { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
-.rc-pad button { padding: 3px 0; border: 0; border-radius: 7px; background: linear-gradient(#5a5664, #3b3843); color: #f1eef6; font: 700 12px var(--display); cursor: pointer; box-shadow: 0 2px 0 #18161c; transition: translate .06s, box-shadow .06s; }
-.rc-pad button:active { translate: 0 2px; box-shadow: 0 0 0 #18161c; }
-.rc-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
-.rc-keys button { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 2px; border: 0; border-radius: 10px; color: #fff; font: 800 12px var(--display); cursor: pointer; white-space: nowrap; text-shadow: 0 1px 1px #0005; transition: translate .08s, box-shadow .08s, filter .15s; }
-.rc-keys button i { font-style: normal; font-size: 14px; }
-.rc-keys .go { background: linear-gradient(#45c97a, #239a52); box-shadow: 0 3px 0 #146b36, 0 5px 8px -4px #000a; }
-.rc-keys .see { background: linear-gradient(#ffd85a, #e8a91c); color: #3b2a05; text-shadow: none; box-shadow: 0 3px 0 #a87406, 0 5px 8px -4px #000a; }
-.rc-keys .cut { background: linear-gradient(#ff6d7f, #d9334a); box-shadow: 0 3px 0 #8e1b2c, 0 5px 8px -4px #000a; }
+.rc-lcd { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #fff; text-align: center; font: 800 13px var(--display); letter-spacing: .03em; text-shadow: 0 0 8px #6fb3ff88; }
+.rc-prog { height: 4px; border-radius: 4px; background: #ffffff22; overflow: hidden; }
+.rc-prog i { display: block; height: 100%; background: #6fe3a1; transform-origin: 0 50%; }
+.rc-pad { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.rc-pad button { padding: calc(2px * var(--bs, 1)) 0; border: 0; border-radius: 6px; background: linear-gradient(#5a5664, #3b3843); color: #f1eef6; font: 700 calc(11px * var(--bs, 1)) var(--display); cursor: pointer; box-shadow: 0 2px 0 #18161c; }
+.rc-pad button:active { translate: 0 2px; box-shadow: none; }
+.rc-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(7px * var(--bs, 1)); }
+.rc-keys button { display: grid; justify-items: center; align-content: center; gap: 1px; min-width: 0; padding: calc(6px * var(--bs, 1)) 2px; border: 0; border-radius: calc(10px * var(--bs, 1)); color: #fff; font: 800 calc(11px * var(--bs, 1))/1.1 var(--display); cursor: pointer; text-shadow: 0 1px 1px #0005; transition: translate .08s, box-shadow .08s, filter .15s; }
+.rc-keys button i { font-style: normal; font-size: calc(16px * var(--bs, 1)); line-height: 1.1; }
+.rc-keys button b { white-space: nowrap; }
+.rc-keys .go { background: linear-gradient(#45c97a, #239a52); box-shadow: 0 3px 0 #146b36; }
+.rc-keys .see { background: linear-gradient(#ffd85a, #e8a91c); color: #3b2a05; text-shadow: none; box-shadow: 0 3px 0 #a87406; }
+.rc-keys .cut { background: linear-gradient(#ff6d7f, #d9334a); box-shadow: 0 3px 0 #8e1b2c; }
 .rc-keys button:hover { filter: brightness(1.08); }
-.rc-keys button:active { translate: 0 3px; box-shadow: 0 0 0 #000; }
+.rc-keys button:active { translate: 0 3px; box-shadow: none; }
 .rc-keys button:disabled { opacity: .6; cursor: progress; }
-.rc-base { display: flex; align-items: center; justify-content: center; gap: 8px; color: #8d8899; font: 700 8.5px ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; letter-spacing: .14em; }
+.rc-base { display: flex; align-items: center; justify-content: center; gap: 8px; color: #8d8899; font: 700 8px ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; letter-spacing: .14em; }
 .rc-led { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #2fbf71; box-shadow: 0 0 8px #2fbf71; opacity: .55; }
 .rc-printer.printing .rc-led { opacity: 1; animation: ft-blink .3s steps(1) infinite; }
-.rc-nfc { font-style: normal; font-weight: 800; color: #6c6878; rotate: -90deg; }
+.rc-slot { position: absolute; left: 22px; right: 22px; bottom: 6px; height: 8px; border-radius: 4px; background: #0b0a0e; box-shadow: inset 0 2px 3px #000, 0 1px 0 #ffffff1a; }
+.rc-slot::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: -4px; height: 5px; background: linear-gradient(-45deg, transparent 50%, #9aa0ab 50%) 0 0 / 6px 5px repeat-x; opacity: .85; }
 .rc-dl { position: absolute; right: -12px; top: -12px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #e8457a; color: #fff; font: 800 18px var(--display); box-shadow: 0 6px 12px -4px #000a; opacity: 0; pointer-events: none; }
 
 /* the paper: a colour print */
-.rc-paper { position: relative; padding: 38px 14px 30px; background: #fffdf8; color: #2a2633; font: 400 12px/1.55 ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; box-shadow: inset 0 18px 18px -18px #0003; }
+.rc-paper { position: relative; padding: 16px 14px 30px; background: #fffdf8; color: #2a2633; font: 400 12px/1.55 ui-monospace, "Cascadia Mono", Consolas, Menlo, "Courier New", monospace; box-shadow: inset 0 18px 18px -18px #0003; }
 .rc-paper.whole { padding-bottom: 26px; -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; }
 .rc-top { display: grid; justify-items: center; gap: 3px; text-align: center; }
 .rc-photo { width: 72px; height: 72px; margin: 2px 0 6px; border-radius: 50%; background: center 18% / cover no-repeat; border: 3px solid #fffdf8; box-shadow: 0 0 0 3px #e8457a, 0 0 0 6px #ffd23f, 0 6px 12px 2px #2a263322; }
