@@ -75,7 +75,7 @@ export function SiteShell({ settings, sections, onHome, children }:
   return (
     <div className={`site ${onHome ? "home " : ""}${bbar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
       <Effects
-        cursor={fx.cursor} track totop={fx.totop}
+        cursor={fx.cursor} track totop={fx.totop && !settings.mascot.show /* the bottom-right corner is the mascot's while he's on; the footer keeps Back to top */}
         fx={{ autolite: fx.autolite, smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
         partyWord={settings.partyWord}
         sparkleEmojis={(settings.heroEmojis.trim().split(/\s+/).filter(Boolean).slice(0, 8))}

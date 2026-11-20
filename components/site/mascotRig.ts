@@ -210,7 +210,7 @@ export class Rig {
       snot: q(".mzj-snot"), ball: q(".mzj-ball"), flame: q(".zflame"), gl: q("[data-mzgl]"),
     };
     this.blush = [...svg.querySelectorAll(".mzj-blush")];
-    this.s = { ...REST, ...CLEAR, lookX: 0, lookY: 0, blink: 1, breath: 0, plX: 0, plY: 0, plR: 0, plO: 0, bx: 0, by: 0, br: 0 };
+    this.s = { ...REST, ...CLEAR, lookX: 0, lookY: 0, blink: 1, breath: 0, plX: 0, plY: 0, plR: 0, plO: 0, bx: 0, by: 0, br: 0, nod: 0, bob: 0 };
     this.qx = G.quickTo(this.s, "lookX", { duration: 0.45, ease: "power3" }); this.qy = G.quickTo(this.s, "lookY", { duration: 0.45, ease: "power3" });
     this.bub = document.createElement("div"); this.bub.className = "mz-bub"; this.bub.setAttribute("aria-live", "polite"); layer.appendChild(this.bub);
     this.face("grin", "open"); this.setProp(null); this.setHat(null); this.setLook(cfg); this.setMirror(!!opts.mirror);
@@ -246,9 +246,9 @@ export class Rig {
     if (!this.live && document.documentElement.classList.contains("scrolling")) return; // rests while the page scrolls, unless he's doing something now
     const s = this.s, e = this.el, f = (n: number) => Math.round(n * 100) / 100;
     this.w(e.body, "transform", `translate(${f(s.x)} ${f(s.y)}) rotate(${f(s.flip)} 120 190) rotate(${f(s.rot)} 120 296) translate(120 296) scale(${f(s.sx)} ${f(s.sy)}) translate(-120 -296)`);
-    this.w(e.upper, "transform", `translate(0 ${f(s.upY - s.breath * 1.4)}) rotate(${f(s.lean)} 120 228)`);
+    this.w(e.upper, "transform", `translate(0 ${f(s.upY + s.bob - s.breath * 1.4)}) rotate(${f(s.lean)} 120 228)`);
     const lx = clamp(s.lookX + s.gx, -1, 1), ly = clamp(s.lookY + s.gy, -1, 1);
-    this.w(e.head, "transform", `translate(${f(s.hx + lx * 1.6)} ${f(s.hy + s.breath * 0.4)}) rotate(${f(s.head + lx * 5)} 120 150)`);
+    this.w(e.head, "transform", `translate(${f(s.hx + lx * 1.6)} ${f(s.hy + s.breath * 0.4)}) rotate(${f(s.head + s.nod + lx * 5)} 120 150)`);
     const L = this.ik(84, 158, s.lx, s.ly, "L", this.sg), R = this.ik(156, 158, s.rx, s.ry, "R", this.sg);
     this.w(e.shL, "transform", `rotate(${f(L[0])})`); this.w(e.elL, "transform", `translate(0 36) rotate(${f(L[1])})`); this.w(e.hpL, "transform", `rotate(${f(-(L[0] + L[1]))})`);
     this.w(e.shR, "transform", `rotate(${f(R[0])})`); this.w(e.elR, "transform", `translate(0 36) rotate(${f(R[1])})`); this.w(e.hpR, "transform", `rotate(${f(-(R[0] + R[1]) + s.pa)})`);
@@ -321,10 +321,11 @@ export class Rig {
     b.style.left = left + "px"; b.style.top = top + "px"; b.style.setProperty("--tail", clamp(px - left, 16, bw - 16) + "px");
   }
   /** set by the site while his chat is open: what he says goes into the chat instead of the bubble over his head */
-  sayHook: ((text: string) => boolean) | null = null;
+  sayHook: ((text: string) => boolean | "quiet") | null = null;
   say(text: string, ms?: number) {
     if (!text) return;
-    if (this.sayHook?.(text)) { if (this.bubOn) this.hush(); this.flap(text); return; }
+    const hooked = this.sayHook?.(text);
+    if (hooked) { if (this.bubOn) this.hush(); if (hooked !== "quiet") this.flap(text); return; }
     const b = this.bub; b.textContent = text; this.bubOn = true; this.placeBub(); this.bubAt = performance.now();
     G.killTweensOf(b); G.fromTo(b, { opacity: 0, scale: 0.7, y: 8 }, { opacity: 1, scale: 1, y: 0, duration: this.still ? 0.01 : 0.38, ease: "back.out(2.2)" });
     clearTimeout(this.sayT); this.sayT = window.setTimeout(() => G.to(b, { opacity: 0, scale: 0.9, duration: 0.25, onComplete: () => { this.bubOn = false; } }), ms || Math.max(2400, text.length * 75));

@@ -52,9 +52,14 @@ export type MascotSettings = {
     rocket: boolean; backAfter: number; notice: { fast: boolean; end: boolean; back: boolean; point: boolean }; hearts: boolean; sounds: boolean;
   };
   moments: { auto: boolean; morning: boolean; night: boolean; rain: boolean; eid: boolean; birthday: string };
+  /** The talking scene (clicking him) and his voice. Speed, pitch and volume are percentages. */
+  convo: {
+    voice: boolean; voiceName: string; voiceKind: "male" | "female" | "any"; rate: number; pitch: number; volume: number;
+    mic: boolean; dim: number; scale: number; hello: string; invite: boolean; inviteText: string; inviteEvery: number;
+  };
 };
 
-export const MZ_LIMITS = { size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30] } as const;
+export const MZ_LIMITS = { size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30], rate: [60, 160], pitch: [50, 200], volume: [10, 100], dim: [30, 90], scale: [120, 240], inviteEvery: [15, 300] } as const;
 
 const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) => Object.fromEntries(keys.map(([k]) => [k, true])) as Record<K, boolean>;
 
@@ -88,6 +93,10 @@ export const DEFAULT_MASCOT: MascotSettings = {
     rocket: true, backAfter: 4, notice: { fast: true, end: true, back: true, point: true }, hearts: true, sounds: false,
   },
   moments: { auto: true, morning: true, night: true, rain: false, eid: false, birthday: "" },
+  convo: {
+    voice: true, voiceName: "", voiceKind: "male", rate: 105, pitch: 135, volume: 100,
+    mic: false, dim: 72, scale: 180, hello: "Hey there! I'm Mini Shourobh. 😄", invite: true, inviteText: "Wanna chat? 💬", inviteEvery: 40,
+  },
 };
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
@@ -100,7 +109,7 @@ const flags = <K extends string>(raw: unknown, def: Record<K, boolean>) => { con
 /** Anything stored or sent becomes a complete, safe MascotSettings (missing parts take the defaults). */
 export function cleanMascot(raw: unknown): MascotSettings {
   const r = isObj(raw) ? raw : {}, D = DEFAULT_MASCOT;
-  const lr = isObj(r.lines) ? r.lines : {}, qr = isObj(r.qa) ? r.qa : {}, fr = isObj(r.fun) ? r.fun : {}, nr = isObj(fr.notice) ? fr.notice : {}, mr = isObj(r.moments) ? r.moments : {};
+  const lr = isObj(r.lines) ? r.lines : {}, qr = isObj(r.qa) ? r.qa : {}, fr = isObj(r.fun) ? r.fun : {}, nr = isObj(fr.notice) ? fr.notice : {}, mr = isObj(r.moments) ? r.moments : {}, cr = isObj(r.convo) ? r.convo : {}, C = D.convo;
   return {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
     place: oneOf(r.place, ["corner", "peek", "host"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size),
@@ -123,6 +132,13 @@ export function cleanMascot(raw: unknown): MascotSettings {
       auto: bool(mr.auto, D.moments.auto), morning: bool(mr.morning, D.moments.morning), night: bool(mr.night, D.moments.night),
       rain: bool(mr.rain, D.moments.rain), eid: bool(mr.eid, D.moments.eid),
       birthday: typeof mr.birthday === "string" && /^\d{4}-\d{2}-\d{2}$/.test(mr.birthday) ? mr.birthday : "",
+    },
+    convo: {
+      voice: bool(cr.voice, C.voice), voiceName: text(cr.voiceName, 120, C.voiceName).replace(/\n/g, " "), voiceKind: oneOf(cr.voiceKind, ["male", "female", "any"] as const, C.voiceKind),
+      rate: num(cr.rate, MZ_LIMITS.rate, C.rate), pitch: num(cr.pitch, MZ_LIMITS.pitch, C.pitch), volume: num(cr.volume, MZ_LIMITS.volume, C.volume),
+      mic: bool(cr.mic, C.mic), dim: num(cr.dim, MZ_LIMITS.dim, C.dim), scale: num(cr.scale, MZ_LIMITS.scale, C.scale),
+      hello: text(cr.hello, 120, C.hello).replace(/\n/g, " "), invite: bool(cr.invite, C.invite), inviteText: text(cr.inviteText, 40, C.inviteText).replace(/\n/g, " "),
+      inviteEvery: num(cr.inviteEvery, MZ_LIMITS.inviteEvery, C.inviteEvery),
     },
   };
 }

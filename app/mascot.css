@@ -56,49 +56,82 @@
 .mz-night i { position: absolute; font-style: normal; color: #ffd86b; font-size: 13px; line-height: 1; animation: mz-tw 1.6s ease-in-out infinite alternate; }
 @keyframes mz-tw { from { opacity: .2; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 
-/* his chat: a little messenger beside him (above him on narrow screens). Theme colours, a soft shadow, no scrolling. */
-.mz-talk { --logh: 150px; position: absolute; bottom: 12px; left: 0; width: 300px; z-index: 7; pointer-events: auto; display: grid; background: var(--card, #fff); color: var(--fg, #1c1c28);
-  border: 1px solid var(--line, rgba(0, 0, 0, .12)); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px color-mix(in srgb, var(--fg, #000) 15%, transparent); font-size: 13px; line-height: 1.35; }
-.mz-talk[hidden] { display: none; }
-.mz-t-top { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; background: color-mix(in srgb, var(--mint, #7ee8a2) 16%, var(--card, #fff)); border-bottom: 1px solid var(--line, rgba(0, 0, 0, .1)); }
-.mz-t-av { width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: end center; overflow: hidden; background: color-mix(in srgb, var(--mint, #7ee8a2) 55%, var(--card, #fff)); box-shadow: 0 0 0 2px var(--card, #fff), 0 0 0 3.5px var(--mint, #7ee8a2); }
-.mz-t-av svg { width: 36px; height: 36px; display: block; }
-.mz-t-who { display: grid; min-width: 0; }
-.mz-t-who b { font-family: var(--display, inherit); font-size: 14.5px; line-height: 1.2; }
-.mz-t-who small { display: flex; align-items: center; gap: 6px; font-size: 11.5px; opacity: .78; white-space: nowrap; }
-.mz-t-who small i { position: relative; width: 7px; height: 7px; border-radius: 50%; background: #34c46e; flex: none; }
-.mz-t-who small i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #34c46e; animation: mz-ping 2s ease-out infinite; }
-@keyframes mz-ping { 0% { transform: scale(1); opacity: .7; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
-.mz-t-hearts { margin-left: auto; font-size: 10px; letter-spacing: 1px; white-space: nowrap; }
-.mz-t-x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; flex: none; transition: background .15s; }
-.mz-t-x:hover { background: color-mix(in srgb, var(--fg, #000) 9%, transparent); }
-.mz-t-log { height: var(--logh); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; padding: 10px 12px;
-  background: color-mix(in srgb, var(--fg, #000) 3.5%, var(--card, #fff)); -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30px); mask-image: linear-gradient(to bottom, transparent 0, #000 30px); }
-.mz-m { flex: none; max-width: 84%; padding: 7px 11px; border-radius: 16px; font-size: 13px; line-height: 1.38; overflow-wrap: anywhere; }
-.mz-m.him { align-self: flex-start; background: var(--card, #fff); border: 1px solid var(--line, rgba(0, 0, 0, .1)); border-bottom-left-radius: 5px; transform-origin: 0 100%; }
-.mz-m.you { align-self: flex-end; background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); font-weight: 600; border-bottom-right-radius: 5px; transform-origin: 100% 100%; }
-.mz-m.typing { display: flex; gap: 4px; padding: 11px 13px; }
-.mz-m.typing i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .35; animation: mz-dot 1s ease-in-out infinite; }
-.mz-m.typing i:nth-child(2) { animation-delay: .15s; }
-.mz-m.typing i:nth-child(3) { animation-delay: .3s; }
-@keyframes mz-dot { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-4px); opacity: .9; } }
-.mz-t-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 2px; }
-.mz-t-chips button { font: inherit; font-size: 12px; font-weight: 600; border: 1px solid var(--line, rgba(0, 0, 0, .15)); background: var(--card, #fff); color: inherit; border-radius: 99px; padding: 5px 10px; cursor: pointer; transition: transform .15s, background-color .15s, border-color .15s; }
-.mz-t-chips button:hover { border-color: var(--mint, #7ee8a2); background: color-mix(in srgb, var(--mint, #7ee8a2) 16%, var(--card, #fff)); transform: translateY(-1px); }
-.mz-t-chips .mz-t-rps { font-size: 26px; line-height: 1; padding: 7px 16px; }
-.mz-t-chips .mz-t-back { margin-left: auto; align-self: center; }
-.mz-t-score { width: 100%; font-size: 12px; font-weight: 600; opacity: .75; }
-.mz-t-f { display: flex; gap: 6px; padding: 8px 10px 10px; }
-.mz-t-f input { flex: 1; min-width: 0; font: inherit; font-size: 13px; border: 1px solid var(--line, rgba(0, 0, 0, .15)); border-radius: 99px; padding: 8px 13px; background: var(--bg, #fff); color: inherit; }
-.mz-t-f input:focus { outline: 2px solid var(--mint, #7ee8a2); outline-offset: 1px; }
-.mz-t-f button { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); cursor: pointer; transition: transform .15s; }
-.mz-t-f button:hover { transform: scale(1.08) rotate(-8deg); }
-.mz-t-f button svg { width: 17px; height: 17px; }
+/* his corner: a soft glowing spot on the floor where he lives (the back-to-top arrow is gone while he's on) */
+.mz-home { position: absolute; bottom: 0; right: 12px; height: 24px; z-index: 1; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--mint, #7ee8a2) 55%, transparent), transparent); animation: mz-home 2.6s ease-in-out infinite alternate; }
+.mz-home.left { right: auto; left: 12px; }
+@keyframes mz-home { from { opacity: .45; } to { opacity: 1; } }
+.mz.on-stage { z-index: 5; cursor: default; }
+
+/* the talking scene: the page dims behind him, a spotlight on his floor. Comic bubbles in ink and paper (materials);
+   the visitor's own things take the theme's accent (--mint). Every piece exists only while the scene is open. */
+.mzc-dim { position: absolute; inset: 0; z-index: 3; pointer-events: auto; cursor: pointer;
+  background: radial-gradient(ellipse 24% 6% at 50% 70%, rgba(255, 236, 190, .45), rgba(255, 236, 190, 0) 70%),
+    radial-gradient(ellipse 70% 80% at 50% 50%, rgba(8, 10, 22, calc(var(--mzd, .72) - .32)), rgba(8, 10, 22, var(--mzd, .72)) 72%); }
+.mzc-dim[hidden], .mzc-say[hidden], .mzc-cards[hidden], .mzc-you[hidden], .mzc-bar[hidden], .mzc-top[hidden], .mzc-invite[hidden] { display: none; }
+.mzc-say { position: absolute; left: 0; top: 0; z-index: 7; max-width: min(300px, 70vw); min-width: 56px; padding: 12px 16px; border-radius: 22px; background: #fffdf7; color: #1c1c28;
+  border: 3px solid #1c1c28; font-family: var(--display, inherit); font-weight: 700; font-size: 17px; line-height: 1.38; box-shadow: 5px 6px 0 rgba(0, 0, 0, .3); pointer-events: none; overflow-wrap: anywhere; }
+.mzc-say::before { content: ""; position: absolute; width: 15px; height: 15px; background: #fffdf7; border: 3px solid #1c1c28; }
+.mzc-say[data-side="r"]::before { left: -10px; top: var(--ty, 30px); border-top: 0; border-right: 0; transform: translateY(-50%) rotate(45deg); }
+.mzc-say[data-side="l"]::before { right: -10px; top: var(--ty, 30px); border-left: 0; border-bottom: 0; transform: translateY(-50%) rotate(45deg); }
+.mzc-say[data-side="t"]::before { bottom: -10px; left: var(--tx, 50%); border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); }
+
+/* reply cards: a hand of comic cards, each a little tilted; hover straightens and lifts one */
+.mzc-cards { position: absolute; left: 12px; right: 12px; bottom: 84px; z-index: 7; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 10px; pointer-events: none; }
+.mzc-card { pointer-events: auto; display: grid; justify-items: center; gap: 4px; min-width: 96px; max-width: 150px; padding: 10px 12px 9px; border-radius: 16px; cursor: pointer;
+  background: #fffdf7; color: #1c1c28; border: 2.5px solid #1c1c28; box-shadow: 3px 5px 0 rgba(0, 0, 0, .32); font: inherit; font-weight: 700; font-size: 13px; line-height: 1.2; text-align: center;
+  rotate: var(--r, 0deg); transition: rotate .2s, translate .2s, box-shadow .2s, background-color .2s; }
+.mzc-card .mzc-em { font-size: 24px; line-height: 1; }
+.mzc-card:hover, .mzc-card:focus-visible { rotate: 0deg; translate: 0 -6px; box-shadow: 4px 9px 0 rgba(0, 0, 0, .3); background: color-mix(in srgb, var(--mint, #7ee8a2) 22%, #fffdf7); outline: none; }
+.mzc-card.sm { min-width: 0; grid-auto-flow: column; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 99px; font-size: 12px; background: rgba(255, 253, 247, .9); }
+.mzc-card.sm .mzc-em { font-size: 15px; }
+.mzc-card.big { min-width: 84px; }
+.mzc-card.big .mzc-em { font-size: 34px; }
+.mzc-score { width: 100%; text-align: center; color: #fff; font-weight: 700; font-size: 13px; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); pointer-events: none; }
+
+/* the visitor's words: a speech bubble from their avatar that flies up to him */
+.mzc-you { position: absolute; left: 0; top: 0; z-index: 8; max-width: min(280px, 70vw); padding: 9px 14px; border-radius: 18px 18px 18px 5px; pointer-events: none;
+  background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); border: 2.5px solid #1c1c28; font: inherit; font-weight: 700; font-size: 14px; line-height: 1.3; box-shadow: 3px 4px 0 rgba(0, 0, 0, .3); overflow-wrap: anywhere; }
+
+/* the ask bar: their avatar, the words they type (with a little wave while typing), quick reactions, the mic, a paper plane */
+.mzc-bar { position: absolute; left: 50%; bottom: 14px; translate: -50% 0; z-index: 7; width: min(560px, calc(100% - 20px)); display: flex; align-items: center; gap: 6px; pointer-events: auto;
+  padding: 6px; border-radius: 99px; background: rgba(18, 20, 36, .72); border: 1.5px solid rgba(255, 255, 255, .22); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.mzc-bar { transition: border-color .25s, box-shadow .25s; }
+.mzc-bar:focus-within { border-color: var(--mint, #7ee8a2); box-shadow: 0 10px 30px rgba(0, 0, 0, .35), 0 0 0 4px color-mix(in srgb, var(--mint, #7ee8a2) 35%, transparent); }
+.mzc-av { width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 22px; border-radius: 50%; background: color-mix(in srgb, var(--mint, #7ee8a2) 70%, #fff); border: 2px solid #1c1c28; }
+.mzc-bar input { flex: 1; min-width: 0; border: 0; background: transparent; color: #fff; font: inherit; font-size: 15px; padding: 8px 6px; outline: none; }
+.mzc-bar input::placeholder { color: rgba(255, 255, 255, .65); }
+.mzc-wave { display: none; align-items: center; gap: 3px; height: 18px; margin-right: 2px; }
+.mzc-bar.typing .mzc-wave, .mzc-bar.hearing .mzc-wave { display: flex; }
+.mzc-wave i { width: 3px; height: 100%; border-radius: 2px; background: var(--mint, #7ee8a2); animation: mzc-wave .7s ease-in-out infinite; transform-origin: 50% 100%; }
+.mzc-wave i:nth-child(2) { animation-delay: .12s; }
+.mzc-wave i:nth-child(3) { animation-delay: .24s; }
+@keyframes mzc-wave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+.mzc-quick { display: flex; gap: 2px; }
+.mzc-quick button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; font-size: 18px; cursor: pointer; transition: transform .15s, background-color .15s; }
+.mzc-quick button:hover { transform: scale(1.25) rotate(-8deg); background: rgba(255, 255, 255, .12); }
+.mzc-mic, .mzc-send { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; cursor: pointer; font-size: 17px; }
+.mzc-mic { background: rgba(255, 255, 255, .16); }
+.mzc-mic[hidden] { display: none; }
+.mzc-bar.hearing .mzc-mic { background: #e5484d; }
+.mzc-send { background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); }
+.mzc-send svg { width: 18px; height: 18px; }
+@media (max-width: 560px) { .mzc-quick { display: none; } .mzc-card { min-width: 84px; font-size: 12px; } .mzc-cards { bottom: 78px; } }
+
+.mzc-top { position: absolute; top: 12px; right: 12px; z-index: 9; display: flex; gap: 8px; pointer-events: auto; }
+.mzc-top button { width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .25); background: rgba(18, 20, 36, .6); color: #fff; font-size: 17px; cursor: pointer; }
+.mzc-top button:hover { background: rgba(255, 255, 255, .22); }
+@media (max-width: 760px) { .site .mz-layer .mzc-top { top: 64px; } }
+
+/* "Wanna chat?" over his head */
+.mzc-invite { position: absolute; left: 0; top: 0; z-index: 6; pointer-events: auto; cursor: pointer; white-space: nowrap; font: inherit; font-family: var(--display, inherit); font-weight: 700; font-size: 14px;
+  padding: 8px 14px; border-radius: 18px; background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); border: 2.5px solid #1c1c28; box-shadow: 3px 4px 0 rgba(0, 0, 0, .3); }
+.mzc-invite::after { content: ""; position: absolute; bottom: -9px; left: var(--tx, 50%); width: 12px; height: 12px; background: var(--mint, #7ee8a2); border: 2.5px solid #1c1c28; border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); }
 
 /* resting: decorative loops pause while the page scrolls; slow devices skip the rain */
-html.scrolling .mz-rain i, html.scrolling .mz-night i, html.scrolling .mz-t-who small i::after, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
+html.scrolling .mz-rain i, html.scrolling .mz-night i, html.scrolling .mz-home, html.scrolling .mzc-wave i, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
 html.lite .mz-rain { display: none !important; }
-@media (prefers-reduced-motion: reduce) { .mz-rain i, .mz-night i, .mz-t-who small i::after, .mz-m.typing i, .mz-svg .zcloth, .mz-svg .zflame, .mz-rk-flame { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .mz-rain i, .mz-night i, .mz-home, .mzc-wave i, .mz-svg .zcloth, .mz-svg .zflame, .mz-rk-flame { animation: none; } }
 
 /* the dashboard's preview (components/admin/MascotStudio.tsx): the same layer, inside a box */
 .mzs-stage { position: relative; height: 540px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border, #ddd);

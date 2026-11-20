@@ -57,6 +57,14 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
   const set = (patch: Partial<MascotSettings>) => setD((x) => ({ ...x, ...patch }));
   const setFun = (patch: Partial<MascotSettings["fun"]>) => setD((x) => ({ ...x, fun: { ...x.fun, ...patch } }));
   const setQa = (k: MzQa, patch: Partial<MascotSettings["qa"][MzQa]>) => setD((x) => ({ ...x, qa: { ...x.qa, [k]: { ...x.qa[k], ...patch } } }));
+  const setCv = (patch: Partial<MascotSettings["convo"]>) => setD((x) => ({ ...x, convo: { ...x.convo, ...patch } }));
+  /* the voices this computer has; a visitor hears the same one if their device has it, otherwise the closest kind */
+  const [voices, setVoices] = useState<{ name: string; lang: string }[]>([]);
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const load = () => { const vs = speechSynthesis.getVoices().map((v) => ({ name: v.name, lang: v.lang })); vs.sort((a, b) => Number(!/^en/i.test(a.lang)) - Number(!/^en/i.test(b.lang)) || a.name.localeCompare(b.name)); setVoices(vs); };
+    load(); speechSynthesis.addEventListener("voiceschanged", load); return () => speechSynthesis.removeEventListener("voiceschanged", load);
+  }, []);
   const save = async () => {
     if (!dirty || saving) return;
     setSaving(true);
@@ -81,6 +89,7 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
           <div className="mzs-stage" ref={stage} />
           <div className="mzs-tries">
             <p className="hint">This is him, live. Click him to talk, drag him to throw him, click three times fast to tickle him. Or try anything below.</p>
+            <div className="hst-chips"><button type="button" className="hst-chip on" onClick={() => c()?.openTalk()}>🎙️ Talk to him</button><button type="button" className="hst-chip" onClick={() => c()?.testVoice()}>🔊 Hear his voice</button></div>
             <span className="lab">Questions</span>
             <div className="hst-chips">{MZ_QA.map(([k]) => d.qa[k].on && <Btn key={k} onClick={() => c()?.ask(k)}>{d.qa[k].q}</Btn>)}</div>
             <span className="lab">Fun</span>
@@ -100,8 +109,39 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
 
         <div className="cs-grid">
           <div className="cs-panel">
-            <Box title="Talk to him">
-              <div className="hint">Visitors click him and pick a question, or type one ("who are you?", "tell me a joke", "bye"). Each line of an answer is its own speech bubble. Switch a question off and it leaves his chat.</div>
+            <Box title="His voice">
+              <Sw checked={d.convo.voice} onChange={(v) => setCv({ voice: v })}>He speaks out loud when someone talks to him (visitors can mute him with 🔊)</Sw>
+              <div className="mzs-sub">
+                <div className="fl"><label htmlFor="mz-voice">Voice</label>
+                  <select id="mz-voice" className="inp" value={d.convo.voiceName} onChange={(e) => setCv({ voiceName: e.target.value })}>
+                    <option value="">Pick one for each visitor automatically</option>
+                    {voices.map((v) => <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>)}
+                  </select>
+                  <div className="hint">These are the voices on this computer. A visitor hears the same voice if their phone or computer has it; otherwise the closest one of the kind below.</div></div>
+                <span className="lab">When it picks for a visitor</span>
+                <Chips list={[["male", "A man's voice"], ["female", "A woman's voice"], ["any", "Any English voice"]] as const} value={d.convo.voiceKind} onPick={(v) => setCv({ voiceKind: v })} />
+                <Slider id="mz-rate" label="Speed" value={d.convo.rate} lim={MZ_LIMITS.rate} unit="%" onChange={(v) => setCv({ rate: v })} />
+                <Slider id="mz-pitch" label="Pitch (higher sounds more cartoony)" value={d.convo.pitch} lim={MZ_LIMITS.pitch} unit="%" onChange={(v) => setCv({ pitch: v })} />
+                <Slider id="mz-vol" label="Volume" value={d.convo.volume} lim={MZ_LIMITS.volume} unit="%" onChange={(v) => setCv({ volume: v })} />
+                <div className="btns"><button type="button" className="b-out b-sm" onClick={() => c()?.testVoice()}><i className="ti ti-volume" />Hear him say his first words</button></div>
+              </div>
+              <Sw checked={d.convo.mic} onChange={(v) => setCv({ mic: v })}>Visitors can ask out loud with 🎤 (Chrome and Edge only; Chrome sends the spoken words to Google to turn them into text)</Sw>
+            </Box>
+
+            <Box title="The talking scene">
+              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card, type, or send a quick 👋 😂 ❤️ 🔥.</div>
+              <div className="fl"><label htmlFor="mz-hello">His first words</label><input id="mz-hello" className="inp" maxLength={120} value={d.convo.hello} onChange={(e) => setCv({ hello: e.target.value })} /></div>
+              <Slider id="mz-dim" label="How dark the site gets behind him" value={d.convo.dim} lim={MZ_LIMITS.dim} unit="%" onChange={(v) => setCv({ dim: v })} />
+              <Slider id="mz-scale" label="His size on the stage, at most" value={d.convo.scale} lim={MZ_LIMITS.scale} unit="%" onChange={(v) => setCv({ scale: v })} />
+              <Sw checked={d.convo.invite} onChange={(v) => setCv({ invite: v })}>Invite visitors with a bubble over his head</Sw>
+              <div className="mzs-sub">
+                <div className="fl"><label htmlFor="mz-invt">The bubble says</label><input id="mz-invt" className="inp" maxLength={40} value={d.convo.inviteText} onChange={(e) => setCv({ inviteText: e.target.value })} /></div>
+                <Slider id="mz-inve" label="It pops up every" value={d.convo.inviteEvery} lim={MZ_LIMITS.inviteEvery} unit=" s" onChange={(v) => setCv({ inviteEvery: v })} />
+              </div>
+            </Box>
+
+            <Box title="His answers">
+              <div className="hint">The questions visitors can pick as cards on the stage, or type ("who are you?", "tell me a joke", "bye"). Each line of an answer is a sentence he says, with its own gesture. Switch a question off and its card goes.</div>
               {MZ_QA.map(([k, anim]) => (
                 <div key={k} className="mzs-qa">
                   <Sw checked={d.qa[k].on} onChange={(v) => setQa(k, { on: v })}><b>{d.qa[k].q || k}</b></Sw>
