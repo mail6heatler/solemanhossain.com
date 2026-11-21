@@ -141,7 +141,7 @@ export function cleanMascot(raw: unknown): MascotSettings {
   const r = isObj(raw) ? raw : {}, D = DEFAULT_MASCOT;
   const lr = isObj(r.lines) ? r.lines : {}, qr = isObj(r.qa) ? r.qa : {}, fr = isObj(r.fun) ? r.fun : {}, nr = isObj(fr.notice) ? fr.notice : {}, mr = isObj(r.moments) ? r.moments : {}, cr = isObj(r.convo) ? r.convo : {}, C = D.convo;
   const pr = isObj(r.pos) ? r.pos : {};
-  const spot = (v: unknown): MzPos | null => { if (!isObj(v)) return null; const x = Number(v.x), y = Number(v.y); return Number.isFinite(x) && Number.isFinite(y) ? { x: Math.round(Math.min(100, Math.max(0, x)) * 10) / 10, y: Math.round(Math.min(90, Math.max(0, y)) * 10) / 10 } : null; };
+  const spot = (v: unknown): MzPos | null => { if (!isObj(v)) return null; const x = Number(v.x), y = Number(v.y); return Number.isFinite(x) && Number.isFinite(y) ? { x: Math.round(Math.min(100, Math.max(0, x)) * 10) / 10, y: Math.round(Math.min(100, Math.max(0, y)) * 10) / 10 } : null; };
   return {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
     place: oneOf(r.place, ["corner", "peek", "host"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size),

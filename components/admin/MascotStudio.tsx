@@ -194,7 +194,8 @@ export default function MascotStudio({ first, timezone, sections, phoneMenu = "b
             </Box>
 
             <Box title="Where he stands">
-              <div className="hint">Drag him to his spot on a computer and on a phone. That&apos;s where he lives on every page.</div>
+              <div className="hint">Drag him to his spot on a computer and on a phone, anywhere on the screen. That&apos;s where he lives on every page.</div>
+              <div className="hint"><b>Or place him on your website itself:</b> while you&apos;re logged in here, open your site, press and hold him for a moment, carry him anywhere and let go, then tap 📌 Save for everyone. Do it on your phone for phones and on your computer for computers. Visitors can&apos;t do this; a quick drag still throws him, as before.</div>
               <MascotPlacer d={d} phoneMenu={phoneMenu} bbar={bbar} onPos={(dev, p) => set({ pos: { ...d.pos, [dev]: p } })} />
             </Box>
 

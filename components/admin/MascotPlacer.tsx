@@ -21,7 +21,7 @@ export default function MascotPlacer({ d, onPos, phoneMenu, bbar }: { d: MascotS
   const grab = useRef<{ id: number; ox: number; oy: number } | null>(null);
   const svg = useMemo(() => mascotStill(), []);
   const vars = useMemo(() => lookVars(d, MZ_SHIRTS, MZ_JEANS), [d]);
-  const R = REF[dev], wPct = ((d.size / 100) * R.mz / R.w) * 100, half = wPct / 2;
+  const R = REF[dev], wPct = ((d.size / 100) * R.mz / R.w) * 100, half = wPct / 2, hPct = (wPct * 1.29 * R.w) / R.h;
   const corner = (right: boolean): MzPos => ({ x: round(right ? 100 - half - (12 / R.w) * 100 : half + (12 / R.w) * 100), y: 0 });
   const saved = d.pos[dev], at = live || saved || corner(d.side === "right");
   const right = at.x > 50, orb = dev === "phone" && phoneMenu === "orb", sheet = dev === "phone" && phoneMenu === "sheet", bar = dev === "phone" && phoneMenu === "bottom" && bbar;
@@ -30,7 +30,7 @@ export default function MascotPlacer({ d, onPos, phoneMenu, bbar }: { d: MascotS
   const spot = (cx: number, cy: number): MzPos => {
     const r = screen.current!.getBoundingClientRect(), g = grab.current!;
     let x = ((cx - g.ox - r.left) / r.width) * 100, y = ((r.bottom - (cy - g.oy)) / r.height) * 100;
-    x = clamp(x, half, 100 - half); y = clamp(y, 0, 80);
+    x = clamp(x, half, 100 - half); y = clamp(y, 0, Math.max(0, 100 - hPct)); // anywhere on the screen, top included
     if (x - half < 1.5) x = half; if (100 - half - x < 1.5) x = 100 - half; if (y < 2) y = 0; // edges and the floor catch him
     return { x: round(x), y: round(y) };
   };
@@ -42,7 +42,7 @@ export default function MascotPlacer({ d, onPos, phoneMenu, bbar }: { d: MascotS
   const up = (e: React.PointerEvent<HTMLDivElement>) => { if (grab.current?.id !== e.pointerId) return; const p = spot(e.clientX, e.clientY); grab.current = null; setLive(null); onPos(dev, p); };
   const key = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const k = e.shiftKey ? 5 : 1, m: Record<string, [number, number]> = { ArrowLeft: [-k, 0], ArrowRight: [k, 0], ArrowUp: [0, k], ArrowDown: [0, -k] }, v = m[e.key]; if (!v) return;
-    e.preventDefault(); onPos(dev, { x: round(clamp(at.x + v[0], half, 100 - half)), y: round(clamp(at.y + v[1], 0, 80)) });
+    e.preventDefault(); onPos(dev, { x: round(clamp(at.x + v[0], half, 100 - half)), y: round(clamp(at.y + v[1], 0, Math.max(0, 100 - hPct))) });
   };
 
   return (

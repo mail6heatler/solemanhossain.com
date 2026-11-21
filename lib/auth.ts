@@ -62,8 +62,12 @@ export async function createSession() {
 }
 
 export async function destroySession() {
-  (await cookies()).delete(COOKIE);
+  const c = await cookies();
+  c.delete(COOKIE);
+  c.delete(OWNER_MARK); // the website's hint that the owner is here (components/admin/OwnerMark.tsx)
 }
+/** Not a login: only tells the website's scripts to offer the owner's tools (placing the mascot). Every save still checks the real cookie. */
+export const OWNER_MARK = "lc_owner";
 
 export async function isAdmin() {
   const token = (await cookies()).get(COOKIE)?.value;

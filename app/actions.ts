@@ -22,7 +22,7 @@ import { headers } from "next/headers";
 import { query, queryOne } from "@/lib/db";
 import { getComments, getPollCounts, getReactionCounts, getReactionPeople, getSettings, type Comment } from "@/lib/data";
 import {
-  checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, requireAdmin,
+  checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, isAdmin, requireAdmin,
 } from "@/lib/auth";
 import { cleanStyle } from "@/lib/contentStyle";
 import { BANNER_KINDS, cleanRibbonSize, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
@@ -248,6 +248,22 @@ export async function saveMascot(raw: unknown): Promise<{ ok: true } | { ok: fal
     refresh();
     return { ok: true };
   } catch (e) { console.error("saveMascot", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
+/**
+ * The owner placed Mini Shourobh by hand on the website itself (held him, carried him, let go) and pressed Save (2026-11-21).
+ * `dev` is the kind of screen it was done on; `pos` is his middle and his feet as percentages of that screen, or null for the
+ * default corner. Called from the site's own script, so it answers instead of redirecting when the login has run out.
+ */
+export async function saveMascotSpot(dev: unknown, pos: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!(await isAdmin())) return { ok: false, error: "login" };
+  if (dev !== "desk" && dev !== "phone") return { ok: false, error: "bad" };
+  try {
+    const s = await getSettings();
+    await saveSettingsData({ mascot: cleanMascot({ ...s.mascot, pos: { ...s.mascot.pos, [dev]: pos ?? null } }) });
+    refresh();
+    return { ok: true };
+  } catch (e) { console.error("saveMascotSpot", e); return { ok: false, error: "save" }; }
 }
 
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */
