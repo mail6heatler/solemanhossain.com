@@ -66,6 +66,8 @@ The owner kept the nine fixes ("keep it") and reported two things: placing him s
 - On phones he freezes while the page scrolls and carries on after; his spot is held from whichever screen edge the browser doesn't move, learnt from the visitor's own scrolling.
 - The dashboard's drag screens now reach the top of the screen too.
 
+**Kept** the same day ("keep it but we will work on it more later"): more work on placing him and on phones is to come when the owner brings it up; ask what still feels off before changing anything.
+
 ### 2026-11-21: Nine fixes: the mascot, the menu bar's buttons, the banner's rope
 
 The owner listed nine and said "go" with the rocket named SHOUROBH ONE and the conflict being the mascot's own "Wanna chat?". Restore point `before-mascot-fixes`. Built as described in CLAUDE.md (the mascot's "Fixes of 2026-11-21", the menu bar's buttons, the banner following the bar); built, not tested beyond the build.
