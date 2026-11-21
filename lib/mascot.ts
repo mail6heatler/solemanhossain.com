@@ -37,9 +37,14 @@ export type MzQaItem = { on: boolean; q: string; a: string };
 export const MZ_GAMES = [["football", "⚽ Keepy-ups"], ["cricket", "🏏 Cricket six"], ["yawn", "🥱 Yawn and stretch"], ["whistle", "🎵 Whistles"], ["phone", "📱 Laughs at his phone"]] as const;
 export type MzGame = (typeof MZ_GAMES)[number][0];
 
+/** Where he stands, dragged on the dashboard (2026-11-21): x is his middle and y his feet above the bottom, both as a percentage of the screen. */
+export type MzPos = { x: number; y: number };
+
 export type MascotSettings = {
   show: boolean; phones: boolean;
   place: "corner" | "peek" | "host"; side: "right" | "left"; size: number;
+  /** null: the corner on `side`, as before */
+  pos: { desk: MzPos | null; phone: MzPos | null };
   skin: string; hair: "curly" | "swept" | "short"; beard: "trim" | "stubble" | "clean"; glasses: boolean; shirt: MzShirt; jeans: MzJeans;
   chat: "quiet" | "normal" | "chatty"; follow: boolean; duck: boolean; cheer: boolean; nap: boolean; napAfter: number;
   tricks: Record<MzTrick, boolean>;
@@ -49,7 +54,7 @@ export type MascotSettings = {
   qa: Record<MzQa, MzQaItem>;
   fun: {
     ground: boolean; throw: boolean; tickle: boolean; bored: boolean; boredAfter: number; games: Record<MzGame, boolean>;
-    rocket: boolean; backAfter: number; notice: { fast: boolean; end: boolean; back: boolean; point: boolean }; hearts: boolean; sounds: boolean;
+    rocket: boolean; rocketName: string; backAfter: number; notice: { fast: boolean; end: boolean; back: boolean; point: boolean }; hearts: boolean; sounds: boolean;
   };
   moments: { auto: boolean; morning: boolean; night: boolean; rain: boolean; eid: boolean; birthday: string };
   /** The talking scene (clicking him) and his voice. Speed, pitch and volume are percentages. */
@@ -63,41 +68,66 @@ export const MZ_LIMITS = { size: [70, 140], napAfter: [15, 300], boredAfter: [5,
 
 const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) => Object.fromEntries(keys.map(([k]) => [k, true])) as Record<K, boolean>;
 
+/*
+ * Everything he says can have several versions, picked at random each time and never the same twice in a row (the owner's
+ * rule, 2026-11-21): | between versions of one line; in an answer, each line is a sentence, and an empty line starts a whole
+ * other version of the answer (a joke's setup and punchline stay together). mascotRig.ts reads them with vary() and answer().
+ */
 export const DEFAULT_MASCOT: MascotSettings = {
-  show: true, phones: true, place: "corner", side: "right", size: 100,
+  show: true, phones: true, place: "corner", side: "right", size: 100, pos: { desk: null, phone: null },
   skin: "#c58a62", hair: "curly", beard: "trim", glasses: false, shirt: "teal", jeans: "light",
   chat: "normal", follow: true, duck: true, cheer: true, nap: true, napAfter: 45,
   tricks: allOn(MZ_TRICKS),
   acts: allOn(MZ_BITS),
-  greet: "Hey, I'm Mini Shourobh! Good {time} from Dhaka.",
+  greet: "Hey, I'm Mini Shourobh! Good {time} from Dhaka.|Good {time}! Mini Shourobh here. Come on in! 👋|Oh hi! Good {time} from Dhaka. Make yourself at home.|Welcome! I'm Mini Shourobh, your tiny host. Good {time}! 😄",
   lines: {
-    me: "This bit is all about me. The big me, I mean.", made: "Built all of these myself. Click one, they're real.", adventures: "Next stop? Somewhere with a sea view.",
-    influences: "These shaped how I think. Borrow one?", feed: "Hot takes ahead! Tap the art to vote.", growth: "Every one of these took a while. Worth it.",
-    life: "Say cheese! The everyday stuff.", connect: "Say hello! I do reply, promise.",
+    me: "This bit is all about me. The big me, I mean.|Meet the real me. Well, the bigger one.|Who's Shourobh? Start right here.|The story so far. Spoiler: it's me. 😄",
+    made: "Built all of these myself. Click one, they're real.|Fresh from my workshop. Go on, click one!|Made with code, cha and late nights. ☕|These actually work. Try one!",
+    adventures: "Next stop? Somewhere with a sea view.|Pack your bags, we're going places! 🧳|Every trip has a story. Pick one!|Where to next? I vote beach. 🏖️",
+    influences: "These shaped how I think. Borrow one?|My shelf of big ideas. Have a look!|Books, songs and people that changed me.|Good stuff in here. Pick something!",
+    feed: "Hot takes ahead! Tap the art to vote.|Opinions! Fresh and a little spicy. 🌶️|Agree? Disagree? Tap and vote!|My brain, unfiltered. Vote away!",
+    growth: "Every one of these took a while. Worth it.|The trophy wall! Took years, honestly. 🏆|Small wins, big wins. They all count.|Level ups, one by one. 💪",
+    life: "Say cheese! The everyday stuff.|Little moments, big smiles. 📸|Just life, as it happens.|The everyday stuff that makes me, me.",
+    connect: "Say hello! I do reply, promise.|Drop a message. I read every one! 💌|Go on, say hi. I don't bite!|Write me something. I'll write back!",
   },
   qa: {
-    who: { on: true, q: "Who are you?", a: "I'm Shourobh! Well, the mini one.\nData officer by day, maker by night.\nBorn and raised in Dhaka.\nThis whole site? Mine. 😎" },
-    job: { on: true, q: "What do you do?", a: "I make sense of data at work. 📊\nAnd I build things like this site for fun." },
-    from: { on: true, q: "Where are you from?", a: "Dhaka, Bangladesh!\nHome of fuchka, cha and epic traffic." },
-    joke: { on: true, q: "Tell me a joke", a: "Why don't programmers like nature?\nToo many bugs." },
-    food: { on: true, q: "Favourite food?", a: "Cha, always. ☕\nAnd fuchka. Extra spicy!" },
-    single: { on: true, q: "Are you single?", a: "Haha… 🙈\nAsk the big me. 😉" },
-    sing: { on: true, q: "Sing a song", a: "🎵 La la la, welcome to my site…\n🎶 Scroll around, stay a while!" },
+    who: { on: true, q: "Who are you?", a: "I'm Shourobh! Well, the mini one.|Hi! I'm Shourobh. The pocket-sized version.|Shourobh here! The tiny edition. 😎\nData officer by day, maker by night.|By day I tame data. By night I build stuff.|Spreadsheets by day, side projects by night.\nBorn and raised in Dhaka.|Dhaka born, Dhaka raised.|A proud Dhaka kid, through and through.\nThis whole site? Mine. 😎|I built this whole site myself. 😎|Every pixel here? Mine. 😎" },
+    job: { on: true, q: "What do you do?", a: "I make sense of data at work. 📊|At work, I turn messy data into answers. 📊|Data officer! I find the stories in numbers. 📈\nAnd I build things like this site for fun.|After work, I build things. Like this site!|For fun? I make websites. Like this one. 😄" },
+    from: { on: true, q: "Where are you from?", a: "Dhaka, Bangladesh!|Dhaka, Bangladesh. Best city, wildest traffic.|I'm from Dhaka, Bangladesh! 🇧🇩\nHome of fuchka, cha and epic traffic.|Come for the fuchka, stay for the cha.|Where a 5 km ride can take an hour. 😅" },
+    joke: { on: true, q: "Tell me a joke", a: "Why don't programmers like nature?\nToo many bugs. 🐛\n\nHow do you comfort a JavaScript bug?\nYou console it. 😄\n\nWhy did the developer go broke?\nHe used up all his cache. 💸\n\nWhy did the spreadsheet go to therapy?\nToo many issues in its cells." },
+    food: { on: true, q: "Favourite food?", a: "Cha, always. ☕|Cha. Morning, noon and night. ☕|Milk cha with extra sugar. Always. ☕\nAnd fuchka. Extra spicy!|And fuchka, the spicier the better!|Plus fuchka. Extra spicy, no mercy! 🌶️" },
+    single: { on: true, q: "Are you single?", a: "Haha… 🙈|Ooh, a personal question! 🙈|Whoa, straight to the point! 🙈\nAsk the big me. 😉|That's classified. Ask the big me. 😉|Say hello to the big me and find out. 😉" },
+    sing: { on: true, q: "Sing a song", a: "🎵 La la la, welcome to my site…|🎵 Dhaka nights and cha so bright…|🎵 Click a card and stay a while…\n🎶 Scroll around, stay a while!|🎶 Every section, every smile!|🎶 Thanks for visiting, you're the best! 🎤" },
     trick: { on: true, q: "Do a trick!", a: "" },
-    game: { on: true, q: "Let's play a game", a: "Rock, paper, scissors! You pick first." },
-    tour: { on: true, q: "Show me around", a: "Follow me!" },
-    bye: { on: true, q: "Goodbye!", a: "Bye! See you soon! 👋" },
+    game: { on: true, q: "Let's play a game", a: "Rock, paper, scissors! You pick first.|Let's play rock, paper, scissors! Your move.|Rock, paper, scissors? Pick yours. I won't peek. 👀" },
+    tour: { on: true, q: "Show me around", a: "Follow me!|This way!|Come on, I'll show you!|Let's go!" },
+    bye: { on: true, q: "Goodbye!", a: "Bye! See you soon! 👋|Leaving already? Come back soon! 👋|Rocket time! Bye bye! 🚀|See you next time, friend! 👋" },
   },
   fun: {
     ground: true, throw: true, tickle: true, bored: true, boredAfter: 12, games: allOn(MZ_GAMES),
-    rocket: true, backAfter: 4, notice: { fast: true, end: true, back: true, point: true }, hearts: true, sounds: false,
+    rocket: true, rocketName: "SHOUROBH ONE", backAfter: 4, notice: { fast: true, end: true, back: true, point: true }, hearts: true, sounds: false,
   },
   moments: { auto: true, morning: true, night: true, rain: false, eid: false, birthday: "" },
   convo: {
     voice: true, voiceName: "", voiceKind: "male", rate: 105, pitch: 135, volume: 100,
-    mic: false, dim: 72, scale: 180, hello: "Hey there! I'm Mini Shourobh. 😄", invite: true, inviteText: "Wanna chat? 💬", inviteEvery: 40,
+    mic: false, dim: 72, scale: 180, hello: "Hey there! I'm Mini Shourobh. 😄|Hi hi! Mini Shourobh, at your service. 😄|Oh, a visitor! Hi, I'm Mini Shourobh. 👋",
+    invite: true, inviteText: "Wanna chat? 💬|Psst… talk to me! 💬|Got a question? 💬|Say hi to me! 👋|Bored? Let's chat! 😄", inviteEvery: 40,
   },
 };
+
+/** The single-version words he started with: a saved setting still equal to one of these takes the new, varied default. */
+const OLD_DEFAULTS: Record<string, string> = {
+  greet: "Hey, I'm Mini Shourobh! Good {time} from Dhaka.",
+  "lines.me": "This bit is all about me. The big me, I mean.", "lines.made": "Built all of these myself. Click one, they're real.", "lines.adventures": "Next stop? Somewhere with a sea view.",
+  "lines.influences": "These shaped how I think. Borrow one?", "lines.feed": "Hot takes ahead! Tap the art to vote.", "lines.growth": "Every one of these took a while. Worth it.",
+  "lines.life": "Say cheese! The everyday stuff.", "lines.connect": "Say hello! I do reply, promise.",
+  "qa.who": "I'm Shourobh! Well, the mini one.\nData officer by day, maker by night.\nBorn and raised in Dhaka.\nThis whole site? Mine. 😎",
+  "qa.job": "I make sense of data at work. 📊\nAnd I build things like this site for fun.", "qa.from": "Dhaka, Bangladesh!\nHome of fuchka, cha and epic traffic.",
+  "qa.joke": "Why don't programmers like nature?\nToo many bugs.", "qa.food": "Cha, always. ☕\nAnd fuchka. Extra spicy!", "qa.single": "Haha… 🙈\nAsk the big me. 😉",
+  "qa.sing": "🎵 La la la, welcome to my site…\n🎶 Scroll around, stay a while!", "qa.game": "Rock, paper, scissors! You pick first.", "qa.tour": "Follow me!", "qa.bye": "Bye! See you soon! 👋",
+  hello: "Hey there! I'm Mini Shourobh. 😄", inviteText: "Wanna chat? 💬",
+};
+const fresh = (key: string, v: string, now: string) => (OLD_DEFAULTS[key] !== undefined && v.trim() === OLD_DEFAULTS[key] ? now : v);
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const text = (v: unknown, max: number, fallback: string) => (typeof v === "string" ? v.replace(/[\u0000-\u0009\u000b-\u001f]/g, " ").slice(0, max) : fallback);
@@ -110,22 +140,25 @@ const flags = <K extends string>(raw: unknown, def: Record<K, boolean>) => { con
 export function cleanMascot(raw: unknown): MascotSettings {
   const r = isObj(raw) ? raw : {}, D = DEFAULT_MASCOT;
   const lr = isObj(r.lines) ? r.lines : {}, qr = isObj(r.qa) ? r.qa : {}, fr = isObj(r.fun) ? r.fun : {}, nr = isObj(fr.notice) ? fr.notice : {}, mr = isObj(r.moments) ? r.moments : {}, cr = isObj(r.convo) ? r.convo : {}, C = D.convo;
+  const pr = isObj(r.pos) ? r.pos : {};
+  const spot = (v: unknown): MzPos | null => { if (!isObj(v)) return null; const x = Number(v.x), y = Number(v.y); return Number.isFinite(x) && Number.isFinite(y) ? { x: Math.round(Math.min(100, Math.max(0, x)) * 10) / 10, y: Math.round(Math.min(90, Math.max(0, y)) * 10) / 10 } : null; };
   return {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
     place: oneOf(r.place, ["corner", "peek", "host"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size),
+    pos: { desk: spot(pr.desk), phone: spot(pr.phone) },
     skin: typeof r.skin === "string" && /^#[0-9a-f]{6}$/i.test(r.skin) ? r.skin : D.skin,
     hair: oneOf(r.hair, ["curly", "swept", "short"] as const, D.hair), beard: oneOf(r.beard, ["trim", "stubble", "clean"] as const, D.beard), glasses: bool(r.glasses, D.glasses),
     shirt: oneOf(r.shirt, Object.keys(MZ_SHIRTS) as MzShirt[], D.shirt), jeans: oneOf(r.jeans, Object.keys(MZ_JEANS) as MzJeans[], D.jeans),
     chat: oneOf(r.chat, ["quiet", "normal", "chatty"] as const, D.chat), follow: bool(r.follow, D.follow), duck: bool(r.duck, D.duck), cheer: bool(r.cheer, D.cheer),
     nap: bool(r.nap, D.nap), napAfter: num(r.napAfter, MZ_LIMITS.napAfter, D.napAfter),
     tricks: flags(r.tricks, D.tricks), acts: flags(r.acts, D.acts),
-    greet: text(r.greet, 160, D.greet),
-    lines: Object.fromEntries(Object.keys(D.lines).map((k) => [k, text(lr[k], 160, D.lines[k as keyof typeof D.lines])])) as MascotSettings["lines"],
-    qa: Object.fromEntries(MZ_QA.map(([k]) => { const q = isObj(qr[k]) ? qr[k] : {}; return [k, { on: bool(q.on, D.qa[k].on), q: text(q.q, 60, D.qa[k].q).replace(/\n/g, " "), a: text(q.a, 500, D.qa[k].a) }]; })) as MascotSettings["qa"],
+    greet: fresh("greet", text(r.greet, 600, D.greet), D.greet),
+    lines: Object.fromEntries(Object.keys(D.lines).map((k) => [k, fresh(`lines.${k}`, text(lr[k], 600, D.lines[k as keyof typeof D.lines]), D.lines[k as keyof typeof D.lines])])) as MascotSettings["lines"],
+    qa: Object.fromEntries(MZ_QA.map(([k]) => { const q = isObj(qr[k]) ? qr[k] : {}; return [k, { on: bool(q.on, D.qa[k].on), q: text(q.q, 60, D.qa[k].q).replace(/\n/g, " "), a: fresh(`qa.${k}`, text(q.a, 1500, D.qa[k].a), D.qa[k].a) }]; })) as MascotSettings["qa"],
     fun: {
       ground: bool(fr.ground, D.fun.ground), throw: bool(fr.throw, D.fun.throw), tickle: bool(fr.tickle, D.fun.tickle), bored: bool(fr.bored, D.fun.bored),
       boredAfter: num(fr.boredAfter, MZ_LIMITS.boredAfter, D.fun.boredAfter), games: flags(fr.games, D.fun.games),
-      rocket: bool(fr.rocket, D.fun.rocket), backAfter: num(fr.backAfter, MZ_LIMITS.backAfter, D.fun.backAfter),
+      rocket: bool(fr.rocket, D.fun.rocket), rocketName: text(fr.rocketName, 24, D.fun.rocketName).replace(/\n/g, " "), backAfter: num(fr.backAfter, MZ_LIMITS.backAfter, D.fun.backAfter),
       notice: flags(nr, D.fun.notice), hearts: bool(fr.hearts, D.fun.hearts), sounds: bool(fr.sounds, D.fun.sounds),
     },
     moments: {
@@ -137,7 +170,7 @@ export function cleanMascot(raw: unknown): MascotSettings {
       voice: bool(cr.voice, C.voice), voiceName: text(cr.voiceName, 120, C.voiceName).replace(/\n/g, " "), voiceKind: oneOf(cr.voiceKind, ["male", "female", "any"] as const, C.voiceKind),
       rate: num(cr.rate, MZ_LIMITS.rate, C.rate), pitch: num(cr.pitch, MZ_LIMITS.pitch, C.pitch), volume: num(cr.volume, MZ_LIMITS.volume, C.volume),
       mic: bool(cr.mic, C.mic), dim: num(cr.dim, MZ_LIMITS.dim, C.dim), scale: num(cr.scale, MZ_LIMITS.scale, C.scale),
-      hello: text(cr.hello, 120, C.hello).replace(/\n/g, " "), invite: bool(cr.invite, C.invite), inviteText: text(cr.inviteText, 40, C.inviteText).replace(/\n/g, " "),
+      hello: fresh("hello", text(cr.hello, 400, C.hello).replace(/\n/g, " "), C.hello), invite: bool(cr.invite, C.invite), inviteText: fresh("inviteText", text(cr.inviteText, 240, C.inviteText).replace(/\n/g, " "), C.inviteText),
       inviteEvery: num(cr.inviteEvery, MZ_LIMITS.inviteEvery, C.inviteEvery),
     },
   };

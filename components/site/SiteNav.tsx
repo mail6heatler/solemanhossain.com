@@ -87,14 +87,14 @@ export function Nav({ settings, sections, onHome, preview = false }: { settings:
           })}
         </ul>
         {ex.search && <SearchButton sections={shown.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji }))} />}
-        {settings.effects.surprise && (
+        {settings.effects.surprise && ex.dice !== false && (
           <a className="icon-btn dice-btn" href="/surprise" aria-label="Surprise me: open a random entry" title="Surprise me">🎲</a>
         )}
-        {settings.themeSwitch && (
-          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle} wipe={settings.effects.themewipe} />
+        {settings.themeSwitch && (ex.theme !== false || (settings.effects.shuffle && ex.shuffle !== false)) && (
+          <ThemeSwitch defaultTheme={settings.defaultTheme} timezone={settings.timezone} shuffle={settings.effects.shuffle && ex.shuffle !== false} menu={ex.theme !== false} wipe={settings.effects.themewipe} />
         )}
         {ex.hello && connect && m.helloLabel && <a className="mb-hello" href={href(connect)}>{m.helloLabel}</a>}
-        {(m.phone === "bottom" || m.phone === "full") && (
+        {(m.phone === "bottom" || m.phone === "full") && ex.menubtn !== false && (
           <MobileMenu full={m.phone === "full"} links={shown.map((s) => ({ href: href(s), label: s.nav_label || s.title, emoji: s.nav_emoji, code: s.code }))} />
         )}
       </div>

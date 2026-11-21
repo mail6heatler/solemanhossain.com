@@ -3,7 +3,11 @@
    prefixed (mz-, z…) because the drawing's styles live here, not inside the SVG. */
 
 .mz-layer { position: fixed; inset: 0; z-index: 85; pointer-events: none; overflow: hidden; }
-@media (max-width: 760px) { .site.has-bbar .mz-layer { bottom: calc(66px + env(safe-area-inset-bottom)); } }
+@media (max-width: 760px) {
+  .site.has-bbar .mz-layer { bottom: calc(66px + env(safe-area-inset-bottom)); }
+  /* the pull-up sheet's handle stays his floor's edge; the orb is stepped around in mascotEngine.ts */
+  .mz-layer.ph-sheet { bottom: calc(46px + env(safe-area-inset-bottom)); }
+}
 .mz { position: absolute; bottom: 4px; right: 12px; width: 150px; pointer-events: auto; cursor: grab; transform-origin: 50% 100%; touch-action: none; -webkit-tap-highlight-color: transparent; z-index: 2; border-radius: 20px; }
 .mz.left { right: auto; left: 12px; }
 .mz:active { cursor: grabbing; }
@@ -30,9 +34,16 @@
 @keyframes mz-flag { from { transform: skewY(-7deg) scaleX(.93); } to { transform: skewY(6deg) scaleX(1); } }
 @keyframes mz-fl { from { transform: scale(.85, 1.1); } to { transform: scale(1.1, .9); } }
 
-.mz-bub { position: absolute; left: 0; top: 0; max-width: 230px; padding: 9px 13px; border-radius: 16px; background: var(--card, #fff); color: var(--fg, #1c1c28);
+.mz-bub { position: absolute; left: 0; top: 0; width: 220px; text-align: center; padding: 9px 13px; border-radius: 16px; background: var(--card, #fff); color: var(--fg, #1c1c28);
   border: 1px solid var(--line, rgba(0, 0, 0, .1)); font: 600 13.5px/1.35 inherit; font-family: inherit; box-shadow: 0 6px 18px color-mix(in srgb, var(--fg, #000) 14%, transparent); opacity: 0; pointer-events: none;
   transform-origin: var(--tail, 50%) 100%; z-index: 4; overflow-wrap: anywhere; }
+/* every bubble is one size (the owner's rule, 2026-11-21); its words fade in one after another (fillWords in mascotRig.ts) */
+@media (max-width: 760px) { .mz-bub { width: 180px; font-size: 13px; } }
+.mz-w { display: inline-block; }
+.mz-bub .mz-w { animation: mz-w .32s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes mz-w { from { opacity: 0; translate: 0 .35em; } }
+.mzc-say .mz-w { opacity: 0; translate: 0 .3em; transition: opacity .24s ease-out, translate .3s cubic-bezier(.2, .8, .3, 1); }
+.mzc-say .mz-w.on { opacity: 1; translate: 0 0; }
 .mz-bub::after { content: ""; position: absolute; left: var(--tail, 50%); bottom: -7px; width: 13px; height: 13px; background: var(--card, #fff); border: 1px solid var(--line, rgba(0, 0, 0, .1)); border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); border-radius: 0 0 3px 0; }
 
 .mz-p { position: absolute; font-size: 22px; line-height: 1; pointer-events: none; z-index: 5; will-change: transform; }
@@ -69,54 +80,55 @@
   background: radial-gradient(ellipse 24% 6% at 50% 70%, rgba(255, 236, 190, .45), rgba(255, 236, 190, 0) 70%),
     radial-gradient(ellipse 70% 80% at 50% 50%, rgba(8, 10, 22, calc(var(--mzd, .72) - .32)), rgba(8, 10, 22, var(--mzd, .72)) 72%); }
 .mzc-dim[hidden], .mzc-say[hidden], .mzc-cards[hidden], .mzc-you[hidden], .mzc-bar[hidden], .mzc-top[hidden], .mzc-invite[hidden] { display: none; }
-.mzc-say { position: absolute; left: 0; top: 0; z-index: 7; max-width: min(300px, 70vw); min-width: 56px; padding: 12px 16px; border-radius: 22px; background: #fffdf7; color: #1c1c28;
+.mzc-say { position: absolute; left: 0; top: 0; z-index: 7; width: min(300px, 72vw); min-height: 52px; padding: 12px 16px; border-radius: 22px; background: #fffdf7; color: #1c1c28;
   border: 3px solid #1c1c28; font-family: var(--display, inherit); font-weight: 700; font-size: 17px; line-height: 1.38; box-shadow: 5px 6px 0 rgba(0, 0, 0, .3); pointer-events: none; overflow-wrap: anywhere; }
 .mzc-say::before { content: ""; position: absolute; width: 15px; height: 15px; background: #fffdf7; border: 3px solid #1c1c28; }
 .mzc-say[data-side="r"]::before { left: -10px; top: var(--ty, 30px); border-top: 0; border-right: 0; transform: translateY(-50%) rotate(45deg); }
 .mzc-say[data-side="l"]::before { right: -10px; top: var(--ty, 30px); border-left: 0; border-bottom: 0; transform: translateY(-50%) rotate(45deg); }
 .mzc-say[data-side="t"]::before { bottom: -10px; left: var(--tx, 50%); border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); }
 
-/* reply cards: a hand of comic cards, each a little tilted; hover straightens and lifts one */
-.mzc-cards { position: absolute; left: 12px; right: 12px; bottom: 84px; z-index: 7; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 10px; pointer-events: none; }
-.mzc-card { pointer-events: auto; display: grid; justify-items: center; gap: 4px; min-width: 96px; max-width: 150px; padding: 10px 12px 9px; border-radius: 16px; cursor: pointer;
+/* reply cards: a hand of comic cards, all exactly the same size (the owner's rule, 2026-11-21), each a little tilted; hover straightens and lifts one */
+.mzc-cards { position: absolute; left: 12px; right: 12px; bottom: 84px; z-index: 7; display: grid; grid-template-columns: repeat(auto-fit, 128px); justify-content: center; align-items: end; gap: 10px; pointer-events: none; }
+.mzc-card { pointer-events: auto; box-sizing: border-box; width: 128px; height: 92px; display: grid; grid-template-rows: auto 1fr; justify-items: center; align-items: center; gap: 4px; padding: 10px 10px 8px; border-radius: 16px; cursor: pointer;
   background: #fffdf7; color: #1c1c28; border: 2.5px solid #1c1c28; box-shadow: 3px 5px 0 rgba(0, 0, 0, .32); font: inherit; font-weight: 700; font-size: 13px; line-height: 1.2; text-align: center;
   rotate: var(--r, 0deg); transition: rotate .2s, translate .2s, box-shadow .2s, background-color .2s; }
 .mzc-card .mzc-em { font-size: 24px; line-height: 1; }
+.mzc-card .mzc-lb { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
 .mzc-card:hover, .mzc-card:focus-visible { rotate: 0deg; translate: 0 -6px; box-shadow: 4px 9px 0 rgba(0, 0, 0, .3); background: color-mix(in srgb, var(--mint, #7ee8a2) 22%, #fffdf7); outline: none; }
-.mzc-card.sm { min-width: 0; grid-auto-flow: column; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 99px; font-size: 12px; background: rgba(255, 253, 247, .9); }
-.mzc-card.sm .mzc-em { font-size: 15px; }
-.mzc-card.big { min-width: 84px; }
-.mzc-card.big .mzc-em { font-size: 34px; }
-.mzc-score { width: 100%; text-align: center; color: #fff; font-weight: 700; font-size: 13px; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); pointer-events: none; }
+.mzc-cards.going .mzc-card { pointer-events: none; }
+.mzc-score { grid-column: 1 / -1; width: 100%; text-align: center; color: #fff; font-weight: 700; font-size: 13px; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); pointer-events: none; }
+@media (max-width: 560px) {
+  .mzc-cards { left: 10px; right: 10px; bottom: 76px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .mzc-card { width: auto; height: 64px; padding: 6px 6px 5px; gap: 2px; font-size: 11.5px; border-radius: 13px; }
+  .mzc-card .mzc-em { font-size: 18px; }
+  .mzc-card .mzc-lb { -webkit-line-clamp: 2; }
+}
 
 /* the visitor's words: a speech bubble from their avatar that flies up to him */
-.mzc-you { position: absolute; left: 0; top: 0; z-index: 8; max-width: min(280px, 70vw); padding: 9px 14px; border-radius: 18px 18px 18px 5px; pointer-events: none;
+.mzc-you { position: absolute; left: 0; top: 0; z-index: 8; max-width: min(240px, 64vw); padding: 9px 14px; border-radius: 18px 18px 18px 5px; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); border: 2.5px solid #1c1c28; font: inherit; font-weight: 700; font-size: 14px; line-height: 1.3; box-shadow: 3px 4px 0 rgba(0, 0, 0, .3); overflow-wrap: anywhere; }
 
-/* the ask bar: their avatar, the words they type (with a little wave while typing), quick reactions, the mic, a paper plane */
+/* a card turned into a paper plane, and the sparkles a flying card leaves behind */
+.mzc-you.plane { background: none; border: 0; box-shadow: none; padding: 0; font-size: 40px; line-height: 1; overflow: visible; }
+.mzc-trail { position: absolute; z-index: 8; font-style: normal; font-size: 16px; line-height: 1; color: #ffd86b; pointer-events: none; text-shadow: 0 0 6px rgba(255, 220, 120, .8); }
+
+/* the bar: their avatar, the "AI assistant, coming soon" box where typing will go, and quick reactions */
 .mzc-bar { position: absolute; left: 50%; bottom: 14px; translate: -50% 0; z-index: 7; width: min(560px, calc(100% - 20px)); display: flex; align-items: center; gap: 6px; pointer-events: auto;
   padding: 6px; border-radius: 99px; background: rgba(18, 20, 36, .72); border: 1.5px solid rgba(255, 255, 255, .22); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
-.mzc-bar { transition: border-color .25s, box-shadow .25s; }
-.mzc-bar:focus-within { border-color: var(--mint, #7ee8a2); box-shadow: 0 10px 30px rgba(0, 0, 0, .35), 0 0 0 4px color-mix(in srgb, var(--mint, #7ee8a2) 35%, transparent); }
 .mzc-av { width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 22px; border-radius: 50%; background: color-mix(in srgb, var(--mint, #7ee8a2) 70%, #fff); border: 2px solid #1c1c28; }
-.mzc-bar input { flex: 1; min-width: 0; border: 0; background: transparent; color: #fff; font: inherit; font-size: 15px; padding: 8px 6px; outline: none; }
-.mzc-bar input::placeholder { color: rgba(255, 255, 255, .65); }
-.mzc-wave { display: none; align-items: center; gap: 3px; height: 18px; margin-right: 2px; }
-.mzc-bar.typing .mzc-wave, .mzc-bar.hearing .mzc-wave { display: flex; }
-.mzc-wave i { width: 3px; height: 100%; border-radius: 2px; background: var(--mint, #7ee8a2); animation: mzc-wave .7s ease-in-out infinite; transform-origin: 50% 100%; }
-.mzc-wave i:nth-child(2) { animation-delay: .12s; }
-.mzc-wave i:nth-child(3) { animation-delay: .24s; }
-@keyframes mzc-wave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+.mzc-soon { position: relative; flex: 1; min-width: 0; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border: 1.5px dashed rgba(255, 255, 255, .35); border-radius: 99px; overflow: hidden;
+  background: rgba(255, 255, 255, .06); color: rgba(255, 255, 255, .72); font: inherit; font-size: 14.5px; cursor: pointer; text-align: left; transition: background-color .2s, border-color .2s; }
+.mzc-soon:hover, .mzc-soon:focus-visible { background: rgba(255, 255, 255, .12); border-color: var(--mint, #7ee8a2); outline: none; }
+.mzc-soon::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .16) 50%, transparent 70%); translate: -100% 0; animation: mzc-shine 3.2s ease-in-out infinite; pointer-events: none; }
+@keyframes mzc-shine { 60%, 100% { translate: 100% 0; } }
+.mzc-soon-ic { font-size: 17px; animation: mzc-twinkle 1.8s ease-in-out infinite; }
+@keyframes mzc-twinkle { 50% { scale: 1.25; rotate: 18deg; } }
+.mzc-soon-t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mzc-soon-b { flex: none; padding: 5px 10px; border-radius: 99px; background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); font-size: 11px; font-weight: 800; letter-spacing: .02em; white-space: nowrap; }
 .mzc-quick { display: flex; gap: 2px; }
 .mzc-quick button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; font-size: 18px; cursor: pointer; transition: transform .15s, background-color .15s; }
 .mzc-quick button:hover { transform: scale(1.25) rotate(-8deg); background: rgba(255, 255, 255, .12); }
-.mzc-mic, .mzc-send { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; cursor: pointer; font-size: 17px; }
-.mzc-mic { background: rgba(255, 255, 255, .16); }
-.mzc-mic[hidden] { display: none; }
-.mzc-bar.hearing .mzc-mic { background: #e5484d; }
-.mzc-send { background: var(--mint, #7ee8a2); color: var(--on-mint, #1a1a1a); }
-.mzc-send svg { width: 18px; height: 18px; }
-@media (max-width: 560px) { .mzc-quick { display: none; } .mzc-card { min-width: 84px; font-size: 12px; } .mzc-cards { bottom: 78px; } }
+@media (max-width: 560px) { .mzc-quick button { width: 30px; height: 30px; font-size: 16px; } .mzc-soon-t { display: none; } .mzc-soon { justify-content: space-between; } }
 
 .mzc-top { position: absolute; top: 12px; right: 12px; z-index: 9; display: flex; gap: 8px; pointer-events: auto; }
 .mzc-top button { width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .25); background: rgba(18, 20, 36, .6); color: #fff; font-size: 17px; cursor: pointer; }
@@ -129,9 +141,9 @@
 .mzc-invite::after { content: ""; position: absolute; bottom: -9px; left: var(--tx, 50%); width: 12px; height: 12px; background: var(--mint, #7ee8a2); border: 2.5px solid #1c1c28; border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); }
 
 /* resting: decorative loops pause while the page scrolls; slow devices skip the rain */
-html.scrolling .mz-rain i, html.scrolling .mz-night i, html.scrolling .mz-home, html.scrolling .mzc-wave i, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
+html.scrolling .mz-rain i, html.scrolling .mz-night i, html.scrolling .mz-home, html.scrolling .mzc-soon::after, html.scrolling .mzc-soon-ic, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
 html.lite .mz-rain { display: none !important; }
-@media (prefers-reduced-motion: reduce) { .mz-rain i, .mz-night i, .mz-home, .mzc-wave i, .mz-svg .zcloth, .mz-svg .zflame, .mz-rk-flame { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .mz-bub .mz-w, .mzc-soon::after, .mzc-soon-ic, .mz-rain i, .mz-night i, .mz-home, .mz-svg .zcloth, .mz-svg .zflame, .mz-rk-flame { animation: none; } }
 
 /* the dashboard's preview (components/admin/MascotStudio.tsx): the same layer, inside a box */
 .mzs-stage { position: relative; height: 540px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border, #ddd);
@@ -144,3 +156,38 @@ html.lite .mz-rain { display: none !important; }
 .mzs-qa { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--card-border, #ddd); border-radius: 12px; }
 .mzs-qa .hint { margin: 0; }
 .mzs-sub { display: grid; gap: 10px; padding-left: 12px; border-left: 2px solid var(--card-border, #ddd); }
+
+/* "Where he stands" (components/admin/MascotPlacer.tsx): a computer and a phone screen with a small him to drag */
+.mzp { display: grid; gap: 10px; }
+.mzp-dev { justify-self: center; width: 100%; max-width: 520px; padding: 10px; border-radius: 16px; background: #1d2230; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
+.mzp-dev.phone { max-width: 230px; padding: 10px 8px 14px; border-radius: 30px; }
+.mzp-screen { position: relative; overflow: hidden; border-radius: 8px; background: var(--card-bg, #fff); touch-action: none; user-select: none; }
+.mzp-dev.phone .mzp-screen { border-radius: 18px 18px 6px 6px; }
+.mzp-site { position: absolute; inset: 0; display: grid; align-content: start; gap: 6%; padding: 0 7% 0; pointer-events: none; }
+.mzp-site i, .mzp-cards i { display: block; border-radius: 6px; background: color-mix(in srgb, var(--text, #223) 9%, transparent); }
+.mzp-nav { height: 9%; margin: 0 -8%; border-radius: 0 !important; }
+.mzp-dev.phone .mzp-nav { height: 6%; }
+.mzp-h1 { height: 8%; width: 60%; }
+.mzp-p { height: 3.5%; width: 80%; }
+.mzp-p.s { width: 52%; }
+.mzp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4%; height: 26%; }
+.mzp-dev.phone .mzp-cards { grid-template-columns: 1fr; height: 30%; }
+.mzp-dev.phone .mzp-cards i + i { display: none; }
+.mzp-fig { position: absolute; translate: -50% 0; cursor: grab; touch-action: none; z-index: 2; border-radius: 10px; transition: left .25s, bottom .25s; }
+.mzp-fig.drag { cursor: grabbing; transition: none; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .3)); }
+.mzp-fig:focus-visible { outline: 3px solid #ff5a46; outline-offset: 2px; }
+.mzp-fig .mz-svg { pointer-events: none; }
+.mzp-fig.flip .mz-svg { scale: -1 1; }
+.mzp-orb { position: absolute; right: 4.1%; bottom: 2.4%; width: 14.9%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #ff4d8d; color: #fff; font-style: normal; font-weight: 700; border: 2px solid #1d2230; z-index: 1; }
+.mzp-bbar { display: flex; justify-content: space-around; padding: 7px 6px 0; }
+.mzp-bbar i { width: 14%; height: 12px; border-radius: 4px; background: rgba(255, 255, 255, .25); }
+.mzp-sheet { display: grid; place-items: center; height: 16px; margin-top: 4px; border-radius: 8px 8px 0 0; background: rgba(255, 255, 255, .14); }
+.mzp-sheet i { width: 30px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .5); }
+/* he stands still here: only his resting self shows (the rig isn't running) */
+.mzp-fig [data-mzm]:not([data-mzm="grin"]), .mzp-fig [data-mzprop], .mzp-fig [data-mzhat], .mzp-fig [data-mzeh], .mzp-fig [data-mzflash], .mzp-fig [data-mzball],
+.mzp-fig .mzj-cape, .mzp-fig .mzj-shades, .mzp-fig .mzj-chute, .mzp-fig .mzj-pillow, .mzp-fig .mzj-blanket, .mzp-fig .mzj-snot, .mzp-fig .mzj-ball, .mzp-fig .mzj-plane { display: none; }
+.mzp-fig:not([data-gl]) [data-mzgl] { display: none; }
+.mzp-fig[data-hair="curly"] [data-mzhair]:not([data-mzhair="curly"]), .mzp-fig[data-hair="swept"] [data-mzhair]:not([data-mzhair="swept"]), .mzp-fig[data-hair="short"] [data-mzhair]:not([data-mzhair="short"]) { display: none; }
+.mzp-fig[data-beard="trim"] [data-mzbeard]:not([data-mzbeard="trim"]), .mzp-fig[data-beard="stubble"] [data-mzbeard]:not([data-mzbeard="stubble"]), .mzp-fig[data-beard="clean"] [data-mzbeard] { display: none; }
+.mzp-fig .mzj-elL, .mzp-fig .mzj-elR { transform: translate(0px, 36px); }
+.mzp-fig .mzj-shL { transform: rotate(8deg); } .mzp-fig .mzj-shR { transform: rotate(-8deg); }

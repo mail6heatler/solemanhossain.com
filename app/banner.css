@@ -12,6 +12,9 @@
 .hb-swing { transform-origin: 50% 0; }
 .hb-rope { transform-origin: 50% 100%; will-change: transform; }
 .hb.open .hb-tab { margin-top: var(--hb-hem); }
+/* rolled up, the tab's string carries on up behind the menu bar, so a moment's lag while the bar slims never shows a gap */
+.hb:not(.open) .hb-string { position: relative; }
+.hb:not(.open) .hb-string::before { content: ""; position: absolute; left: 0; bottom: 100%; width: 100%; height: 48px; background: inherit; }
 .hb-body { position: relative; z-index: 1; }
 .hb-close { z-index: 2; }
 /* the letters rise and fade in without the usual word masks, which would cut a glowing title into boxes */

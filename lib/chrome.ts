@@ -32,10 +32,14 @@ export type SkyTime = (typeof SKY_TIMES)[number][0];
 
 export const MENU_EXTRAS = [
   ["react", "Reacts to scroll speed"], ["slim", "Slims down after the hero"], ["hide", "Hides while scrolling down, back on the way up"],
-  ["prog", "Reading progress line"], ["hello", "Say hello button"], ["newdots", "\"New since your last visit\" dots"],
-  ["search", "Search (press / )"],
+  ["prog", "Reading progress line"], ["newdots", "\"New since your last visit\" dots"],
 ] as const;
-export type MenuExtra = (typeof MENU_EXTRAS)[number][0];
+/** Every button on the bar, each with its own show/hide switch (the owner's rule, 2026-11-21). Stored in `extras` with the rest. */
+export const MENU_BUTTONS = [
+  ["search", "🔍 Search (press / )"], ["dice", "🎲 Surprise me"], ["shuffle", "🔀 Random theme"], ["theme", "🎨 Theme picker"],
+  ["hello", "👋 Say hello"], ["menubtn", "☰ Menu button (phones)"],
+] as const;
+export type MenuExtra = (typeof MENU_EXTRAS)[number][0] | (typeof MENU_BUTTONS)[number][0];
 
 export type MenuDesign = {
   look: MenuLook;
@@ -57,7 +61,7 @@ export type MenuSize = { name: number; links: number; gap: number; height: numbe
 export const MENU_SIZE_LIMITS: Record<keyof MenuSize, [number, number, number]> = { name: [60, 170, 100], links: [60, 150, 100], gap: [0, 30, 2], height: [50, 180, 100] };
 export const DEFAULT_MENU: MenuDesign = {
   look: "play", bg: "own", phone: "bottom", sky: "now", show: true,
-  extras: { react: true, slim: true, hide: false, prog: true, hello: true, newdots: true, search: true },
+  extras: { react: true, slim: true, hide: false, prog: true, hello: true, newdots: true, search: true, dice: true, shuffle: true, theme: true, menubtn: true },
   ticker: ["● Online now", "🕐 {time} in Dhaka", "👋 Say hello, I read every message"],
   hidden: [], helloLabel: "Say hello 👋",
   size: { name: 100, links: 100, gap: 2, height: 100 },
@@ -124,7 +128,7 @@ export function cleanMenu(raw: unknown): MenuDesign {
   const o = obj(raw), d = DEFAULT_MENU;
   return {
     look: pick(o.look, MENU_LOOKS, d.look), bg: pick(o.bg, MENU_BGS, d.bg), phone: pick(o.phone, PHONE_MENUS, d.phone), sky: pick(o.sky, SKY_TIMES, d.sky),
-    extras: flags(o.extras, MENU_EXTRAS, d.extras),
+    extras: flags<MenuExtra>(o.extras, [...MENU_EXTRAS, ...MENU_BUTTONS], d.extras),
     ticker: Array.isArray(o.ticker) ? o.ticker.map((x) => text(x, 120)).filter(Boolean).slice(0, 8) : d.ticker,
     hidden: Array.isArray(o.hidden) ? o.hidden.map((x) => text(x, 60)).filter((x) => /^[a-z0-9-]+$/.test(x)).slice(0, 40) : d.hidden,
     helloLabel: typeof o.helloLabel === "string" ? text(o.helloLabel, 30) : d.helloLabel,

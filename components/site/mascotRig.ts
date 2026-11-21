@@ -21,6 +21,56 @@ export const gs = () => G;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 export const pick = <T,>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 
+/* ---------------- what he says: several versions of everything, never the same one twice in a row ---------------- */
+const lastPick = new Map<string, string>();
+/** One version of a line: "a|b|c", or a list. The one he said last time is skipped. */
+export function vary(src: string | readonly string[]): string {
+  const list = (typeof src === "string" ? src.split("|") : [...src]).map((x) => x.trim()).filter(Boolean);
+  if (list.length < 2) return list[0] || "";
+  const key = list.join("\u0001"), prev = lastPick.get(key), pool = list.filter((x) => x !== prev), v = pool[Math.floor(Math.random() * pool.length)];
+  lastPick.set(key, v); return v;
+}
+/** An answer the owner wrote (lib/mascot.ts): an empty line starts a whole other version; each line is a sentence; | separates versions of a line. */
+export function answer(text: string): string[] {
+  const versions = String(text || "").split(/\n\s*\n/).map((v) => v.trim()).filter(Boolean);
+  const one = versions.length > 1 ? vary(versions) : versions[0] || "";
+  return one.split("\n").map((l) => vary(l)).filter(Boolean);
+}
+/** His own words (not the owner's), each with its versions. */
+export const SAYS = {
+  tada: ["Ta-da! ✨", "Nailed it! 🤸", "Stuck the landing! 😎", "Perfect ten, judges? ✨"],
+  hmm: ["Hmm…", "Let me think…", "Hmmmm… 🤔"],
+  upTop: ["Up top! ✋", "High five! ✋", "Gimme five! ✋"],
+  letsGo: ["Let's go! 🔥", "Fired up! 🔥", "Bring it on! 🔥"],
+  ahh: ["Ahh. ☕", "Mmm, perfect. ☕", "That hits the spot. ☕"],
+  spicy: ["SPICY! 🌶️🔥", "HOT HOT HOT! 🌶️", "Water! WATER! 🔥"],
+  worth: ["Worth it. 😋", "No regrets. 😋", "Totally worth it. 😋"],
+  tickle: ["Hahaha, stop! That tickles! 😆", "Hehe, no! I'm ticklish! 🤭", "Stop it! Haha, okay, okay! 😆", "Ahaha! Not the belly! 😂"],
+  grumpy: ["Okay. That's enough. 😤", "Hey! Hands off! 😤", "Not funny anymore. 😤"],
+  forgive: ["…fine. I forgive you.", "…okay, okay. Friends again?", "…I can't stay mad at you."],
+  record: ["{n} keepy-ups! New record! ⚽", "{n} in a row! Not bad, huh? ⚽", "{n}! My feet are on fire! 🔥", "Boom, {n} keepy-ups! ⚽"],
+  messi: ["By the way, Messi is the GOAT 🐐"],
+  comes: ["Here it comes…", "Ready… 🏏", "Bowl it to me!"],
+  six: ["SIX! Out of the ground! 🏏", "That's a SIX! 🏏", "Bye bye, ball! SIX! 🏏"],
+  yawn: ["Yaaawn…", "Yaaawn… so sleepy.", "*yawns* 🥱"],
+  meme: ["Haha, this meme! 😂", "LOL, look at this! 😂", "Hahaha, I can't! 🤣"],
+  wind: ["Whoa, slow down! 😵", "Easy! I'm getting dizzy! 😵", "Wheee, so fast! 💨"],
+  end: ["You made it to the end! 🎉", "The end! You saw it all! 🎉", "Bottom of the page! Legend! 🥳"],
+  welcome: ["You're back! I missed you! 🥳", "Hey, welcome back! 😄", "There you are! I missed you! 💖"],
+  thanks: ["Yay, thank you! 💖", "Aww, thanks! 💖", "You're the best! 💖"],
+  morning: ["Good morning! Cha first. ☕", "Morning! Need my cha. ☕", "Rise and shine! Cha time. ☕"],
+  night: ["Up late too? 🌙 Me too.", "Night owl, huh? Me too. 🌙", "Can't sleep either? 🌙"],
+  rain: ["Rainy day in Dhaka! ☔", "Brishti! Rain in Dhaka! ☔", "Perfect weather for cha. ☔"],
+  eid: ["Eid Mubarak! 🌙✨", "Eid Mubarak to you! 🌙", "Happy Eid! 🌙✨"],
+  bday: ["It's my birthday! 🎂", "Birthday time! 🎂", "Guess what day it is? 🎂"],
+  nap: ["Yaaawn… nap time. 😴", "Just a little nap… 😴", "Five more minutes… 😴"],
+  up: ["Huh?! I'm up, I'm up!", "Wha—? I wasn't sleeping!", "I'm awake! Totally awake! 😳"],
+  whoa: ["Whoa!", "Yikes!", "Hey!", "Close one!"],
+  rpsWin: ["{him} beats {you}! I win! Again? 😎", "Ha! {him} beats {you}! Again? 😎", "{him} wins! One more? 😎"],
+  rpsLose: ["Aww, you win. Rematch? 😩", "Noooo! You got me. Again? 😩", "You're good at this! Rematch? 😩"],
+  rpsDraw: ["Jinx! Great minds… again?", "Same! Again?", "A draw! One more?"],
+} as const;
+
 /* ---------------- sounds: made on the spot, only after the visitor has tapped or typed something ---------------- */
 let soundOn = false, gestured = false;
 export const setSound = (on: boolean) => { soundOn = on; };
@@ -95,7 +145,9 @@ function svgMarkup(u: string) {
 <linearGradient id="mzTee-${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf6ea"/><stop offset="1" stop-color="#e9e0cc"/></linearGradient></defs>
 <g class="mzj-root">
 <ellipse class="mzj-shadow" cx="120" cy="297" rx="46" ry="7" fill="rgba(0,0,0,.2)"/>
-<g class="mzj-pillow"><ellipse class="zo" cx="200" cy="287" rx="38" ry="12" fill="#f4f1fb"/><path d="M174,283 Q200,277 226,283" fill="none" stroke="rgba(60,40,90,.15)" stroke-width="2"/></g>
+<g class="mzj-pillow"><path class="zo" d="M150,270 Q147,261 158,261 Q199,254 240,261 Q251,261 249,270 Q253,283 249,291 Q250,300 239,299 Q199,304 159,299 Q148,300 150,291 Q145,280 150,270 Z" fill="#bcd3ff"/>
+  <path d="M160,268 Q199,262 238,268" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".75"/><path d="M162,292 Q199,297 236,292" fill="none" stroke="rgba(40,60,120,.22)" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M176,276 l3,3 m10,-4 l3,3 m10,-3 l3,3 m10,-4 l3,3 m10,-2 l3,3" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".55"/></g>
 <g class="mzj-chute"><path d="M42,-40 L70,92 M82,-40 L72,90 M158,-40 L168,90 M198,-40 L170,92" fill="none" stroke="var(--mz-ink)" stroke-width="1.4"/>
   <path class="zo" d="M40,-40 C40,-100 80,-126 120,-126 C160,-126 200,-100 200,-40 Q180,-50 160,-40 Q140,-50 120,-40 Q100,-50 80,-40 Q60,-50 40,-40 Z" fill="var(--mz-acc)"/>
   <path d="M80,-40 C82,-96 100,-125 120,-126 C140,-125 158,-96 160,-40 Q140,-50 120,-40 Q100,-50 80,-40 Z" fill="#fff" opacity=".88"/></g>
@@ -150,20 +202,36 @@ function svgMarkup(u: string) {
   </g>
 </g>
 <g class="mzj-blanket"><path class="zo" d="M-22,297 L-22,216 Q-20,198 2,200 Q40,192 80,197 Q118,191 140,203 Q148,210 148,297 Z" fill="url(#mzBlanket-${u})"/><path d="M-18,213 Q40,203 144,212" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="5" stroke-linecap="round"/></g>
-<circle class="mzj-snot" cx="160" cy="244" r="0" fill="rgba(170,220,255,.55)" stroke="rgba(80,140,200,.75)" stroke-width="1.5"/>
-<g class="mzj-ball"><circle class="zo" r="10" fill="#fff"/><path d="M0,-4 L3.8,-1.2 2.4,3.2 -2.4,3.2 -3.8,-1.2 Z" fill="var(--mz-ink)"/><path d="M0,-4 V-9.5 M3.8,-1.2 L9,-3 M2.4,3.2 L5.5,8 M-2.4,3.2 L-5.5,8 M-3.8,-1.2 L-9,-3" stroke="var(--mz-ink)" stroke-width="1.3"/></g>
+<circle class="mzj-snot" cx="168" cy="236" r="0" fill="rgba(170,220,255,.55)" stroke="rgba(80,140,200,.75)" stroke-width="1.5"/>
+<g class="mzj-ball"><g data-mzball="foot"><circle class="zo" r="22" fill="#fff"/><path d="M0,-8.5 L8.1,-2.6 5,7 -5,7 -8.1,-2.6 Z" fill="var(--mz-ink)"/>
+  <path d="M0,-8.5 V-16 M8.1,-2.6 L15.4,-5 M5,7 L9.5,13.3 M-5,7 L-9.5,13.3 M-8.1,-2.6 L-15.4,-5" stroke="var(--mz-ink)" stroke-width="2"/>
+  <path d="M-6.5,-20.9 L0,-16 6.5,-20.9 Q0,-22.6 -6.5,-20.9 Z M15.4,-5 L19.9,-10.4 Q21.7,-4 21.3,2.2 Z M9.5,13.3 L16.5,14.3 Q12.6,19.4 6.4,21.4 Z M-9.5,13.3 L-6.4,21.4 Q-12.6,19.4 -16.5,14.3 Z M-15.4,-5 L-21.3,2.2 Q-21.7,-4 -19.9,-10.4 Z" fill="var(--mz-ink)"/>
+  <ellipse cx="-8" cy="-11" rx="6" ry="3.5" fill="#fff" opacity=".7" transform="rotate(-35 -8 -11)"/></g>
+  <g data-mzball="cricket"><circle class="zo" r="9" fill="#c8242b"/><path d="M-6.4,-6.4 Q0,0 -6.4,6.4 M6.4,-6.4 Q0,0 6.4,6.4" fill="none" stroke="#f6e6c8" stroke-width="1.4" stroke-dasharray="2 1.6"/></g></g>
 <g class="mzj-plane"><path class="zo" d="M0,0 L-28,-11 L-11,0 Z" fill="#fff"/><path class="zo" d="M0,0 L-28,11 L-11,0 Z" fill="#e8eefc"/></g>
 </g></svg>`;
 }
 
-/** The rocket that takes him away when someone says goodbye. */
-export const ROCKET_SVG = `<svg viewBox="0 0 120 260" aria-hidden="true" focusable="false"><defs><clipPath id="mzRkWin"><circle cx="60" cy="96" r="15"/></clipPath></defs>
+/** Him standing still, for the dashboard's "Where he stands" screens (no GSAP: mascot.css's .mzp-fig hides what moves). */
+export const mascotStill = () => svgMarkup("still");
+
+const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/** The rocket that takes him away when someone says goodbye: his own private rocket, its name painted on the side (settings.mascot.fun.rocketName). */
+export function rocketSvg(name: string) {
+  const words = String(name || "").trim().toUpperCase().split(/\s+/).filter(Boolean), last = words.length > 1 ? words.pop()! : "", top = words.join(" ");
+  const fit = (t: string, per: number, max: number) => (t.length * per > max ? ` textLength="${max}" lengthAdjust="spacingAndGlyphs"` : "");
+  const label = top ? `<rect x="35" y="124" width="50" height="${last ? 31 : 17}" rx="4" fill="var(--mz-acc)" stroke="var(--mz-ink)" stroke-width="1.6"/>
+<text x="60" y="137.5" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="10" letter-spacing=".4" fill="#fff"${fit(top, 6.6, 44)}>${esc(top)}</text>
+${last ? `<text x="60" y="150.5" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="9" letter-spacing="1.2" fill="#ffe38a"${fit(`★ ${last} ★`, 6.4, 44)}>★ ${esc(last)} ★</text>` : ""}` : "";
+  return ROCKET_SVG.replace("<!--name-->", label);
+}
+const ROCKET_SVG = `<svg viewBox="0 0 120 260" aria-hidden="true" focusable="false"><defs><clipPath id="mzRkWin"><circle cx="60" cy="96" r="15"/></clipPath></defs>
 <g class="mz-rk-flame"><path d="M42,198 Q60,262 78,198 Z" fill="#ffb02e"/><path d="M50,198 Q60,236 70,198 Z" fill="#fff3a6"/></g>
 <path d="M30,148 L8,198 L36,188 Z" fill="var(--mz-acc)" stroke="var(--mz-ink)" stroke-width="2.4" stroke-linejoin="round"/><path d="M90,148 L112,198 L84,188 Z" fill="var(--mz-acc)" stroke="var(--mz-ink)" stroke-width="2.4" stroke-linejoin="round"/>
 <rect x="47" y="186" width="26" height="12" rx="2" fill="#9aa3b6" stroke="var(--mz-ink)" stroke-width="2.4"/>
 <path d="M60,8 C92,40 94,110 88,192 H32 C26,110 28,40 60,8 Z" fill="#f4f6fb" stroke="var(--mz-ink)" stroke-width="2.4" stroke-linejoin="round"/>
 <path d="M60,8 C76,24 84,40 87,56 H33 C36,40 44,24 60,8 Z" fill="var(--mz-acc)" stroke="var(--mz-ink)" stroke-width="2.4" stroke-linejoin="round"/>
-<path d="M34,140 H86" stroke="#d6dbe6" stroke-width="3"/><path d="M40,60 Q36,110 40,170" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/>
+<path d="M33,166 H87" stroke="#d6dbe6" stroke-width="3"/><path d="M40,60 Q36,110 40,170" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/><!--name-->
 <circle cx="60" cy="96" r="20" fill="#2b3a5c" stroke="var(--mz-ink)" stroke-width="2.4"/><circle cx="60" cy="96" r="15" fill="#8fd3ff"/>
 <g class="mz-rk-face" clip-path="url(#mzRkWin)" opacity="0"><circle cx="60" cy="102" r="10" fill="var(--mz-skin)"/><circle cx="51" cy="94" r="5" fill="var(--mz-hair)"/><circle cx="57" cy="90" r="5.5" fill="var(--mz-hair)"/><circle cx="64" cy="90" r="5.5" fill="var(--mz-hair)"/><circle cx="69" cy="95" r="4.5" fill="var(--mz-hair)"/>
 <circle cx="56.5" cy="101" r="1.6" fill="#140b07"/><circle cx="63.5" cy="101" r="1.6" fill="#140b07"/><path d="M55.5,105.5 Q60,109.5 64.5,105.5" stroke="#5c1f1b" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>
@@ -207,10 +275,10 @@ export class Rig {
       root: q(".mzj-root"), body: q(".mzj-body"), upper: q(".mzj-upper"), head: q(".mzj-head"), shL: q(".mzj-shL"), elL: q(".mzj-elL"), hpL: q(".mzj-hpL"), shR: q(".mzj-shR"), elR: q(".mzj-elR"), hpR: q(".mzj-hpR"),
       legL: q(".mzj-legL"), legR: q(".mzj-legR"), eyeL: q(".mzj-eyeL"), eyeR: q(".mzj-eyeR"), pupL: q(".mzj-pupL"), pupR: q(".mzj-pupR"), brows: q(".mzj-brows"), shadow: q(".mzj-shadow"),
       plane: q(".mzj-plane"), flash: q("[data-mzflash]"), cape: q(".mzj-cape"), shades: q(".mzj-shades"), chute: q(".mzj-chute"), pillow: q(".mzj-pillow"), blanket: q(".mzj-blanket"),
-      snot: q(".mzj-snot"), ball: q(".mzj-ball"), flame: q(".zflame"), gl: q("[data-mzgl]"),
+      snot: q(".mzj-snot"), ball: q(".mzj-ball"), flame: q(".zflame"), gl: q("[data-mzgl]"), football: q('[data-mzball="foot"]'), cball: q('[data-mzball="cricket"]'),
     };
     this.blush = [...svg.querySelectorAll(".mzj-blush")];
-    this.s = { ...REST, ...CLEAR, lookX: 0, lookY: 0, blink: 1, breath: 0, plX: 0, plY: 0, plR: 0, plO: 0, bx: 0, by: 0, br: 0, nod: 0, bob: 0 };
+    this.s = { ...REST, ...CLEAR, lookX: 0, lookY: 0, blink: 1, breath: 0, plX: 0, plY: 0, plR: 0, plO: 0, bx: 0, by: 0, br: 0, ck: 0, nod: 0, bob: 0 };
     this.qx = G.quickTo(this.s, "lookX", { duration: 0.45, ease: "power3" }); this.qy = G.quickTo(this.s, "lookY", { duration: 0.45, ease: "power3" });
     this.bub = document.createElement("div"); this.bub.className = "mz-bub"; this.bub.setAttribute("aria-live", "polite"); layer.appendChild(this.bub);
     this.face("grin", "open"); this.setProp(null); this.setHat(null); this.setLook(cfg); this.setMirror(!!opts.mirror);
@@ -263,9 +331,9 @@ export class Rig {
     const bl = String(f(Math.min(1, 0.28 + 0.5 * s.blush))); this.blush.forEach((x) => this.w(x, "opacity", bl));
     this.show(e.chute, s.chute > 0.01); if (s.chute > 0.01) { this.w(e.chute, "transform", `translate(120 -40) scale(1 ${f(s.chute)}) translate(-120 40)`); this.w(e.chute, "opacity", String(f(Math.min(1, s.chute * 2)))); }
     const bed = s.bed > 0.01; this.show(e.pillow, bed); this.show(e.blanket, bed);
-    if (bed) { this.w(e.pillow, "opacity", String(f(s.bed))); this.w(e.pillow, "transform", `translate(200 287) scale(${f(0.4 + 0.6 * s.bed)}) translate(-200 -287)`); this.w(e.blanket, "opacity", String(f(s.bed))); this.w(e.blanket, "transform", `translate(0 ${f(s.blanketY)}) translate(0 297) scale(1 ${f(1 + s.breath * 0.04)}) translate(0 -297)`); }
-    this.show(e.snot, s.bub > 0.6); if (s.bub > 0.6) { this.w(e.snot, "r", String(f(s.bub))); this.w(e.snot, "cx", String(f(166 - s.bub * 0.8))); }
-    this.show(e.ball, s.bo > 0.01); if (s.bo > 0.01) { this.w(e.ball, "transform", `translate(${f(s.bx)} ${f(s.by)}) rotate(${f(s.br)})`); this.w(e.ball, "opacity", String(f(s.bo))); }
+    if (bed) { this.w(e.pillow, "opacity", String(f(s.bed))); this.w(e.pillow, "transform", `translate(199 296) scale(${f(0.4 + 0.6 * s.bed)}) translate(-199 -296)`); this.w(e.blanket, "opacity", String(f(s.bed))); this.w(e.blanket, "transform", `translate(0 ${f(s.blanketY)}) translate(0 297) scale(1 ${f(1 + s.breath * 0.04)}) translate(0 -297)`); }
+    this.show(e.snot, s.bub > 0.6); if (s.bub > 0.6) { this.w(e.snot, "r", String(f(s.bub))); this.w(e.snot, "cx", String(f(170 - s.bub * 0.8))); this.w(e.snot, "cy", String(f(236 - s.bub * 0.4))); }
+    this.show(e.ball, s.bo > 0.01); if (s.bo > 0.01) { this.show(e.football, s.ck < 0.5); this.show(e.cball, s.ck >= 0.5); this.w(e.ball, "transform", `translate(${f(s.bx)} ${f(s.by)}) rotate(${f(s.br)})`); this.w(e.ball, "opacity", String(f(s.bo))); }
     this.w(e.flame, "opacity", String(f(s.flame)));
     this.show(e.plane, s.plO > 0.01); if (s.plO > 0.01) { this.w(e.plane, "transform", `translate(${f(s.plX)} ${f(s.plY)}) rotate(${f(s.plR)})`); this.w(e.plane, "opacity", String(f(s.plO))); }
     this.w(e.flash, "opacity", String(f(s.flash)));
@@ -326,7 +394,7 @@ export class Rig {
     if (!text) return;
     const hooked = this.sayHook?.(text);
     if (hooked) { if (this.bubOn) this.hush(); if (hooked !== "quiet") this.flap(text); return; }
-    const b = this.bub; b.textContent = text; this.bubOn = true; this.placeBub(); this.bubAt = performance.now();
+    const b = this.bub; fillWords(b, text); this.bubOn = true; this.placeBub(); this.bubAt = performance.now();
     G.killTweensOf(b); G.fromTo(b, { opacity: 0, scale: 0.7, y: 8 }, { opacity: 1, scale: 1, y: 0, duration: this.still ? 0.01 : 0.38, ease: "back.out(2.2)" });
     clearTimeout(this.sayT); this.sayT = window.setTimeout(() => G.to(b, { opacity: 0, scale: 0.9, duration: 0.25, onComplete: () => { this.bubOn = false; } }), ms || Math.max(2400, text.length * 75));
     this.flap(text);
@@ -339,7 +407,21 @@ export class Rig {
   hush() { clearTimeout(this.sayT); clearInterval(this.flapI); G.to(this.bub, { opacity: 0, duration: 0.15, onComplete: () => { this.bubOn = false; } }); }
   launchPlane(x: number, y: number) { const s = this.s; G.killTweensOf(s, "plX,plY,plR,plO"); Object.assign(s, { plX: x, plY: y, plR: -14, plO: 1 });
     G.to(s, { plX: x + 250, plY: y - 150, plR: -28, duration: 1.5, ease: "power1.in" }); G.to(s, { plO: 0, duration: 0.4, delay: 1.1 }); }
-  linesOf(k: keyof MascotSettings["qa"]) { return String(this.cfg.qa[k]?.a || "").split("\n").map((x) => x.trim()).filter(Boolean); }
+  /** an answer's sentences, one version picked at random each time it's asked */
+  linesOf(k: keyof MascotSettings["qa"]) { return answer(String(this.cfg.qa[k]?.a || "")); }
+}
+
+/**
+ * Puts a sentence into a bubble as one span per word, so the bubble has its final size from the start and the words fade in
+ * smoothly, one after another (CSS: .mz-w, with --i for the corner bubble's delay; the talking scene adds .on itself).
+ */
+export function fillWords(el: HTMLElement, text: string): HTMLElement[] {
+  el.textContent = ""; const out: HTMLElement[] = [];
+  text.split(/(\s+)/).forEach((p) => {
+    if (!p) return; if (/^\s+$/.test(p)) { el.appendChild(document.createTextNode(" ")); return; }
+    const w = document.createElement("span"); w.className = "mz-w"; w.textContent = p; w.style.setProperty("--i", String(out.length)); el.appendChild(w); out.push(w);
+  });
+  return out;
 }
 
 /* ---------------- shared bits of timeline ---------------- */
@@ -409,14 +491,14 @@ export const TRICKS: Record<string, Act> = {
     t.to(s, { sy: 0.84, sx: 1.1, y: 4, lx: 72, ly: 208, rx: 168, ry: 208, brow: 1, duration: 0.22, ease: "power2.out" }); t.addLabel("go"); t.call(() => SND.whoosh(0.6), undefined, "go");
     t.to(s, { y: -120, sy: 1.06, sx: 0.95, duration: 0.42, ease: "power2.out" }, "go"); t.to(s, { flip: -360, duration: 0.76, ease: "power1.inOut" }, "go"); t.to(s, { lg: 28, rg: -28, lx: 98, ly: 198, rx: 142, ry: 198, duration: 0.2 }, "go+=.1");
     t.to(s, { y: 0, duration: 0.36, ease: "power2.in" }, "go+=.42"); t.to(s, { lg: 0, rg: 0, lx: 66, ly: 116, rx: 174, ry: 116, duration: 0.2 }, "go+=.56"); t.to(s, { sy: 0.84, sx: 1.12, duration: 0.08 }, "go+=.78");
-    t.call(() => { s.flip = 0; r.face("grin", "happy"); r.say("Ta-da!", 1400); r.burst(["✨", "⭐"], 120, 60, 4, "", 130); SND.ding(); }); t.to(s, { sy: 1, sx: 1, duration: 0.5, ease: "elastic.out(1,.35)" }); t.to({}, { duration: 0.5 }); return r.rest(t); },
-  think(r) { const s = r.s, t = r.begin(null, "smile"); t.to(s, { rx: 128, ry: 142, lx: 100, ly: 200, head: 7, gx: -0.7, gy: -0.9, brow: 0.8, duration: 0.5, ease: "power2.out" }); t.call(() => r.say("Hmm…", 1300)); t.to(s, { head: 10, duration: 1, yoyo: true, repeat: 1, ease: "sine.inOut" });
+    t.call(() => { s.flip = 0; r.face("grin", "happy"); r.say(vary(SAYS.tada), 1400); r.burst(["✨", "⭐"], 120, 60, 4, "", 130); SND.ding(); }); t.to(s, { sy: 1, sx: 1, duration: 0.5, ease: "elastic.out(1,.35)" }); t.to({}, { duration: 0.5 }); return r.rest(t); },
+  think(r) { const s = r.s, t = r.begin(null, "smile"); t.to(s, { rx: 128, ry: 142, lx: 100, ly: 200, head: 7, gx: -0.7, gy: -0.9, brow: 0.8, duration: 0.5, ease: "power2.out" }); t.call(() => r.say(vary(SAYS.hmm), 1300)); t.to(s, { head: 10, duration: 1, yoyo: true, repeat: 1, ease: "sine.inOut" });
     t.call(() => { r.face("grin", "open"); r.burst(["💡"], 120, 22, 1, "", 10); SND.ting(); }); t.to(s, { brow: 1.3, gy: 0, gx: 0, y: -12, rx: 176, ry: 96, duration: 0.2, ease: "power2.out" }).to(s, { y: 0, duration: 0.2, ease: "power2.in" }); t.to({}, { duration: 0.5 }); return r.rest(t); },
-  highfive(r) { const s = r.s, t = r.begin(null, "grin"); t.to(s, { rx: 190, ry: 96, lean: -4, brow: 0.6, duration: 0.3, ease: "back.out(2)" }); t.call(() => r.say("Up top!", 1500)); t.to({}, { duration: 0.7 });
+  highfive(r) { const s = r.s, t = r.begin(null, "grin"); t.to(s, { rx: 190, ry: 96, lean: -4, brow: 0.6, duration: 0.3, ease: "back.out(2)" }); t.call(() => r.say(vary(SAYS.upTop), 1500)); t.to({}, { duration: 0.7 });
     t.to(s, { rx: 199, ry: 88, duration: 0.08 }); t.call(() => { r.burst(["✋", "✨", "💥"], 200, 80, 4, "", 80); SND.kick(); }); t.to(s, { rx: 186, ry: 100, duration: 0.3, ease: "back.out(3)" }); t.to({}, { duration: 0.4 }); return r.rest(t); },
   fireup(r) { const s = r.s, t = r.begin(null, "grin"); t.to(s, { brow: -0.6, duration: 0.2 }); const p = G.timeline({ repeat: 3 });
     p.to(s, { lx: 98, ly: 150, rx: 150, ry: 116, y: -9, duration: 0.16, ease: "power2.out" }).to(s, { y: 0, duration: 0.12, ease: "power2.in" }).to(s, { lx: 90, ly: 116, rx: 142, ry: 150, y: -9, duration: 0.16, ease: "power2.out" }).to(s, { y: 0, duration: 0.12, ease: "power2.in" });
-    t.add(p); t.call(() => { r.say("Let's go!", 1500); r.burst(["🔥"], 120, 30, 3, "", 110); }); t.to({}, { duration: 0.4 }); return r.rest(t); },
+    t.add(p); t.call(() => { r.say(vary(SAYS.letsGo), 1500); r.burst(["🔥"], 120, 30, 3, "", 110); }); t.to({}, { duration: 0.4 }); return r.rest(t); },
 };
 
 /* ---------------- answers ---------------- */
@@ -449,13 +531,13 @@ export const TALK = {
   food(r: Rig) { const s = r.s, t = r.begin("cup", "smile"), L = r.linesOf("food");
     t.to(s, { rx: 150, ry: 174, lx: 86, ly: 214, duration: 0.35, ease: "power2.out" }); t.call(() => r.every(300, () => r.burst([""], r.s.rx - 2, r.s.ry - 22, 1, "steam", 16)));
     if (L[0]) t.call(() => r.say(L[0], 2000));
-    t.to(s, { rx: 132, ry: 140, gy: 0.2, duration: 0.45, ease: "power2.inOut" }, "+=.6").call(() => { r.eyes = "closed"; }).to({}, { duration: 0.7 }).call(() => { r.setEyes("open"); r.say("Ahh. ☕", 900); }).to(s, { rx: 150, ry: 174, gy: 0, duration: 0.35 });
+    t.to(s, { rx: 132, ry: 140, gy: 0.2, duration: 0.45, ease: "power2.inOut" }, "+=.6").call(() => { r.eyes = "closed"; }).to({}, { duration: 0.7 }).call(() => { r.setEyes("open"); r.say(vary(SAYS.ahh), 900); }).to(s, { rx: 150, ry: 174, gy: 0, duration: 0.35 });
     t.call(() => r.stopLoops()); if (L[1]) { t.call(() => r.say(L[1], 1800)); t.to({}, { duration: 1.5 }); }
     t.call(() => r.setProp(null)).to(s, { lx: 116, ly: 134, rx: 166, ry: 222, duration: 0.25, ease: "power2.out" }).call(() => r.face("o")).to(s, { lx: 84, ly: 214, duration: 0.2 }).to({}, { duration: 0.4 });
     t.call(() => { r.face("open"); SND.boing(); }).to(s, { blush: 1.5, brow: 1.5, sy: 1.06, duration: 0.15, ease: "power3.out" });
-    t.call(() => { r.say("SPICY! 🌶️🔥", 1600); r.every(200, () => { r.burst(["💨"], 76, 100, 1, "", 20); r.burst(["💨"], 164, 100, 1, "", 20); }); });
+    t.call(() => { r.say(vary(SAYS.spicy), 1600); r.every(200, () => { r.burst(["💨"], 76, 100, 1, "", 20); r.burst(["💨"], 164, 100, 1, "", 20); }); });
     const fan = G.timeline({ repeat: 7, yoyo: true }); fan.to(s, { lx: 106, ly: 128, duration: 0.08 }).to(s, { lx: 116, ly: 136, duration: 0.08 }); t.add(fan); t.to(s, { y: -14, duration: 0.16, yoyo: true, repeat: 3, ease: "power2.out" }, "<");
-    t.call(() => { r.stopLoops(); r.face("grin", "happy"); r.say("Worth it. 😋", 1400); }).to(s, { blush: 0, brow: 0, sy: 1, duration: 0.4 }).to({}, { duration: 1 }); return r.rest(t); },
+    t.call(() => { r.stopLoops(); r.face("grin", "happy"); r.say(vary(SAYS.worth), 1400); }).to(s, { blush: 0, brow: 0, sy: 1, duration: 0.4 }).to({}, { duration: 1 }); return r.rest(t); },
   single(r: Rig) { const s = r.s, t = r.begin(null, "smile"); t.to(s, { blush: 1.2, lx: 110, ly: 226, rx: 130, ry: 226, head: 8, gx: -0.9, gy: 0.5, brow: 0.6, duration: 0.45, ease: "power2.out" });
     const at = t.duration(); talkSeq(t, r, r.linesOf("single")); const len = Math.max(1, t.duration() - at);
     const sw = G.timeline({ repeat: Math.max(1, Math.floor(len / 0.35)), yoyo: true }); sw.to(s, { rg: 10, rot: -1.5, duration: 0.35, ease: "sine.inOut" }); t.add(sw, at);
@@ -475,44 +557,49 @@ export const TALK = {
 
 /* ---------------- playing ---------------- */
 export const FUN: Record<string, Act> = {
-  tickle(r) { const s = r.s, t = r.begin(null, "grin", "happy"); t.call(() => { r.say("Hahaha, stop! That tickles! 😆", 1800); SND.giggle(); });
+  tickle(r) { const s = r.s, t = r.begin(null, "grin", "happy"); t.call(() => { r.say(vary(SAYS.tickle), 1800); SND.giggle(); });
     t.to(s, { lx: 110, ly: 200, rx: 130, ry: 200, sy: 0.95, duration: 0.12 }); t.to(s, { rot: 5, upY: -2, duration: 0.07, yoyo: true, repeat: 11, ease: "sine.inOut" }); t.call(() => r.burst(["ha", "ha", "😆", "ha"], 120, 60, 4, "ha", 120), undefined, "<");
     t.to(s, { y: -10, duration: 0.15, yoyo: true, repeat: 1 }); return r.rest(t); },
   grumpy(r) { const s = r.s, t = r.begin(null, "flat"); t.to(s, { lx: 142, ly: 192, rx: 98, ry: 192, brow: -1, head: -6, gx: -0.7, duration: 0.35, ease: "power2.out" });
-    t.call(() => { r.say("Okay. That's enough. 😤", 1800); r.burst(["💢"], 150, 40, 1, "", 10); }); t.to(s, { upY: -2, duration: 0.3, yoyo: true, repeat: 3 }); t.call(() => r.burst(["💢"], 100, 40, 1, "", 10));
-    t.to({}, { duration: 0.6 }); t.call(() => { r.face("smile"); r.say("…fine. I forgive you.", 1600); }); t.to(s, { brow: 0.4, head: 0, gx: 0, duration: 0.4 }); t.to({}, { duration: 1 }); return r.rest(t); },
-  football(r) { const s = r.s, t = r.begin(null, "smile");
-    t.call(() => { Object.assign(s, { bx: 140, by: -30, bo: 1, br: 0 }); }); t.to(s, { lx: 80, ly: 214, rx: 160, ry: 214, gy: 0.7, duration: 0.3 });
-    t.to(s, { by: 262, duration: 0.55, ease: "power2.in" });
-    for (let i = 0; i < 6; i++) { const right = i % 2 === 0, nx = right ? 106 : 136;
-      t.call(() => SND.kick()); t.to(s, { [right ? "rk" : "lk"]: 11, duration: 0.07, ease: "power2.out" });
-      t.to(s, { by: 196 - Math.random() * 26, bx: nx, br: "+=200", duration: 0.36, ease: "power2.out" }, "<"); t.to(s, { rk: 0, lk: 0, duration: 0.14 }, "<.08"); t.to(s, { by: 262, duration: 0.36, ease: "power2.in" }); }
-    t.call(() => SND.kick()); t.to(s, { rk: 16, duration: 0.07 }); t.to(s, { by: -190, bx: 300, br: "+=600", duration: 0.75, ease: "power1.out" }, "<"); t.to(s, { bo: 0, duration: 0.25 }, "-=.25"); t.to(s, { rk: 0, gy: -0.6, duration: 0.2 }, "<-.5");
-    t.call(() => { r.face("grin", "happy"); r.say("6 keepy-ups! New record! ⚽", 1800); }); t.to(s, { rx: 170, ry: 96, y: -10, duration: 0.2, ease: "power2.out" }).to(s, { y: 0, duration: 0.2, ease: "power2.in" }); t.to({}, { duration: 0.9 }); return r.rest(t); },
+    t.call(() => { r.say(vary(SAYS.grumpy), 1800); r.burst(["💢"], 150, 40, 1, "", 10); }); t.to(s, { upY: -2, duration: 0.3, yoyo: true, repeat: 3 }); t.call(() => r.burst(["💢"], 100, 40, 1, "", 10));
+    t.to({}, { duration: 0.6 }); t.call(() => { r.face("smile"); r.say(vary(SAYS.forgive), 1600); }); t.to(s, { brow: 0.4, head: 0, gx: 0, duration: 0.4 }); t.to({}, { duration: 1 }); return r.rest(t); },
+  /* keepy-ups with a real-size football (r 22, about half his head), a random count, then the owner's line: Messi is the GOAT */
+  football(r) { const s = r.s, t = r.begin(null, "smile"), n = 5 + Math.floor(Math.random() * 5), HIT = 248;
+    t.call(() => { Object.assign(s, { bx: 140, by: -60, bo: 1, br: 0, ck: 0 }); }); t.to(s, { lx: 80, ly: 214, rx: 160, ry: 214, gy: 0.7, duration: 0.3 });
+    t.to(s, { by: HIT, bx: 108, duration: 0.6, ease: "power2.in" });
+    for (let i = 0; i < n; i++) { const right = i % 2 === 0, nx = right ? 132 : 108;
+      t.call(() => SND.kick()); t.to(s, { [right ? "lk" : "rk"]: 12, sy: 0.97, duration: 0.07, ease: "power2.out" });
+      t.to(s, { by: 162 - Math.random() * 24, bx: nx + (Math.random() - 0.5) * 6, br: "+=220", gy: 0.1, duration: 0.38, ease: "power2.out" }, "<"); t.to(s, { rk: 0, lk: 0, sy: 1, duration: 0.14 }, "<.08");
+      t.to(s, { by: HIT, gy: 0.7, duration: 0.38, ease: "power2.in" }); }
+    t.call(() => SND.kick()); t.to(s, { rk: 18, duration: 0.07 }); t.to(s, { by: -220, bx: 320, br: "+=700", duration: 0.8, ease: "power1.out" }, "<"); t.to(s, { bo: 0, duration: 0.25 }, "-=.25"); t.to(s, { rk: 0, gy: -0.6, duration: 0.2 }, "<-.5");
+    t.call(() => { r.face("grin", "happy"); r.say(vary(SAYS.record).replace("{n}", String(n)), 1900); r.burst(["⚽", "✨"], 120, 40, 2, "", 90); }); t.to(s, { rx: 170, ry: 96, y: -10, duration: 0.2, ease: "power2.out" }).to(s, { y: 0, duration: 0.2, ease: "power2.in" }); t.to({}, { duration: 1.6 });
+    t.to(s, { rx: 176, ry: 138, lx: 88, ly: 214, head: -5, brow: 0.9, duration: 0.3, ease: "back.out(2)" });
+    t.call(() => { r.face("grin", "open"); r.say(vary(SAYS.messi), 3000); r.burst(["🐐", "⭐", "🐐"], 176, 100, 3, "", 100); SND.ting(); });
+    t.to(s, { ry: 132, duration: 0.18, yoyo: true, repeat: 3 }); t.to({}, { duration: 2.2 }); return r.rest(t); },
   cricket(r) { const s = r.s, t = r.begin("bat", "grin");
     t.to(s, { rx: 150, ry: 198, lx: 134, ly: 192, sy: 0.95, lean: 3, pa: 25, gx: 0.8, duration: 0.4, ease: "power2.out" });
-    t.call(() => { Object.assign(s, { bx: 440, by: 180, bo: 1, br: 0 }); r.say("Here it comes…", 1000); }); t.to({}, { duration: 0.5 });
+    t.call(() => { Object.assign(s, { bx: 440, by: 180, bo: 1, br: 0, ck: 1 }); r.say(vary(SAYS.comes), 1000); }); t.to({}, { duration: 0.5 });
     t.to(s, { bx: 300, by: 290, br: "-=240", duration: 0.36, ease: "power1.in" }); t.call(() => SND.thud()); t.to(s, { bx: 178, by: 242, br: "-=200", duration: 0.3, ease: "power1.out" });
     t.to(s, { pa: -115, rx: 176, ry: 146, lx: 160, ly: 150, lean: -4, sy: 1, duration: 0.16, ease: "power3.out" }, "-=.1");
     t.call(() => SND.kick()); t.to(s, { bx: 560, by: -280, br: "+=900", duration: 0.8, ease: "power1.out" }); t.to(s, { bo: 0, duration: 0.2 }, "-=.2");
-    t.call(() => { r.face("grin", "happy"); r.burst(["SIX!", "🏏", "🎉"], 150, 40, 3, "bang", 120); r.say("SIX! Out of the ground! 🏏", 1800); SND.ding(); });
+    t.call(() => { r.face("grin", "happy"); r.burst(["SIX!", "🏏", "🎉"], 150, 40, 3, "bang", 120); r.say(vary(SAYS.six), 1800); SND.ding(); });
     t.to(s, { y: -14, duration: 0.18, yoyo: true, repeat: 3, ease: "power2.out" }); t.to({}, { duration: 0.6 }); return r.rest(t); },
-  yawn(r) { const s = r.s, t = r.begin(null, "open"); t.call(() => { r.eyes = "closed"; SND.yawn(); r.say("Yaaawn…", 1400); });
+  yawn(r) { const s = r.s, t = r.begin(null, "open"); t.call(() => { r.eyes = "closed"; SND.yawn(); r.say(vary(SAYS.yawn), 1400); });
     t.to(s, { lx: 72, ly: 90, rx: 168, ry: 90, sy: 1.05, y: -4, duration: 0.6, ease: "power2.out" }); t.to(s, { rot: 3, duration: 0.4, yoyo: true, repeat: 1 }); t.to(s, { sy: 1, y: 0, duration: 0.3 }); t.call(() => r.face("smile", "open")); t.to({}, { duration: 0.4 }); return r.rest(t); },
   whistle(r) { const s = r.s, t = r.begin(null, "o"); t.to(s, { lx: 92, ly: 212, rx: 148, ry: 212, gx: 0.6, gy: -0.4, duration: 0.4 });
     const sw = G.timeline({ repeat: 5, yoyo: true }); sw.to(s, { rot: 3, head: 4, duration: 0.45, ease: "sine.inOut" }); t.add(sw);
     for (let k = 0; k < 2.6; k += 0.5) t.call(() => r.burst([pick(["🎵", "🎶"])], 130, 120, 1, "", 50), undefined, 0.5 + k); t.call(() => SND.notes(), undefined, 0.5); return r.rest(t); },
   phone(r) { const s = r.s, t = r.begin("phone", "smile"); t.to(s, { rx: 142, ry: 178, lx: 112, ly: 184, gy: 0.7, hy: 2, duration: 0.4 });
-    t.to(s, { ry: 174, duration: 0.1, yoyo: true, repeat: 5 }); t.to({}, { duration: 0.4 }); t.call(() => { r.face("grin", "happy"); r.say("Haha, this meme! 😂", 1600); r.burst(["😂", "🤣"], 140, 100, 2, "", 70); SND.giggle(); });
+    t.to(s, { ry: 174, duration: 0.1, yoyo: true, repeat: 5 }); t.to({}, { duration: 0.4 }); t.call(() => { r.face("grin", "happy"); r.say(vary(SAYS.meme), 1600); r.burst(["😂", "🤣"], 140, 100, 2, "", 70); SND.giggle(); });
     t.to(s, { upY: -3, duration: 0.06, yoyo: true, repeat: 11 }); t.to({}, { duration: 0.5 }); return r.rest(t); },
-  wind(r) { const s = r.s, t = r.begin(null, "open"); t.call(() => { r.say("Whoa, slow down! 😵", 1500); r.burst(["💨", "💨", "💨"], 40, 140, 3, "", 30); SND.whoosh(0.7); });
+  wind(r) { const s = r.s, t = r.begin(null, "open"); t.call(() => { r.say(vary(SAYS.wind), 1500); r.burst(["💨", "💨", "💨"], 40, 140, 3, "", 30); SND.whoosh(0.7); });
     t.to(s, { lean: -9, lx: 98, ly: 118, rx: 142, ry: 118, brow: 1.2, blink: 0.4, duration: 0.2, ease: "power2.out" }); t.to(s, { lean: -6, duration: 0.08, yoyo: true, repeat: 9 }); t.to(s, { blink: 1, duration: 0.2 }); return r.rest(t); },
-  endParty(r) { const s = r.s, t = r.begin(null, "grin", "happy"); t.call(() => { r.say("You made it to the end! 🎉", 2000); SND.ding(); });
+  endParty(r) { const s = r.s, t = r.begin(null, "grin", "happy"); t.call(() => { r.say(vary(SAYS.end), 2000); SND.ding(); });
     for (let i = 0; i < 2; i++) t.to(s, { y: -50, lx: 70, ly: 88, rx: 170, ry: 88, duration: 0.3, ease: "power2.out" }).call(() => r.burst(["🎉", "🎊", "✨", "🥳"], 120, 40, 5, "", 160)).to(s, { y: 0, duration: 0.28, ease: "power2.in" }).to(s, { sy: 0.88, sx: 1.1, duration: 0.08 }).to(s, { sy: 1, sx: 1, duration: 0.35, ease: "elastic.out(1,.4)" });
     return r.rest(t); },
-  welcome(r) { const s = r.s, t = r.begin(null, "grin", "happy"); t.call(() => { r.say("You're back! I missed you! 🥳", 1900); SND.ding(); });
+  welcome(r) { const s = r.s, t = r.begin(null, "grin", "happy"); t.call(() => { r.say(vary(SAYS.welcome), 1900); SND.ding(); });
     t.to(s, { y: -40, lx: 70, ly: 90, rx: 170, ry: 90, duration: 0.28, ease: "power2.out" }).call(() => r.burst(["💖", "💛", "✨"], 120, 40, 4, "", 130)).to(s, { y: 0, duration: 0.25, ease: "power2.in" }).to(s, { sy: 0.88, duration: 0.07 }).to(s, { sy: 1, duration: 0.4, ease: "elastic.out(1,.4)" }); t.to({}, { duration: 0.6 }); return r.rest(t); },
-  cheered(r) { const t = TRICKS.cheer(r); t.call(() => r.say("Yay, thank you! 💖", 1800), undefined, 0.3); return t; },
+  cheered(r) { const t = TRICKS.cheer(r); t.call(() => r.say(vary(SAYS.thanks), 1800), undefined, 0.3); return t; },
   secret(r) { const s = r.s, t = r.begin(null, "grin"), wrap = r.wrap, dir = r.wrapDir;
     t.call(() => { r.say("We're best friends now! Here's my secret move… 🕺", 2200); SND.ding(); r.burst(["💞", "💖"], 120, 40, 3, "", 100); }); t.to({}, { duration: 1.3 });
     t.addLabel("mw"); const legs = G.timeline({ repeat: 5 }); legs.to(s, { lk: 10, rk: 0, lg: -4, rg: 2, duration: 0.22, ease: "sine.inOut" }).to(s, { lk: 0, rk: 10, lg: 2, rg: -4, duration: 0.22, ease: "sine.inOut" }); t.add(legs, "mw");
@@ -526,16 +613,16 @@ export const IDLE_KEYS = ["football", "cricket", "yawn", "whistle", "phone"] as 
 /* ---------------- moments ---------------- */
 export const MOMENTS: Record<string, Act> = {
   morning(r) { const s = r.s, t = r.begin(null, "open"); t.call(() => { r.eyes = "closed"; SND.yawn(); }); t.to(s, { lx: 72, ly: 90, rx: 168, ry: 90, sy: 1.05, y: -4, duration: 0.6 }); t.to({}, { duration: 0.6 });
-    t.to(s, { sy: 1, y: 0, lx: 84, ly: 214, rx: 150, ry: 174, duration: 0.4 }); t.call(() => { r.setProp("cup"); r.face("smile", "open"); r.say("Good morning! Cha first. ☕", 2200); r.every(300, () => r.burst([""], r.s.rx - 2, r.s.ry - 22, 1, "steam", 16)); });
+    t.to(s, { sy: 1, y: 0, lx: 84, ly: 214, rx: 150, ry: 174, duration: 0.4 }); t.call(() => { r.setProp("cup"); r.face("smile", "open"); r.say(vary(SAYS.morning), 2200); r.every(300, () => r.burst([""], r.s.rx - 2, r.s.ry - 22, 1, "steam", 16)); });
     t.to(s, { rx: 132, ry: 140, duration: 0.45 }, "+=.7").to({}, { duration: 0.6 }).to(s, { rx: 150, ry: 174, duration: 0.35 }).call(() => r.face("grin")); t.to({}, { duration: 0.8 }); return r.rest(t); },
   night(r) { const s = r.s, t = r.begin(null, "open"); t.call(() => { r.eyes = "closed"; SND.yawn(); }); t.to(s, { lx: 72, ly: 90, rx: 168, ry: 90, sy: 1.04, duration: 0.6 }); t.to({}, { duration: 0.4 });
-    t.to(s, { sy: 1, lx: 74, ly: 222, rx: 166, ry: 222, duration: 0.4 }); t.call(() => { r.face("smile", "open"); r.say("Up late too? 🌙 Me too.", 2000); }); t.to(s, { head: 6, duration: 0.6, yoyo: true, repeat: 1 }); return r.rest(t); },
-  rain(r) { const s = r.s, t = r.begin("umbrella", "grin"); t.to(s, { rx: 158, ry: 138, lx: 84, ly: 214, duration: 0.45, ease: "back.out(1.5)" }); t.call(() => r.say("Rainy day in Dhaka! ☔", 2000));
+    t.to(s, { sy: 1, lx: 74, ly: 222, rx: 166, ry: 222, duration: 0.4 }); t.call(() => { r.face("smile", "open"); r.say(vary(SAYS.night), 2000); }); t.to(s, { head: 6, duration: 0.6, yoyo: true, repeat: 1 }); return r.rest(t); },
+  rain(r) { const s = r.s, t = r.begin("umbrella", "grin"); t.to(s, { rx: 158, ry: 138, lx: 84, ly: 214, duration: 0.45, ease: "back.out(1.5)" }); t.call(() => r.say(vary(SAYS.rain), 2000));
     t.to(s, { y: -10, duration: 0.18, yoyo: true, repeat: 3 }); t.to(s, { rot: 3, pa: -6, duration: 0.5, yoyo: true, repeat: 3, ease: "sine.inOut" }); return r.rest(t); },
   eid(r) { const s = r.s, t = r.begin("lantern", "grin", "happy"); t.to(s, { rx: 178, ry: 132, lx: 84, ly: 214, duration: 0.45, ease: "back.out(1.5)" });
-    t.call(() => { r.say("Eid Mubarak! 🌙✨", 2200); r.burst(["🌙", "✨", "⭐"], 170, 60, 4, "", 120); SND.ding(); }); t.to(s, { y: -12, duration: 0.18, yoyo: true, repeat: 3 }); t.to(s, { pa: 8, duration: 0.5, yoyo: true, repeat: 3, ease: "sine.inOut" }); return r.rest(t); },
+    t.call(() => { r.say(vary(SAYS.eid), 2200); r.burst(["🌙", "✨", "⭐"], 170, 60, 4, "", 120); SND.ding(); }); t.to(s, { y: -12, duration: 0.18, yoyo: true, repeat: 3 }); t.to(s, { pa: 8, duration: 0.5, yoyo: true, repeat: 3, ease: "sine.inOut" }); return r.rest(t); },
   birthday(r) { const s = r.s, t = r.begin("cake", "grin"); t.to(s, { lx: 90, ly: 206, rx: 150, ry: 206, flame: 1, duration: 0.45 });
-    t.call(() => r.say("It's my birthday! 🎂", 1800)); t.to({}, { duration: 1.4 }); t.to(s, { gy: 0.6, hy: 3, duration: 0.25 }); t.call(() => r.face("o")); t.to(s, { blush: 0.8, duration: 0.2 });
+    t.call(() => r.say(vary(SAYS.bday), 1800)); t.to({}, { duration: 1.4 }); t.to(s, { gy: 0.6, hy: 3, duration: 0.25 }); t.call(() => r.face("o")); t.to(s, { blush: 0.8, duration: 0.2 });
     t.to(s, { flame: 0, duration: 0.25 }, "+=.3"); t.call(() => { r.burst(["💨"], 120, 140, 1, "", 10); SND.pop(); });
     t.call(() => { r.face("grin", "happy"); r.burst(["🎉", "🎊", "🎈", "✨"], 120, 40, 6, "", 170); SND.ding(); }); t.to(s, { blush: 0, gy: 0, hy: 0, y: -16, duration: 0.2, yoyo: true, repeat: 3 }); t.to({}, { duration: 0.6 }); return r.rest(t); },
 };
@@ -549,24 +636,26 @@ export function sleepStand(r: Rig) { const s = r.s;
 export function sleepGround(r: Rig) { const s = r.s;
   r.run((t) => {
     t.call(() => { r.setProp(null); r.face("open", "open"); }); t.to(s, restTo({}, 0.3));
-    t.to(s, { lx: 72, ly: 92, rx: 168, ry: 92, sy: 1.05, duration: 0.5, ease: "power2.out" }); t.call(() => { r.eyes = "closed"; r.say("Yaaawn… nap time. 😴", 1600); SND.yawn(); }); t.to({}, { duration: 0.8 });
+    t.to(s, { lx: 72, ly: 92, rx: 168, ry: 92, sy: 1.05, duration: 0.5, ease: "power2.out" }); t.call(() => { r.eyes = "closed"; r.say(vary(SAYS.nap), 1600); SND.yawn(); }); t.to({}, { duration: 0.8 });
     t.to(s, { lx: 74, ly: 222, rx: 166, ry: 222, sy: 0.86, sx: 1.06, duration: 0.35, ease: "power2.inOut" }); t.set(s, { blanketY: -170 }); t.to(s, { bed: 1, duration: 0.3, ease: "back.out(2)" });
-    t.to(s, { flip: 90, x: -24, y: 52, sy: 1, sx: 1, duration: 0.75, ease: "power2.inOut" }); t.call(() => { r.setMouth("sleep"); SND.thud(); });
-    t.to(s, { blanketY: 0, duration: 0.75, ease: "bounce.out" });
-    t.call(() => { const z = G.timeline({ repeat: -1 }); z.to(s, { bub: 9, duration: 1.4, ease: "sine.inOut", onStart: () => SND.snore() }).to(s, { bub: 2, duration: 1.1, ease: "sine.inOut" }).to(s, { lg: -7, rg: 5, duration: 0.15, yoyo: true, repeat: 1 }); r.snoreTl = z; });
+    // he lies down with his head bent up onto the pillow (the head turns at the neck, so it rests on the pillow's top, not the floor)
+    t.to(s, { flip: 90, x: -24, y: 52, sy: 1, sx: 1, head: -10, duration: 0.75, ease: "power2.inOut" }); t.call(() => { r.setMouth("sleep"); SND.thud(); });
+    t.to(s, { head: -19, hy: -1, duration: 0.5, ease: "back.out(1.6)" });
+    t.to(s, { blanketY: 0, duration: 0.75, ease: "bounce.out" }, "<.1");
+    t.call(() => { const z = G.timeline({ repeat: -1 }); z.to(s, { bub: 9, head: -21, duration: 1.4, ease: "sine.inOut", onStart: () => SND.snore() }).to(s, { bub: 2, head: -19, duration: 1.1, ease: "sine.inOut" }).to(s, { lg: -7, rg: 5, duration: 0.15, yoyo: true, repeat: 1 }); r.snoreTl = z; });
   });
-  r.sleeping = true; clearInterval(r.zzz); r.zzz = window.setInterval(() => r.burst(["z", "Z"], 205, 200, 1, "zz", 30), 1300); }
+  r.sleeping = true; clearInterval(r.zzz); r.zzz = window.setInterval(() => r.burst(["z", "Z"], 224, 148, 1, "zz", 30), 1300); }
 export function wakeRig(r: Rig, quiet = false) { stopSleep(r); const s = r.s, ground = s.bed > 0.5 || Math.abs(s.flip) > 45;
   return r.run((t) => {
-    if (ground) { t.to(s, { bub: 15, duration: 0.15, ease: "power1.in" }).call(() => { r.burst(["💥"], 150, 244, 1, "", 10); SND.pop(); }).set(s, { bub: 0 }); }
+    if (ground) { t.to(s, { bub: 15, duration: 0.15, ease: "power1.in" }).call(() => { r.burst(["💥"], 182, 178, 1, "", 10); SND.pop(); }).set(s, { bub: 0 }); }
     t.call(() => r.face("open", "open")); t.to(s, { brow: 1.4, duration: 0.1 });
-    if (ground) { t.to(s, { blanketY: -220, duration: 0.45, ease: "power2.out" }); t.to(s, { flip: 0, x: 0, y: -40, duration: 0.4, ease: "power2.out" }, "<"); t.to(s, { bed: 0, duration: 0.3 }, "<.15"); t.to(s, { y: 0, duration: 0.25, ease: "power2.in" }); t.set(s, { blanketY: 0 }); }
+    if (ground) { t.to(s, { blanketY: -220, duration: 0.45, ease: "power2.out" }); t.to(s, { flip: 0, x: 0, y: -40, head: 0, hy: 0, duration: 0.4, ease: "power2.out" }, "<"); t.to(s, { bed: 0, duration: 0.3 }, "<.15"); t.to(s, { y: 0, duration: 0.25, ease: "power2.in" }); t.set(s, { blanketY: 0 }); }
     else t.to(s, { y: -16, head: 0, hy: 0, lean: 0, upY: 0, gy: 0, duration: 0.18, ease: "power2.out" }).to(s, { y: 0, duration: 0.2, ease: "power2.in" });
-    t.call(() => { if (!quiet) r.say("Huh?! I'm up, I'm up!", 1800); r.face("grin", "open"); });
+    t.call(() => { if (!quiet) r.say(vary(SAYS.up), 1800); r.face("grin", "open"); });
     t.to(s, restTo({}, 0.5)); }); }
 export function duckRig(r: Rig, dir: number) { const s = r.s;
   return r.run((t) => { t.call(() => { r.setProp(null); r.face("open", "open"); }); t.to(s, restTo({ sy: 0.8, sx: 1.1, y: 4, lean: dir * -7, head: dir * -8, brow: 1.3, lx: 98, ly: 146, rx: 142, ry: 146 }, 0.14, "power3.out"));
-    t.call(() => r.say("Whoa!", 1100)); t.to({}, { duration: 0.4 }); t.call(() => r.face("grin", "open")); t.to(s, { ...REST, duration: 0.7, ease: "elastic.out(1,.45)" }); }); }
+    t.call(() => r.say(vary(SAYS.whoa), 1100)); t.to({}, { duration: 0.4 }); t.call(() => r.face("grin", "open")); t.to(s, { ...REST, duration: 0.7, ease: "elastic.out(1,.45)" }); }); }
 /** Rock, paper or scissors from him; you pick yours. Returns who won. */
 export function rps(r: Rig, you: string, onScore: (res: "you" | "him" | "draw") => void) {
   const em: Record<string, string> = { rock: "✊", paper: "✋", scissors: "✌️" }, him = pick(["rock", "paper", "scissors"]);
@@ -577,8 +666,8 @@ export function rps(r: Rig, you: string, onScore: (res: "you" | "him" | "draw") 
   t.call(() => { r.hush(); const [px, py] = r.pt(s.rx + s.x + 8, s.ry + s.y - 24), el = document.createElement("div"); el.className = "mz-sign"; el.textContent = em[him]; el.style.left = px + "px"; el.style.top = py + "px"; r.layer.appendChild(el);
     G.fromTo(el, { xPercent: -50, yPercent: -50, scale: 0.2, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2.5)" }); G.to(el, { opacity: 0, y: -20, duration: 0.4, delay: 2, onComplete: () => el.remove() }); });
   t.to({}, { duration: 1 }); t.call(() => onScore(res));
-  if (res === "him") { t.call(() => { r.face("grin", "happy"); r.say(`${em[him]} beats ${em[you]}! I win! Again? 😎`, 2000); SND.ding(); }); t.to(s, { y: -30, lx: 70, ly: 90, rx: 170, ry: 90, duration: 0.25, ease: "power2.out" }).to(s, { y: 0, duration: 0.22, ease: "power2.in" }); t.to(s, { rot: 4, duration: 0.15, yoyo: true, repeat: 3 }); }
-  else if (res === "you") { t.call(() => { r.face("sad"); r.say("Aww, you win. Rematch? 😩", 2000); }); t.to(s, { head: 8, hy: 3, gy: 0.8, lean: 3, lx: 100, ly: 226, rx: 140, ry: 226, brow: 0.8, duration: 0.4 }); t.to(s, { rg: 12, duration: 0.25, yoyo: true, repeat: 3 }); }
-  else { t.call(() => { r.face("grin"); r.say("Jinx! Great minds… again?", 1800); }); t.to(s, { lx: 62, ly: 194, rx: 178, ry: 194, brow: 1, duration: 0.3, ease: "back.out(2)" }); }
+  if (res === "him") { t.call(() => { r.face("grin", "happy"); r.say(vary(SAYS.rpsWin).replace("{him}", em[him]).replace("{you}", em[you]), 2000); SND.ding(); }); t.to(s, { y: -30, lx: 70, ly: 90, rx: 170, ry: 90, duration: 0.25, ease: "power2.out" }).to(s, { y: 0, duration: 0.22, ease: "power2.in" }); t.to(s, { rot: 4, duration: 0.15, yoyo: true, repeat: 3 }); }
+  else if (res === "you") { t.call(() => { r.face("sad"); r.say(vary(SAYS.rpsLose), 2000); }); t.to(s, { head: 8, hy: 3, gy: 0.8, lean: 3, lx: 100, ly: 226, rx: 140, ry: 226, brow: 0.8, duration: 0.4 }); t.to(s, { rg: 12, duration: 0.25, yoyo: true, repeat: 3 }); }
+  else { t.call(() => { r.face("grin"); r.say(vary(SAYS.rpsDraw), 1800); }); t.to(s, { lx: 62, ly: 194, rx: 178, ry: 194, brow: 1, duration: 0.3, ease: "back.out(2)" }); }
   t.to({}, { duration: 1.2 }); return r.rest(t);
 }

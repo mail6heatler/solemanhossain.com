@@ -7,7 +7,8 @@ import type { MascotView } from "@/lib/mascot";
  * (mascotEngine.ts and GSAP, downloaded separately once the page is idle) fills it after start-up, so nothing is
  * added inside `.site` before React has started, and the first load stays as light as before.
  */
-export default function Mascot({ view }: { view: MascotView }) {
+/** `phoneMenu`: the site's phone menu (settings.menu.phone), so his layer keeps clear of the pull-up sheet's handle. */
+export default function Mascot({ view, phoneMenu = "bottom" }: { view: MascotView; phoneMenu?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const key = JSON.stringify(view);
   useEffect(() => {
@@ -21,5 +22,5 @@ export default function Mascot({ view }: { view: MascotView }) {
     const t = window.setTimeout(() => ("requestIdleCallback" in window ? window.requestIdleCallback(() => void go(), { timeout: 2500 }) : void go()), 1500);
     return () => { dead = true; clearTimeout(t); stop?.(); };
   }, [key]);
-  return <div ref={ref} className="mz-layer" />;
+  return <div ref={ref} className={`mz-layer ph-${phoneMenu}`} />;
 }

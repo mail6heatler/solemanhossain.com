@@ -8,6 +8,7 @@ import {
 import { saveMascot } from "@/app/actions";
 import type { MascotCtl } from "@/components/site/mascotEngine";
 import { SaveBar } from "./ChromeStudio";
+import MascotPlacer from "./MascotPlacer";
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 type Sec = { title: string; emoji: string; layout: string; code: string };
@@ -32,7 +33,7 @@ const Btn = ({ onClick, children }: { onClick: () => void; children: React.React
  * On the left, the real Mini Shourobh (mascotEngine.ts in preview mode) with a button for every move; on the right,
  * every setting in boxes. Changes show on the preview at once; one Save writes settings.mascot (saveMascot).
  */
-export default function MascotStudio({ first, timezone, sections }: { first: MascotSettings; timezone: string; sections: Sec[] }) {
+export default function MascotStudio({ first, timezone, sections, phoneMenu = "bottom", bbar = true }: { first: MascotSettings; timezone: string; sections: Sec[]; phoneMenu?: string; bbar?: boolean }) {
   const router = useRouter();
   const [saved, setSaved] = useState(first);
   const [d, setD] = useState(first);
@@ -125,28 +126,28 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
                 <Slider id="mz-vol" label="Volume" value={d.convo.volume} lim={MZ_LIMITS.volume} unit="%" onChange={(v) => setCv({ volume: v })} />
                 <div className="btns"><button type="button" className="b-out b-sm" onClick={() => c()?.testVoice()}><i className="ti ti-volume" />Hear him say his first words</button></div>
               </div>
-              <Sw checked={d.convo.mic} onChange={(v) => setCv({ mic: v })}>Visitors can ask out loud with 🎤 (Chrome and Edge only; Chrome sends the spoken words to Google to turn them into text)</Sw>
             </Box>
 
             <Box title="The talking scene">
-              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card, type, or send a quick 👋 😂 ❤️ 🔥.</div>
-              <div className="fl"><label htmlFor="mz-hello">His first words</label><input id="mz-hello" className="inp" maxLength={120} value={d.convo.hello} onChange={(e) => setCv({ hello: e.target.value })} /></div>
+              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card or send a quick 👋 😂 ❤️ 🔥. Typing to him shows as &ldquo;AI · coming soon&rdquo; until his AI assistant is built.</div>
+              <div className="hint"><b>Everything he says can have versions.</b> Put | between them and he picks one at random each time, never the same twice in a row. For example: <i>Hi there!|Hey you! 👋|Oh, hello!</i></div>
+              <div className="fl"><label htmlFor="mz-hello">His first words</label><input id="mz-hello" className="inp" maxLength={400} value={d.convo.hello} onChange={(e) => setCv({ hello: e.target.value })} /></div>
               <Slider id="mz-dim" label="How dark the site gets behind him" value={d.convo.dim} lim={MZ_LIMITS.dim} unit="%" onChange={(v) => setCv({ dim: v })} />
               <Slider id="mz-scale" label="His size on the stage, at most" value={d.convo.scale} lim={MZ_LIMITS.scale} unit="%" onChange={(v) => setCv({ scale: v })} />
               <Sw checked={d.convo.invite} onChange={(v) => setCv({ invite: v })}>Invite visitors with a bubble over his head</Sw>
               <div className="mzs-sub">
-                <div className="fl"><label htmlFor="mz-invt">The bubble says</label><input id="mz-invt" className="inp" maxLength={40} value={d.convo.inviteText} onChange={(e) => setCv({ inviteText: e.target.value })} /></div>
+                <div className="fl"><label htmlFor="mz-invt">The bubble says</label><input id="mz-invt" className="inp" maxLength={240} value={d.convo.inviteText} onChange={(e) => setCv({ inviteText: e.target.value })} /></div>
                 <Slider id="mz-inve" label="It pops up every" value={d.convo.inviteEvery} lim={MZ_LIMITS.inviteEvery} unit=" s" onChange={(v) => setCv({ inviteEvery: v })} />
               </div>
             </Box>
 
             <Box title="His answers">
-              <div className="hint">The questions visitors can pick as cards on the stage, or type ("who are you?", "tell me a joke", "bye"). Each line of an answer is a sentence he says, with its own gesture. Switch a question off and its card goes.</div>
+              <div className="hint">The questions visitors can pick as cards on the stage. Each line of an answer is a sentence he says, with its own gesture. Put | between versions of a line and he picks one at random; leave an empty line to start a whole other version of the answer (that's how a joke keeps its punchline). Switch a question off and its card goes.</div>
               {MZ_QA.map(([k, anim]) => (
                 <div key={k} className="mzs-qa">
                   <Sw checked={d.qa[k].on} onChange={(v) => setQa(k, { on: v })}><b>{d.qa[k].q || k}</b></Sw>
                   <input className="inp" maxLength={60} value={d.qa[k].q} aria-label="Question" onChange={(e) => setQa(k, { q: e.target.value })} />
-                  {k !== "trick" && <textarea className="inp" rows={k === "who" ? 4 : 2} maxLength={500} value={d.qa[k].a} aria-label="His answer" onChange={(e) => setQa(k, { a: e.target.value })} />}
+                  {k !== "trick" && <textarea className="inp" rows={k === "who" || k === "joke" ? 6 : 3} maxLength={1500} value={d.qa[k].a} aria-label="His answer" onChange={(e) => setQa(k, { a: e.target.value })} />}
                   <p className="hint">His move: {anim}{k === "joke" ? ". The last line is the punchline." : ""}{k === "bye" ? ". The first line is what he says." : ""}</p>
                 </div>
               ))}
@@ -164,7 +165,10 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
                 <Slider id="mz-bored" label="Starts after nobody moves for" value={d.fun.boredAfter} lim={MZ_LIMITS.boredAfter} unit=" s" onChange={(v) => setFun({ boredAfter: v })} />
               </div>
               <Sw checked={d.fun.rocket} onChange={(v) => setFun({ rocket: v })}>Leaves in a rocket when someone says goodbye</Sw>
-              <div className="mzs-sub"><Slider id="mz-back" label="Comes back by parachute after" value={d.fun.backAfter} lim={MZ_LIMITS.backAfter} unit=" s" onChange={(v) => setFun({ backAfter: v })} /></div>
+              <div className="mzs-sub">
+                <div className="fl"><label htmlFor="mz-rkname">The rocket&apos;s name, painted on its side</label><input id="mz-rkname" className="inp" maxLength={24} value={d.fun.rocketName} onChange={(e) => setFun({ rocketName: e.target.value })} placeholder="SHOUROBH ONE" /><div className="hint">The last word goes on a second line with stars around it. Empty leaves the rocket plain.</div></div>
+                <Slider id="mz-back" label="Comes back by parachute after" value={d.fun.backAfter} lim={MZ_LIMITS.backAfter} unit=" s" onChange={(v) => setFun({ backAfter: v })} />
+              </div>
               <span className="lab">Notices what visitors do</span>
               <div className="mzs-sub stu-switches">
                 <Sw checked={d.fun.notice.fast} onChange={(v) => setFun({ notice: { ...d.fun.notice, fast: v } })}>Blown by the wind when they scroll too fast</Sw>
@@ -189,12 +193,18 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
               </div>
             </Box>
 
-            <Box title="Where he lives">
+            <Box title="Where he stands">
+              <div className="hint">Drag him to his spot on a computer and on a phone. That&apos;s where he lives on every page.</div>
+              <MascotPlacer d={d} phoneMenu={phoneMenu} bbar={bbar} onPos={(dev, p) => set({ pos: { ...d.pos, [dev]: p } })} />
+            </Box>
+
+            <Box title="How he lives there">
               <div className="cs-looks">
                 {([["corner", "Corner buddy", "Stands in the corner and acts there"], ["peek", "Peeks from the edge", "Half hidden, leans in for each section"], ["host", "Walk-on host", "Walks to the middle for each section, then back"]] as const).map(([k, t, desc]) => (
                   <button key={k} type="button" className={`cs-look${d.place === k ? " on" : ""}`} onClick={() => set({ place: k })} aria-pressed={d.place === k}><b>{t}</b><small>{desc}</small></button>
                 ))}
               </div>
+              <span className="lab">The default corner (until you drag him)</span>
               <Chips list={[["right", "Right side"], ["left", "Left side"]] as const} value={d.side} onPick={(v) => set({ side: v })} />
               <Slider id="mz-size" label="Size" value={d.size} lim={MZ_LIMITS.size} unit="%" onChange={(v) => set({ size: v })} />
               <Sw checked={d.phones} onChange={(v) => set({ phones: v })}>Show him on phones (smaller, above the bottom bar)</Sw>
@@ -227,11 +237,11 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
             </Box>
 
             <Box title="Each section">
-              <div className="fl"><label htmlFor="mz-greet">Greeting, once per visit</label><input id="mz-greet" className="inp" maxLength={160} value={d.greet} onChange={(e) => set({ greet: e.target.value })} /><div className="hint">{"{time}"} becomes morning, afternoon, evening or night on your clock.</div></div>
+              <div className="fl"><label htmlFor="mz-greet">Greeting, once per visit</label><textarea id="mz-greet" className="inp" rows={2} maxLength={600} value={d.greet} onChange={(e) => set({ greet: e.target.value })} /><div className="hint">{"{time}"} becomes morning, afternoon, evening or night on your clock. Put | between versions and he picks one at random.</div></div>
               {MZ_BITS.filter(([k]) => k !== "hero").map(([k, label, move]) => (
                 <div key={k} className="mzs-qa">
                   <Sw checked={d.acts[k]} onChange={(v) => set({ acts: { ...d.acts, [k]: v } })}><b>{label}</b></Sw>
-                  <input className="inp" maxLength={160} value={d.lines[k as Exclude<MzBit, "hero">]} aria-label={`${label}: his line`} onChange={(e) => set({ lines: { ...d.lines, [k]: e.target.value } })} />
+                  <textarea className="inp" rows={2} maxLength={600} value={d.lines[k as Exclude<MzBit, "hero">]} aria-label={`${label}: his line`} onChange={(e) => set({ lines: { ...d.lines, [k]: e.target.value } })} />
                   <p className="hint">{move}. {bitSections(k) ? `Your sections: ${bitSections(k)}.` : "None of your sections uses this look right now."}</p>
                 </div>
               ))}

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type { Section } from "@/lib/data";
 import { LIVE_THEMES, SKIN_LABELS, type SiteSettings, type Skin } from "@/lib/settings";
 import {
-  FOOTER_EXTRAS, FOOTER_LOOKS, FOOTER_SIZE_LIMITS, DEFAULT_FOOTER, MENU_BGS, MENU_SIZE_LIMITS, DEFAULT_MENU, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
+  FOOTER_EXTRAS, FOOTER_LOOKS, FOOTER_SIZE_LIMITS, DEFAULT_FOOTER, MENU_BGS, MENU_SIZE_LIMITS, DEFAULT_MENU, MENU_BUTTONS, MENU_EXTRAS, MENU_LOOKS, PHONE_MENUS, SKY_TIMES, OWN_BG,
   type FooterDesign, type FooterExtra, type FooterSize, type MenuDesign, type MenuExtra, type MenuSize,
 } from "@/lib/chrome";
 import { saveFooter, saveMenu } from "@/app/actions";
@@ -181,6 +181,23 @@ export function MenuStudio({ first, settings, sections }: { first: MenuDesign; s
           </div></details>
           <details className="c box" open><summary><span>Extras</span><i className="ti ti-chevron-down" /></summary><div className="f stu-switches">
             {MENU_EXTRAS.map(([k, label]) => <label key={k} className="switch"><input type="checkbox" checked={!!d.extras[k]} onChange={(e) => setEx(k, e.target.checked)} />{label}</label>)}
+          </div></details>
+          <details className="c box" open><summary><span>Buttons on the bar</span><i className="ti ti-chevron-down" /></summary><div className="f stu-switches">
+            {MENU_BUTTONS.map(([k, label]) => {
+              // some buttons also have a switch for the whole site under Appearance; say so when that one is off
+              const off = k === "dice" ? !settings.effects.surprise : k === "theme" ? !settings.themeSwitch : k === "shuffle" ? !settings.themeSwitch || !settings.effects.shuffle : false;
+              const why = k === "dice" ? "Surprise me is switched off under Appearance, so it won't show until that's on too."
+                : k === "theme" || k === "shuffle" ? "Changing themes is switched off for visitors under Appearance, so it won't show until that's on too."
+                : k === "hello" ? (d.helloLabel ? "" : "It needs its words, under Words below.")
+                : k === "menubtn" ? (d.phone === "orb" || d.phone === "sheet" ? "Not used with the orb or the pull-up sheet, which have their own." : d.phone === "full" ? "With the full-screen menu it's the only way to the menu on phones." : "") : "";
+              return (
+                <div key={k}>
+                  <label className="switch"><input type="checkbox" checked={d.extras[k] !== false} onChange={(e) => setEx(k, e.target.checked)} />{label}</label>
+                  {(off || (why && k !== "dice" && k !== "theme" && k !== "shuffle")) && why && <div className="hint">{why}{off && <> <a href="/admin/appearance">Appearance</a></>}</div>}
+                </div>
+              );
+            })}
+            <div className="hint">Off hides that button from the menu bar only. Everything else keeps working.</div>
           </div></details>
           <details className="c box" open><summary><span>Words</span><i className="ti ti-chevron-down" /></summary><div className="f">
             <div className="fl"><label htmlFor="m-hello">Say hello button</label><input id="m-hello" className="inp" maxLength={30} value={d.helloLabel} onChange={(e) => set({ helloLabel: e.target.value })} /><div className="hint">It leads to your Connect section. Empty hides it.</div></div>

@@ -18,8 +18,8 @@
 import { MZ_BIT_OF_LAYOUT, MZ_JEANS, MZ_QA, MZ_SHIRTS, type MascotSettings, type MascotView, type MzQa } from "@/lib/mascot";
 import { pageY, prefersReducedMotion } from "./fx";
 import {
-  BITS, FUN, HAT_OF, IDLE_KEYS, MOMENTS, REST, CLEAR, ROCKET_SVG, Rig, SND, TALK, TRICKS, duckRig, lookVars, markGesture, pick, rps, setSound,
-  sleepGround, sleepStand, stopSleep, useGsap, wakeRig, type TL,
+  BITS, FUN, HAT_OF, IDLE_KEYS, MOMENTS, REST, CLEAR, Rig, SND, TALK, TRICKS, duckRig, fillWords, lookVars, markGesture, pick, rocketSvg, rps, setSound,
+  sleepGround, sleepStand, stopSleep, useGsap, vary, wakeRig, type TL,
 } from "./mascotRig";
 
 type GS = typeof import("gsap").gsap;
@@ -29,24 +29,34 @@ export type MascotCtl = {
 };
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-const TIPS = ["Psst. Click me, I can talk!", "Try dragging me. I dare you.", "There is more below, keep going.", "Ask me who I am. 😎"];
-const KEYS: [string, RegExp][] = [
-  ["bye", /\b(bye|goodbye|good bye|see (you|ya)|later|gtg|tata|leaving)\b/], ["who", /\b(who|your name|about you|yourself|introduce)\b/], ["job", /\b(job|work|do you do|profession|career)\b/],
-  ["from", /\b(from|where|live|city|country|dhaka|bangladesh)\b/], ["joke", /\b(joke|funny|laugh|lol)\b/], ["food", /\b(food|eat|hungry|cha|tea|fuchka|biryani|favou?rite)\b/],
-  ["single", /\b(single|girlfriend|gf|date|crush|love|married|wife)\b/], ["sing", /\b(sing|song|music)\b/], ["trick", /\b(trick|dance|flip|flex)\b/],
-  ["game", /\b(game|play|rock|paper|scissors)\b/], ["tour", /\b(around|tour|guide|next|show me)\b/], ["top", /\b(top|up|beginning|start)\b/],
-  ["salam", /\b(salam|assalam|assalamu|salaam|assalamualaikum)\b/], ["hello", /\b(hi|hello|hey|yo|hola|kemon|kmn|sup)\b/],
-];
+const TIPS = ["Psst. Click me, I can talk!", "Try dragging me. I dare you.", "There is more below, keep going.", "Ask me who I am. 😎", "Tap me three times. I dare you. 🤭"];
 const QE: Record<string, string> = { who: "😎", job: "💼", from: "📍", joke: "🥁", food: "🍜", single: "💘", sing: "🎤", trick: "🤸", game: "✊", tour: "🧭", bye: "👋", top: "⬆️" };
 const FOLLOW: Record<string, string[]> = {
   start: ["who", "joke", "game"], who: ["job", "from", "single"], job: ["joke", "food", "sing"], from: ["food", "sing", "who"], joke: ["trick", "sing", "game"],
   food: ["from", "single", "joke"], single: ["sing", "joke", "who"], sing: ["trick", "game", "joke"], trick: ["game", "joke", "who"], game: ["joke", "who", "trick"],
-  hello: ["who", "joke", "game"], shrug: ["who", "joke", "food"], nudge: ["who", "joke", "game"], react: ["who", "joke", "sing"],
+  hello: ["who", "joke", "game"], shrug: ["who", "joke", "food"], nudge: ["who", "joke", "game"], react: ["who", "joke", "sing"], soon: ["who", "joke", "game"],
 };
 const AVATARS = ["🦊", "🐼", "🐨", "🐯", "🐸", "🦁", "🐧", "🦄", "🐙", "🐵", "🐰", "🐻"];
-const HINTS = ["Ask about his job…", "Say salam…", "Ask for a joke…", "Where is he from?", "Ask him to sing…", "Is he single? 👀", "Ask anything…"];
 const QUICK: [string, string][] = [["👋", "wave"], ["😂", "laugh"], ["❤️", "love"], ["🔥", "fire"]];
-const PLANE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2 19.8 4.2c.6-.3 1.2.3 1 .9l-5.6 15.2c-.2.6-1 .7-1.3.1l-2.6-4.9-5.3-2.3c-.6-.3-.6-1.1 0-1.4Z" fill="currentColor"/></svg>`;
+/* his own lines in the talking scene, each with versions (the owner's are in settings.mascot, lib/mascot.ts) */
+const LINES = {
+  pick: ["Pick a card below 👇", "Go on, pick a card! 👇", "Choose one below 👇", "Tap a card, any card! 👇"],
+  again: ["You already asked that! 😄 Okay, once more…", "Again? Okay, okay! 😄", "Déjà vu! Here it is again… 😄"],
+  watch: ["Watch this! 😎", "Ready? Watch! 😎", "Check this out! 😎"],
+  hi: ["Hey hey! 👋", "Hi hi! 👋 Good to see you!", "Hello there! 👋", "Heyyy! 👋"],
+  laugh: ["Haha! Glad you're having fun! 😄", "Hahaha! You're funny! 😂", "LOL! Love that! 😄"],
+  love: ["Aww, right back at you! 💖", "Stop it, I'm blushing! 💖", "Love you too, friend! 💖"],
+  nudge: ["Still there? Pick a card! 😄", "Hellooo? I'm still here! 😄", "Don't be shy, pick one! 😄"],
+  shrug: ["Hmm, I don't know that one yet. Try a card! 👇", "Ooh, good one. Ask me something else? 👇"],
+  soon: ["Soon you'll be able to type anything, and I'll answer like a real AI! 🤖", "Typing to me is coming soon. I'm getting a big brain upgrade! 🧠✨", "Coming soon: ask me anything! I'm in AI school right now. 🎓"],
+  soon2: ["For now, pick a card 👇", "Till then, the cards are all yours 👇", "Meanwhile, try a card! 👇"],
+  aboard: ["All aboard! 🚀", "Hop in! 🚀", "Next stop: space! 🚀"],
+  back: ["Wheee! I'm baaack! 🪂", "Coming in for landing! 🪂", "Look out below! 🪂"],
+  home: ["I'm back! Did you miss me? 😄", "Home sweet corner! 😄", "Space was fun. Hi again! 😄"],
+  whoa: ["Whoa! Put me down! 😱", "Hey! Where are we going?!", "Aaah! Not so high!", "Wheee, I'm flying!"],
+  wee: ["Wheeeee!", "Aaaah!", "Weeee! 🤸", "Incoming!"],
+  again2: ["Wheee! Again! 🤩", "That was fun! Again?", "My head is spinning… 😵‍💫", "10/10 would fly again! 😄"],
+};
 const MALE = /(\bmale\b|daniel|alex|fred|david|mark|george|guy|ryan|arthur|aaron|thomas|james|rishi|ravi|prabhat|oliver|liam)/i;
 const FEMALE = /(female|samantha|victoria|karen|moira|tessa|zira|susan|hazel|serena|fiona|veena|aria|jenny|libby|sonia|natasha|heera|neerja|emma|ava|allison|kate)/i;
 const stripEmoji = (t: string) => t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{1F1E6}-\u{1F1FF}]/gu, "").replace(/\s+/g, " ").trim();
@@ -69,12 +79,15 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const rainEl = wrap.querySelector(".mz-rain") as HTMLElement, nightEl = wrap.querySelector(".mz-night") as HTMLElement;
   for (let i = 0; i < 16; i++) { const d = document.createElement("i"); d.style.left = Math.random() * 100 + "%"; d.style.animationDuration = 0.55 + Math.random() * 0.4 + "s"; d.style.animationDelay = -Math.random() + "s"; rainEl.appendChild(d); }
   for (let i = 0; i < 7; i++) { const d = document.createElement("i"); d.textContent = i % 3 ? "✦" : "⋆"; d.style.left = 6 + Math.random() * 88 + "%"; d.style.top = Math.random() * 80 + "%"; d.style.animationDelay = -Math.random() * 2 + "s"; nightEl.appendChild(d); }
-  rocket.innerHTML = ROCKET_SVG;
-  const rkFace = rocket.querySelector(".mz-rk-face") as SVGGElement, rkFlame = rocket.querySelector(".mz-rk-flame") as SVGGElement;
+  let rkFace!: SVGGElement, rkFlame!: SVGGElement, rkName = "";
+  const drawRocket = () => { if (rkName === cfg.fun.rocketName) return; rkName = cfg.fun.rocketName; rocket.innerHTML = rocketSvg(rkName); rkFace = rocket.querySelector(".mz-rk-face") as SVGGElement; rkFlame = rocket.querySelector(".mz-rk-flame") as SVGGElement; };
+  drawRocket();
   const paint = () => Object.entries(lookVars(cfg, MZ_SHIRTS, MZ_JEANS)).forEach(([k, v]) => layer.style.setProperty(k, v));
   paint();
 
-  const rig = new Rig(wrap, layer, cfg, { mirror: cfg.side === "right", still: still || lite });
+  /* which way he faces: toward the middle of the screen (true when he stands on its right half) */
+  let isRight = cfg.side === "right";
+  const rig = new Rig(wrap, layer, cfg, { mirror: isRight, still: still || lite });
   rig.wrap = wrap;
   setSound(cfg.fun.sounds);
 
@@ -91,16 +104,44 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const saveHearts = () => { try { localStorage.setItem("lc_mz_hearts", JSON.stringify({ k: [...hearts], u: unlocked })); } catch {} };
   function addHeart(k: string) { if (!cfg.fun.hearts || hearts.has(k) || preview) return; hearts.add(k); if (hearts.size >= 5 && !unlocked) { unlocked = true; pendingSecret = true; } saveHearts(); }
 
-  /* ---------- where he stands ---------- */
+  /* ---------- where he stands ----------
+     His spot is the one dragged on the dashboard (settings.mascot.pos, a computer's and a phone's), or the corner on `side`.
+     It's worked out once, and again only when the width changes: a phone's address bar sliding away changes the height,
+     and he must not move then (the owner's rule, 2026-11-21). On iPhones the bottom toolbar shrinks while scrolling down, which
+     moves anything held to the bottom, so there he's held from the top instead. On phones he also steps off the round menu
+     button (the orb) and stays above the pull-up sheet's handle. */
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let baseW = -1;
+  function placeBase(force = false) {
+    const W = layer.clientWidth, H = layer.clientHeight; if (!W || (!force && W === baseW)) return; baseW = W;
+    const ph = phone(), p = ph ? cfg.pos.phone : cfg.pos.desk, w = wrap.offsetWidth || (cfg.size / 100) * (ph ? 96 : 150), h = wrap.offsetHeight || w * 1.29;
+    let left = cfg.side === "right" ? W - w - 12 : 12, bottom = 4;
+    if (p) { left = clamp((p.x / 100) * W - w / 2, 6, Math.max(6, W - w - 6)); bottom = clamp((p.y / 100) * H, 4, Math.max(4, H - h - 70)); }
+    if (cfg.place === "peek") left = left + w / 2 > W / 2 ? W - w - 12 : 12; // peeking only works from an edge
+    if (ph && !preview) {
+      const orb = document.querySelector<HTMLElement>(".pm-orb-btn"), L = layer.getBoundingClientRect(), o = orb?.getBoundingClientRect();
+      if (o && o.width && left < o.right - L.left + 6 && left + w > o.left - L.left - 6) {
+        if (!p) left = o.left - L.left + o.width / 2 > W / 2 ? 12 : W - w - 12; // the corner by default: the other corner
+        else bottom = Math.max(bottom, L.bottom - o.top + 8); // a dragged spot: he stands on top of the orb
+      }
+    }
+    isRight = left + w / 2 > W / 2;
+    const s = wrap.style, hs = home.style;
+    s.right = hs.right = "auto"; s.left = left + "px"; hs.left = left + w * 0.025 + "px";
+    if (ios && !preview) { const top = H - bottom - h; s.bottom = hs.bottom = "auto"; s.top = top + "px"; hs.top = top + h - 24 + "px"; }
+    else { s.top = hs.top = "auto"; s.bottom = bottom + "px"; hs.bottom = Math.max(0, bottom - 4) + "px"; }
+  }
   function placeWrap(anim: boolean) {
-    const right = cfg.side === "right"; wrap.classList.toggle("left", !right); home.classList.toggle("left", !right); rig.setMirror(right); rig.wrapDir = right ? -1 : 1;
+    placeBase(); const right = isRight; wrap.classList.toggle("left", !right); home.classList.toggle("left", !right); rig.setMirror(right); rig.wrapDir = right ? -1 : 1;
     const v = cfg.place === "peek" ? { x: 0, y: 0, xPercent: right ? 44 : -44, rotation: right ? -14 : 14, yPercent: 5 } : { x: 0, y: 0, xPercent: 0, rotation: 0, yPercent: 0 };
     G.to(wrap, { ...v, scale: 1, opacity: 1, duration: anim ? 0.6 : 0, ease: "power3.inOut" });
   }
-  const sizeWrap = () => { const w = (cfg.size / 100) * (phone() ? 96 : 150); wrap.style.width = w + "px"; home.style.width = w * 0.95 + "px"; };
+  const sizeWrap = () => { const w = (cfg.size / 100) * (phone() ? 96 : 150); wrap.style.width = w + "px"; home.style.width = w * 0.95 + "px"; placeBase(true); };
+  /** on a phone he stays exactly where he is: no walking to the middle, no leaning in, nothing that scrolling sets off (the owner's rule) */
+  const planted = () => phone() && !preview;
   function updateVis() { wrap.style.display = visible() ? "" : "none"; home.style.display = visible() && cfg.place !== "peek" ? "" : "none"; if (!visible() && CV.on) closeScene(); }
   function leanIn() {
-    if (cfg.place !== "peek") return; const right = cfg.side === "right"; leanBack?.kill();
+    if (cfg.place !== "peek" || planted()) return; const right = isRight; leanBack?.kill();
     G.to(wrap, { xPercent: right ? 14 : -14, rotation: right ? -6 : 6, duration: 0.55, ease: "back.out(1.4)" });
     leanBack = G.delayedCall(6.5, () => { if (cfg.place === "peek" && !busy && !away && !held && !CV.on) G.to(wrap, { xPercent: right ? 44 : -44, rotation: right ? -14 : 14, duration: 0.7, ease: "power2.inOut" }); });
   }
@@ -131,7 +172,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (!curBit || curBit === "hero" || cfg.place === "host" || !(cfg.acts as Record<string, boolean>)[curBit] || lite || still) { restNow(); return; }
     BITS[curBit](rig);
   }
-  const lineFor = (k: string) => (k === "hero" ? cfg.greet.replace(/\{time\}/g, dayPart()) : (cfg.lines as Record<string, string>)[k] || "");
+  const lineFor = (k: string) => vary(k === "hero" ? cfg.greet.replace(/\{time\}/g, dayPart()) : (cfg.lines as Record<string, string>)[k] || "");
   function enterBit(k: string, talk: boolean) {
     curBit = k;
     if (!visible() || away || held || CV.on) return;
@@ -139,12 +180,12 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (rig.sleeping) { act((r) => wakeRig(r, true)); return; }
     if (busy) return;
     const line = talk && (cfg.chat !== "quiet" || k === "hero") ? lineFor(k) : "";
-    if (cfg.place === "host" && !preview) {
+    if (cfg.place === "host" && !preview && !planted()) {
       hostBack?.kill();
-      const W = layer.clientWidth, w = wrap.offsetWidth, dist = Math.max(0, W / 2 - 12 - w / 2), dx = cfg.side === "right" ? -dist : dist;
+      const W = layer.clientWidth, w = wrap.offsetWidth, dx = W / 2 - (wrap.offsetLeft + w / 2);
       walkTo(dx, () => { if (busy || CV.on) return; playBit(k); if (line) window.setTimeout(() => rig.say(line), 300);
         hostBack = G.delayedCall(6.5, () => { if (!busy && !away && !held && !CV.on) walkTo(0, restNow); }); });
-    } else { leanIn(); if (!playBit(k)) restNow(); if (line) window.setTimeout(() => { if (!busy && !CV.on) rig.say(line); }, 600); }
+    } else { leanIn(); if (!playBit(k)) restNow(); if (line) window.setTimeout(() => { if (!busy && !CV.on) { hideInvite(true); rig.say(line); } }, 600); }
   }
 
   /* ---------- the owner's clock ---------- */
@@ -163,17 +204,18 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
 
   /* =================== the talking scene =================== */
-  const CV = { on: false, token: 0, asked: new Set<string>(), performing: false, listening: false, idleAt: 0, nudged: 0, last: "start", mode: "" as "" | "game", lastInvite: 0, mt: 0, S: 1 };
+  const CV = { on: false, token: 0, asked: new Set<string>(), performing: false, idleAt: 0, nudged: 0, last: "start", mode: "" as "" | "game", lastInvite: 0, mt: 0, S: 1, sx: 0, sy: 0, side: "" };
   const dim = mk("div", "mzc-dim"), say = mk("div", "mzc-say"), cards = mk("div", "mzc-cards"), top = mk("div", "mzc-top"), invite = mk("button", "mzc-invite");
-  const bar = mk("form", "mzc-bar"), you = mk("div", "mzc-you");
+  const bar = mk("div", "mzc-bar"), you = mk("div", "mzc-you");
   [dim, say, cards, you, bar, top, invite].forEach((e) => { e.hidden = true; layer.appendChild(e); });
   say.setAttribute("aria-live", "polite"); invite.type = "button";
   dim.setAttribute("role", "presentation");
   top.innerHTML = `<button type="button" class="mzc-vo" aria-label="His voice on or off"></button><button type="button" class="mzc-x" aria-label="Close and send him back to his corner">✕</button>`;
   let av = ""; try { av = localStorage.getItem("lc_mz_av") || ""; } catch {} if (!AVATARS.includes(av)) { av = pick(AVATARS); try { localStorage.setItem("lc_mz_av", av); } catch {} }
-  bar.innerHTML = `<span class="mzc-av" aria-hidden="true">${av}</span><input type="text" maxlength="80" autocomplete="off" aria-label="Ask him anything" placeholder="Ask me anything…"><span class="mzc-wave" aria-hidden="true"><i></i><i></i><i></i></span>
-<span class="mzc-quick">${QUICK.map(([e, k]) => `<button type="button" data-q="${k}" aria-label="Send ${e}">${e}</button>`).join("")}</span><button type="button" class="mzc-mic" aria-label="Ask out loud">🎤</button><button type="submit" class="mzc-send" aria-label="Ask">${PLANE}</button>`;
-  const input = bar.querySelector("input") as HTMLInputElement, sendBtn = bar.querySelector(".mzc-send") as HTMLElement, avEl = bar.querySelector(".mzc-av") as HTMLElement;
+  // typing to him is the AI assistant that's coming (the owner's plan, 2026-11-21): the box shows it, and a tap on it gets a playful "soon"
+  bar.innerHTML = `<span class="mzc-av" aria-hidden="true">${av}</span><button type="button" class="mzc-soon" aria-label="Typing to him: an AI assistant, coming soon"><span class="mzc-soon-ic" aria-hidden="true">✨</span><span class="mzc-soon-t">Ask me anything…</span><b class="mzc-soon-b">AI · coming soon</b></button>
+<span class="mzc-quick">${QUICK.map(([e, k]) => `<button type="button" data-q="${k}" aria-label="Send ${e}">${e}</button>`).join("")}</span>`;
+  const avEl = bar.querySelector(".mzc-av") as HTMLElement, soonEl = bar.querySelector(".mzc-soon") as HTMLElement;
   const visitorName = () => { try { return (localStorage.getItem("lc_name") || "").trim().split(/\s+/)[0].slice(0, 20); } catch { return ""; } };
   const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
   const play = (fn: () => TL | null) => new Promise<void>((res) => { const t = fn(); if (!t) { res(); return; } t.eventCallback("onComplete", () => res()); });
@@ -189,48 +231,72 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
   if (VOX.ok) { pickVoice(); try { speechSynthesis.addEventListener("voiceschanged", pickVoice); offs.push(() => speechSynthesis.removeEventListener("voiceschanged", pickVoice)); } catch {} }
   const hush = () => { try { if (VOX.ok) speechSynthesis.cancel(); } catch {} };
-  function viseme(w: string) { const x = w.toLowerCase(), m = /^[mbp]/.test(x) ? "flat" : /[ou]/.test(x) ? "o" : /a/.test(x) ? "open" : "grin"; rig.setMouth(m, true); clearTimeout(CV.mt); CV.mt = window.setTimeout(() => rig.setMouth(rig.mouth, true), 140); }
-  function beat() { const s = rig.s; G.to(s, { nod: (Math.random() - 0.5) * 8, duration: 0.16, ease: "power1.out", overwrite: "auto" }); G.fromTo(s, { bob: 0 }, { bob: -1.8, duration: 0.09, yoyo: true, repeat: 1, overwrite: "auto" }); }
-  function setSay(t: string, fresh = false) { say.hidden = false; say.textContent = t; if (fresh && !still) G.fromTo(say, { scale: 0.75, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.32, ease: "back.out(2.2)" }); placeSay(); }
+  function viseme(w: string) { const x = w.toLowerCase(), m = /^[mbp]/.test(x) ? "flat" : /[ou]/.test(x) ? "o" : /a/.test(x) ? "open" : "grin"; rig.setMouth(m, true); clearTimeout(CV.mt); CV.mt = window.setTimeout(() => rig.setMouth(rig.mouth, true), 150); }
+  /* a small nod now and then while he talks (every word made his head jerk) */
+  function beat() { const s = rig.s; G.to(s, { nod: (Math.random() - 0.5) * 5, duration: 0.45, ease: "sine.inOut", overwrite: "auto" }); }
+  /**
+   * Says one sentence. The bubble gets every word at once (fillWords), so it has its final size and place from the start, and the
+   * words fade in one after another in time with his voice: by its word boundaries when the device reports them, otherwise by the
+   * time it takes to say that much at his speed. Without a voice the words come at an easy reading pace, then stay long enough to read.
+   */
   function speakLine(text: string) {
     const tok = CV.token;
     return new Promise<void>((res) => {
       if (!CV.on || tok !== CV.token || !text) { res(); return; }
-      CV.idleAt = Date.now(); setSay("", true);
-      const words = [...text.matchAll(/\S+/g)], n = words.length, clean = stripEmoji(text), voiced = cfg.convo.voice && VOX.ok && clean.length > 0, rate = cfg.convo.rate / 100;
-      let shown = 0, done = false, tw = 0, safety = 0;
-      const reveal = (i: number) => { i = clamp(i, 0, n - 1); if (i < shown) return; shown = i + 1; const w = words[i]; setSay(text.slice(0, (w.index ?? 0) + w[0].length)); viseme(w[0]); beat(); };
-      const finish = () => { if (done) return; done = true; clearInterval(tw); clearTimeout(safety); if (tok === CV.token) setSay(text); G.to(rig.s, { nod: 0, duration: 0.3 }); window.setTimeout(res, 300); };
-      const typeOn = (ms: number) => { let i = shown; clearInterval(tw); tw = window.setInterval(() => { if (tok !== CV.token) { finish(); return; } if (i >= n) { clearInterval(tw); if (!voiced) finish(); return; } reveal(i++); }, ms); };
-      if (!voiced) { typeOn(still ? 60 : 250); return; }
-      let gotB = false; const cw = [...clean.matchAll(/\S+/g)];
+      CV.idleAt = Date.now();
+      const spans = fillWords(say, text), n = spans.length, starts: number[] = [];
+      let at = 0; spans.forEach((sp) => { starts.push(at); at += (sp.textContent || "").length + 1; });
+      say.hidden = false; CV.side = ""; placeSay(true);
+      if (!still) G.fromTo(say, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" });
+      const clean = stripEmoji(text), voiced = cfg.convo.voice && VOX.ok && clean.length > 0, rate = cfg.convo.rate / 100, total = Math.max(1, at - 1);
+      let shown = 0, done = false, raf = 0, safety = 0, t0 = 0, msPer = still ? 0 : 30, spoken = 0, ended = false, heard = false;
+      const show = (k: number) => { k = clamp(k, 0, n); while (shown < k) { const sp = spans[shown++]; sp.classList.add("on"); viseme(sp.textContent || ""); if (shown % 3 === 1) beat(); } };
+      const frame = (now: number) => {
+        raf = 0; if (done) return; if (tok !== CV.token) { finish(); return; }
+        const byTime = t0 ? (now - t0) / msPer : 0, chars = voiced ? Math.min(Math.max(byTime, spoken), ended ? total : total * 0.96) : byTime;
+        let k = shown; while (k < n && starts[k] <= chars) k++; show(k);
+        if (shown >= n && (!voiced || ended)) { finish(); return; }
+        raf = requestAnimationFrame(frame);
+      };
+      const run = (per: number) => { if (done) return; msPer = per; if (!t0) t0 = performance.now(); if (!raf) raf = requestAnimationFrame(frame); };
+      const finish = () => {
+        if (done) return; done = true; cancelAnimationFrame(raf); clearTimeout(safety);
+        if (tok === CV.token) show(n); G.to(rig.s, { nod: 0, duration: 0.3 });
+        window.setTimeout(res, heard ? 380 : clamp(text.length * 38, 900, 2800)); // without a voice: time to read it
+      };
+      if (!voiced) { if (still) { show(n); finish(); } else run(30); return; }
       const u = new SpeechSynthesisUtterance(clean); if (VOX.v) { u.voice = VOX.v; u.lang = VOX.v.lang; }
       u.rate = rate; u.pitch = cfg.convo.pitch / 100; u.volume = cfg.convo.volume / 100;
-      u.onstart = () => { window.setTimeout(() => { if (!gotB && !done) typeOn(Math.round(330 / rate)); }, 380); };
-      u.onboundary = (e) => { if (e.name && e.name !== "word") return; gotB = true; clearInterval(tw); let k = cw.findIndex((m) => (m.index ?? 0) + m[0].length > e.charIndex); if (k < 0) k = cw.length - 1; reveal(Math.round(((k + 1) / cw.length) * n) - 1); };
-      u.onend = finish; u.onerror = finish;
-      safety = window.setTimeout(finish, 2000 + (clean.length * 120) / rate);
-      try { speechSynthesis.speak(u); } catch { typeOn(250); }
-      window.setTimeout(() => { if (!done && !gotB && shown === 0) { let sp = false; try { sp = speechSynthesis.speaking; } catch {} if (!sp) typeOn(250); } }, 900);
+      u.onstart = () => { heard = true; run(Math.round(66 / rate)); }; // about 15 letters a second at normal speed
+      u.onboundary = (e) => { if (e.name && e.name !== "word") return; spoken = Math.max(spoken, (e.charIndex / Math.max(1, clean.length)) * total + 2); if (!t0) run(Math.round(66 / rate)); };
+      u.onend = () => { ended = true; if (heard) spoken = total; run(msPer || 30); }; u.onerror = () => { ended = true; run(msPer || 30); };
+      safety = window.setTimeout(() => { ended = true; finish(); }, 2500 + (clean.length * 130) / rate);
+      try { speechSynthesis.speak(u); } catch { ended = true; run(30); }
+      window.setTimeout(() => { if (!done && !t0) { let sp = false; try { sp = speechSynthesis.speaking; } catch {} if (!sp) { ended = true; run(30); } } }, 900);
     });
   }
-  /* his bubble: beside his head on the roomier side, or above it */
-  function placeSay() {
+  /* his bubble: beside his head on the roomier side, or above it. It glides after him rather than jumping with every nod,
+     and keeps its side unless that side runs out of room. */
+  function placeSay(snap = false) {
     if (say.hidden) return; const s = rig.s, L = layer.getBoundingClientRect();
     const a = rig.pt(70 + s.x, 92 + s.y), b = rig.pt(170 + s.x, 92 + s.y), tp = rig.pt(120 + s.x, 24 + s.y);
-    const minX = Math.min(a[0], b[0]), maxX = Math.max(a[0], b[0]), hy = (a[1] + b[1]) / 2, w = say.offsetWidth, h = say.offsetHeight, roomL = minX - 12, roomR = L.width - maxX - 12;
-    let x: number, y: number, side: string;
-    if (Math.max(roomL, roomR) >= Math.min(w, 240) + 16) { if (roomR >= roomL) { x = maxX + 16; side = "r"; } else { x = minX - 16 - w; side = "l"; } y = hy - h * 0.8; }
-    else { x = tp[0] - w / 2; y = tp[1] - h - 18; side = "t"; }
+    const minX = Math.min(a[0], b[0]), maxX = Math.max(a[0], b[0]), hy = (a[1] + b[1]) / 2, w = say.offsetWidth, h = say.offsetHeight, roomL = minX - 12, roomR = L.width - maxX - 12, need = w + 16;
+    let side = CV.side;
+    if (!side || (side === "r" && roomR < need) || (side === "l" && roomL < need)) side = roomR >= need && roomR >= roomL ? "r" : roomL >= need ? "l" : "t";
+    CV.side = side;
+    let x: number, y: number;
+    if (side === "r") { x = maxX + 16; y = hy - h * 0.8; } else if (side === "l") { x = minX - 16 - w; y = hy - h * 0.8; } else { x = tp[0] - w / 2; y = tp[1] - h - 18; }
     x = clamp(x, 8, Math.max(8, L.width - w - 8)); y = clamp(y, 56, Math.max(56, L.height - h - 8));
-    say.style.left = x + "px"; say.style.top = y + "px"; say.dataset.side = side;
-    say.style.setProperty("--ty", clamp(hy - y, 18, h - 18) + "px"); say.style.setProperty("--tx", clamp(tp[0] - x, 22, w - 22) + "px");
+    if (snap || Math.abs(x - CV.sx) > 120 || Math.abs(y - CV.sy) > 120) { CV.sx = x; CV.sy = y; }
+    else { const dx = x - CV.sx, dy = y - CV.sy; if (Math.abs(dx) > 0.6) CV.sx += dx * 0.18; if (Math.abs(dy) > 0.6) CV.sy += dy * 0.18; }
+    say.style.left = Math.round(CV.sx) + "px"; say.style.top = Math.round(CV.sy) + "px"; say.dataset.side = side;
+    say.style.setProperty("--ty", clamp(hy - CV.sy, 18, h - 18) + "px"); say.style.setProperty("--tx", clamp(tp[0] - CV.sx, 22, w - 22) + "px");
   }
   function placeInvite() {
     if (invite.hidden) return; const [px, py] = rig.pt(120 + rig.s.x, 18 + rig.s.y), w = invite.offsetWidth, h = invite.offsetHeight, L = layer.getBoundingClientRect(), x = clamp(px - w / 2, 8, L.width - w - 8);
     invite.style.left = x + "px"; invite.style.top = Math.max(8, py - h - 12) + "px"; invite.style.setProperty("--tx", clamp(px - x, 16, w - 16) + "px");
   }
-  const tick = () => { if (CV.on) placeSay(); placeInvite(); };
+  const tick = () => { if (CV.on) placeSay(); placeInvite(); if (!invite.hidden && (rig.bubOn || CV.on)) hideInvite(true); };
   G.ticker.add(tick); offs.push(() => G.ticker.remove(tick));
 
   /* gestures: a pose for the free hands and head, one per sentence */
@@ -249,15 +315,13 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
   async function talk(lines: string[], gest: string[] = [], free: "both" | "left" | "none" = "both") { for (let i = 0; i < lines.length; i++) { if (!CV.on) return; if (gest.length && !still) gesture(gest[i % gest.length], free); await speakLine(lines[i]); } }
   function stance() { const s = rig.s; rig.run((t) => { t.to(s, { ...REST, ...CLEAR, lx: 88, ly: 214, rx: 152, ry: 214, duration: 0.5, ease: "power2.inOut" }); t.call(() => { rig.setProp(null); rig.face("smile", "open"); rig.setGl(false); if (!still) rig.loop(G.to(s, { rot: 1.4, duration: 2.4, yoyo: true, repeat: -1, ease: "sine.inOut" })); }); }); }
-  function listen() { if (CV.listening || CV.performing || !CV.on || still) return; CV.listening = true; const s = rig.s;
-    rig.run((t) => { t.call(() => rig.face("smile", "open")); t.to(s, { ...REST, ...CLEAR, rx: 172, ry: 104, lx: 88, ly: 214, head: -7, gy: 0.7, brow: 0.5, lean: -2, duration: 0.4, ease: "power2.out" }); }); }
   const endLoops = (more: Record<string, number>) => play(() => { const t = G.timeline(); t.call(() => rig.stopLoops()); t.to(rig.s, { ...more, duration: 0.4 }); return t; });
 
   /* what he does for each question: steps run one after another; a newer question stops the older one between steps */
   const SCRIPT: Record<string, (arg?: string) => Step[]> = {
     start() { const s = rig.s, nm = visitorName(); return [
       () => play(() => { const t = rig.begin(null, "grin"); t.to(s, { rx: 182, ry: 100, lx: 84, ly: 214, duration: 0.35, ease: "back.out(1.7)" }); const w = G.timeline({ repeat: 3, yoyo: true }); w.to(s, { rx: 195, ry: 113, duration: 0.18 }); t.add(w); return t; }),
-      () => talk([(nm ? `Hey ${nm}! ` : "") + cfg.convo.hello, "Ask me anything, or pick a card below 👇"], ["open", "point"])]; },
+      () => talk([(nm ? `Hey ${nm}! ` : "") + vary(cfg.convo.hello), vary(LINES.pick)], ["open", "point"])]; },
     who() { const s = rig.s; return [
       () => play(() => { const t = rig.begin(null, "grin"); t.to(s, { sy: 0.88, sx: 1.07, y: 2, duration: 0.14, ease: "power2.out" }).to(s, { y: -30, sy: 1.05, sx: 0.96, lx: 70, ly: 96, rx: 170, ry: 96, duration: 0.26, ease: "power2.out" }).call(() => SND.whoosh(0.5))
         .to(s, { y: 0, duration: 0.22, ease: "power2.in" }).to(s, { sy: 0.9, sx: 1.08, duration: 0.07 }).to(s, { sy: 1.03, sx: 1, upY: -3, lx: 90, ly: 212, rx: 150, ry: 212, hy: -2, head: -3, brow: 0.5, cape: 1, duration: 0.5, ease: "back.out(1.8)" })
@@ -288,126 +352,143 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       () => (L[1] ? talk([L[1]], ["point"], "left") : null),
       () => play(() => { const t = G.timeline(); t.call(() => rig.setProp(null)).to(s, { lx: 116, ly: 134, rx: 166, ry: 222, duration: 0.25, ease: "power2.out" }).call(() => rig.face("o")).to(s, { lx: 84, ly: 214, duration: 0.2 }).to({}, { duration: 0.4 });
         t.call(() => { rig.face("open"); SND.boing(); }).to(s, { blush: 1.5, brow: 1.5, sy: 1.06, duration: 0.15, ease: "power3.out" });
-        t.call(() => { rig.say("SPICY! 🌶️🔥"); rig.every(200, () => { rig.burst(["💨"], 76, 100, 1, "", 20); rig.burst(["💨"], 164, 100, 1, "", 20); }); });
+        t.call(() => { rig.say(vary(["SPICY! 🌶️🔥", "HOT HOT HOT! 🌶️", "Water! WATER! 🔥"])); rig.every(200, () => { rig.burst(["💨"], 76, 100, 1, "", 20); rig.burst(["💨"], 164, 100, 1, "", 20); }); });
         const fan = G.timeline({ repeat: 7, yoyo: true }); fan.to(s, { lx: 106, ly: 128, duration: 0.08 }).to(s, { lx: 116, ly: 136, duration: 0.08 }); t.add(fan); t.to(s, { y: -14, duration: 0.16, yoyo: true, repeat: 3, ease: "power2.out" }, "<");
         t.call(() => { rig.stopLoops(); rig.face("grin", "happy"); }).to(s, { blush: 0, brow: 0, sy: 1, duration: 0.4 }); return t; }),
-      () => talk(["Worth it. 😋"], ["thumb"])]; },
+      () => talk([vary(["Worth it. 😋", "No regrets. 😋", "Totally worth it. 😋"])], ["thumb"])]; },
     single() { const s = rig.s; return [
       () => play(() => { const t = rig.begin(null, "smile"); t.to(s, { blush: 1.2, lx: 110, ly: 226, rx: 130, ry: 226, head: 8, gx: -0.9, gy: 0.5, brow: 0.6, duration: 0.45 }); t.call(() => { rig.loop(G.to(s, { rg: 10, rot: -1.5, duration: 0.35, yoyo: true, repeat: -1, ease: "sine.inOut" })); rig.burst(["💗", "💕", "💗"], 120, 60, 3, "", 100); }); return t; }),
       () => talk(linesOf("single"), [], "none"), () => endLoops({ blush: 0, rg: 0, rot: 0 })]; },
     sing() { const s = rig.s; return [
       () => play(() => { const t = rig.begin("mic", "grin", "happy"); t.to(s, { rx: 136, ry: 136, lx: 70, ly: 150, brow: 0.6, duration: 0.35, ease: "back.out(1.5)" }); t.call(() => { rig.loop(G.to(s, { rot: 4, head: 6, duration: 0.5, yoyo: true, repeat: -1, ease: "sine.inOut" })); rig.every(600, () => rig.burst([pick(["🎵", "🎶"])], 150, 110, 1, "", 60)); SND.notes(); }); return t; }),
       () => talk(linesOf("sing"), ["sweep"], "left"), () => endLoops({ rot: 0, head: 0 })]; },
-    trick() { const list = Object.entries(cfg.tricks).filter(([, v]) => v).map(([k]) => k), k = list.length ? list[trickI++ % list.length] : "wave"; return [() => talk(["Watch this! 😎"], ["point"]), () => play(() => TRICKS[k](rig))]; },
+    trick() { const list = Object.entries(cfg.tricks).filter(([, v]) => v).map(([k]) => k), k = list.length ? list[trickI++ % list.length] : "wave"; return [() => talk([vary(LINES.watch)], ["point"]), () => play(() => TRICKS[k](rig))]; },
     game() { return [() => talk(linesOf("game"), ["count"]), () => { CV.mode = "game"; }]; },
     rps(you) { return [() => play(() => rps(rig, you || "rock", (res) => { score[res]++; }))]; },
     tour() { const n = nextSection(), title = n ? (n.id === "hero" ? "the top" : (n.querySelector("h2")?.textContent || n.id).trim().slice(0, 40)) : "the homepage";
       return [() => talk([`${linesOf("tour")[0] || "Follow me!"} Next up: ${title}.`], ["sweep"]), () => closeScene(() => tourGo(n))]; },
-    top() { return [() => talk(["Up we go! ⬆️"], ["point"]), () => closeScene(() => toTop())]; },
+    top() { return [() => talk([vary(["Up we go! ⬆️", "To the top! ⬆️", "Going up! 🛗"])], ["point"]), () => closeScene(() => toTop())]; },
     bye() { return [() => rocketBye()]; },
     hello(line) { const s = rig.s; return [() => { if (!still) rig.loop(G.fromTo(s, { rx: 182, ry: 100 }, { rx: 195, ry: 113, duration: 0.18, yoyo: true, repeat: 7 })); }, () => talk([line || "Hi! 👋"]), () => rig.stopLoops()]; },
-    laugh() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "grin", "happy"); t.to(s, { lx: 108, ly: 200, rx: 132, ry: 200, duration: 0.2 }); t.to(s, { upY: -3, rot: 2, duration: 0.07, yoyo: true, repeat: 11 }); t.call(() => { rig.burst(["😂", "🤣"], 120, 50, 3, "", 120); SND.giggle(); }, undefined, 0.2); return t; }), () => talk(["Haha! Glad you're having fun! 😄"], ["open"])]; },
-    love() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "smile"); t.to(s, { blush: 1.3, rx: 126, ry: 178, lx: 110, ly: 200, head: 7, duration: 0.4 }); t.call(() => rig.burst(["💖", "💕", "💗"], 120, 50, 4, "", 130)); return t; }), () => talk(["Aww, right back at you! 💖"], [], "none"), () => endLoops({ blush: 0 })]; },
+    laugh() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "grin", "happy"); t.to(s, { lx: 108, ly: 200, rx: 132, ry: 200, duration: 0.2 }); t.to(s, { upY: -3, rot: 2, duration: 0.07, yoyo: true, repeat: 11 }); t.call(() => { rig.burst(["😂", "🤣"], 120, 50, 3, "", 120); SND.giggle(); }, undefined, 0.2); return t; }), () => talk([vary(LINES.laugh)], ["open"])]; },
+    love() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "smile"); t.to(s, { blush: 1.3, rx: 126, ry: 178, lx: 110, ly: 200, head: 7, duration: 0.4 }); t.call(() => rig.burst(["💖", "💕", "💗"], 120, 50, 4, "", 130)); return t; }), () => talk([vary(LINES.love)], [], "none"), () => endLoops({ blush: 0 })]; },
     fire() { return [() => play(() => TRICKS.fireup(rig))]; },
-    nudge() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "smile"); const tap = G.timeline({ repeat: 5, yoyo: true }); tap.to(s, { rk: 7, duration: 0.12 }); t.add(tap); t.to(s, { gx: -0.9, head: -5, duration: 0.5 }, 0.35).to(s, { gx: 0.9, head: 5, duration: 0.7 }).to(s, { gx: 0, head: 0, duration: 0.4 }); return t; }), () => talk(["Still there? Ask me anything! 😄"], ["open"])]; },
-    shrug() { return [() => talk(["Hmm, I don't know that one yet. Try a card! 👇"], ["shrug"])]; },
+    nudge() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "smile"); const tap = G.timeline({ repeat: 5, yoyo: true }); tap.to(s, { rk: 7, duration: 0.12 }); t.add(tap); t.to(s, { gx: -0.9, head: -5, duration: 0.5 }, 0.35).to(s, { gx: 0.9, head: 5, duration: 0.7 }).to(s, { gx: 0, head: 0, duration: 0.4 }); return t; }), () => talk([vary(LINES.nudge)], ["open"])]; },
+    shrug() { return [() => talk([vary(LINES.shrug)], ["shrug"])]; },
+    /* a tap on the "coming soon" box: he taps his head (a big brain on the way), sparkles, then sends them back to the cards */
+    soon() { const s = rig.s; return [
+      () => play(() => { const t = rig.begin(null, "grin"); t.to(s, { rx: 140, ry: 74, lx: 84, ly: 214, head: -4, brow: 0.8, gy: -0.6, duration: 0.35, ease: "back.out(1.8)" });
+        const tp = G.timeline({ repeat: 3, yoyo: true }); tp.to(s, { ry: 68, duration: 0.12 }); t.add(tp); t.call(() => { rig.burst(["🤖", "✨", "🧠"], 120, 30, 3, "", 120); SND.ting(); }); return t; }),
+      () => talk([vary(LINES.soon), vary(LINES.soon2)], ["open", "down"])]; },
   };
   const score = { you: 0, him: 0, draw: 0 };
   const QKEYS = MZ_QA.map(([k]) => k as string);
   function convoAsk(k: string, arg?: string) {
     if (!CV.on) return; const tok = ++CV.token; hush();
-    hideCards(); CV.performing = true; CV.listening = false; CV.idleAt = Date.now(); rig.stopLoops();
+    hideCards(); CV.performing = true; CV.idleAt = Date.now(); rig.stopLoops();
     const isQ = QKEYS.includes(k); if (isQ) addHeart("q-" + k);
-    let steps: Step[] = still ? [() => talk(k === "start" ? [cfg.convo.hello] : isQ ? linesOf(k) : [arg || "Hmm! 🤔"])] : (SCRIPT[k] || SCRIPT.shrug)(arg);
+    let steps: Step[] = still ? [() => talk(k === "start" ? [vary(cfg.convo.hello)] : k === "soon" ? [vary(LINES.soon), vary(LINES.soon2)] : isQ ? linesOf(k) : [arg || "Hmm! 🤔"])] : (SCRIPT[k] || SCRIPT.shrug)(arg);
     if (still && (k === "bye" || k === "top" || k === "tour")) steps = (SCRIPT[k] || SCRIPT.shrug)(arg);
-    if (isQ && CV.asked.has(k) && !["trick", "game", "bye", "tour"].includes(k)) steps = [() => talk(["You already asked that! 😄 Okay, once more…"], ["shrug"]), ...steps];
+    // asked again: his answer comes in another version anyway (answer() never repeats the last one), so only sometimes he points it out
+    if (isQ && CV.asked.has(k) && !["trick", "game", "bye", "tour"].includes(k) && Math.random() < 0.5) steps = [() => talk([vary(LINES.again)], ["shrug"]), ...steps];
     if (isQ) CV.asked.add(k);
     if (!still) G.fromTo(wrap, { scale: CV.S * 0.97 }, { scale: CV.S, duration: 0.5, ease: "power2.out" });
     (async () => { for (const st of steps) { if (tok !== CV.token || !CV.on) return; await st(); }
       if (tok !== CV.token || !CV.on) return; CV.performing = false; CV.last = k; stance(); showCards(k); CV.idleAt = Date.now(); })();
   }
 
-  /* the visitor's side: tilted reply cards, their own words flying up to him, quick reactions */
-  function hideCards() { cards.hidden = true; cards.innerHTML = ""; }
+  /* the visitor's side: a hand of reply cards, all the same size (the owner's rule), and quick reactions */
+  function hideCards() { cards.hidden = true; cards.innerHTML = ""; cards.classList.remove("going"); }
   function card(emoji: string, label: string, fn: (el: HTMLElement) => void, cls = "") {
-    const b = mk("button", "mzc-card" + (cls ? " " + cls : ""), `<span class="mzc-em">${emoji}</span><span>${label}</span>`) as HTMLButtonElement; b.type = "button";
-    b.style.setProperty("--r", (Math.random() * 6 - 3).toFixed(1) + "deg"); b.onclick = () => fn(b); cards.appendChild(b); return b;
+    const b = mk("button", "mzc-card" + (cls ? " " + cls : "")) as HTMLButtonElement; b.type = "button";
+    const em = mk("span", "mzc-em"), tx = mk("span", "mzc-lb"); em.textContent = emoji; tx.textContent = label; b.title = label; b.append(em, tx);
+    b.style.setProperty("--r", (Math.random() * 6 - 3).toFixed(1) + "deg"); b.onclick = () => { if (!cards.classList.contains("going")) fn(b); }; cards.appendChild(b); return b;
   }
   function showCards(k: string) {
-    cards.innerHTML = "";
+    cards.innerHTML = ""; cards.classList.remove("going");
     if (CV.mode === "game") {
       const sc = mk("div", "mzc-score"); sc.textContent = `You ${score.you} · Him ${score.him} · Draws ${score.draw}`; cards.appendChild(sc);
-      ([["rock", "✊"], ["paper", "✋"], ["scissors", "✌️"]] as const).forEach(([c, e]) => card(e, c[0].toUpperCase() + c.slice(1), (el) => send(e, el, () => convoAsk("rps", c)), "big"));
-      card("↩️", "Something else", () => { CV.mode = ""; showCards("game"); }, "sm");
+      ([["rock", "✊"], ["paper", "✋"], ["scissors", "✌️"]] as const).forEach(([c, e]) => card(e, c[0].toUpperCase() + c.slice(1), (el) => send(e, el, () => convoAsk("rps", c))));
+      card("↩️", "Something else", () => { CV.mode = ""; showCards("game"); });
     } else {
       const on = QKEYS.filter((x) => cfg.qa[x as MzQa]?.on && !["bye", "tour"].includes(x)), list: string[] = [];
       (FOLLOW[k] || []).forEach((x) => { if (on.includes(x) && !CV.asked.has(x) && list.length < 3) list.push(x); });
       on.forEach((x) => { if (!CV.asked.has(x) && !list.includes(x) && list.length < 3) list.push(x); });
       (FOLLOW[k] || on).forEach((x) => { if (on.includes(x) && !list.includes(x) && list.length < 3) list.push(x); });
       list.forEach((x) => card(QE[x] || "💬", cfg.qa[x as MzQa].q, (el) => send(cfg.qa[x as MzQa].q, el, () => convoAsk(x))));
-      if (cfg.qa.tour.on && !preview) card("🧭", cfg.qa.tour.q, (el) => send(cfg.qa.tour.q, el, () => convoAsk("tour")), "sm");
-      if (!preview) card("⬆️", "Take me to the top", (el) => send("Take me to the top", el, () => convoAsk("top")), "sm");
-      if (cfg.qa.bye.on) card("👋", cfg.qa.bye.q, (el) => send(cfg.qa.bye.q, el, () => convoAsk("bye")), "sm");
+      if (cfg.qa.tour.on && !preview) card("🧭", cfg.qa.tour.q, (el) => send(cfg.qa.tour.q, el, () => convoAsk("tour")));
+      if (!preview) card("⬆️", "Take me to the top", (el) => send("Take me to the top", el, () => convoAsk("top")));
+      if (cfg.qa.bye.on) card("👋", cfg.qa.bye.q, (el) => send(cfg.qa.bye.q, el, () => convoAsk("bye")));
     }
     cards.hidden = false;
-    if (!still) G.fromTo(cards.children, { y: 40, opacity: 0, rotation: (i: number) => (i % 2 ? 12 : -12) }, { y: 0, opacity: 1, rotation: 0, duration: 0.5, stagger: 0.07, ease: "back.out(1.8)" });
+    if (!still) G.fromTo(cards.querySelectorAll(".mzc-card"), { y: 50, opacity: 0, rotation: (i: number) => (i % 2 ? 14 : -14), scale: 0.8 }, { y: 0, opacity: 1, rotation: 0, scale: 1, duration: 0.55, stagger: 0.06, ease: "back.out(1.9)" });
   }
-  /* their words (or a picked card) become a bubble that flies up to him; he catches it, then answers */
+  /* a sparkle left behind by a flying card; capped, and gone in under a second */
+  function trail(x: number, y: number) {
+    if (layer.querySelectorAll(".mzc-trail").length > 16) return; const d = mk("i", "mzc-trail"); d.textContent = pick(["✨", "⭐", "✦"]); d.style.left = x + "px"; d.style.top = y + "px"; layer.appendChild(d);
+    G.fromTo(d, { xPercent: -50, yPercent: -50, scale: 1, opacity: 0.95 }, { scale: 0.2, opacity: 0, y: 10 + Math.random() * 14, x: (Math.random() - 0.5) * 18, duration: 0.7, ease: "power1.out", onComplete: () => d.remove() });
+  }
+  /**
+   * A picked card flies to him, a different way each time (the owner asked for more fun): it spins over in an arc, folds into a
+   * paper plane that loops before landing, or bounces over in hops. The other cards drop away, he reaches up, catches it with a
+   * squash and a sparkle, then answers. Only transform and opacity move.
+   */
   function send(text: string, from: HTMLElement | null, then: () => void) {
-    markGesture(); CV.idleAt = Date.now(); hideCards();
-    you.textContent = text; you.hidden = false; G.killTweensOf(you);
-    const L = layer.getBoundingClientRect(), A = (from || avEl).getBoundingClientRect();
-    G.set(you, { x: 0, y: 0, scale: 1, opacity: 1, rotation: 0 });
-    you.style.left = clamp(A.left - L.left, 8, L.width - you.offsetWidth - 8) + "px"; you.style.top = Math.max(8, A.top - L.top - you.offsetHeight - 10) + "px";
-    if (still) { window.setTimeout(() => { you.hidden = true; then(); }, 600); return; }
-    G.fromTo(avEl, { scale: 1 }, { scale: 1.25, duration: 0.15, yoyo: true, repeat: 1 });
-    const [hx, hy] = rig.pt(120 + rig.s.x, 60 + rig.s.y), Y = you.getBoundingClientRect(), dx = hx - (Y.left - L.left + Y.width / 2), dy = hy - (Y.top - L.top + Y.height / 2);
-    const t = G.timeline({ onComplete: () => { you.hidden = true; then(); } });
-    t.fromTo(you, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: "back.out(2)" })
-      .to({}, { duration: 0.45 })
-      .to(you, { x: dx, y: dy, scale: 0.25, rotation: dx > 0 ? 14 : -14, duration: 0.55, ease: "power2.in" })
-      .call(() => { const s = rig.s; G.to(s, { brow: 1.2, gy: -0.4, duration: 0.12, yoyo: true, repeat: 1 }); rig.burst(["💭"], 150, 30, 1, "", 10); })
-      .to(you, { opacity: 0, duration: 0.12 });
+    markGesture(); CV.idleAt = Date.now();
+    const L = layer.getBoundingClientRect(), src = from || avEl, A = src.getBoundingClientRect();
+    if (still) { hideCards(); window.setTimeout(then, 300); return; }
+    cards.classList.add("going");
+    const others = [...cards.children].filter((c) => c !== from) as HTMLElement[];
+    if (others.length) G.to(others, { y: 70, opacity: 0, rotation: () => (Math.random() - 0.5) * 50, duration: 0.42, stagger: 0.03, ease: "power2.in" });
+    you.textContent = text; you.className = "mzc-you"; you.hidden = false; G.killTweensOf(you);
+    G.set(you, { x: 0, y: 0, scale: 1, scaleX: 1, scaleY: 1, opacity: 1, rotation: 0, xPercent: -50, yPercent: -50 });
+    const sx = A.left - L.left + A.width / 2, sy = A.top - L.top + A.height / 2; you.style.left = sx + "px"; you.style.top = sy + "px";
+    if (from && cards.contains(from)) G.to(from, { opacity: 0, scale: 1.15, duration: 0.18 }); else G.fromTo(avEl, { scale: 1 }, { scale: 1.25, duration: 0.15, yoyo: true, repeat: 1 });
+    const [hx, hy] = rig.pt(120 + rig.s.x, 150 + rig.s.y), dx = hx - sx, dy = hy - sy, dir = dx >= 0 ? 1 : -1, s = rig.s;
+    const style = vary(["arc", "plane", "hop"]);
+    let last = 0; const tr = () => { const n = performance.now(); if (n - last < 55) return; last = n; const b = you.getBoundingClientRect(); trail(b.left - L.left + b.width / 2, b.top - L.top + b.height / 2); };
+    const reach = () => { rig.stopLoops(); G.to(s, { lx: 98, ly: 112, rx: 142, ry: 112, brow: 1, gy: -0.5, duration: 0.3, ease: "power2.out", overwrite: "auto" }); };
+    const catchIt = () => {
+      SND.pop(); rig.burst(["✨", "💥", "⭐"], 120, 120, 3, "", 80);
+      G.to(s, { sy: 0.9, sx: 1.08, ly: 128, ry: 128, duration: 0.08, yoyo: true, repeat: 1 }); G.to(s, { brow: 0, gy: 0, duration: 0.4, delay: 0.2 });
+      G.to(you, { scale: 0, opacity: 0, duration: 0.16, ease: "power2.in", onComplete: () => { you.hidden = true; hideCards(); then(); } });
+    };
+    const t = G.timeline({ onUpdate: tr });
+    t.fromTo(you, { scale: 0.5, opacity: 0 }, { scale: 1.1, opacity: 1, duration: 0.2, ease: "back.out(2.4)" }).to(you, { scale: 1, duration: 0.12 });
+    if (style === "plane") {
+      // squashes flat, turns into a paper plane and loops the loop on its way
+      t.to(you, { scaleY: 0.08, duration: 0.14, ease: "power2.in" }).call(() => { you.textContent = "✈️"; you.classList.add("plane"); }).to(you, { scaleY: 1, rotation: dir > 0 ? -30 : 210, duration: 0.16, ease: "back.out(3)" });
+      t.to(you, { keyframes: [
+        { x: dx * 0.35, y: dy * 0.2 - 120, rotation: dir > 0 ? -50 : 230, duration: 0.42, ease: "sine.out" },
+        { x: dx * 0.55, y: dy * 0.2 - 190, rotation: dir > 0 ? -200 : 380, duration: 0.32, ease: "none" },
+        { x: dx * 0.45, y: dy * 0.2 - 90, rotation: dir > 0 ? -330 : 510, duration: 0.3, ease: "none" },
+        { x: dx, y: dy, rotation: dir > 0 ? -340 : 520, duration: 0.42, ease: "power2.in" }] });
+    } else if (style === "hop") {
+      // bounces over in three hops, squashing as it lands
+      const hops = 3; for (let i = 1; i <= hops; i++) { const f = i / hops, h = 110 - i * 22;
+        t.to(you, { keyframes: [{ x: dx * (f - 0.5 / hops), y: dy * f - h, rotation: `+=${dir * 120}`, duration: 0.2, ease: "power1.out" }, { x: dx * f, y: dy * f, rotation: `+=${dir * 120}`, duration: 0.2, ease: "power1.in" }] });
+        if (i < hops) t.to(you, { scaleY: 0.75, scaleX: 1.2, duration: 0.06, yoyo: true, repeat: 1 }); }
+    } else {
+      // spins over in a high arc
+      t.addLabel("fly").to(you, { x: dx, duration: 0.9, ease: "power1.inOut" }, "fly").to(you, { rotation: dir * 720, scale: 0.7, duration: 0.9, ease: "power1.inOut" }, "fly")
+        .to(you, { keyframes: [{ y: Math.min(dy, 0) - 170, duration: 0.42, ease: "power2.out" }, { y: dy, duration: 0.48, ease: "power2.in" }] }, "fly");
+    }
+    t.call(reach, undefined, Math.max(0.2, t.duration() - 0.45)).call(catchIt, undefined, t.duration());
   }
-  function typed(v: string) {
-    const m = KEYS.find(([, re]) => re.test(v.toLowerCase()));
-    send(v, null, () => {
-      if (!m) { convoAsk("shrug"); return; }
-      if (m[0] === "salam") { convoAsk("hello", "Walaikum assalam! 👋 So good to see you."); return; }
-      if (m[0] === "hello") { convoAsk("hello", pick(["Hello! 👋 Nice to meet you.", "Hey hey! 👋 Ask me anything.", "Hi there! 👋 What do you want to know?"])); return; }
-      if (m[0] !== "top" && !cfg.qa[m[0] as MzQa]?.on) { convoAsk("shrug"); return; }
-      convoAsk(m[0]);
-    });
-  }
-  on(bar, "submit", (e: Event) => { e.preventDefault(); const v = input.value.trim(); input.value = ""; bar.classList.remove("typing"); CV.listening = false; if (!v) { input.focus(); return; }
-    if (!still) G.fromTo(sendBtn.querySelector("svg"), { x: 0, y: 0, opacity: 1 }, { keyframes: [{ x: 16, y: -16, opacity: 0, duration: 0.3, ease: "power2.in" }, { x: -10, y: 10, duration: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.25, ease: "back.out(2)" }] });
-    typed(v); });
-  on(input, "keydown", (e: KeyboardEvent) => e.stopPropagation()); // the site's own keyboard shortcuts stay out of it
-  on(input, "input", () => { CV.idleAt = Date.now(); bar.classList.toggle("typing", !!input.value); if (CV.performing || !CV.on) return; if (input.value) { listen(); if (!still) G.fromTo(rig.s, { nod: 0 }, { nod: 3, duration: 0.1, yoyo: true, repeat: 1 }); } });
-  on(input, "blur", () => { bar.classList.remove("typing"); if (CV.listening && !CV.performing && CV.on) { CV.listening = false; stance(); } });
+  on(soonEl, "click", () => { markGesture(); if (!CV.on) return; G.fromTo(soonEl, { scale: 1 }, { scale: 0.94, duration: 0.09, yoyo: true, repeat: 1 }); convoAsk("soon"); });
   bar.querySelectorAll<HTMLButtonElement>("[data-q]").forEach((b) => on(b, "click", () => { const k = b.dataset.q || "wave"; const em = b.textContent || "";
-    send(em, b, () => { if (k === "wave") convoAsk("hello", pick(["Hey hey! 👋", "Hi hi! 👋 Good to see you!"])); else convoAsk(k); }); }));
-  on(bar.querySelector(".mzc-mic") as HTMLElement, "click", () => {
-    const SR = (window as unknown as { SpeechRecognition?: new () => SpeechRec; webkitSpeechRecognition?: new () => SpeechRec }).SpeechRecognition || (window as unknown as { webkitSpeechRecognition?: new () => SpeechRec }).webkitSpeechRecognition;
-    if (!SR) { convoAsk("hello", "My ears only work in Chrome or Edge. Type it for me? 🎤"); return; }
-    try { const r = new SR(); r.lang = "en-US"; r.interimResults = false; listen(); bar.classList.add("hearing");
-      r.onresult = (ev) => { bar.classList.remove("hearing"); const t = ev.results[0][0].transcript; if (t) typed(t); };
-      r.onerror = () => { bar.classList.remove("hearing"); convoAsk("hello", "Sorry, I didn't catch that. Type it for me? 🎤"); }; r.onend = () => bar.classList.remove("hearing"); r.start(); }
-    catch { convoAsk("hello", "Sorry, I didn't catch that. Type it for me? 🎤"); }
-  });
-  const syncTop = () => { (top.querySelector(".mzc-vo") as HTMLElement).textContent = cfg.convo.voice ? "🔊" : "🔇"; (bar.querySelector(".mzc-mic") as HTMLElement).hidden = !cfg.convo.mic; };
+    send(em, b, () => { if (k === "wave") convoAsk("hello", vary(LINES.hi)); else convoAsk(k); }); }));
+  const syncTop = () => { (top.querySelector(".mzc-vo") as HTMLElement).textContent = cfg.convo.voice ? "🔊" : "🔇"; };
   on(top.querySelector(".mzc-vo") as HTMLElement, "click", () => { cfg = { ...cfg, convo: { ...cfg.convo, voice: !cfg.convo.voice } }; if (!cfg.convo.voice) hush(); syncTop(); });
   on(top.querySelector(".mzc-x") as HTMLElement, "click", () => closeScene());
   on(dim, "click", () => closeScene());
-  let hintI = 0;
-  every(2600, () => { if (CV.on && !input.value && document.activeElement !== input) input.placeholder = HINTS[hintI++ % HINTS.length]; });
 
   /* opening and closing the scene */
-  function target() { const L = layer.getBoundingClientRect(), w = wrap.offsetWidth, h = wrap.offsetHeight, S = clamp((L.height * 0.46) / h, 1.1, cfg.convo.scale / 100); return { x: L.width / 2 - (wrap.offsetLeft + w / 2), y: L.height * 0.7 - (wrap.offsetTop + h), S }; }
+  function target() { const L = layer.getBoundingClientRect(), w = wrap.offsetWidth, h = wrap.offsetHeight, S = clamp((L.height * (phone() ? 0.4 : 0.46)) / h, 1.1, cfg.convo.scale / 100); return { x: L.width / 2 - (wrap.offsetLeft + w / 2), y: L.height * (phone() ? 0.6 : 0.68) - (wrap.offsetTop + h), S }; }
   function openScene(first?: string) {
     if (CV.on) { if (first) convoAsk(first); return; }
     if (!visible() || away || held) return;
-    markGesture(); hideInvite(); hostBack?.kill(); hostBack = null; leanBack?.kill(); leanBack = null; stopSleep(rig); rig.hush();
+    markGesture(); hideInvite(true); rig.hush(); hostBack?.kill(); hostBack = null; leanBack?.kill(); leanBack = null; stopSleep(rig); rig.hush();
     CV.on = true; busy = true; CV.mode = ""; CV.token++; CV.idleAt = Date.now(); setLive(); wrap.classList.add("on-stage");
     rig.sayHook = (t) => { if (!CV.on) return false; void speakLine(t); return "quiet"; };
     G.killTweensOf(wrap); G.set(wrap, { xPercent: 0, yPercent: 0, rotation: 0, transformOrigin: "50% 100%" });
@@ -422,9 +503,9 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     G.to(wrap, { keyframes: [{ y: Math.min(cy, T.y) - 150, duration: 0.45, ease: "power2.out" }, { y: T.y, duration: 0.4, ease: "power2.in" }] });
     G.to(wrap, { scale: T.S, duration: 0.85, ease: "power2.inOut", onComplete: () => { if (!CV.on) return; G.fromTo(wrap, { scale: T.S * 0.96 }, { scale: T.S, duration: 0.7, ease: "elastic.out(1,.5)" }); ready(); } });
   }
-  function hideScene() { [say, cards, you, bar, top].forEach((e) => { e.hidden = true; }); cards.innerHTML = ""; input.blur(); }
+  function hideScene() { [say, cards, you, bar, top].forEach((e) => { e.hidden = true; }); cards.innerHTML = ""; cards.classList.remove("going"); layer.querySelectorAll(".mzc-trail").forEach((e) => e.remove()); }
   function closeScene(after?: () => void) {
-    if (!CV.on) return; CV.on = false; CV.token++; CV.performing = false; CV.listening = false; hush(); hideScene(); rig.sayHook = null; rig.stopLoops();
+    if (!CV.on) return; CV.on = false; CV.token++; CV.performing = false; hush(); hideScene(); rig.sayHook = null; rig.stopLoops();
     const s = rig.s, cy = Number(G.getProperty(wrap, "y"));
     const done = () => { wrap.classList.remove("on-stage"); busy = false; setLive(); placeWrap(true); resume(); after?.(); };
     G.to(dim, { opacity: 0, duration: still ? 0.01 : 0.6, delay: still ? 0 : 0.3, onComplete: () => { dim.hidden = true; } });
@@ -435,15 +516,17 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     G.to(wrap, { keyframes: [{ y: cy - 120, duration: 0.4, ease: "power2.out" }, { y: 0, duration: 0.4, ease: "power2.in" }], delay: 0.35 });
     G.to(wrap, { scale: 1, duration: 0.8, delay: 0.35, ease: "power2.inOut", onComplete: done });
   }
-  every(1000, () => { if (CV.on && !CV.performing && !CV.listening && Date.now() - CV.idleAt > 14000 && Date.now() - CV.nudged > 25000 && !document.hidden) { CV.nudged = Date.now(); convoAsk("nudge"); } });
+  every(1000, () => { if (CV.on && !CV.performing && Date.now() - CV.idleAt > 14000 && Date.now() - CV.nudged > 25000 && !document.hidden) { CV.nudged = Date.now(); convoAsk("nudge"); } });
 
   /* the "Wanna chat?" invite over his head */
-  function hideInvite() { if (invite.hidden) return; G.to(invite, { opacity: 0, scale: 0.8, duration: 0.2, onComplete: () => { invite.hidden = true; } }); }
-  function showInvite() { invite.textContent = cfg.convo.inviteText || "Wanna chat? 💬"; invite.hidden = false; placeInvite(); CV.lastInvite = Date.now();
-    G.fromTo(invite, { opacity: 0, scale: 0.5, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: still ? 0.01 : 0.45, ease: "back.out(2.4)" }); window.setTimeout(hideInvite, 6500); }
-  on(invite, "click", () => { hideInvite(); openScene(); });
+  /* never at the same time as anything else he says, and gone at once when the talking scene opens (the two used to overlap on phones) */
+  let inviteT = 0;
+  function hideInvite(now = false) { clearTimeout(inviteT); if (invite.hidden) return; G.killTweensOf(invite); if (now || still) { invite.hidden = true; return; } G.to(invite, { opacity: 0, scale: 0.8, duration: 0.2, onComplete: () => { invite.hidden = true; } }); }
+  function showInvite() { if (rig.bubOn || CV.on) return; invite.textContent = vary(cfg.convo.inviteText) || "Wanna chat? 💬"; invite.hidden = false; placeInvite(); CV.lastInvite = Date.now();
+    G.fromTo(invite, { opacity: 0, scale: 0.5, y: 10 }, { opacity: 1, scale: 1, y: 0, duration: still ? 0.01 : 0.45, ease: "back.out(2.4)" }); clearTimeout(inviteT); inviteT = window.setTimeout(() => hideInvite(), 6500); }
+  on(invite, "click", () => { hideInvite(true); openScene(); });
   CV.lastInvite = Date.now() - Math.max(0, cfg.convo.inviteEvery - 8) * 1000;
-  every(1000, () => { if (!preview && cfg.convo.invite && free() && !rig.sleeping && invite.hidden && !document.hidden && Date.now() - CV.lastInvite > cfg.convo.inviteEvery * 1000 && Date.now() - lastAct > 2500) showInvite(); });
+  every(1000, () => { if (!preview && cfg.convo.invite && free() && !rig.sleeping && invite.hidden && !rig.bubOn && !document.hidden && Date.now() - CV.lastInvite > cfg.convo.inviteEvery * 1000 && Date.now() - lastAct > 2500) showInvite(); });
 
   /* ---------- the tour and the top ---------- */
   const sectionEls = () => [...document.querySelectorAll<HTMLElement>("section[data-spy][id]")];
@@ -468,14 +551,14 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const newHold = (x0 = 0, y0 = 0, id?: number): Hold => ({ id, x0, y0, started: false, minX: 0, maxX: 0, minY: 0, bx: 0, by: 0, cx: 0, cy: 0, vx: 0, vy: 0, lt: 0 });
   function bounds() { const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), cx = Number(G.getProperty(wrap, "x")), cy = Number(G.getProperty(wrap, "y")); const natL = W.left - L.left - cx, natT = W.top - L.top - cy; return { minX: 6 - natL, maxX: L.width - W.width - 6 - natL, minY: 6 - natT }; }
   function startHold(d: Hold) {
-    d.started = true; held = true; setLive(); lastAct = Date.now(); addHeart("throw"); hideInvite();
+    d.started = true; held = true; setLive(); lastAct = Date.now(); addHeart("throw"); hideInvite(true);
     hostBack?.kill(); hostBack = null; leanBack?.kill(); leanBack = null; G.killTweensOf(wrap); stopSleep(rig); busy = false; rig.hush();
     G.set(wrap, { xPercent: 0, yPercent: 0, rotation: 0, scale: 1 }); Object.assign(d, bounds());
     d.bx = clamp(Number(G.getProperty(wrap, "x")), d.minX, d.maxX); d.by = Math.min(Number(G.getProperty(wrap, "y")), 0); d.cx = d.bx; d.cy = d.by; d.vx = 0; d.vy = 0; d.lt = performance.now();
     G.set(wrap, { transformOrigin: "50% 6%" }); d.qr = G.quickTo(wrap, "rotation", { duration: 0.35, ease: "power2.out" });
     const s = rig.s; rig.run((t) => { t.call(() => { rig.setProp(null); rig.face("open", "open"); }); t.to(s, { ...REST, ...CLEAR, lx: 68, ly: 100, rx: 172, ry: 100, brow: 1.3, duration: 0.18 });
       const k = G.timeline({ repeat: -1 }); k.to(s, { lg: 16, rg: -4, ly: 94, ry: 106, duration: 0.16, ease: "sine.inOut" }).to(s, { lg: 4, rg: -16, ly: 106, ry: 94, duration: 0.16, ease: "sine.inOut" }); t.add(k); });
-    rig.say(pick(["Whoa! Put me down! 😱", "Hey! Where are we going?!", "Aaah! Not so high!"]), 1800); SND.boing();
+    rig.say(vary(LINES.whoa), 1800); SND.boing();
   }
   function moveHold(d: Hold, px: number, py: number) {
     const x = clamp(d.bx + (px - d.x0), d.minX, d.maxX), y = clamp(d.by + (py - d.y0), d.minY, 0), now = performance.now(), dt = Math.max(1, now - d.lt);
@@ -485,7 +568,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   function fall(b: Hold, vx: number, vy: number) {
     held = false; busy = true; setLive();
     let x = Number(G.getProperty(wrap, "x")), y = Number(G.getProperty(wrap, "y")), rot = Number(G.getProperty(wrap, "rotation")), w = clamp(vx * 0.18, -420, 420), last = performance.now(), bounces = 0;
-    G.killTweensOf(wrap); rig.say(pick(["Wheeeee!", "Aaaah!", "Weeee! 🤸"]), 1200);
+    G.killTweensOf(wrap); rig.say(vary(LINES.wee), 1200);
     const step = (now: number) => {
       if (held || !alive) return; const dt = Math.min(0.032, (now - last) / 1000); last = now; vy += 2400 * dt; x += vx * dt; y += vy * dt; rot += w * dt;
       if (x < b.minX) { x = b.minX; vx = -vx * 0.5; w = -w * 0.6; SND.thud(); } if (x > b.maxX) { x = b.maxX; vx = -vx * 0.5; w = -w * 0.6; SND.thud(); }
@@ -499,7 +582,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     G.set(wrap, { rotation: (((rot % 360) + 540) % 360) - 180 }); G.to(wrap, { rotation: 0, duration: 0.35, ease: "back.out(2)", onComplete: () => { G.set(wrap, { transformOrigin: "50% 100%" }); } }); SND.thud();
     const s = rig.s, t = rig.run((t) => { t.call(() => rig.face("open", "open")); t.to(s, { sy: 0.8, sx: 1.14, y: 3, lx: 66, ly: 214, rx: 174, ry: 214, lg: -10, rg: 10, duration: 0.08 }).to(s, { ...REST, ...CLEAR, brow: 0.8, duration: 0.6, ease: "elastic.out(1,.45)" });
       t.call(() => { rig.face("smile", "open"); rig.burst(["💫", "⭐", "💫"], 120, 30, 3, "", 60); }); t.to(s, { head: 9, hx: 3, duration: 0.25, yoyo: true, repeat: 5, ease: "sine.inOut" }); t.to(s, { head: 0, hx: 0, duration: 0.2 });
-      t.call(() => { rig.face("grin", "happy"); rig.say(pick(["Wheee! Again! 🤩", "That was fun! Again?", "My head is spinning… 😵‍💫"]), 1800); }); t.to({}, { duration: 1.3 }); t.call(() => rig.face("grin", "open")); });
+      t.call(() => { rig.face("grin", "happy"); rig.say(vary(LINES.again2), 1800); }); t.to({}, { duration: 1.3 }); t.call(() => rig.face("grin", "open")); });
     t.eventCallback("onComplete", () => { busy = false; setLive(); if (Math.abs(Number(G.getProperty(wrap, "x"))) > 4) walkTo(0, () => { placeWrap(true); resume(); }); else { placeWrap(true); resume(); } });
   }
   on(wrap, "pointerdown", (e: PointerEvent) => { if ((e.pointerType === "mouse" && e.button !== 0) || away || CV.on) return; markGesture(); drag = newHold(e.clientX, e.clientY, e.pointerId); try { wrap.setPointerCapture(e.pointerId); } catch {} });
@@ -508,7 +591,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   on(wrap, "pointercancel", () => { if (drag?.started) fall(drag, 0, 0); drag = null; });
   function throwDemo() {
     if (!visible() || away || held || still || CV.on) return; const d = newHold(); startHold(d);
-    const L = layer.getBoundingClientRect(), dir = cfg.side === "right" ? -1 : 1, tx = clamp(dir * Math.min(220, L.width * 0.35), d.minX, d.maxX), ty = Math.max(d.minY, -L.height * 0.5);
+    const L = layer.getBoundingClientRect(), dir = isRight ? -1 : 1, tx = clamp(dir * Math.min(220, L.width * 0.35), d.minX, d.maxX), ty = Math.max(d.minY, -L.height * 0.5);
     G.to(wrap, { x: tx, y: ty, rotation: dir * -14, duration: 0.9, ease: "power2.out", onComplete: () => { if (!held) return; G.to(wrap, { rotation: dir * 12, duration: 0.25, yoyo: true, repeat: 1, onComplete: () => { if (held) fall(d, -dir * 1100, -650); } }); } });
   }
 
@@ -525,44 +608,50 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const NOZZLE = 198 / 260, FEET = 296 / 310;
   async function rocketBye() {
     if (!visible() || away || held) return; addHeart("rocket");
-    const staged = CV.on;
-    if (!cfg.fun.rocket || still) { if (staged) { await talk([linesOf("bye")[0] || "Bye! 👋"], ["open"]); closeScene(); } else act((r) => TALK.hello(r, linesOf("bye")[0] || "Bye! 👋")); return; }
+    const staged = CV.on, byeLine = linesOf("bye")[0] || "Bye! 👋";
+    if (!cfg.fun.rocket || still) { if (staged) { await talk([byeLine], ["open"]); closeScene(); } else act((r) => TALK.hello(r, byeLine)); return; }
+    drawRocket();
     hostBack?.kill(); hostBack = null; leanBack?.kill(); leanBack = null; stopSleep(rig); away = true; busy = true; setLive();
     if (staged) { CV.token++; CV.performing = true; hideScene(); } // the conversation ends here; his last words still show in his bubble
     G.killTweensOf(wrap);
     if (!staged) G.set(wrap, { x: 0, y: 0, rotation: 0, xPercent: 0, yPercent: 0, scale: 1, opacity: 1, transformOrigin: "50% 100%" });
     const s = rig.s, L0 = layer.getBoundingClientRect(), W0 = wrap.getBoundingClientRect();
-    const floor = W0.top - L0.top + W0.height * FEET, rw = Math.round(Math.min(W0.width * 0.95, (floor * 0.9) / ((260 / 120) * NOZZLE))), rh = Math.round((rw * 260) / 120);
-    const left = staged ? L0.width / 2 - rw / 2 : clamp(cfg.side === "right" ? W0.left - L0.left - rw * 0.9 : W0.right - L0.left - rw * 0.1, 6, L0.width - rw - 6), top = floor - rh * NOZZLE;
+    // a smaller rocket than before (the owner's ask, 2026-11-21): about half his width and at most 40% of the screen's height, so it
+    // has a long way to climb and the flight can be watched
+    const floor = W0.top - L0.top + W0.height * FEET, rw = Math.round(Math.min(W0.width * (staged ? 0.55 : 0.62), (floor * 0.9) / ((260 / 120) * NOZZLE), (L0.height * 0.4 * 120) / 260)), rh = Math.round((rw * 260) / 120);
+    const left = staged ? L0.width / 2 - rw / 2 : clamp(isRight ? W0.left - L0.left - rw * 0.9 : W0.right - L0.left - rw * 0.1, 6, L0.width - rw - 6), top = floor - rh * NOZZLE;
     // on the stage he steps aside so the rocket can land in the middle
     if (staged) {
       const roomR = L0.right - W0.right, dir = roomR > W0.left - L0.left ? 1 : -1, step = rw * 0.62 + W0.width * 0.32;
-      rig.say(linesOf("bye")[0] || "Bye! 👋");
+      rig.say(byeLine);
       await new Promise<void>((res) => walkTo(Number(G.getProperty(wrap, "x")) + dir * step, res));
       rig.run((t) => t.to(s, { ...REST, ...CLEAR, rx: 182, ry: 100, duration: 0.3 }));
     } else {
       const t = rig.begin(null, "grin"); t.to(s, { rx: 182, ry: 100, duration: 0.35, ease: "back.out(1.7)" }); const w = G.timeline({ repeat: 3, yoyo: true }); w.to(s, { rx: 195, ry: 113, duration: 0.18 }); t.add(w);
-      t.call(() => rig.say(linesOf("bye")[0] || "Bye! 👋", 1700), undefined, 0.15);
+      t.call(() => rig.say(byeLine, 1700), undefined, 0.15);
     }
     if (!alive) return;
     Object.assign(rocket.style, { width: rw + "px", height: rh + "px", left: left + "px", top: top + "px", display: "block", zIndex: staged ? "4" : "1" });
     rkFace.setAttribute("opacity", "0"); rkFlame.style.opacity = "1";
-    G.set(rocket, { x: 0, y: -(top + rh + 30), scaleY: 1, transformOrigin: "50% 76%" });
+    G.set(rocket, { x: 0, y: -(top + rh + 30), scaleY: 1, rotation: 0, transformOrigin: "50% 76%" });
     const W = wrap.getBoundingClientRect(), L = layer.getBoundingClientRect(), cx0 = Number(G.getProperty(wrap, "x")), cy0 = Number(G.getProperty(wrap, "y")), sc0 = Number(G.getProperty(wrap, "scale"));
     const px = left + rw * 0.5, py = top + rh * (96 / 260), bcx = W.left - L.left + W.width / 2, bby = W.bottom - L.top, base = floor;
     let lastPuff = 0; const R = G.timeline(); rocketTl = R;
     R.to(rocket, { y: 0, duration: 1.25, ease: "power3.out" }, staged ? 0.1 : 0.4).call(() => { SND.thud(); puffs(left + rw / 2, base, 9, 60); rkFlame.style.opacity = "0"; })
-      .to(rocket, { scaleY: 0.93, duration: 0.08 }).to(rocket, { scaleY: 1, duration: 0.4, ease: "elastic.out(1,.4)" }).call(() => rig.say("All aboard! 🚀", 1200)).to({}, { duration: 0.7 });
+      .to(rocket, { scaleY: 0.93, duration: 0.08 }).to(rocket, { scaleY: 1, duration: 0.4, ease: "elastic.out(1,.4)" }).call(() => { const nm = cfg.fun.rocketName.trim(); rig.say(nm ? vary([`All aboard ${nm}! 🚀`, `${nm}, ready for launch! 🚀`, ...LINES.aboard]) : vary(LINES.aboard), 1500); rig.burst(["✨", "⭐"], 120, 40, 2, "", 80); }).to({}, { duration: 0.9 });
     R.addLabel("hop").call(() => { const tt = rig.begin(null, "grin", "happy"); tt.to(s, { lx: 70, ly: 96, rx: 170, ry: 96, duration: 0.25 }); }, undefined, "hop")
       .to(wrap, { x: cx0 + px - bcx, duration: 0.7, ease: "power1.inOut" }, "hop")
       .to(wrap, { keyframes: [{ y: cy0 + py - bby - 90, duration: 0.38, ease: "power2.out" }, { y: cy0 + py - bby + rw * 0.08, duration: 0.32, ease: "power2.in" }] }, "hop")
-      .to(wrap, { scale: sc0 * 0.16, duration: 0.7, ease: "power2.in" }, "hop").to(wrap, { opacity: 0, duration: 0.12 }, "hop+=.6")
+      .to(wrap, { scale: sc0 * clamp((rw / W.width) * 0.26, 0.06, 0.16), duration: 0.7, ease: "power2.in" }, "hop").to(wrap, { opacity: 0, duration: 0.12 }, "hop+=.6")
       .call(() => { rig.hush(); G.fromTo(rkFace, { attr: { opacity: 0 } }, { attr: { opacity: 1 }, duration: 0.3 }); SND.pop(); }).to({}, { duration: 0.5 });
     ["3", "2", "1"].forEach((n) => { R.call(() => { bigText(n, left + rw / 2, Math.max(70, top - 6)); SND.beep(); puffs(left + rw / 2, base, 2, 30); }).to(rocket, { x: 1.6, duration: 0.05, yoyo: true, repeat: 9, ease: "none" }); });
     R.call(() => { rkFlame.style.opacity = "1"; SND.whoosh(1.9); puffs(left + rw / 2, base, 12, 70); bigText("Lift-off! 🚀", left + rw / 2, Math.max(70, top - 6));
         if (staged) { CV.on = false; CV.token++; CV.performing = false; rig.sayHook = null; say.hidden = true; G.to(dim, { opacity: 0, duration: 1.6, delay: 0.4, onComplete: () => { dim.hidden = true; } }); } })
       .to(rocket, { x: 0, duration: 0.05 })
-      .to(rocket, { y: -(top + rh + 80), duration: 1.8, ease: "power2.in", onUpdate() { const n = performance.now(); if (n - lastPuff > 60) { lastPuff = n; puffs(left + rw / 2 + (Math.random() - 0.5) * 8, base + Number(G.getProperty(rocket, "y")) + 20, 1, 14); } } })
+      // a slow, long climb with a little wobble, trailing smoke, so the whole flight can be seen
+      .addLabel("up")
+      .to(rocket, { y: -(top + rh + 80), duration: 3.4, ease: "power1.in", onUpdate() { const n = performance.now(); if (n - lastPuff > 85) { lastPuff = n; puffs(left + rw / 2 + Number(G.getProperty(rocket, "x")) + (Math.random() - 0.5) * 8, base + Number(G.getProperty(rocket, "y")) + 14, 1, 14); } } }, "up")
+      .to(rocket, { keyframes: [{ x: -7, rotation: -3, duration: 0.55 }, { x: 7, rotation: 3, duration: 0.9 }, { x: -5, rotation: -2, duration: 0.9 }, { x: 3, rotation: 1, duration: 1.05 }], ease: "sine.inOut" }, "up")
       .call(() => { rocket.style.display = "none"; })
       .to({}, { duration: cfg.fun.backAfter }).call(parachuteBack);
   }
@@ -593,8 +682,9 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     let told = "";
     on(window, "scroll", () => {
       const now = performance.now(), y = pageY(), v = Math.abs(y - lastY) / Math.max(1, now - lastT); lastY = y; lastT = now;
-      lastAct = Date.now(); if (rig.sleeping && visible() && !away) act((r) => wakeRig(r));
-      if (v > 3.5 && now > windCool && cfg.fun.notice.fast && free() && !lite) { windCool = now + 7000; act(FUN.wind, { heart: "wind" }); }
+      // on phones scrolling never moves him: he isn't woken or blown about by it (a tap still wakes him)
+      lastAct = Date.now(); if (rig.sleeping && visible() && !away && !planted()) act((r) => wakeRig(r));
+      if (!planted() && v > 3.5 && now > windCool && cfg.fun.notice.fast && free() && !lite) { windCool = now + 7000; act(FUN.wind, { heart: "wind" }); }
       if (y < 400) endDone = false;
       clearTimeout(restT); restT = window.setTimeout(() => {
         const id = cur || (sectionEls().length ? "" : "page"); if (!id || id === told) return; told = id;
@@ -612,7 +702,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       let dx = cx - sx; const dy = cy - sy; if (rig.mirror) dx = -dx; const n = Math.hypot(dx, dy) || 1;
       const name = (c.querySelector("h3, h4, h2, .t, b, strong")?.textContent || "").trim().slice(0, 36);
       const t = rig.begin(null, "grin"); t.to(s, { rx: 156 + (dx / n) * 72, ry: 158 + (dy / n) * 72, lean: clamp((dx / n) * 4, -4, 4), gx: clamp(dx / n, -1, 1), gy: clamp(dy / n, -1, 1), brow: 0.6, duration: 0.35, ease: "back.out(1.6)" });
-      if (cfg.chat !== "quiet" && name) t.call(() => rig.say(pick([`Ooh, ${name}!`, `${name}? Good one.`, `That one! ${name}.`]), 1500));
+      if (cfg.chat !== "quiet" && name) t.call(() => rig.say(vary([`Ooh, ${name}!`, `${name}? Good one.`, `That one! ${name}.`, `Ah, ${name}! Nice pick.`]), 1500));
     }, { passive: true });
     on(document, "pointerout", (e: PointerEvent) => { if (!(e.target instanceof Element)) return; const c = e.target.closest(".card"); if (!c || (e.relatedTarget instanceof Node && c.contains(e.relatedTarget))) return; pointCard = null; if (pointing) { pointing = false; if (free() && !rig.sleeping) resume(); } }, { passive: true });
   }
@@ -643,7 +733,10 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   on(window, "lc-lite", () => { lite = true; rig.calm(true); rainEl.style.display = "none"; if (!busy && !away && !held && !CV.on) restNow(); });
   const onPhone = () => { if (CV.on) closeScene(); sizeWrap(); updateVis(); placeWrap(false); };
   phoneMq.addEventListener("change", onPhone); offs.push(() => phoneMq.removeEventListener("change", onPhone));
-  on(window, "resize", () => { if (!CV.on) return; const T = target(); CV.S = T.S; G.to(wrap, { x: T.x, y: T.y, scale: T.S, duration: 0.3 }); });
+  on(window, "resize", () => {
+    if (CV.on) { const T = target(); CV.S = T.S; G.to(wrap, { x: T.x, y: T.y, scale: T.S, duration: 0.3 }); return; }
+    const was = baseW; placeBase(); if (was !== baseW) { rig.setMirror(isRight); rig.wrapDir = isRight ? -1 : 1; wrap.classList.toggle("left", !isRight); home.classList.toggle("left", !isRight); } // only when the width changed
+  });
 
   /* ---------- start ---------- */
   sizeWrap(); updateVis(); placeWrap(false); setMoment(autoMoment(), false);
@@ -652,7 +745,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   return {
     update(m) {
       const before = cfg; cfg = m; rig.cfg = m; rig.setLook(m); paint(); setSound(m.fun.sounds); sizeWrap(); updateVis(); syncTop(); pickVoice();
-      if (before.side !== m.side || before.place !== m.place) { if (!CV.on) { hostBack?.kill(); G.set(wrap, { x: 0 }); placeWrap(true); } }
+      if (before.side !== m.side || before.place !== m.place || JSON.stringify(before.pos) !== JSON.stringify(m.pos)) { if (!CV.on) { hostBack?.kill(); G.set(wrap, { x: 0 }); placeBase(true); placeWrap(true); } }
+      if (before.fun.rocketName !== m.fun.rocketName && !away) drawRocket();
       if (JSON.stringify(before.moments) !== JSON.stringify(m.moments)) setMoment(autoMoment(), false);
       if (CV.on) dim.style.setProperty("--mzd", String(m.convo.dim / 100));
     },
@@ -670,7 +764,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     wake() { if (rig.sleeping) act((r) => wakeRig(r)); },
     throwDemo,
     testVoice() {
-      markGesture(); pickVoice(); const line = cfg.convo.hello || "Hi! I'm Mini Shourobh.";
+      markGesture(); pickVoice(); const line = vary(cfg.convo.hello) || "Hi! I'm Mini Shourobh.";
       if (CV.on) { void speakLine(line); return; }
       rig.say(line, 2600);
       if (!VOX.ok) return; hush(); try { const u = new SpeechSynthesisUtterance(stripEmoji(line)); if (VOX.v) { u.voice = VOX.v; u.lang = VOX.v.lang; } u.rate = cfg.convo.rate / 100; u.pitch = cfg.convo.pitch / 100; u.volume = cfg.convo.volume / 100; speechSynthesis.speak(u); } catch {}
@@ -681,6 +775,3 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     },
   };
 }
-
-/* the bits of the browser's speech recognition this file uses (Chrome and Edge, behind the owner's switch) */
-type SpeechRec = { lang: string; interimResults: boolean; onresult: ((ev: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start(): void };

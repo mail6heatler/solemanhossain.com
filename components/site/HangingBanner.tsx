@@ -238,9 +238,23 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     window.addEventListener("scroll", scroll, { passive: true });
     window.addEventListener("lc-lite", goLite);
     document.addEventListener("keydown", key);
-    const ro = new ResizeObserver(() => { place(); paint(); kick(); });
+    const ro = new ResizeObserver(() => { place(); paint(); kick(); follow(); });
     ro.observe(cl);
-    if (nav) ro.observe(nav);
+    // the menu bar slims after the hero by changing its padding, which its content box (ResizeObserver's default) doesn't
+    // see, and it hides by moving (translate), which no size change shows: the banner was left hanging below it with a gap
+    // between the bar and its rope. So the border box is watched, and after any change of class or any transition it's
+    // followed frame by frame until it settles.
+    let followRaf = 0, followUntil = 0;
+    const step = (now: number) => {
+      followRaf = 0; if (!nav) return;
+      const top = Math.round(nav.getBoundingClientRect().bottom);
+      if (top !== lastTop) { el.style.top = `${top}px`; lastTop = top; }
+      if (now < followUntil) followRaf = requestAnimationFrame(step);
+    };
+    function follow() { followUntil = performance.now() + 650; if (!followRaf) followRaf = requestAnimationFrame(step); }
+    const mo = nav ? new MutationObserver(follow) : null;
+    if (nav) { ro.observe(nav, { box: "border-box" }); mo!.observe(nav, { attributes: true, attributeFilter: ["class", "style"] }); nav.addEventListener("transitionrun", follow); nav.addEventListener("transitionend", follow); }
+    window.addEventListener("resize", follow);
     place(); paint();
 
     // pops down by itself each time the site is opened, but not on every move between its own pages
@@ -259,6 +273,8 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       el.removeEventListener("focusin", focusIn);
       el.removeEventListener("focusout", focusOut);
       ro.disconnect();
+      mo?.disconnect(); cancelAnimationFrame(followRaf); window.removeEventListener("resize", follow);
+      if (nav) { nav.removeEventListener("transitionrun", follow); nav.removeEventListener("transitionend", follow); }
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
