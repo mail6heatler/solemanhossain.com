@@ -60,7 +60,12 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-25: Connect's text comes late (fixed, waiting for keep or undo)
+### 2026-11-25: Faster and lighter everywhere: measured, waiting for go
+
+The owner asked whether landing, opening pages and scrolling can be smoother and lighter, and to wait for their go. Live site, one load each, nothing cached. Home on a computer: 1838 KB, of which the Tabler icon font 812 KB (about 90 of its icons are used) and its CSS 32 KB; scripts 502 KB in 22 files (largest 135 KB); site CSS 68 KB in one file, with the dashboard's admin.css (49 KB raw) and the hidden fan themes in it; server answered in 137 ms but first paint was 1980 ms; 14 long tasks, 3.5 s of blocking; 8 requests to the API. Phone about the same (1836 ms, 3.6 s). See all: first paint 1776 ms, largest picture 3020 ms, pictures 106 to 121 KB each. An entry nobody had opened lately: HTML took 1883 ms, first paint 3804 ms, a 254 KB picture. Scrolling: title letters are up to 44 layers at once. Suggested, in order: 1 subset icons; 2 start the 3D, mascot and theme background one after another once the page is settled; 3 fonts from our own server, the theme's first; 4 no dashboard or hidden-theme CSS for visitors; 5 build entry pages ahead; 6 card-sized modern pictures; 7 prerender a page on hover; 8 lighter title letters (small visible change).
+
+
+### 2026-11-25: Connect's text comes late (fixed, kept)
 
 The owner kept the lighter scrolling and said Connect's content, the chat's text most of all, takes long to show. Timed on the live site (scrolling into Connect over 1.4 s): the arrival only starts when the chat box is 30% seen, and because layered depth holds it lower while the section arrives, that was at 100% of the section on a computer and 92% on a phone; then 250 ms, typing dots, and the greeting's words came 1.4 s (computer) and 1.5 s (phone) after the start. Links are hidden until the start too. Suggested: start when the section begins to arrive, show links and box with the section, and the greeting at once without dots.
 
