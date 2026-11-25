@@ -13,6 +13,7 @@ export function BrandTypewriter({ phrases, animate }: { phrases: string[]; anima
     let seq = 0, i = 0, deleting = false, t: ReturnType<typeof setTimeout>;
     setText("");
     const tick = () => {
+      if (document.documentElement.classList.contains("scrolling")) { t = setTimeout(tick, 240); return; } // it waits while the page moves: every letter redraws the menu bar
       const p = list[seq];
       if (!deleting) {
         i++; setText(p.slice(0, i));

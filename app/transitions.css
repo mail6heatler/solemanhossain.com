@@ -13,9 +13,11 @@
   @media (prefers-reduced-motion: no-preference) {
     .site.home:not(.hst-site) :is(section.chap, #hero) { view-timeline: --sec block; }
 
+    /* only what's near the screen is animated at all (.sleep is off screen) */
+
     /* leaving: the last section stays, because the footer is shorter than a screen and would leave it half gone */
-    .site.home:not(.hst-site) #hero .hero-inner,
-    .site.home section.chap:not(:last-of-type) > .chap-inner {
+    .site.home:not(.hst-site) #hero:not(.sleep) .hero-inner,
+    .site.home section.chap:not(:last-of-type, .sleep) > .chap-inner {
       transform-origin: 50% 100%;
       animation: depth-out linear forwards;
       animation-timeline: --sec;
@@ -23,19 +25,19 @@
     }
 
     /* arriving: the title first, the cards from deeper down */
-    .site.home section.chap > .chap-inner > :is(.eyebrow, .chap-head) {
+    .site.home section.chap:not(.sleep) > .chap-inner > :is(.eyebrow, .chap-head) {
       animation: depth-head linear backwards;
       animation-timeline: --sec;
       animation-range: entry 8% entry 100%;
     }
-    .site.home section.chap > .chap-inner > :not(.eyebrow, .chap-head) {
+    .site.home section.chap:not(.sleep) > .chap-inner > :not(.eyebrow, .chap-head) {
       animation: depth-body linear backwards;
       animation-timeline: --sec;
       animation-range: entry 0% entry 100%;
     }
 
     /* the giant mark behind each section, at a speed of its own */
-    .site.home section.chap > .ghost {
+    .site.home section.chap:not(.sleep) > .ghost {
       animation: depth-mark linear both;
       animation-timeline: --sec;
       animation-range: cover 0% cover 100%;

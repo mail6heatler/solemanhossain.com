@@ -166,16 +166,20 @@ export function NowPlaying({ name, sections }: { name: React.ReactNode; sections
       setAt(a ? sections.findIndex((s) => s.slug === a.dataset.link) : -1);
     };
     const len = sections.length * 60;
+    let max = 0;
     const clock = () => {
-      const max = document.documentElement.scrollHeight - innerHeight, s = Math.round((max > 0 ? scrollY / max : 0) * len);
+      const s = Math.round((max > 0 ? Math.min(1, pageY() / max) : 0) * len);
       setTime(`${(s / 60) | 0}:${String(s % 60).padStart(2, "0")} / ${len / 60}:00`);
     };
-    let raf = 0;
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; clock(); }); };
+    // four times a second is plenty for a clock, and each change redraws the bar
+    let timer = 0;
+    const onScroll = () => { if (!timer) timer = window.setTimeout(() => { timer = 0; clock(); }, 250); };
+    const sizes = new ResizeObserver(() => { max = document.documentElement.scrollHeight - innerHeight; onScroll(); });
+    sizes.observe(document.body);
     window.addEventListener("lc-spy", spy);
     addEventListener("scroll", onScroll, { passive: true });
     spy(); clock();
-    return () => { window.removeEventListener("lc-spy", spy); removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+    return () => { window.removeEventListener("lc-spy", spy); removeEventListener("scroll", onScroll); sizes.disconnect(); clearTimeout(timer); };
   }, [sections]);
   const s = at >= 0 ? sections[at] : null;
   return (

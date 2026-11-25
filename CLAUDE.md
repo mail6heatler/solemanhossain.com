@@ -48,6 +48,7 @@ app/
   actions.ts               every dashboard change; all call requireAdmin
   api/                     upload, blob, vote, react, track, presence, export
   site.css                 public design: themes first, then components, then "THE LIVELY LAYER"
+  transitions.css          section transitions (layered depth): the browser's own scroll animations, no scripts
   studio.css               the live editor's design; loaded by the dashboard's layout only
   admin.css                dashboard design
 components/site/
@@ -80,7 +81,7 @@ components/site/
   Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
-  scrollFx.ts              scroll effects + every chapter's in/out motion, one loop that sleeps when idle (separate download)
+  scrollFx.ts              scroll effects in one loop that sleeps when idle (separate download), and a stand-in for transitions.css in browsers without scroll animations
   PicZoom.tsx              the expand button on a card's picture; opens the full-screen viewer
   BackLink.tsx             Back on an entry page: returns to where the visitor was
   Mascot.tsx               Mini Shourobh's layer; mascotEngine.ts (him on a page) and mascotRig.ts (his drawing and moves) load when idle
@@ -303,6 +304,15 @@ The owner asked for it on 2026-11-11 and chose "Workbench + Spotlight" from six 
 
 The owner's rule: on the homepage the hero and each section G1 to G8 are one screen each, with everything in them visible at once, on any device, adjusting when the window changes. `.site.home` (SiteShell's `onHome`) gives `#hero` and `section.chap` `min-height: 100svh` (less the phone's bottom bar) and screen-based padding; `FitScreens.tsx` shrinks a part that is still taller with CSS `zoom` on `.hero-inner` or `.chap-inner` (never below 0.5), measuring on load, after fonts and pictures, and when the width or `svh` really changes. SideRow and TicketRider measure with offset sizes, which `zoom` leaves alone. **`vw` and the gutter shrink inside a zoomed part too**: a row once ended up to 96px short of a phone's right edge. FitScreens sets `--fz` (the zoom) on what it shrinks, and anything inside that must reach the screen's edges divides by it: `calc(100vw / var(--fz, 1))`, and `--gz` (the gutter in shrunk pixels, set on `.chap-inner`) instead of `--gutter`. Check rows at 320 to 430px wide with a short screen, which forces the shrink. Fire `lc-fit` after anything changes a part's height for good. The hero editor's preview calls the same `fitParts`, so every hero look is the same one-screen size there too, and it draws the site's real menu bar on top (`.hst-nav`, inert).
 
+## Section transitions: layered depth (2026-11-25)
+
+The owner's pick from six working previews (https://claude.ai/artifact/1AbBAKhgzCKcDzDSpMPUna): titles, cards and the giant marks travel at different speeds from one section to the next. **One design for everyone, no dashboard switch** (their rule), so `sectionfx` and `heroexit` are gone from `EFFECTS`.
+
+- **`app/transitions.css`** does it all with CSS view timelines (`--sec` on each section and on `#hero`): `.chap-inner` (and `.hero-inner`) leaves holding back, shrinking and fading; `.eyebrow` and `.chap-head` slide in; everything else in `.chap-inner` rises from deeper down; `.ghost` has its own speed. The last section doesn't leave, because the footer is shorter than a screen. Only transform, translate, scale and opacity, so it runs apart from the page's scripts, **also on `html.lite`**. Nothing in a section may use those properties on `.chap-inner` or its direct children for something else.
+- **`.chap-inner` needs `will-change: transform, opacity` near the screen,** or its text is drawn again at every size (a phone went from 116 to 24 frames a second in the previews). `.sleep` sections get neither the animations nor the layer.
+- Sizes are in svh; inside a shrunk section, divide by `--fz`.
+- Everything sits inside `@supports (animation-timeline: view())`: without support a plain CSS animation would leave sections at the end of their exit. There (`byScript` in `scrollFx.ts`) a simpler version runs by hand. `.hst-site` (the hero's live editor) is left out.
+
 ## Moving boxes in the live editors (2026-11-19)
 
 A press anywhere on a box and a drag of 4px moves it (`press` in `Surface.tsx`): in a full view the part it's in, elsewhere the innermost box in `SIZED_PARTS`; less is a click, and the click after a drag is swallowed. While moving, rulers (`.stu-guide`) show where its edges or middle line up with another box, the card or screen, and the box clicks onto them within 6px; Alt moves freely.
@@ -360,6 +370,8 @@ Every visual effect has a switch on the Appearance page. To add one:
 ## Keeping scrolling smooth
 
 - **Never ask the browser for a position during a frame.** `window.scrollY` and `getBoundingClientRect` make it finish its styles on the spot, so each one after a change is an extra style pass. Read with `pageY()` from `fx.ts`, keep element positions with `docTop()` (refreshed by a `ResizeObserver` on `body`), and write in `requestAnimationFrame`, never in a scroll event.
+- **Asking in the wrong place costs the same** (2026-11-25): the mascot asked for `offsetParent`, the menu bar for `scrollHeight` and the banner for the bar's position on every frame. Keep sizes from a `ResizeObserver`, ask rarely, or ask in a `setTimeout(0)` after the frame, when the layout is done. Nothing that sets React state may run per frame or per second while the page moves or while it's off screen (the name's typing, the receipt's clock and Now playing's clock now wait).
+- **What rests while scrolling carries the class `lc-rest`** (`mz-rest` on the mascot's bits). Don't write `html.scrolling .x svg` or `.x i`: a tag at the end of such a rule makes the browser look at every icon on the page again each time scrolling starts and stops.
 - **No `:has()` on a large or always-changing element.** `.site:has(.hang)` restyled 800+ elements whenever anything on the page changed. Use a plain class.
 - **Each running animation is restyled every frame the page draws,** even one the graphics card moves. Decorative loops rest while scrolling (`html.scrolling` in `site.css`); add long-running decoration to that list.
 - **A 3D transform makes an element its own layer, even when invisible.** Off-screen title letters were 162 layers. Keep waiting states flat (`.sleep .split-host`).

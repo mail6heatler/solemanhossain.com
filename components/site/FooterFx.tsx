@@ -31,9 +31,12 @@ function useVisit(preview?: boolean) {
     tick();
     const ck = setInterval(tick, 30000);
     addEventListener("lc-visit", read);
-    const iv = setInterval(() => setNow(Date.now()), 1000);
+    // the receipt's clock only runs while the footer can be seen: each second redraws the whole receipt
+    const beat = () => setNow(Date.now());
+    const iv = setInterval(() => { if (preview || document.querySelector(".ft-on")) beat(); }, 1000);
+    addEventListener("lc-foot", beat);
     if (!preview) fetch("/api/menu").then((r) => r.json()).then((d) => setSrv({ newest: d.newest ?? {}, counts: d.counts ?? {} })).catch(() => {});
-    return () => { removeEventListener("lc-visit", read); clearInterval(iv); clearInterval(ck); };
+    return () => { removeEventListener("lc-visit", read); removeEventListener("lc-foot", beat); clearInterval(iv); clearInterval(ck); };
   }, [preview]);
   return { v, srv, now, clock };
 }
@@ -675,7 +678,7 @@ export function FooterOn() {
   useEffect(() => {
     const f = ref.current?.closest("footer");
     if (!f) return;
-    const io = new IntersectionObserver(([e]) => f.classList.toggle("ft-on", e.isIntersecting));
+    const io = new IntersectionObserver(([e]) => { f.classList.toggle("ft-on", e.isIntersecting); if (e.isIntersecting) dispatchEvent(new Event("lc-foot")); });
     io.observe(f);
     return () => io.disconnect();
   }, []);
