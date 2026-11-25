@@ -60,7 +60,11 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-25: Lighter scrolling on computers (waiting for keep or undo)
+### 2026-11-25: Connect's text comes late (found, waiting for go)
+
+The owner kept the lighter scrolling and said Connect's content, the chat's text most of all, takes long to show. Timed on the live site (scrolling into Connect over 1.4 s): the arrival only starts when the chat box is 30% seen, and because layered depth holds it lower while the section arrives, that was at 100% of the section on a computer and 92% on a phone; then 250 ms, typing dots, and the greeting's words came 1.4 s (computer) and 1.5 s (phone) after the start. Links are hidden until the start too. Suggested: start when the section begins to arrive, show links and box with the section, and the greeting at once without dots.
+
+### 2026-11-25: Lighter scrolling on computers (kept)
 
 Layered depth: "everything is good" (kept). The owner asked for smoother, lighter scrolling on PC screens everywhere, ideas first, and said "go for 1 + 2 + 3". Restore point `before-light-scroll`. Built as described in CLAUDE.md ("The browser scrolls the page"): 1. Lenis removed and every wheel listener made passive; 2. sections far from the screen skipped (`content-visibility`); 3. the small things hold still while the page moves.
 
@@ -302,7 +306,6 @@ They said "keep all for now", so Life and Connect are kept. They asked for each 
 ### 2026-11-16: G1 editor: the pop-up's size controls no longer spill over (kept)
 
 The size and place controls in a box's pop-up shared the class `.stu-size` with the resize handle, so they became a 16px floating box over the text. Renamed `.stu-sizes`. The owner said to keep this and the three G1 releases below. A private task board for them went up the same day (https://claude.ai/artifact/5A2qbaK8BXkYfxtutzW2gw), updated as tasks change.
-
 
 
 ### 2026-11-13: G1: every box moves and sizes, the reaction bar, comment box and Full view button too (kept, 2026-11-16)
