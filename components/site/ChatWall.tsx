@@ -59,7 +59,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
   const [shown, setShown] = useState(greet.length);
   const [ownerTyping, setOwnerTyping] = useState(false);
   const [meTyping, setMeTyping] = useState(false);
-  const [phase, setPhase] = useState<"" | "wait" | "go">("");
+  const [phase, setPhase] = useState<"" | "arrive">("");
   const [tray, setTray] = useState(false);
   // the private chat
   const [key, setKey] = useState("");
@@ -155,32 +155,24 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
   }, [hasChat, edit]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (inView && fresh > 0) fetchChat(true); }, [inView]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ---------- the arrival: the newest notes pop in, then the owner types each greeting bubble ----------
+  // ---------- the arrival: what's already there pops as the section starts coming in. Nothing is ever hidden while waiting for it,
+  // because the greeting used to show over a second after the visitor had arrived (the owner, 2026-11-25) ----------
   useEffect(() => {
     if (!lively() || !root.current) return;
     const el = root.current;
     let played = false;
     const play = () => {
       played = true;
-      timers.current.forEach(clearTimeout); timers.current = [];
-      const n = Math.min(CASCADE, shownNotes.length);
-      setPhase("go"); setShown(0);
-      let at = 250 + n * 110;
-      for (let i = 0; i < greet.length; i++) {
-        const k = i;
-        later(at, () => { if (on("typing")) setOwnerTyping(true); toEnd(); });
-        at += on("typing") ? Math.min(1400, 600 + greet[k].length * 12) : 120;
-        later(at, () => { setOwnerTyping(false); setShown(k + 1); });
-        at += 260;
-      }
-      later(at + 700, () => setPhase(""));
+      setShown(greet.length); setOwnerTyping(false);
+      setPhase("arrive");
+      toEnd();
     };
     const r = el.getBoundingClientRect();
     const inV = r.top < innerHeight * 0.8 && r.bottom > innerHeight * 0.2;
-    if (!inV) { setPhase("wait"); setShown(0); }
-    const io = new IntersectionObserver((es) => { if (!played && es.some((e) => e.isIntersecting && e.intersectionRatio > 0.3)) { io.disconnect(); play(); } }, { threshold: [0, 0.3, 0.6] });
-    if (!inV) io.observe(el);
-    const replay = () => { played = false; play(); };
+    // the section is watched, not the chat: the section's transition holds the chat lower while it comes in, so the chat is seen late
+    const io = new IntersectionObserver((es) => { if (!played && es.some((e) => e.isIntersecting)) { io.disconnect(); play(); } }, { rootMargin: "0px 0px -25% 0px" });
+    if (!inV) io.observe(el.closest("section.chap") ?? el);
+    const replay = () => { setPhase(""); requestAnimationFrame(() => requestAnimationFrame(play)); };
     window.addEventListener("lc-chat-replay", replay);
     return () => { io.disconnect(); window.removeEventListener("lc-chat-replay", replay); };
   }, [live, edit]); // eslint-disable-line react-hooks/exhaustive-deps

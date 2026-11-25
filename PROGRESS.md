@@ -60,9 +60,11 @@ Improve the fan themes one at a time, when the owner brings it up. For each, fir
 
 ## Log
 
-### 2026-11-25: Connect's text comes late (found, waiting for go)
+### 2026-11-25: Connect's text comes late (fixed, waiting for keep or undo)
 
 The owner kept the lighter scrolling and said Connect's content, the chat's text most of all, takes long to show. Timed on the live site (scrolling into Connect over 1.4 s): the arrival only starts when the chat box is 30% seen, and because layered depth holds it lower while the section arrives, that was at 100% of the section on a computer and 92% on a phone; then 250 ms, typing dots, and the greeting's words came 1.4 s (computer) and 1.5 s (phone) after the start. Links are hidden until the start too. Suggested: start when the section begins to arrive, show links and box with the section, and the greeting at once without dots.
+
+The owner said go. Restore point `before-chat-fast`. A real bug came out while building: the arrival's class `cw-go` was also the links' arrow's class, so `.cw-go`'s `opacity: 0` (0.5 on phones) and `position: absolute` applied to the whole chat until the arrival ended, about 2.3 s after it started. Now `cw-arrive`. Timed on the local build the same way: the greeting is in place before the section is seen, and shows as the section fades in (phone: at 97% of the section, with the section's own fade).
 
 ### 2026-11-25: Lighter scrolling on computers (kept)
 
