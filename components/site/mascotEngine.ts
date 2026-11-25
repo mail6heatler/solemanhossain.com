@@ -78,8 +78,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   layer.innerHTML = `<div class="mz-home"></div><div class="mz-rk"></div><div class="mz" role="button" tabindex="0" aria-label="Mini Shourobh, the site's mascot. Press Enter to talk to him."><div class="mz-rain"></div><div class="mz-night"></div></div>`;
   const home = layer.querySelector(".mz-home") as HTMLElement, rocket = layer.querySelector(".mz-rk") as HTMLElement, wrap = layer.querySelector(".mz") as HTMLElement;
   const rainEl = wrap.querySelector(".mz-rain") as HTMLElement, nightEl = wrap.querySelector(".mz-night") as HTMLElement;
-  for (let i = 0; i < 16; i++) { const d = document.createElement("i"); d.style.left = Math.random() * 100 + "%"; d.style.animationDuration = 0.55 + Math.random() * 0.4 + "s"; d.style.animationDelay = -Math.random() + "s"; rainEl.appendChild(d); }
-  for (let i = 0; i < 7; i++) { const d = document.createElement("i"); d.textContent = i % 3 ? "✦" : "⋆"; d.style.left = 6 + Math.random() * 88 + "%"; d.style.top = Math.random() * 80 + "%"; d.style.animationDelay = -Math.random() * 2 + "s"; nightEl.appendChild(d); }
+  for (let i = 0; i < 16; i++) { const d = document.createElement("i"); d.className = "mz-rest"; d.style.left = Math.random() * 100 + "%"; d.style.animationDuration = 0.55 + Math.random() * 0.4 + "s"; d.style.animationDelay = -Math.random() + "s"; rainEl.appendChild(d); }
+  for (let i = 0; i < 7; i++) { const d = document.createElement("i"); d.className = "mz-rest"; d.textContent = i % 3 ? "✦" : "⋆"; d.style.left = 6 + Math.random() * 88 + "%"; d.style.top = Math.random() * 80 + "%"; d.style.animationDelay = -Math.random() * 2 + "s"; nightEl.appendChild(d); }
   let rkFace!: SVGGElement, rkFlame!: SVGGElement, rkName = "";
   const drawRocket = () => { if (rkName === cfg.fun.rocketName) return; rkName = cfg.fun.rocketName; rocket.innerHTML = rocketSvg(rkName); rkFace = rocket.querySelector(".mz-rk-face") as SVGGElement; rkFlame = rocket.querySelector(".mz-rk-flame") as SVGGElement; };
   drawRocket();

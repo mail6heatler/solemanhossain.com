@@ -4,13 +4,16 @@
 // made the old scroll library cost a style pass on every scroll event. It sleeps when nothing is moving.
 import { docTop, pageY } from "./fx";
 
-export type ScrollFxFlags = { sectionfx: boolean; heroexit: boolean; ghost: boolean; wordscrub: boolean; velocity: boolean; footername: boolean; imgreveal: boolean };
+export type ScrollFxFlags = { ghost: boolean; wordscrub: boolean; velocity: boolean; footername: boolean; imgreveal: boolean };
 
 const qsa = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => Array.from(root.querySelectorAll<T>(s));
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
 export function startScrollFx(fx: ScrollFxFlags) {
   const cleanups: (() => void)[] = [];
+  // the section transitions, the hero's exit and the giant marks are the browser's own scroll animations (app/transitions.css);
+  // what's here for them is only for browsers without those
+  const byScript = !CSS.supports("animation-timeline: view()") && !!document.querySelector(".site.home");
 
   // the one loop: each tick returns true while it still has settling to do
   const ticks: ((ms: number, y: number) => boolean)[] = [];
@@ -40,7 +43,7 @@ export function startScrollFx(fx: ScrollFxFlags) {
   const undo: (() => void)[] = [];
 
   // the hero's contents sink and fade while the next chapter rises over them
-  if (fx.heroexit) {
+  if (byScript) {
     const hero = document.getElementById("hero");
     // a hero with a different look on phones holds two; the one showing is the one with a box
     const inner = Array.from(hero?.querySelectorAll<HTMLElement>(".hero-inner") ?? []).find((el) => el.getClientRects().length > 0) ?? hero?.querySelector<HTMLElement>(".hero-inner");
@@ -64,7 +67,7 @@ export function startScrollFx(fx: ScrollFxFlags) {
   }
 
   // giant chapter marks drift against the scroll
-  if (fx.ghost) {
+  if (fx.ghost && byScript) {
     qsa(".ghost").forEach((g) => {
       const section = g.closest("section");
       if (!section) return;
@@ -143,12 +146,12 @@ export function startScrollFx(fx: ScrollFxFlags) {
   }
   cleanups.push(() => undo.forEach((u) => u()));
 
-  // every chapter arrives tipped back and rising, then leaves its own way: shrink, tilt back, slide or swing.
-  // Runs by hand rather than through ScrollTrigger so a chapter at rest has no transform at all.
-  if (fx.sectionfx) {
-    const secs = qsa("section.chap[data-spy]").flatMap((s, i) => {
+  // sections arrive rising and fading in, and leave holding back, shrinking and fading, like app/transitions.css.
+  // Runs by hand so a section at rest has no transform at all.
+  if (byScript) {
+    const secs = qsa("section.chap[data-spy]").flatMap((s, i, all) => {
       const inner = s.querySelector<HTMLElement>(":scope > .chap-inner");
-      return inner ? [{ s, inner, kind: i % 4, en: 1, ex: 0, top: 0, h: 0 }] : [];
+      return inner ? [{ s, inner, last: i === all.length - 1, en: 1, ex: 0, top: 0, h: 0 }] : [];
     });
     const small = window.matchMedia("(max-width: 760px)");
     const ease = (p: number) => p * p * (3 - 2 * p);
@@ -158,7 +161,7 @@ export function startScrollFx(fx: ScrollFxFlags) {
       o.inner.style.transform = ""; o.inner.style.opacity = ""; o.inner.style.transformOrigin = ""; o.inner.style.willChange = "";
     };
     const wantEnter = (top: number) => clamp((vh - top) / (vh * 0.62), 0, 1);
-    const wantExit = (bottom: number) => clamp((vh * 0.4 - bottom) / (vh * 0.4), 0, 1);
+    const wantExit = (bottom: number) => clamp((vh * 0.94 - bottom) / (vh * 0.94), 0, 1);
     // kept positions: sections aren't transformed, so these only change when the layout does
     const measureSecs = () => { for (const o of secs) { o.top = o.s.offsetTop; o.h = o.s.offsetHeight; } busy = true; wake(); };
     const secSizes = new ResizeObserver(measureSecs);
@@ -183,20 +186,14 @@ export function startScrollFx(fx: ScrollFxFlags) {
         o.en += (wantEn - o.en) * blend; o.ex += (wantEx - o.ex) * blend;
         if (Math.abs(wantEn - o.en) < 0.012) o.en = wantEn; else busy = true;
         if (Math.abs(wantEx - o.ex) < 0.012) o.ex = wantEx; else busy = true;
-        const inn = 1 - ease(o.en), out = ease(o.ex);
+        const inn = 1 - ease(o.en), out = o.last ? 0 : o.ex;
         if (inn === 0 && out === 0) { clear(o); continue; }
-        let x = 0, y = 90 * inn * k, sc = 1 - 0.06 * inn, rx = 12 * inn * k, ry = 0, rz = 0, origin = "50% 0%";
-        if (out > 0) {
-          if (o.kind === 0) { sc -= 0.17 * out; y -= 44 * out; origin = "50% 100%"; } // shrink, like the hero
-          else if (o.kind === 1) { rx -= 26 * out * k; sc -= 0.08 * out; origin = "50% 100%"; } // tips backward
-          else if (o.kind === 2) { x -= window.innerWidth * 0.11 * out * k; rz -= 2.6 * out * k; sc -= 0.05 * out; } // slides away
-          else { ry += 20 * out * k; x += window.innerWidth * 0.05 * out * k; sc -= 0.07 * out; origin = "100% 60%"; } // swings like a door
-        }
+        const y = vh * 0.3 * (inn + out) * k, sc = 1 - 0.08 * inn - 0.1 * out;
         // while moving it's kept as one ready-made picture, so the text isn't redrawn at every size
         o.inner.style.willChange = "transform, opacity";
-        o.inner.style.transformOrigin = origin;
-        o.inner.style.transform = `perspective(1400px) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) rotate(${rz.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
-        o.inner.style.opacity = (1 - 0.72 * inn - 0.82 * out).toFixed(3);
+        o.inner.style.transformOrigin = "50% 100%";
+        o.inner.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0) scale(${sc.toFixed(3)})`;
+        o.inner.style.opacity = Math.max(0.05, 1 - 0.8 * inn - 0.95 * out).toFixed(3);
       }
       return busy;
     };

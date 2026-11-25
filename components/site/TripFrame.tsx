@@ -184,7 +184,7 @@ export function TripFrame({ view: v, link, picture, drawn, body, p = noPart }: {
           <div className={`cam-screen${drawn ? " drawn" : ""}`} {...p("screen")}>
             {picture}
             <span className="cam-focus" aria-hidden />
-            <span className="cam-rec" aria-hidden><i />REC</span>
+            <span className="cam-rec" aria-hidden><i className="lc-rest" />REC</span>
             <span className="cam-shot" aria-hidden />
           </div>
         ),

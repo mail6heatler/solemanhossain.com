@@ -227,23 +227,11 @@ export const HELP: Record<string, Help> = {
   },
 
   // ----- scrolling -----
-  heroexit: {
-    title: "Hero sinks away",
-    what: "As visitors scroll, your hero's contents sink, shrink and fade while the next chapter rises over them.",
-    how: ["Switch on and save.", "On the site, scroll down slowly from the top."],
-    preview: "/?demo=heroexit",
-  },
   sheets: {
     title: "Chapters as stacked sheets",
     what: "Each chapter gets rounded top corners and a soft shadow, and slides over the previous one like a stack of sheets. Techy and Paper keep their straight edges.",
     how: ["Switch on and save.", "On the site, scroll between any two chapters."],
     preview: "/?demo=sheets",
-  },
-  sectionfx: {
-    title: "Every chapter moves as you scroll",
-    what: "Each chapter rises in tipped back, then leaves in its own way as you scroll past: the first shrinks, the next tips backward, the next slides away, the next swings like a door, and the pattern repeats. Gentler on phones.",
-    how: ["Switch on and save.", "On the site, scroll slowly down the homepage."],
-    preview: "/?demo=sectionfx",
   },
   ghost: {
     title: "Giant chapter marks",

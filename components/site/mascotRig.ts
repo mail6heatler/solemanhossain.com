@@ -264,6 +264,7 @@ export class Rig {
   wrap: HTMLElement | null = null; wrapDir = 1;
   /** true while he's acting for someone (a click, a throw, the rocket): then he keeps drawing even while the page scrolls */
   live = false;
+  private askAt = 0; private hid = false;
   private el: Record<string, Element>; private blush: Element[]; private written = new Map<Element, string>(); private idle: (Tw | TL)[] = []; private alive = true;
 
   constructor(host: HTMLElement, layer: HTMLElement, cfg: MascotSettings, opts: { mirror?: boolean; still?: boolean } = {}) {
@@ -310,8 +311,12 @@ export class Rig {
   private w(el: Element, name: string, v: string) { const k = this.written.get(el); const key = name + v; if (k === key) return; this.written.set(el, key); el.setAttribute(name, v); }
   private show(el: Element, on: boolean) { const v = on ? "" : "none"; if ((el as SVGElement).style.display !== v) (el as SVGElement).style.display = v; }
   render() {
-    if (!this.alive || this.host.offsetParent === null) return;
+    if (!this.alive) return;
     if (!this.live && document.documentElement.classList.contains("scrolling")) return; // rests while the page scrolls, unless he's doing something now
+    // whether he's drawn at all is asked twice a second, not every frame: the question makes the browser finish its layout on the spot
+    const at = performance.now();
+    if (at > this.askAt) { this.askAt = at + 500; this.hid = this.host.offsetParent === null; }
+    if (this.hid) return;
     const s = this.s, e = this.el, f = (n: number) => Math.round(n * 100) / 100;
     this.w(e.body, "transform", `translate(${f(s.x)} ${f(s.y)}) rotate(${f(s.flip)} 120 190) rotate(${f(s.rot)} 120 296) translate(120 296) scale(${f(s.sx)} ${f(s.sy)}) translate(-120 -296)`);
     this.w(e.upper, "transform", `translate(0 ${f(s.upY + s.bob - s.breath * 1.4)}) rotate(${f(s.lean)} 120 228)`);

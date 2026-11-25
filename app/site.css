@@ -3404,7 +3404,7 @@ html.scrolling .mstop.here .stop-pin::after { animation-play-state: paused; }
 
 /* --- while the page scrolls, decorative loops rest: nobody watches them then, and each running animation is restyled every frame.
    The scroll-linked motion and the moving headlines keep going. --- */
-html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .scrollcue i, .hang .stk-float, #hero h1 .accent .kc, .hb-tag .ti, .hint-arrow, .tkt-rider svg, .cm-rider svg, .tkt-art svg, .cam-rec i, .tv-bars svg, .tv-band, .tv-pic, .tv-air),
+html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .lc-rest, .hang .stk-float, #hero h1 .accent .kc, .hint-arrow, .tv-band, .tv-pic, .tv-air),
 html.scrolling :is(.brand .dot, .pulse)::after,
 html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note, .hs) { animation-play-state: paused !important; }
 /* a title's letters waiting off screen stay flat: tipped back in 3D, every letter is its own layer for the browser to manage */

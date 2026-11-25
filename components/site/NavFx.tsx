@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { MenuExtra, MenuLook, SkyTime } from "@/lib/chrome";
+import { pageY } from "./fx";
 import { beginVisit } from "./visit";
 
 const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("lite");
@@ -87,13 +88,17 @@ export default function NavFx({ look, sky, extras, preview }: { look: MenuLook; 
     if (preview) return () => cleanups.forEach((f) => f());
 
     // scrolling: progress, slimming after the hero, hiding on the way down, speed, the skyline's layers
-    let raf = 0, lastY = scrollY, lastT = performance.now(), fastTimer = 0, slim = false, gone = false, past = false;
+    let raf = 0, lastY = pageY(), lastT = performance.now(), fastTimer = 0, slim = false, gone = false, past = false;
+    // heights are read when the page changes size and kept: reading them while scrolling makes the browser redo its layout every frame
+    let max = 0, heroH = 0;
+    const measure = () => {
+      max = document.documentElement.scrollHeight - innerHeight;
+      heroH = (document.getElementById("hero")?.offsetHeight ?? innerHeight * .7) - 80;
+    };
     const tick = () => {
       raf = 0;
-      const y = scrollY, now = performance.now();
-      const max = document.documentElement.scrollHeight - innerHeight;
+      const y = pageY(), now = performance.now();
       if (prog) prog.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
-      const heroH = (document.getElementById("hero")?.offsetHeight ?? innerHeight * .7) - 80;
       const isPast = y > heroH;
       if (isPast !== past) { past = isPast; nav.classList.toggle("mb-past", past); }
       if (extras.slim && isPast !== slim) { slim = isPast; nav.classList.toggle("mb-slim", slim); }
@@ -107,8 +112,11 @@ export default function NavFx({ look, sky, extras, preview }: { look: MenuLook; 
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(tick); };
     addEventListener("scroll", onScroll, { passive: true });
+    const sizes = new ResizeObserver(() => { measure(); onScroll(); });
+    sizes.observe(document.body);
+    measure();
     tick();
-    cleanups.push(() => { removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); clearTimeout(fastTimer); });
+    cleanups.push(() => { sizes.disconnect(); removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); clearTimeout(fastTimer); });
     return () => cleanups.forEach((f) => f());
   }, [look, sky, extras, preview]);
   return <span ref={ref} hidden />;

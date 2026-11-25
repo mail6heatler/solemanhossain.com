@@ -87,7 +87,7 @@ export const BrainShape = () => (
 
 /** The brain that flies along the row. */
 export const FlyingBrain = () => (
-  <svg viewBox="0 0 56 44">
+  <svg className="lc-rest" viewBox="0 0 56 44">
     <ellipse className="wing" cx="9" cy="22" rx="9" ry="5" /><ellipse className="wing" cx="47" cy="22" rx="9" ry="5" />
     <BrainShape />
   </svg>

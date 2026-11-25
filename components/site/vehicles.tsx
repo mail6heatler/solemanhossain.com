@@ -91,5 +91,5 @@ const ART: Record<VehicleKind, { box: string; art: React.ReactNode }> = {
 
 export function Vehicle({ kind, className }: { kind: VehicleKind; className?: string }) {
   const { box, art } = ART[kind];
-  return <svg className={className} data-k={kind} viewBox={box} aria-hidden>{art}</svg>;
+  return <svg className={className ? `lc-rest ${className}` : "lc-rest"} data-k={kind} viewBox={box} aria-hidden>{art}</svg>;
 }

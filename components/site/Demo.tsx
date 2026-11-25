@@ -63,7 +63,6 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       splittext: { on: fx.splittext, target: ".split-host", tip: "Titles rise letter by letter. Hover one for a ripple.", run: async () => { await sleep(500); const t = document.querySelector(".split-host"); if (t) { t.classList.remove("in", "done"); void (t as HTMLElement).offsetWidth; t.classList.add("in"); setTimeout(() => t.classList.add("done"), 1500); } } },
       wordscrub: { on: fx.wordscrub, target: ".ssub", tip: "Scroll slowly: the words under each chapter title light up one by one." },
       footername: { on: fx.footername, target: ".foot-giant", tip: "Your name rises from the floor at the very end of the page. Hover its letters." },
-      heroexit: { on: fx.heroexit, tip: "Scroll down slowly: the hero sinks and fades while the next chapter rises over it." },
       sheets: { on: fx.sheets, target: "section.chap", tip: "Each chapter has rounded top corners and slides over the one before it." },
       ghost: { on: fx.ghost, target: ".ghost", tip: "The giant outlined mark in the background drifts sideways as you scroll." },
       ribbons: { on: fx.ribbons, target: ".ribbon", tip: "A moving ribbon announces the next chapter." },
@@ -86,7 +85,6 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
         }
       } },
       sticker: { on: fx.sticker, target: ".avatar-wrap", tip: "Your photo floats like a sticker someone just stuck on. Move your mouse over it: it tilts in 3D." },
-      sectionfx: { on: fx.sectionfx, tip: "Scroll down slowly: each chapter rises in, then leaves its own way (shrink, tilt, slide, swing)." },
       reactions: { on: fx.reactions, target: ".reacts", tip: "Tap an emoji to react (tap again to take it back). Reactions arrive in your Inbox." },
       reactfx: { on: fx.reactfx && fx.reactions, target: ".reacts", tip: "Move your mouse along these emojis: each one moves its own way. The bars also wave by themselves now and then.", run: () => document.querySelector(".reacts")?.classList.add("wave") },
       confetti: { on: fx.confetti, target: ".poll", tip: "Vote in this poll for a burst of confetti." },

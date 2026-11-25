@@ -1,0 +1,73 @@
+/* ================= SECTION TRANSITIONS: LAYERED DEPTH (2026-11-25) =================
+   The owner's pick from six working previews. Moving from one section to the next, the titles, the cards and the giant marks
+   travel at different speeds: the section being left holds back, shrinks and fades, while the next one's title slides in and its
+   cards rise from deeper down. One design for everyone, with no switch in the dashboard.
+
+   The browser's own scroll position drives it (view timelines), so it runs apart from the page's scripts, and it only moves
+   transform, translate, scale and opacity. It stays on for `html.lite`. Browsers without scroll-driven animations get a simpler
+   version from scrollFx.ts, and reduced motion gets none. Nothing here hides anything unless the browser can also show it again.
+
+   Sizes are in svh, and what's inside a shrunk section is divided by how much FitScreens shrank it (--fz). */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site.home:not(.hst-site) :is(section.chap, #hero) { view-timeline: --sec block; }
+
+    /* leaving: the last section stays, because the footer is shorter than a screen and would leave it half gone */
+    .site.home:not(.hst-site) #hero .hero-inner,
+    .site.home section.chap:not(:last-of-type) > .chap-inner {
+      transform-origin: 50% 100%;
+      animation: depth-out linear forwards;
+      animation-timeline: --sec;
+      animation-range: exit 0% exit 100%;
+    }
+
+    /* arriving: the title first, the cards from deeper down */
+    .site.home section.chap > .chap-inner > :is(.eyebrow, .chap-head) {
+      animation: depth-head linear backwards;
+      animation-timeline: --sec;
+      animation-range: entry 8% entry 100%;
+    }
+    .site.home section.chap > .chap-inner > :not(.eyebrow, .chap-head) {
+      animation: depth-body linear backwards;
+      animation-timeline: --sec;
+      animation-range: entry 0% entry 100%;
+    }
+
+    /* the giant mark behind each section, at a speed of its own */
+    .site.home section.chap > .ghost {
+      animation: depth-mark linear both;
+      animation-timeline: --sec;
+      animation-range: cover 0% cover 100%;
+    }
+
+    /* the hero's scroll hint goes as soon as the page moves */
+    .site.home:not(.hst-site) #hero .scrollcue { animation: depth-cue linear forwards; animation-timeline: --sec; animation-range: exit 0% exit 12%; }
+    .site.home.fx-splittext:not(.hst-site) #hero .scrollcue { animation: rise-in .9s cubic-bezier(.16,1,.3,1) both, depth-cue linear forwards; animation-delay: calc(var(--hd) + var(--rd, .3s)), 0s; animation-timeline: auto, --sec; animation-range: normal, exit 0% exit 12%; }
+
+    /* near the screen, what moves is kept as a ready-made picture: without this its text is drawn again at every size,
+       which took a phone from 116 to 24 frames a second in the previews */
+    .site.home section.chap:not(.sleep) > .chap-inner,
+    .site.home:not(.hst-site) #hero:not(.sleep) .hero-inner { will-change: transform, opacity; }
+  }
+}
+
+@keyframes depth-out {
+  0%, 6% { translate: 0 0; scale: 1; opacity: 1; }
+  100% { translate: 0 calc(55svh / var(--fz, 1)); scale: .9; opacity: .05; }
+}
+@keyframes depth-head {
+  0% { transform: translate(-9vw, -10svh); opacity: 0; }
+  35% { opacity: .2; }
+  92%, 100% { transform: none; opacity: 1; }
+}
+@keyframes depth-body {
+  0% { transform: translateY(46svh) scale(.9); opacity: .2; }
+  96%, 100% { transform: none; opacity: 1; }
+}
+@keyframes depth-mark {
+  0% { transform: translate(12%, 8%); }
+  50% { transform: translate(-2%, 0%); }
+  100% { transform: translate(-16%, 40svh); }
+}
+@keyframes depth-cue { to { opacity: 0; visibility: hidden; } }

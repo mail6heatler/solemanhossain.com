@@ -141,7 +141,7 @@
 .mzc-invite::after { content: ""; position: absolute; bottom: -9px; left: var(--tx, 50%); width: 12px; height: 12px; background: var(--mint, #7ee8a2); border: 2.5px solid #1c1c28; border-top: 0; border-left: 0; transform: translateX(-50%) rotate(45deg); }
 
 /* resting: decorative loops pause while the page scrolls; slow devices skip the rain */
-html.scrolling .mz-rain i, html.scrolling .mz-night i, html.scrolling .mz-home, html.scrolling .mzc-soon::after, html.scrolling .mzc-soon-ic, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
+html.scrolling .mz-rest, html.scrolling .mz-home, html.scrolling .mzc-soon::after, html.scrolling .mzc-soon-ic, html.scrolling .mz-svg .zcloth, html.scrolling .mz-svg .zflame { animation-play-state: paused; }
 html.lite .mz-rain { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .mz-bub .mz-w, .mzc-soon::after, .mzc-soon-ic, .mz-rain i, .mz-night i, .mz-home, .mz-svg .zcloth, .mz-svg .zflame, .mz-rk-flame { animation: none; } }
 

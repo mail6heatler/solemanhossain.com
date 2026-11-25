@@ -244,16 +244,21 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     // see, and it hides by moving (translate), which no size change shows: the banner was left hanging below it with a gap
     // between the bar and its rope. So the border box is watched, and after any change of class or any transition it's
     // followed frame by frame until it settles.
-    let followRaf = 0, followUntil = 0;
-    const step = (now: number) => {
-      followRaf = 0; if (!nav) return;
+    let followRaf = 0, followTask = 0, followUntil = 0;
+    const look = () => {
+      followTask = 0; if (!nav) return;
       const top = Math.round(nav.getBoundingClientRect().bottom);
       if (top !== lastTop) { el.style.top = `${top}px`; lastTop = top; }
-      if (now < followUntil) followRaf = requestAnimationFrame(step);
+      if (performance.now() < followUntil) followRaf = requestAnimationFrame(step);
     };
-    function follow() { followUntil = performance.now() + 650; if (!followRaf) followRaf = requestAnimationFrame(step); }
-    const mo = nav ? new MutationObserver(follow) : null;
-    if (nav) { ro.observe(nav, { box: "border-box" }); mo!.observe(nav, { attributes: true, attributeFilter: ["class", "style"] }); nav.addEventListener("transitionrun", follow); nav.addEventListener("transitionend", follow); }
+    const step = () => { followRaf = 0; followTask = window.setTimeout(look, 0); }; // just after the frame, when the layout is already done
+    function follow() { followUntil = performance.now() + 650; if (!followRaf && !followTask) followRaf = requestAnimationFrame(step); }
+    // only what moves the bar counts: its own transitions and these classes, not a link's colour or the "fast" mark
+    const shape = () => (nav ? `${["mb-slim", "mb-gone", "mb-past"].map((c) => nav.classList.contains(c))} ${nav.getAttribute("style")}` : "");
+    let shapeWas = shape();
+    const mo = nav ? new MutationObserver(() => { const s = shape(); if (s !== shapeWas) { shapeWas = s; follow(); } }) : null;
+    const barMoves = (e: Event) => { if (e.target === nav) follow(); };
+    if (nav) { ro.observe(nav, { box: "border-box" }); mo!.observe(nav, { attributes: true, attributeFilter: ["class", "style"] }); nav.addEventListener("transitionrun", barMoves); nav.addEventListener("transitionend", barMoves); }
     window.addEventListener("resize", follow);
     place(); paint();
 
@@ -273,8 +278,8 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       el.removeEventListener("focusin", focusIn);
       el.removeEventListener("focusout", focusOut);
       ro.disconnect();
-      mo?.disconnect(); cancelAnimationFrame(followRaf); window.removeEventListener("resize", follow);
-      if (nav) { nav.removeEventListener("transitionrun", follow); nav.removeEventListener("transitionend", follow); }
+      mo?.disconnect(); cancelAnimationFrame(followRaf); clearTimeout(followTask); window.removeEventListener("resize", follow);
+      if (nav) { nav.removeEventListener("transitionrun", barMoves); nav.removeEventListener("transitionend", barMoves); }
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
@@ -319,7 +324,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
             <span className="hb-ping" aria-hidden />
             <span className="hb-emo" aria-hidden>{kind.emoji}</span>
             <span className="hb-lab">{open ? "Roll up" : data.tab || kind.tab}</span>
-            <i className={`ti ${open ? "ti-chevron-up" : "ti-chevrons-down"}`} aria-hidden />
+            <i className={`ti lc-rest ${open ? "ti-chevron-up" : "ti-chevrons-down"}`} aria-hidden />
           </span>
         </button>
       </div>

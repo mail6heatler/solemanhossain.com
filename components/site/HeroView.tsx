@@ -93,7 +93,7 @@ export default function HeroView({ s, d, stats, edit = false, layers, emojis, ph
       <div className="marquee-track">{[...s.skills, ...s.skills].map((k, i) => <span key={i} aria-hidden={i >= s.skills.length}>{k}</span>)}</div>
     </div>
   ) : null;
-  const cue = on("cue") && s.scrollCue ? <div className="scrollcue" {...p("cue")}><i className="ti ti-chevron-down" />{s.scrollCue}</div> : null;
+  const cue = on("cue") && s.scrollCue ? <div className="scrollcue" {...p("cue")}><i className="ti ti-chevron-down lc-rest" />{s.scrollCue}</div> : null;
 
   const look = (k: HeroLook): React.ReactNode => {
     if (k === "hang") {

@@ -42,7 +42,7 @@ function Bars({ n, seed, wave }: { n: number; seed: number; wave?: boolean }) {
   const path = (g: number) => hs.map((h, i) => (i % 3 !== g ? "" : `M${i * 4 + 0.5} ${(wave ? 50 - h / 2 : 100 - h).toFixed(1)}h3v${h.toFixed(1)}h-3z`)).join("");
   return (
     <span className={`tv-bars${wave ? " wave" : ""}`} aria-hidden>
-      {[0, 1, 2].map((g) => <svg key={g} viewBox={`0 0 ${n * 4} 100`} preserveAspectRatio="none"><path d={path(g)} /></svg>)}
+      {[0, 1, 2].map((g) => <svg key={g} className="lc-rest" viewBox={`0 0 ${n * 4} 100`} preserveAspectRatio="none"><path d={path(g)} /></svg>)}
     </span>
   );
 }
