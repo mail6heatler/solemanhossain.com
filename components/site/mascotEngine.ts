@@ -575,9 +575,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   /* ---------- the tour and the top ---------- */
   const sectionEls = () => [...document.querySelectorAll<HTMLElement>("section[data-spy][id]")];
   function nextSection() { const list = sectionEls(); if (!list.length || preview) return null; const i = list.findIndex((x) => x.id === cur); return list[(i + 1) % list.length]; }
-  const lenis = () => (window as unknown as { __lenis?: { scrollTo(t: HTMLElement | number, o?: object): void } }).__lenis;
-  function tourGo(n: HTMLElement | null) { if (preview) return; if (!n) { location.href = "/"; return; } const l = lenis(); if (l) l.scrollTo(n); else n.scrollIntoView({ behavior: "smooth", block: "start" }); }
-  function toTop() { if (preview) return; const l = lenis(); if (l) l.scrollTo(0, { duration: 1.4 }); else window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); }
+  function tourGo(n: HTMLElement | null) { if (preview) return; if (!n) { location.href = "/"; return; } n.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  function toTop() { if (preview) return; window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); }
 
   /* ---------- taps, tickles and throwing ---------- */
   let taps: number[] = [], tapT = 0, tickleN = 0, tickleT = 0;

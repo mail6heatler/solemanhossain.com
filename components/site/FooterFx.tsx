@@ -521,8 +521,8 @@ export function ReceiptFooter({ d }: { d: FootData }) {
       </div>
       <div className="rc-fade" ref={fade} aria-hidden />
       <button type="button" className="rc-more" ref={more} onClick={() => dlg.current?.showModal()}>▼ View the whole receipt</button>
-      <dialog ref={dlg} className="rc-view" aria-label="Your receipt" data-lenis-prevent onClick={(e) => { if (e.target === dlg.current) dlg.current?.close(); }}>
-        <div className="rc-view-in" data-lenis-prevent>
+      <dialog ref={dlg} className="rc-view" aria-label="Your receipt" onClick={(e) => { if (e.target === dlg.current) dlg.current?.close(); }}>
+        <div className="rc-view-in">
           <Paper d={d} r={r} clock={clock} whole />
           <div className="rc-btns">
             <button type="button" onClick={cut} disabled={busy}>✂ Cut PDF</button>
@@ -666,8 +666,7 @@ export function EggName({ children, on }: { children: React.ReactNode; on: boole
 /** Back to the top, gliding with the site's smooth scrolling when it's on. */
 export function TopButton() {
   const up = () => {
-    const lenis = (window as unknown as { __lenis?: { scrollTo(t: number, o?: object): void } }).__lenis;
-    if (lenis) lenis.scrollTo(0, { duration: 1.6 }); else scrollTo({ top: 0, behavior: calm() ? "auto" : "smooth" });
+    scrollTo({ top: 0, behavior: calm() ? "auto" : "smooth" });
   };
   return <button type="button" className="ft-top" onClick={up}>⬆️ Ride back to the top</button>;
 }

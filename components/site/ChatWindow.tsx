@@ -30,7 +30,7 @@ export default function ChatWindow({ s, notes, pins, testi, edit = false, motion
 
   return (
     <div className={cls} style={wall}>
-      <div className="cw-side" data-lenis-prevent>
+      <div className="cw-side">
         {on("face") && (
           <i className="cw-face" {...p("cw-face")}>
             <span className="cw-halo" aria-hidden />
@@ -63,7 +63,7 @@ export default function ChatWindow({ s, notes, pins, testi, edit = false, motion
         )}
       </div>
       {showPins && (
-        <div className="cw-pins" data-lenis-prevent>
+        <div className="cw-pins">
           <div className="cw-pins-in" {...p("cw-pins")}>
             {pins || (
               <div className="cw-note">

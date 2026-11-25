@@ -135,9 +135,6 @@ html[data-skin="candy"] .site #hero h1 .accent { color: #ff6fb5; }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-stopped { overflow: hidden; }
 .site { font-family: var(--body); background: var(--bg); color: var(--fg); line-height: 1.55; -webkit-font-smoothing: antialiased; min-height: 100vh; transition: background-color .4s, color .4s; }
 .site h1, .site h2, .site h3 { font-family: var(--display); margin: 0; }
 :where(.site) a { color: inherit; }
@@ -3404,8 +3401,9 @@ html.scrolling .mstop.here .stop-pin::after { animation-play-state: paused; }
 
 /* --- while the page scrolls, decorative loops rest: nobody watches them then, and each running animation is restyled every frame.
    The scroll-linked motion and the moving headlines keep going. --- */
-html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .lc-rest, .hang .stk-float, #hero h1 .accent .kc, .hint-arrow, .tv-band, .tv-pic, .tv-air),
-html.scrolling :is(.brand .dot, .pulse)::after,
+html.scrolling :is(.float-emo, .blob, .aurora, .brand .dot, .blink-cursor, .lc-rest, .mb-hello, .hb-tab, .hb-ping, .hang .stk-float, #hero h1 .accent .kc, .hint-arrow, .tv-band, .tv-pic, .tv-air),
+html.scrolling :is(.brand .dot, .pulse, .cw-dot, .cw-badge)::after,
+html.scrolling :is(.hb-sway, section.chap, .cw-main)::before, html.scrolling :is(.hb-sway, section.chap)::after,
 html.scrolling[data-skin="ocean"] .site.fx-themefx :is(.note, .card, .wall-note, .hs) { animation-play-state: paused !important; }
 /* a title's letters waiting off screen stay flat: tipped back in 3D, every letter is its own layer for the browser to manage */
 .sleep .split-host.reveal:not(.in) .ch { transform: translateY(112%); transition: none; }

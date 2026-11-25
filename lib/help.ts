@@ -112,9 +112,9 @@ export const HELP: Record<string, Help> = {
 
   // ----- motion -----
   smooth: {
-    title: "Smooth scrolling",
-    what: "Scrolling with a mouse wheel glides smoothly instead of jumping, and menu links slide to their section.",
-    how: ["Switch on and save.", "On the site, scroll with your mouse wheel or click a menu link."],
+    title: "Links glide to their section",
+    what: "Menu links and the back to top button slide to their place instead of jumping. The mouse wheel itself is always smooth: the browser scrolls the page, apart from the site's effects.",
+    how: ["Switch on and save.", "On the site, click a menu link."],
     preview: "/?demo=smooth",
   },
   autolite: {

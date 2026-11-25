@@ -86,7 +86,7 @@ export function startScrollFx(fx: ScrollFxFlags) {
       const total = 1 + 0.08 * (words.length - 1), shown = words.map(() => -1);
       scrub(() => { const t = docTop(el); return [t - vh * 0.92, t - vh * 0.58]; }, 0.4, (p) => {
         words.forEach((w, i) => {
-          const op = Math.round((0.14 + 0.86 * clamp(p * total - i * 0.08, 0, 1)) * 50) / 50;
+          const op = 0.14 + 0.86 * (Math.round(clamp(p * total - i * 0.08, 0, 1) * 8) / 8); // in eighths: the eye can't tell, and it's a sixth of the writes
           if (op !== shown[i]) { shown[i] = op; w.style.opacity = String(op); }
         });
       });

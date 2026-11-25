@@ -287,7 +287,6 @@ export default function SideRow({ className, fx, children, after }: { className:
     const wheel = (e: WheelEvent) => {
       waitAtLeast(AFTER_FINGER_MS);
       if (!byHand || mode !== "slide" || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-      e.preventDefault();
       dir = e.deltaX > 0 ? 1 : -1;
       velocity = 0;
       burst = 0;
@@ -295,6 +294,9 @@ export default function SideRow({ className, fx, children, after }: { className:
       write();
       kick();
     };
+    // over a computer's row that slides, a sideways swipe is the row's: the browser mustn't take it as Back or Forward
+    const keepSwipe = () => { if (byHand && mode === "slide") root.style.overscrollBehaviorX = "none"; };
+    const freeSwipe = () => { root.style.overscrollBehaviorX = ""; };
     // keyboard focus waits on the row, and on a computer's row brings its card into view
     const focusIn = (e: FocusEvent) => {
       if (!(e.target as Element).matches?.(":focus-visible")) return;
@@ -341,8 +343,10 @@ export default function SideRow({ className, fx, children, after }: { className:
     t.addEventListener("touchend", fingerUp, { passive: true });
     t.addEventListener("touchcancel", fingerUp, { passive: true });
     t.addEventListener("scroll", scrolled, { passive: true });
-    // on the way in: a long card's own wheel handling stops it going any further
-    t.addEventListener("wheel", wheel, { passive: false, capture: true });
+    // passive, so the page never waits for this script before it scrolls
+    t.addEventListener("wheel", wheel, { passive: true });
+    t.addEventListener("pointerenter", keepSwipe);
+    t.addEventListener("pointerleave", freeSwipe);
     t.addEventListener("focusin", focusIn);
     t.addEventListener("focusout", focusOut);
     // a phone's address bar sliding away is not a real resize
@@ -367,7 +371,10 @@ export default function SideRow({ className, fx, children, after }: { className:
       t.removeEventListener("touchend", fingerUp);
       t.removeEventListener("touchcancel", fingerUp);
       t.removeEventListener("scroll", scrolled);
-      t.removeEventListener("wheel", wheel, { capture: true });
+      t.removeEventListener("wheel", wheel);
+      t.removeEventListener("pointerenter", keepSwipe);
+      t.removeEventListener("pointerleave", freeSwipe);
+      freeSwipe();
       t.removeEventListener("focusin", focusIn);
       t.removeEventListener("focusout", focusOut);
       window.removeEventListener("resize", resized);

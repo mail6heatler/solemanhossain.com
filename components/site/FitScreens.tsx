@@ -25,7 +25,9 @@ export function fitParts(root: ParentNode) {
     const inner = box.querySelector<HTMLElement>(":scope > .chap-inner");
     if (inner) parts.push({ box, inner: [inner] });
   });
-  // reset, then read everything, then write everything
+  // reset, then read everything, then write everything. Sections far away are normally not laid out (transitions.css): here they must be
+  const html = document.documentElement;
+  html.classList.add("fitting");
   for (const p of parts) for (const el of p.inner) { el.style.zoom = ""; el.style.removeProperty("--fz"); }
   const plan = parts.map(({ box, inner }) => {
     const shown = inner.filter((el) => el.offsetHeight > 0);
@@ -36,6 +38,7 @@ export function fitParts(root: ParentNode) {
   });
   // --fz tells what's inside how much it was shrunk, so rows that run the screen's full width can make up for it (`.side`)
   plan.forEach(({ shown, z }) => { if (z < 0.999) for (const el of shown) { const v = String(Math.floor(z * 1000) / 1000); el.style.zoom = v; el.style.setProperty("--fz", v); } });
+  html.classList.remove("fitting");
 }
 
 export default function FitScreens() {

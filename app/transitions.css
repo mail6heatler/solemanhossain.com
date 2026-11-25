@@ -9,6 +9,13 @@
 
    Sizes are in svh, and what's inside a shrunk section is divided by how much FitScreens shrank it (--fz). */
 
+/* A section more than about a screen away isn't drawn or laid out at all. It keeps the height it last had (a screen, before it has been
+   drawn once). FitScreens needs to see everything while it measures, and says so with html.fitting. */
+@supports (content-visibility: auto) {
+  .site.home section.chap { content-visibility: auto; contain-intrinsic-size: auto 1px; }
+  html.fitting .site.home section.chap { content-visibility: visible; }
+}
+
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .site.home:not(.hst-site) :is(section.chap, #hero) { view-timeline: --sec block; }

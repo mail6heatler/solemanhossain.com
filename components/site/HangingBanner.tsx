@@ -123,9 +123,11 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       va += -a * 0.0062; va *= 0.994; a += va;
       vr += -r * 0.011; vr *= 0.988; r += vr;
     };
-    let lastFrame = 0, owed = 0, slowFrames = 0;
+    let lastFrame = 0, owed = 0, slowFrames = 0, restTimer = 0;
     const loop = (now: number) => {
       raf = 0;
+      // once it hangs, it holds still while the page moves
+      if (!shut && !dragging && Math.abs(T - pos) < 2 && html.classList.contains("scrolling")) { lastFrame = 0; owed = 0; restTimer = window.setTimeout(kick, 160); return; }
       // this device is struggling: stop the breeze and everything that dangles, for the rest of this page
       if (!shut && !calm && lastFrame && now - lastFrame > 40 && ++slowFrames >= 15) { calm = true; el.classList.add("hb-calm"); }
       owed += lastFrame ? Math.min(now - lastFrame, STEP * 8) : STEP;
@@ -137,7 +139,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       if (settled && (shut || calm)) { pos = T; a = 0; va = 0; r = 0; vr = 0; lastFrame = 0; owed = 0; paint(); return; }
       raf = requestAnimationFrame(loop);
     };
-    const kick = () => { if (!raf && !still) raf = requestAnimationFrame(loop); };
+    const kick = () => { clearTimeout(restTimer); if (!raf && !still) raf = requestAnimationFrame(loop); };
 
     // rolls itself up after a while, but not while someone is using it: dragging it, using it from the keyboard, or moving
     // the mouse over it. A mouse just parked there doesn't count, or it would never go up after a pull.
@@ -278,7 +280,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
       el.removeEventListener("focusin", focusIn);
       el.removeEventListener("focusout", focusOut);
       ro.disconnect();
-      mo?.disconnect(); cancelAnimationFrame(followRaf); clearTimeout(followTask); window.removeEventListener("resize", follow);
+      mo?.disconnect(); clearTimeout(restTimer); cancelAnimationFrame(followRaf); clearTimeout(followTask); window.removeEventListener("resize", follow);
       if (nav) { nav.removeEventListener("transitionrun", barMoves); nav.removeEventListener("transitionend", barMoves); }
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
@@ -315,7 +317,7 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
             <button type="button" className="hb-close" aria-label="Roll the announcement back up" onClick={() => drop.current(false)}><i className="ti ti-x" aria-hidden /></button>
             <i className="hb-hem" aria-hidden />
             {/* what dangles from it is chosen by the theme, in banner.css */}
-            <span className="hb-dangles" aria-hidden>{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</span>
+            <span className="hb-dangles" aria-hidden>{Array.from({ length: 9 }, (_, i) => <i key={i} className="lc-rest" />)}</span>
           </div>
         </div>
         <button ref={tab} type="button" className="hb-tab" aria-expanded={open} aria-label={open ? "Roll the announcement back up" : `Pull down the announcement: ${data.title}`}>

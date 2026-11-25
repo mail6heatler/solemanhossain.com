@@ -32,7 +32,7 @@ There is no test suite. On this PC (7.4 GB of memory, often under 2 free), one t
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack) with React 19, plain CSS, GSAP and html-to-image (only the footer's receipts, loaded when one is on the page), Postgres (`postgres` in production, PGlite locally), `jose` for the login cookie, Vercel Blob for uploads, Lenis for smooth scrolling, three.js for the 3D hero, canvas-confetti.
+Next.js 16 (App Router, Turbopack) with React 19, plain CSS, GSAP and html-to-image (only the footer's receipts, loaded when one is on the page), Postgres (`postgres` in production, PGlite locally), `jose` for the login cookie, Vercel Blob for uploads, three.js for the 3D hero, canvas-confetti.
 
 Next.js here is newer than most training data. Read `node_modules/next/dist/docs/` before using a Next API you aren't certain of (see `AGENTS.md`).
 
@@ -78,7 +78,7 @@ components/site/
   TvPlay.tsx               the player's Play button: plays uploaded sound or video on the card, one at a time, or opens the entry's web link
   vehicles.tsx             the drawn vehicles, and which one an entry gets from its tags or words
   TripFrame.tsx            a Boarding passes entry's frame (real pass, camera, bucket-list note, polaroid, postcard) from its Subsection, its stamp, and what a pass says; the entry's page and the dashboard's preview draw with it too
-  Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, Lenis, cursor, party, explorer
+  Effects.tsx              core motion: progress, reveal, cards arriving, scroll-spy, cursor, party, explorer
   Living.tsx               starts hoverFx immediately and loads scrollFx on demand
   hoverFx.ts               mouse effects, cursor labels, photo wipes, label decoding, footer-name fit (no libraries)
   scrollFx.ts              scroll effects in one loop that sleeps when idle (separate download), and a stand-in for transitions.css in browsers without scroll animations
@@ -369,6 +369,14 @@ Every visual effect has a switch on the Appearance page. To add one:
 
 ## Keeping scrolling smooth
 
+**The browser scrolls the page (2026-11-25, the owner's "universally smoother and lighter" on computers).** Lenis is gone: it moved the page from the page's scripts, so the page could only move as often as they ran (about 26 times a second here while the screen drew 70). Now the browser moves it by itself, scripts busy or not: with every script frozen for 0.9 s a glide still ran its full length. Keep it that way:
+- **No scroll library, and no wheel or touch listener with `passive: false`,** not even on a card or a row: the browser would wait for the script before every scroll. A row's sideways swipe uses `overscroll-behavior-x` on `<html>` while the mouse is over it, instead of `preventDefault`.
+- **Scroll the page with `scrollIntoView` or `scrollTo({ behavior })`.** `html` has `scroll-behavior: smooth`, so say `behavior: "instant"` when it must not glide. The `smooth` switch is now only "Links glide to their section".
+- **Sections more than about a screen away aren't drawn** (`content-visibility: auto` in `transitions.css`). Measuring something in one is fine (the browser lays it out for the question), but a section's own height while skipped is the one it last had, so code that fits or measures section heights adds `html.fitting` while it does (see `FitScreens`).
+- **While `html.scrolling`:** the theme's background canvas, the mouse dots, a hanging banner and the endless loops hold still, the 3D hero draws half its frames and the subtitles' words change in eighths. Belts and the section transitions carry on.
+- **A test browser can't show the wheel's glide:** wheel events sent by Playwright jump. Look at `scrollTo` with the scripts frozen, or at `SET_NON_BLOCKING` for wheel events in an `input` trace.
+
+
 - **Never ask the browser for a position during a frame.** `window.scrollY` and `getBoundingClientRect` make it finish its styles on the spot, so each one after a change is an extra style pass. Read with `pageY()` from `fx.ts`, keep element positions with `docTop()` (refreshed by a `ResizeObserver` on `body`), and write in `requestAnimationFrame`, never in a scroll event.
 - **Asking in the wrong place costs the same** (2026-11-25): the mascot asked for `offsetParent`, the menu bar for `scrollHeight` and the banner for the bar's position on every frame. Keep sizes from a `ResizeObserver`, ask rarely, or ask in a `setTimeout(0)` after the frame, when the layout is done. Nothing that sets React state may run per frame or per second while the page moves or while it's off screen (the name's typing, the receipt's clock and Now playing's clock now wait).
 - **What rests while scrolling carries the class `lc-rest`** (`mz-rest` on the mascot's bits). Don't write `html.scrolling .x svg` or `.x i`: a tag at the end of such a rule makes the browser look at every icon on the page again each time scrolling starts and stops.
@@ -411,10 +419,10 @@ Scrolling was once 29 frames per second (6 on a weak device), from many small co
 - **A card's 3D tilt moves what's on it.** Small buttons near a card's edge slide out from under the mouse, so `hoverFx.ts` skips tilt over `.card-foot` and `.reacts`. Anything small and clickable near a card's edge needs the same.
 - **`:is()` silently drops a pseudo-element.** `html.lite :is(.a, .b::after)` left the phone's ping running on slow devices. Give it its own selector.
 - **`onAnimationEnd` hears animations from children too.** Check `ev.target === ev.currentTarget`, or an emoji's move ends the button's pop.
-- **`.scrolly` is the exception to the rule below:** no `data-lenis-prevent` and no `overscroll-behavior: contain`, because the page must carry on once a card's text ends. A wheel already moving the page keeps moving it, so a row passing under the mouse doesn't catch on every long card.
+- **`.scrolly` is the exception to the rule below:** no `overscroll-behavior: contain`, because the page must carry on once a card's text ends (`scrollBoxes.ts` moves the page when the browser waits for a pause at a card's end). The browser itself keeps a wheel that's moving the page on the page, so a row passing under the mouse doesn't catch on every long card.
 - **Rows add a little page height after loading (counter and arrows), and late pictures add more,** which strands `/#section` links and Back. `keepPlace` in `SideRow.tsx` puts the visitor back, re-checking for 4 seconds. A row's `reveal` is on its stage, because a moved element may never reach the reveal threshold and would stay invisible.
 
-- **Anything that scrolls inside the page needs `data-lenis-prevent` and `overscroll-behavior: contain`.** Otherwise smooth scrolling takes the wheel and the page moves instead (see the theme menu).
+- **Anything that scrolls inside the page needs `overscroll-behavior: contain`,** or reaching its end moves the page behind it (see the theme menu).
 
 - **Nothing `position: fixed` may live inside a chapter.** `.chap-inner` gets a transform while scrolling, which would pin fixed children to it instead of the screen. Portal into `.site` (see `Lightbox`) or use a native `<dialog>`.
 - **Page-wide key handlers must stand down while a `<dialog>` is open** (`document.querySelector("dialog[open]")`), or typing and Esc also reach what's underneath.

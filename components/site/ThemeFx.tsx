@@ -41,7 +41,8 @@ export default function ThemeFx() {
       };
       const frame = (now: number) => {
         raf = requestAnimationFrame(frame);
-        if (now - last < (Math.abs(speed) > 0.6 ? Math.max(gap, 50) : gap)) return; // the page gets priority while it's moving
+        if (now - last < gap) return;
+        if (h.classList.contains("scrolling")) { last = now; lastY = pageY(); speed = 0; return; } // it holds still while the page moves
         const dt = Math.min(0.1, last ? (now - last) / 1000 : 0.03);
         const cost = performance.now();
         last = now; t += dt;

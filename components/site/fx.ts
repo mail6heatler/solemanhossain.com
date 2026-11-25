@@ -6,19 +6,15 @@ export const prefersReducedMotion = () =>
 
 /**
  * The page's scroll position. Asking the browser (window.scrollY, positions) makes it finish its styles on the spot,
- * which used to happen several times per frame. Smooth scrolling already knows the number, so it's taken from there;
- * without it (phones, the lighter version) it's read once per scroll event.
+ * which used to happen several times per frame. So it's read once per scroll event and kept.
  * So: read with this, write in requestAnimationFrame, never write during a scroll event.
  */
-let scrollNow = -1, listening = false, viaLenis = false;
-const smooth = () => (window as unknown as { __lenis?: { animatedScroll: number } }).__lenis;
+let scrollNow = -1, listening = false;
 export function pageY() {
-  const l = smooth();
-  if (l) { viaLenis = true; return l.animatedScroll; }
-  if (scrollNow < 0 || viaLenis) { viaLenis = false; scrollNow = window.scrollY; }
+  if (scrollNow < 0) scrollNow = window.scrollY;
   if (!listening) {
     listening = true;
-    window.addEventListener("scroll", (e) => { if (e.target === document && !smooth()) scrollNow = window.scrollY; }, { passive: true, capture: true });
+    window.addEventListener("scroll", (e) => { if (e.target === document) scrollNow = window.scrollY; }, { passive: true, capture: true });
   }
   return scrollNow;
 }

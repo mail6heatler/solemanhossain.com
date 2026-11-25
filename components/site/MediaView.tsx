@@ -19,8 +19,6 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
   latest.current = { go, onClose };
 
   useEffect(() => {
-    const w = window as unknown as { __lenis?: { stop(): void; start(): void } };
-    w.__lenis?.stop();
     document.documentElement.style.overflow = "hidden";
     closeBtn.current?.focus();
     const key = (e: KeyboardEvent) => {
@@ -30,7 +28,7 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
       if (e.key === "ArrowRight") latest.current.go(1);
     };
     document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("keydown", key); document.documentElement.style.overflow = ""; w.__lenis?.start(); };
+    return () => { document.removeEventListener("keydown", key); document.documentElement.style.overflow = ""; };
   }, []);
 
   const cur = slides[index];

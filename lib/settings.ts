@@ -124,7 +124,7 @@ export const EFFECTS = [
   { key: "typewriter", group: "Hero", label: "Typewriter text" },
   { key: "emojis", group: "Hero", label: "Floating draggable emojis" },
   { key: "cursor", group: "Hero", label: "Mint cursor + connecting dots" },
-  { key: "smooth", group: "Motion", label: "Smooth scrolling" },
+  { key: "smooth", group: "Motion", label: "Links glide to their section" },
   { key: "autolite", group: "Motion", label: "Lighter version on devices that can't keep up" },
   { key: "countup", group: "Motion", label: "Count-up numbers" },
   { key: "stagger", group: "Motion", label: "Cards drop in one by one" },

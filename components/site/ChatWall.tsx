@@ -432,7 +432,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
       </div>
       <form action={edit ? undefined : action} onSubmit={onSubmit} className="cw-form" {...p("cw-form")}>
         {on("quick") && c.quick.length > 0 && outs.length === 0 && !mine.length && (
-          <div className="cw-quick" role="group" aria-label="Quick starters" data-lenis-prevent {...p("cw-quick")}>
+          <div className="cw-quick" role="group" aria-label="Quick starters" {...p("cw-quick")}>
             {c.quick.map((q, i) => <button key={i} type="button" style={{ "--i": i } as React.CSSProperties} onClick={() => put(q, true)}>{q}</button>)}
           </div>
         )}
@@ -452,7 +452,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
             <button type="button" className={`cw-emo${tray ? " on" : ""}`} aria-label="Add an emoji" aria-expanded={tray} onClick={() => setTray((t) => !t)}>😊</button>
           )}
           {tray && (
-            <div className="cw-tray" role="dialog" aria-label="Emojis" data-lenis-prevent>
+            <div className="cw-tray" role="dialog" aria-label="Emojis">
               {emojis.map((em, i) => <button key={i} type="button" style={{ "--i": i } as React.CSSProperties} onClick={() => put(em)}>{em}</button>)}
             </div>
           )}
@@ -475,7 +475,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
             <b>📌 The Wall</b><small>{wallCount ? `${wallCount} ${wallCount === 1 ? "note" : "notes"} ${owner} pinned` : "Nothing pinned yet"}</small>
             <button ref={closeBtn} type="button" onClick={() => setOpen(false)}>Back to chat</button>
           </div>
-          <div className="cw-bd-area" data-lenis-prevent>
+          <div className="cw-bd-area">
             {wallCount === 0 && <p className="cw-bd-empty">No notes on the Wall yet. Tick 📌 when you write, and yours could be the first.</p>}
             {notes.slice().reverse().map((n, i) => {
               const h = heartN[n.id] ?? n.hearts ?? 0, mineH = hearted.includes(n.id);
@@ -503,7 +503,7 @@ export default function ChatWall({ c, title, owner, avatar, initials, greet, emo
       <div className="cw-fx" ref={fxBox} aria-hidden />
       {portalTo && !edit && fresh > 0 && c.badge && !inView && !toastGone && createPortal(
         <div className="cw-toast" role="status">
-          <button type="button" className="cw-toast-go" onClick={() => { const el = root.current; const lenis = (window as unknown as { __lenis?: { scrollTo(t: HTMLElement, o?: object): void } }).__lenis; if (el) { if (lenis) lenis.scrollTo(el, { offset: -120 }); else el.scrollIntoView({ behavior: "smooth", block: "center" }); } }}>
+          <button type="button" className="cw-toast-go" onClick={() => { const el = root.current; el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>
             <i className="cw-ini">{avatar ? <img src={avatar} alt="" /> : initials}</i>
             <span><b>{owner} replied to you</b><small>{fresh} new {fresh === 1 ? "message" : "messages"} · tap to read</small></span>
           </button>

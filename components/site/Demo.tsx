@@ -35,7 +35,7 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
       typewriter: { on: fx.typewriter, target: ".brand", tip: "Your name phrases type themselves here, and the subtitle types out." },
       emojis: { on: fx.emojis, target: ".float-emo", tip: "Drag a floating emoji and let go: it springs back." },
       cursor: { on: fx.cursor, target: "#hero", tip: "Move your mouse around to see the cursor and connecting dots." },
-      smooth: { on: fx.smooth, tip: "Smooth scrolling: scroll with your mouse wheel. Gliding to the first section now…",
+      smooth: { on: fx.smooth, tip: "Links glide to their section. Gliding to the first section now…",
         run: async () => { await sleep(1200); const el = document.querySelector("section.chap") as HTMLElement | null; if (el) scrollToEl(el); } },
       countup: { on: fx.countup, target: ".hero-stats", tip: "These numbers count up to your real totals.", run: () => window.dispatchEvent(new Event("lc-countup")) },
       stagger: { on: fx.stagger, target: ".stagger", tip: "Watch the cards drop in one by one.",
@@ -122,7 +122,5 @@ export default function DemoMode({ fx, extras }: { fx: Record<string, boolean>; 
 }
 
 function scrollToEl(el: HTMLElement) {
-  const lenis = (window as unknown as { __lenis?: { scrollTo(t: HTMLElement, o?: object): void } }).__lenis;
-  if (lenis) lenis.scrollTo(el, { offset: -110 });
-  else window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 110, behavior: "smooth" });
+  window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 110, behavior: "smooth" });
 }

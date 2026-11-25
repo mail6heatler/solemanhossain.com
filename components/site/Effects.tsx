@@ -52,22 +52,11 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     window.addEventListener("scroll", scrollingNow, { passive: true });
     cleanups.push(() => { clearTimeout(restTimer); window.removeEventListener("scroll", scrollingNow); document.documentElement.classList.remove("scrolling"); });
 
-    // smooth scrolling (also makes the #section links glide)
+    // The page is scrolled by the browser itself, apart from the page's scripts, so it keeps moving however busy they are. Nothing may
+    // take that over again: no scroll library, and no wheel or touch listener that can stop the browser (passive: false).
+    // The switch only decides whether #section links glide or jump.
     const html = document.documentElement;
-    if (fx.smooth && !reduced && !html.classList.contains("lite")) {
-      let lenis: { destroy(): void } | null = null, dead = false;
-      // the lighter version uses the browser's own scrolling, which keeps moving even when the page is busy
-      const toNative = () => { dead = true; lenis?.destroy(); lenis = null; delete (window as unknown as { __lenis?: unknown }).__lenis; };
-      window.addEventListener("lc-lite", toNative);
-      cleanups.push(() => window.removeEventListener("lc-lite", toNative));
-      import("lenis").then(({ default: Lenis }) => {
-        if (dead) return;
-        const l = new Lenis({ anchors: true, autoRaf: true, lerp: 0.3 });
-        lenis = l;
-        (window as unknown as { __lenis?: unknown }).__lenis = l;
-      }).catch(() => {});
-      cleanups.push(toNative);
-    }
+    if (!fx.smooth) { html.style.scrollBehavior = "auto"; cleanups.push(() => { html.style.scrollBehavior = ""; }); }
 
     // A link to a section works out where to stop when it's clicked. Anything that changes the page's height during the glide
     // (a picture arriving, mostly) moves the section, so it aims again until the page settles or the visitor takes over.
@@ -84,8 +73,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
         height = h;
         clearTimeout(timer);
         timer = window.setTimeout(() => {
-          const l = (window as unknown as { __lenis?: { scrollTo(t: HTMLElement): void } }).__lenis;
-          if (l) l.scrollTo(target); else target.scrollIntoView({ block: "start" });
+          target.scrollIntoView({ block: "start" });
         }, 60);
       });
       const inputs = ["wheel", "touchstart", "keydown", "pointerdown"];
@@ -176,9 +164,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       const a = (e.target as Element).closest?.('a[href="#hero"], button.totop');
       if (!a) return;
       e.preventDefault();
-      const l = (window as unknown as { __lenis?: { scrollTo(t: number, o?: object): void } }).__lenis;
-      if (l) l.scrollTo(0, { duration: 1.4 });
-      else window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+      window.scrollTo({ top: 0, behavior: reduced || !fx.smooth ? "auto" : "smooth" });
     };
     document.addEventListener("click", goUp);
     cleanups.push(() => document.removeEventListener("click", goUp));
@@ -443,7 +429,8 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
           const next = ring.className || speed < 0.02 ? place : `${place} rotate(${Math.atan2(gapY, gapX).toFixed(3)}rad) scale(${(1 + speed * 0.55).toFixed(3)},${(1 - speed * 0.3).toFixed(3)})`;
           if (next !== ringShownAt) { ring.style.transform = next; ringShownAt = next; }
         }
-        if (ctx && canvas && !document.documentElement.classList.contains("lite")) {
+        // the dots hold still while the page moves, and aren't drawn when the mouse is nowhere near
+        if (ctx && canvas && mx > -900 && !html.classList.contains("lite") && !html.classList.contains("scrolling")) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           for (const d of dots) {
             d.x += d.vx; d.y += d.vy;

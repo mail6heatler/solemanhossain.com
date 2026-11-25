@@ -226,6 +226,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { count: number
 
   const frame = (t: number) => {
     raf = requestAnimationFrame(frame);
+    if (last && t - last < 30 && document.documentElement.classList.contains("scrolling")) return; // half the frames while the page moves
     const dt = Math.min(0.05, last ? (t - last) / 1000 : 0.016);
     last = t;
     watch(dt);

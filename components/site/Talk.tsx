@@ -119,7 +119,7 @@ function TalkDialog({ id, float, onClose }: { id: number; float: boolean; onClos
   if (!home) return null;
   return createPortal(
     <dialog ref={box} className="talk-dlg" aria-label="Comments" onClose={onClose} onClick={(e) => { if (e.target === box.current) box.current?.close(); }}>
-      <div className="talk-dlg-in" data-lenis-prevent>
+      <div className="talk-dlg-in">
         <div className="talk-dlg-top">
           <b><i className="ti ti-message-circle" aria-hidden="true" /> Comments</b>
           <button type="button" className="talk-x" aria-label="Close" onClick={() => box.current?.close()}><i className="ti ti-x" aria-hidden="true" /></button>
