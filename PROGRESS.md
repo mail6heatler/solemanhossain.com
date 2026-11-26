@@ -30,7 +30,7 @@ The owner sent seven mascot changes, to be done one at a time with a "go" for ea
 
 **Step 4 done (2026-11-26):** he puts on shows by himself: about every 30 seconds (calm 60, lively 15, or a slider) a random trick, game or the current moment's act from what's switched on, never twice in a row, never while scrolling; the moment also plays once per visit; chat tricks are random. Controls in "Shows by himself" at the top of the test bench. Restore point `before-mascot-shows`. Kept.
 
-**Step 5 done (2026-11-26):** Walk-on host removed (a saved choice becomes Corner buddy). Peeks from the edge redone: upright, exactly half of him out of the side of the screen beside a glowing seam; he steps all the way out for each section's move and each show, then slides back to half. Restore point `before-mascot-peek`. Built, not tested beyond the build; waiting for keep or undo and the go for step 6.
+**Step 5 done (2026-11-26):** Walk-on host removed (a saved choice becomes Corner buddy). Peeks from the edge was first redone as half of him out of the side of the screen by a glowing seam; the owner didn't like it, so four other ways were drawn on a preview (https://claude.ai/artifact/Utx2Q9WzeAXQcNnpaosNRD: pops up from below, peek-a-boo, his window, hangs from the menu bar) and they picked A: **Pops up from below** replaces Peeks from the edge. Restore point `before-mascot-peek` (before both). Built, not tested beyond the build; waiting for keep or undo and the go for step 6.
 
 ## Section makeovers
 

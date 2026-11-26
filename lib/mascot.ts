@@ -88,7 +88,7 @@ export type MascotSettings = {
   show: boolean; phones: boolean;
   /** shows he puts on by himself (2026-11-26): about every `every` seconds while someone's on the page, a random pick from what's switched on */
   shows: { on: boolean; every: number; tricks: boolean; games: boolean; moments: boolean };
-  place: "corner" | "peek"; side: "right" | "left"; size: number;
+  place: "corner" | "popup"; side: "right" | "left"; size: number;
   skin: string; hair: "curly" | "swept" | "short"; beard: "trim" | "stubble" | "clean"; glasses: MzGlasses; shirt: MzShirt; jeans: MzJeans;
   outfit: MzOutfit; colors: Record<Exclude<MzOutfit, "everyday">, number>; hat: MzHat; shoes: MzShoe;
   auto: Record<MzAuto, boolean>; eidDates: string[]; matchDates: string[];
@@ -193,7 +193,7 @@ export function cleanMascot(raw: unknown): MascotSettings {
   return {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
     shows: (() => { const x = isObj(r.shows) ? r.shows : {}, S = D.shows; return { on: bool(x.on, S.on), every: num(x.every, MZ_LIMITS.every, S.every), tricks: bool(x.tricks, S.tricks), games: bool(x.games, S.games), moments: bool(x.moments, S.moments) }; })(),
-    place: oneOf(r.place, ["corner", "peek"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size), // a saved "host" (walk-on host, removed 2026-11-26) becomes the corner
+    place: r.place === "peek" ? "popup" : oneOf(r.place, ["corner", "popup"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size), // a saved "host" (walk-on host) becomes the corner and "peek" pops up from below now (both 2026-11-26)
     skin: typeof r.skin === "string" && /^#[0-9a-f]{6}$/i.test(r.skin) ? r.skin : D.skin,
     hair: oneOf(r.hair, ["curly", "swept", "short"] as const, D.hair), beard: oneOf(r.beard, ["trim", "stubble", "clean"] as const, D.beard), glasses: r.glasses === true ? "classic" : r.glasses === false ? "none" : oneOf(r.glasses, MZ_GLASSES.map(([k]) => k), D.glasses),
     shirt: oneOf(r.shirt, Object.keys(MZ_SHIRTS) as MzShirt[], D.shirt), jeans: oneOf(r.jeans, Object.keys(MZ_JEANS) as MzJeans[], D.jeans),

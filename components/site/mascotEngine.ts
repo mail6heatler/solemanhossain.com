@@ -75,8 +75,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const mk = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, inner = "") => { const e = document.createElement(tag); e.className = cls; if (inner) e.innerHTML = inner; return e; };
 
   /* ---------- what's in the layer: his spot, the rocket, him (rain and stars live in his own box, never over the site) ---------- */
-  layer.innerHTML = `<div class="mz-home"></div><i class="mz-seam" aria-hidden="true"></i><div class="mz-rk"></div><div class="mz" role="button" tabindex="0" aria-label="Mini Shourobh, the site's mascot. Press Enter to talk to him."><div class="mz-rain"></div><div class="mz-night"></div></div>`;
-  const seam = layer.querySelector(".mz-seam") as HTMLElement;
+  layer.innerHTML = `<div class="mz-home"></div><div class="mz-rk"></div><div class="mz" role="button" tabindex="0" aria-label="Mini Shourobh, the site's mascot. Press Enter to talk to him."><div class="mz-rain"></div><div class="mz-night"></div></div>`;
   const home = layer.querySelector(".mz-home") as HTMLElement, rocket = layer.querySelector(".mz-rk") as HTMLElement, wrap = layer.querySelector(".mz") as HTMLElement;
   const rainEl = wrap.querySelector(".mz-rain") as HTMLElement, nightEl = wrap.querySelector(".mz-night") as HTMLElement;
   for (let i = 0; i < 16; i++) { const d = document.createElement("i"); d.className = "mz-rest"; d.style.left = Math.random() * 100 + "%"; d.style.animationDuration = 0.55 + Math.random() * 0.4 + "s"; d.style.animationDelay = -Math.random() + "s"; rainEl.appendChild(d); }
@@ -124,14 +123,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (!baseH) return; const H = layer.clientHeight, h = wrap.offsetHeight || 120, s = wrap.style, hs = home.style, steady = phone() && !preview;
     if (steady && topShare <= 0.15) { const top = baseH - baseBottom - h; s.bottom = hs.bottom = "auto"; s.top = top + "px"; hs.top = top + h - 24 + "px"; return; }
     const b = steady && topShare < 0.85 ? baseBottom + (H - baseH) * (1 - topShare) : baseBottom;
-    s.top = hs.top = "auto"; s.bottom = b + "px"; hs.bottom = Math.max(0, b - 4) + "px"; placeSeam();
-  }
-  /** the glowing seam at the screen's edge he comes out of when he peeks: as tall as him and a little more, level with him */
-  function placeSeam() {
-    const on = cfg.place === "peek" && visible(); seam.classList.toggle("on", on); if (!on) return;
-    const h = wrap.offsetHeight || 120, ss = seam.style; seam.classList.toggle("left", !isRight);
-    ss.height = Math.round(h * 1.12) + "px";
-    if (wrap.style.top && wrap.style.top !== "auto") { ss.bottom = "auto"; ss.top = parseFloat(wrap.style.top) - h * 0.08 + "px"; } else { ss.top = "auto"; ss.bottom = Math.max(0, parseFloat(wrap.style.bottom || "4") - h * 0.04) + "px"; }
+    s.top = hs.top = "auto"; s.bottom = b + "px"; hs.bottom = Math.max(0, b - 4) + "px";
   }
   /** the browser's bars turned out to work differently: keep him exactly where he is now, held the new way */
   function rebase() { const H = layer.clientHeight; if (!H) return; baseBottom = H - (wrap.offsetTop + wrap.offsetHeight); baseH = H; anchor(); }
@@ -165,8 +157,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
   function placeWrap(anim: boolean) {
     placeBase(); const right = isRight; wrap.classList.toggle("left", !right); home.classList.toggle("left", !right); rig.setMirror(right); rig.wrapDir = right ? -1 : 1;
-    const v = { x: 0, y: 0, xPercent: cfg.place === "peek" ? half() : 0, rotation: 0, yPercent: 0 };
-    G.to(wrap, { ...v, scale: 1, opacity: 1, duration: anim ? 0.6 : 0, ease: "power3.inOut" }); placeSeam();
+    const v = { x: 0, y: 0, xPercent: 0, rotation: 0, yPercent: popup() ? SINK : 0 };
+    G.to(wrap, { ...v, scale: 1, opacity: 1, duration: anim ? 0.6 : 0, ease: "power3.inOut", onComplete: () => { if (popup() && !busy && !CV.on && !away && !held) restNow(); } });
   }
   const sizeWrap = () => { const w = (cfg.size / 100) * (phone() ? 96 : 150); wrap.style.width = w + "px"; home.style.width = w * 0.95 + "px"; placeBase(true); };
   /** on a phone he stays exactly where he is: no walking to the middle, no leaning in, nothing that scrolling sets off (the owner's rule) */
@@ -188,22 +180,23 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (!scrollingNow) { scrollingNow = true; freeze(); }
     clearTimeout(scrollStop); scrollStop = window.setTimeout(() => { scrollingNow = false; thaw(); }, 220);
   }
-  function updateVis() { wrap.style.display = visible() ? "" : "none"; home.style.display = visible() && cfg.place !== "peek" ? "" : "none"; placeSeam(); if (!visible() && CV.on) closeScene(); }
-  /* Peeking from the edge (redone at the owner's request, 2026-11-26): he stands upright with exactly half of himself out of
-     the side of the screen, as if coming out of it, by a glowing seam (.mz-seam). For a section's move, a show or anything he
-     does he steps all the way out, then slides back to half once he's been free for a few seconds. On phones he stays at half. */
-  const half = () => (isRight ? 50 : -50);
+  function updateVis() { wrap.style.display = visible() ? "" : "none"; home.style.display = visible() && !popup() ? "" : "none"; if (!visible() && CV.on) closeScene(); }
+  /* Pops up from below (the owner picked A on 2026-11-26 from https://claude.ai/artifact/Utx2Q9WzeAXQcNnpaosNRD, after
+     turning down the half-body peek): he waits with his head and shoulders above the bottom of the screen, hands on the edge
+     as if leaning on a wall (the rest is below the edge, which his layer cuts off). For a section's move, a show or anything
+     `act` starts, he jumps up onto the screen; 6.5 s after he's free he sinks back. He naps standing, so it shows. */
+  const SINK = 40, popup = () => cfg.place === "popup", isSunk = () => Number(G.getProperty(wrap, "yPercent")) > 1;
   function leanIn() {
-    if (cfg.place !== "peek" || planted() || still) return; leanBack?.kill();
-    if (Math.abs(Number(G.getProperty(wrap, "xPercent"))) > 1) { G.to(wrap, { xPercent: 0, rotation: 0, duration: 0.55, ease: "back.out(1.3)" }); seam.classList.remove("pop"); void seam.offsetWidth; seam.classList.add("pop"); }
+    if (!popup() || still) return; leanBack?.kill();
+    if (isSunk()) { G.killTweensOf(wrap, "yPercent"); G.to(wrap, { keyframes: [{ yPercent: -9, duration: 0.3, ease: "power2.out" }, { yPercent: 0, duration: 0.2, ease: "power2.in" }] }); }
     backLater();
   }
   function backLater() {
     leanBack?.kill();
     leanBack = G.delayedCall(6.5, () => {
-      if (cfg.place !== "peek") return;
-      if (busy || away || held || CV.on || drag) { backLater(); return; }
-      G.to(wrap, { xPercent: half(), rotation: 0, duration: 0.7, ease: "power2.inOut" });
+      if (!popup()) return;
+      if (busy || away || held || CV.on || drag || rig.bubOn) { backLater(); return; }
+      G.to(wrap, { yPercent: SINK, duration: 0.8, ease: "power2.inOut", onComplete: () => { if (!busy && !CV.on && !away && !held && !rig.sleeping) restNow(); } });
     });
   }
   function walkTo(x: number, done: () => void) {
@@ -212,7 +205,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       w.to(s, { lg: 16, rg: -6, y: -7, rot: 2, lx: 68, rx: 162, ly: 212, ry: 224, duration: 0.17, ease: "sine.out" }).to(s, { y: 0, duration: 0.13, ease: "sine.in" }).to(s, { lg: -6, rg: 16, y: -7, rot: -2, lx: 78, rx: 172, ly: 224, ry: 212, duration: 0.17, ease: "sine.out" }).to(s, { y: 0, duration: 0.13, ease: "sine.in" }); t.add(w); });
     G.to(wrap, { x, duration: dur, ease: "power1.inOut", onComplete: done });
   }
-  const restNow = () => rig.run((t) => rig.rest(t, 0.3));
+  /** at rest; when he waits below the edge, with his hands on it, as if leaning on a wall */
+  const restNow = () => rig.run((t) => { rig.rest(t, 0.3); if (popup() && isSunk()) t.to(rig.s, { lx: 58, ly: 183, rx: 182, ry: 183, duration: 0.35, ease: "back.out(1.6)" }); });
 
   /* ---------- doing things ---------- */
   function act(fn: (r: Rig) => TL, o: { heart?: string; idle?: boolean } = {}) {
@@ -230,7 +224,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (busy || away || held || !visible() || rig.sleeping || CV.on) return;
     if (pendingSecret && cfg.fun.hearts) { pendingSecret = false; act(FUN.secret); return; }
     if (Math.abs(Number(G.getProperty(wrap, "x"))) > 4) { walkTo(0, () => { placeWrap(true); restNow(); }); return; }
-    if (!curBit || curBit === "hero" || !(cfg.acts as Record<string, boolean>)[curBit] || lite || still) { restNow(); return; }
+    if (!curBit || curBit === "hero" || (popup() && isSunk()) || !(cfg.acts as Record<string, boolean>)[curBit] || lite || still) { restNow(); return; }
     BITS[curBit](rig);
   }
   const lineFor = (k: string) => vary(k === "hero" ? cfg.greet.replace(/\{time\}/g, dayPart()) : (cfg.lines as Record<string, string>)[k] || "");
@@ -806,7 +800,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   on(window, "keydown", (e: KeyboardEvent) => { lastAct = Date.now(); if (e.key === "Escape" && CV.on && !document.querySelector("dialog[open]")) closeScene(); });
   every(1000, () => {
     if (preview || !free() || rig.sleeping || still || document.hidden) return; const idle = Date.now() - lastAct;
-    if (cfg.nap && idle > cfg.napAfter * 1000) { if (cfg.fun.ground) sleepGround(rig); else sleepStand(rig); return; }
+    if (cfg.nap && idle > cfg.napAfter * 1000) { if (cfg.fun.ground && !popup()) sleepGround(rig); else sleepStand(rig); return; }
     if (cfg.fun.bored && !lite && !scrollingNow && idle > cfg.fun.boredAfter * 1000 && Date.now() - lastBored > cfg.fun.boredAfter * 1000) { const list = IDLE_KEYS.filter((k) => cfg.fun.games[k]); if (list.length) { lastBored = Date.now(); act(FUN[pick(list)], { idle: true }); } }
   });
   every(17000, () => { if (!preview && cfg.chat === "chatty" && free() && !rig.sleeping && !rig.bubOn && Date.now() - lastAct < 60000 && !document.hidden) rig.say(pick(TIPS), 2600); });
@@ -887,14 +881,14 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     },
     openTalk() { openScene(); },
     fun(k) {
-      if (k === "sleep") { if (!visible() || away || held || still || CV.on) return; busy = false; setLive(); rig.kill(); if (cfg.fun.ground) sleepGround(rig); else sleepStand(rig); }
+      if (k === "sleep") { if (!visible() || away || held || still || CV.on) return; busy = false; setLive(); rig.kill(); if (cfg.fun.ground && !popup()) sleepGround(rig); else sleepStand(rig); }
       else if (k === "wake") { if (rig.sleeping) act((r) => wakeRig(r)); }
       else if (FUN[k]) act(FUN[k]);
     },
     trick(k) { if (TRICKS[k]) act(TRICKS[k]); },
     bit(k) { if (BITS[k] && !CV.on) enterBit(k, true); },
     moment(k) { setMoment(k, true); },
-    nap() { if (!visible() || away || held || still || CV.on) return; busy = false; setLive(); rig.kill(); if (cfg.fun.ground) sleepGround(rig); else sleepStand(rig); },
+    nap() { if (!visible() || away || held || still || CV.on) return; busy = false; setLive(); rig.kill(); if (cfg.fun.ground && !popup()) sleepGround(rig); else sleepStand(rig); },
     wake() { if (rig.sleeping) act((r) => wakeRig(r)); },
     throwDemo,
     testVoice() {

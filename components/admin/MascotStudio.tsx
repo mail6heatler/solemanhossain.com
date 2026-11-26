@@ -224,7 +224,7 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
 
             <Box title="How he lives there">
               <div className="cs-looks">
-                {([["corner", "Corner buddy", "Stands in the corner and acts there"], ["peek", "Peeks from the edge", "Half of him comes out of the side of the screen; he steps all the way out for each section and show"]] as const).map(([k, t, desc]) => (
+                {([["corner", "Corner buddy", "Stands in the corner and acts there"], ["popup", "Pops up from below", "Waits with his head and shoulders above the bottom of the screen; jumps up for each move and show, then sinks back"]] as const).map(([k, t, desc]) => (
                   <button key={k} type="button" className={`cs-look${d.place === k ? " on" : ""}`} onClick={() => set({ place: k })} aria-pressed={d.place === k}><b>{t}</b><small>{desc}</small></button>
                 ))}
               </div>
