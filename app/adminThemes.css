@@ -92,11 +92,12 @@ html[data-adm="bento"] .adm .b-dark { background: #1f1d1a; color: var(--b1); }
 html[data-adm="bento"] .adm .b-out { border-color: #1f1d1a; }
 html[data-adm="bento"] .adm .switch input { background: #d9d3c6; }
 html[data-adm="bento"] .adm .switch input:checked { background: var(--b4); }
-html[data-adm="bento"] .adm .adm-toast { background: var(--b1); color: #1f1d1a; border: 2px solid #1f1d1a; box-shadow: 4px 4px 0 #1f1d1a; }
+/* Bento's Saved message (and any other) is a big sticker in the middle of the screen, slapped on and then gone (the owner's ask) */
+html[data-adm="bento"] .adm .adm-toast { top: 50%; padding: 14px 28px; background: var(--b1); color: #1f1d1a; border: 3px solid #1f1d1a; box-shadow: 6px 6px 0 #1f1d1a;
+  font: 800 22px "Bricolage Grotesque", "Syne", sans-serif; animation: adm-mid-in .45s cubic-bezier(.2, 1.6, .4, 1) both, adm-mid-out .4s ease-in 2.6s forwards; }
+html[data-adm="bento"] .adm .adm-toast.bad { background: var(--danger); color: #fff; }
+@keyframes adm-mid-in { from { transform: translate(-50%, -50%) rotate(-6deg) scale(2.2); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-4deg) scale(1); opacity: 1; } }
+@keyframes adm-mid-out { to { transform: translate(-50%, -50%) rotate(-4deg) scale(.9); opacity: 0; visibility: hidden; } }
 html[data-adm="bento"] .adm .adm-iconbtn, html[data-adm="bento"] .adm .adm-pillbtn { border-width: 1.5px; border-color: #1f1d1a; }
-.adm-sticker { position: fixed; z-index: 99; left: 50%; top: 120px; padding: 12px 24px; border: 3px solid #1f1d1a; border-radius: 99px; background: var(--b1, #f2b631); color: #1f1d1a;
-  font: 800 26px "Bricolage Grotesque", "Syne", sans-serif; box-shadow: 6px 6px 0 #1f1d1a; pointer-events: none; animation: adm-slam .45s cubic-bezier(.2, 1.6, .4, 1) both, adm-gone .4s ease-in 1.4s forwards; }
-@keyframes adm-slam { from { transform: translateX(-50%) rotate(-6deg) scale(2.4); opacity: 0; } to { transform: translateX(-50%) rotate(-6deg) scale(1); opacity: 1; } }
-@keyframes adm-gone { to { transform: translateX(-50%) rotate(-6deg) scale(.9); opacity: 0; } }
 
-@media (prefers-reduced-motion: reduce) { .adm-sky i, .adm-ripple, .adm-sticker { animation: none !important; } .adm-ripple, .adm-sticker { display: none; } }
+@media (prefers-reduced-motion: reduce) { .adm-sky i, .adm-ripple { animation: none !important; } .adm-ripple { display: none; } }

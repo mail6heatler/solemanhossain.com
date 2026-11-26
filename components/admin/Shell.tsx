@@ -58,10 +58,10 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
       if (t === "aurora") {
         ["", " two"].forEach((k) => { const r = document.createElement("i"); r.className = "adm-ripple" + k; r.style.left = "50%"; r.style.top = "88px"; document.querySelector(".adm")?.appendChild(r); setTimeout(() => r.remove(), 1500); });
       } else if (t === "bento") {
-        const st = document.createElement("div"); st.className = "adm-sticker"; st.textContent = "Saved! It's live ★"; document.querySelector(".adm")?.appendChild(st); setTimeout(() => st.remove(), 2000);
+        // the Saved message itself is the sticker, in the middle of the screen (adminThemes.css); the confetti bursts from there
         import("canvas-confetti").then(({ default: confetti }) => {
           const cs = getComputedStyle(document.querySelector(".adm") as Element), c = ["--b1", "--b2", "--b3", "--b4"].map((k) => cs.getPropertyValue(k).trim()).filter(Boolean);
-          confetti({ particleCount: 110, spread: 85, startVelocity: 38, origin: { x: 0.5, y: 0.18 }, colors: c.length ? c : undefined, disableForReducedMotion: true });
+          confetti({ particleCount: 110, spread: 85, startVelocity: 38, origin: { x: 0.5, y: 0.5 }, colors: c.length ? c : undefined, disableForReducedMotion: true });
         }).catch(() => {});
       }
     };
