@@ -51,7 +51,9 @@
 .adm-owner i { color: #555; margin-left: auto; }
 
 .adm-main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-.adm-top { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 26px; border-bottom: .5px solid var(--topbar-border);
+/* the top bar sits above the page (position and z-index), so its drop-downs (theme, bell, search) are never covered by boxes below that
+   make their own layers (cards that lift, the Overview banner), the owner saw the theme box covered (2026-11-26) */
+.adm-top { position: relative; z-index: 40; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 26px; border-bottom: .5px solid var(--topbar-border);
   background: var(--topbar-bg); backdrop-filter: blur(10px); }
 .adm-crumb { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
 .adm-crumb i { font-size: 9px; color: #3fae6b; }
@@ -240,7 +242,7 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
   .adm-nav .adm-item { flex-shrink: 0; margin: 0; }
   .adm-divider, .adm-owner { display: none; }
   .adm-main { height: auto; overflow: visible; }
-  .adm-top { padding: 10px 14px; position: sticky; top: 0; z-index: 20; }
+  .adm-top { padding: 10px 14px; position: sticky; top: 0; z-index: 40; }
   .adm-search { display: none; }
   .adm-content { padding: 18px 14px 60px; overflow: visible; }
   .stats { grid-template-columns: 1fr 1fr; }
