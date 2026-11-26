@@ -417,6 +417,12 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
   // A visitor's own choice only counts while the site's default is the one it was made against (lc_skin_d): when the owner
   // saves a new default on the dashboard, everyone sees it, the owner included (2026-11-26: their own old pick hid every change).
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
+    // Opened inside an app's own browser (Messenger, Facebook, Instagram, LinkedIn, TikTok, Snapchat, LINE, WhatsApp): mark it
+    // (html.in-app, for OpenInBrowser.tsx), and on Android hand the page to Chrome straight away with an intent link, once per
+    // visit so it can never loop (lc_iab); if Chrome isn't there the app's browser carries on with the page (browser_fallback_url).
+    // iPhones don't let a page do this; they get OpenInBrowser's bar instead. The owner's request, 2026-11-26.
+    `try{var ua=navigator.userAgent||"";if(window.self===window.top&&/FBAN|FBAV|FB_IAB|FBIOS|FB4A|Messenger|Instagram|LinkedInApp|musical_ly|BytedanceWebview|TikTok|Snapchat|Line\\/|WhatsApp/i.test(ua)){h.classList.add("in-app");` +
+    `if(/Android/i.test(ua)&&!sessionStorage.getItem("lc_iab")){sessionStorage.setItem("lc_iab","1");location.replace("intent://"+location.host+location.pathname+location.search+location.hash+"#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="+encodeURIComponent(location.href)+";end");return}}}catch(e){}` +
     `var p=c.d;window.__lcSkinD=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0&&localStorage.getItem("lc_skin_d")===c.d)p=v}catch(e){}` +
     `try{var q=new URLSearchParams(location.search).get("theme");if(q&&c.pv.indexOf(q)>=0){p=q;h.setAttribute("data-skin-preview","1")}}catch(e){}` +
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +

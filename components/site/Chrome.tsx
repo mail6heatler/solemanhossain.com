@@ -12,6 +12,7 @@ import { Nav } from "./SiteNav";
 import { Footer } from "./SiteFooter";
 import PhoneMenu from "./PhoneMenu";
 import VisitTracker from "./VisitTracker";
+import OpenInBrowser from "./OpenInBrowser";
 import { BottomBar } from "./BottomBar";
 export { Nav, Footer, BottomBar };
 
@@ -95,6 +96,7 @@ export function SiteShell({ settings, sections, onHome, children }:
       {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
       <VisitTracker />
+      <OpenInBrowser />
     </div>
   );
 }

@@ -3557,3 +3557,15 @@ html.lite .fv-wash, html.lite .fv-fill { display: none; }
 /* a box dragged to a new place draws above what it now covers */
 [data-sz~="x"] { position: relative; z-index: 3; }
 .mn-warn[data-sz~="x"], .stu-site .mn-warn[data-sz~="x"] { position: absolute; }
+
+/* "Best in your browser" (components/site/OpenInBrowser.tsx): only inside an app's own browser, above the phone's bottom bar */
+.iab-bar { position: fixed; z-index: 96; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 10px 14px; border-radius: 16px; background: var(--fg); color: var(--bg); box-shadow: 0 14px 34px -12px rgba(0, 0, 0, .55); font: 500 13px/1.35 system-ui, sans-serif; animation: iab-in .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+.site.has-bbar .iab-bar { bottom: calc(76px + env(safe-area-inset-bottom)); }
+.iab-t { flex: 1; min-width: 0; display: grid; gap: 2px; } .iab-t b { font-weight: 700; font-size: 14px; } .iab-t small { opacity: .8; font-size: 11.5px; }
+.iab-btns { display: flex; align-items: center; gap: 6px; flex: none; }
+.iab-go { padding: 8px 13px; border-radius: 99px; background: var(--mint); color: #111; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.iab-go.alt { background: transparent; color: var(--bg); box-shadow: inset 0 0 0 1.5px currentColor; }
+.iab-x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--bg); font-size: 14px; cursor: pointer; opacity: .75; }
+@keyframes iab-in { from { transform: translateY(120%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .iab-bar { animation: none; } }
