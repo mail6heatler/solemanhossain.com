@@ -64,7 +64,7 @@ export async function createSession() {
 export async function destroySession() {
   const c = await cookies();
   c.delete(COOKIE);
-  c.delete(OWNER_MARK); // the website's hint that the owner is here (components/admin/OwnerMark.tsx)
+  c.delete(OWNER_MARK); // clears the old "owner is here" mark that placing the mascot by hand used (removed 2026-11-26)
 }
 /** Not a login: only tells the website's scripts to offer the owner's tools (placing the mascot). Every save still checks the real cookie. */
 export const OWNER_MARK = "lc_owner";

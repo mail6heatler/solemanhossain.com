@@ -157,49 +157,5 @@ html.lite .mz-rain { display: none !important; }
 .mzs-qa .hint { margin: 0; }
 .mzs-sub { display: grid; gap: 10px; padding-left: 12px; border-left: 2px solid var(--card-border, #ddd); }
 
-/* "Where he stands" (components/admin/MascotPlacer.tsx): a computer and a phone screen with a small him to drag */
-.mzp { display: grid; gap: 10px; }
-.mzp-dev { justify-self: center; width: 100%; max-width: 520px; padding: 10px; border-radius: 16px; background: #1d2230; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
-.mzp-dev.phone { max-width: 230px; padding: 10px 8px 14px; border-radius: 30px; }
-.mzp-screen { position: relative; overflow: hidden; border-radius: 8px; background: var(--card-bg, #fff); touch-action: none; user-select: none; }
-.mzp-dev.phone .mzp-screen { border-radius: 18px 18px 6px 6px; }
-.mzp-site { position: absolute; inset: 0; display: grid; align-content: start; gap: 6%; padding: 0 7% 0; pointer-events: none; }
-.mzp-site i, .mzp-cards i { display: block; border-radius: 6px; background: color-mix(in srgb, var(--text, #223) 9%, transparent); }
-.mzp-nav { height: 9%; margin: 0 -8%; border-radius: 0 !important; }
-.mzp-dev.phone .mzp-nav { height: 6%; }
-.mzp-h1 { height: 8%; width: 60%; }
-.mzp-p { height: 3.5%; width: 80%; }
-.mzp-p.s { width: 52%; }
-.mzp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4%; height: 26%; }
-.mzp-dev.phone .mzp-cards { grid-template-columns: 1fr; height: 30%; }
-.mzp-dev.phone .mzp-cards i + i { display: none; }
-.mzp-fig { position: absolute; translate: -50% 0; cursor: grab; touch-action: none; z-index: 2; border-radius: 10px; transition: left .25s, bottom .25s; }
-.mzp-fig.drag { cursor: grabbing; transition: none; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .3)); }
-.mzp-fig:focus-visible { outline: 3px solid #ff5a46; outline-offset: 2px; }
-.mzp-fig .mz-svg { pointer-events: none; }
-.mzp-fig.flip .mz-svg { scale: -1 1; }
-.mzp-orb { position: absolute; right: 4.1%; bottom: 2.4%; width: 14.9%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #ff4d8d; color: #fff; font-style: normal; font-weight: 700; border: 2px solid #1d2230; z-index: 1; }
-.mzp-bbar { display: flex; justify-content: space-around; padding: 7px 6px 0; }
-.mzp-bbar i { width: 14%; height: 12px; border-radius: 4px; background: rgba(255, 255, 255, .25); }
-.mzp-sheet { display: grid; place-items: center; height: 16px; margin-top: 4px; border-radius: 8px 8px 0 0; background: rgba(255, 255, 255, .14); }
-.mzp-sheet i { width: 30px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .5); }
-/* he stands still here: only his resting self shows (the rig isn't running) */
-.mzp-fig [data-mzm]:not([data-mzm="grin"]), .mzp-fig [data-mzprop], .mzp-fig [data-mzhat], .mzp-fig [data-mzeh], .mzp-fig [data-mzflash], .mzp-fig [data-mzball],
-.mzp-fig .mzj-cape, .mzp-fig .mzj-shades, .mzp-fig .mzj-chute, .mzp-fig .mzj-pillow, .mzp-fig .mzj-blanket, .mzp-fig .mzj-snot, .mzp-fig .mzj-ball, .mzp-fig .mzj-plane { display: none; }
-.mzp-fig:not([data-gl]) [data-mzgl] { display: none; }
-.mzp-fig[data-hair="curly"] [data-mzhair]:not([data-mzhair="curly"]), .mzp-fig[data-hair="swept"] [data-mzhair]:not([data-mzhair="swept"]), .mzp-fig[data-hair="short"] [data-mzhair]:not([data-mzhair="short"]) { display: none; }
-.mzp-fig[data-beard="trim"] [data-mzbeard]:not([data-mzbeard="trim"]), .mzp-fig[data-beard="stubble"] [data-mzbeard]:not([data-mzbeard="stubble"]), .mzp-fig[data-beard="clean"] [data-mzbeard] { display: none; }
-.mzp-fig .mzj-elL, .mzp-fig .mzj-elR { transform: translate(0px, 36px); }
-.mzp-fig .mzj-shL { transform: rotate(8deg); } .mzp-fig .mzj-shR { transform: rotate(-8deg); }
-
-/* the owner carrying him on the site (hold him a moment, then move): lifted, with a glow, and the save bar after letting go */
+/* holding him to throw him: no text selection or a phone's long-press menu */
 .mz { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.mz.carried { cursor: grabbing; z-index: 6; filter: drop-shadow(0 14px 14px rgba(0, 0, 0, .28)); }
-.mz-own { position: absolute; left: 0; top: 0; z-index: 9; display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 12px; border-radius: 99px; pointer-events: auto; white-space: nowrap;
-  background: #1c1c28; color: #fff; border: 2px solid #fff; box-shadow: 0 8px 22px rgba(0, 0, 0, .35); font: 600 13px/1.2 system-ui, sans-serif; }
-.mz-own[hidden] { display: none; }
-.mz-own a { color: #ffd86b; }
-.mz-own button { border: 0; border-radius: 99px; cursor: pointer; font: 700 12.5px/1 system-ui, sans-serif; padding: 8px 12px; }
-.mz-own-save { background: #ffc23a; color: #1c1c28; }
-.mz-own-undo { background: rgba(255, 255, 255, .16); color: #fff; padding: 8px 10px !important; font-size: 15px !important; }
-@media (max-width: 420px) { .mz-own { font-size: 12px; gap: 4px; padding-left: 10px; } .mz-own button { padding: 7px 9px; font-size: 12px; } }

@@ -37,14 +37,9 @@ export type MzQaItem = { on: boolean; q: string; a: string };
 export const MZ_GAMES = [["football", "⚽ Keepy-ups"], ["cricket", "🏏 Cricket six"], ["yawn", "🥱 Yawn and stretch"], ["whistle", "🎵 Whistles"], ["phone", "📱 Laughs at his phone"]] as const;
 export type MzGame = (typeof MZ_GAMES)[number][0];
 
-/** Where he stands, dragged on the dashboard (2026-11-21): x is his middle and y his feet above the bottom, both as a percentage of the screen. */
-export type MzPos = { x: number; y: number };
-
 export type MascotSettings = {
   show: boolean; phones: boolean;
   place: "corner" | "peek" | "host"; side: "right" | "left"; size: number;
-  /** null: the corner on `side`, as before */
-  pos: { desk: MzPos | null; phone: MzPos | null };
   skin: string; hair: "curly" | "swept" | "short"; beard: "trim" | "stubble" | "clean"; glasses: boolean; shirt: MzShirt; jeans: MzJeans;
   chat: "quiet" | "normal" | "chatty"; follow: boolean; duck: boolean; cheer: boolean; nap: boolean; napAfter: number;
   tricks: Record<MzTrick, boolean>;
@@ -74,7 +69,7 @@ const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) 
  * other version of the answer (a joke's setup and punchline stay together). mascotRig.ts reads them with vary() and answer().
  */
 export const DEFAULT_MASCOT: MascotSettings = {
-  show: true, phones: true, place: "corner", side: "right", size: 100, pos: { desk: null, phone: null },
+  show: true, phones: true, place: "corner", side: "right", size: 100,
   skin: "#c58a62", hair: "curly", beard: "trim", glasses: false, shirt: "teal", jeans: "light",
   chat: "normal", follow: true, duck: true, cheer: true, nap: true, napAfter: 45,
   tricks: allOn(MZ_TRICKS),
@@ -140,12 +135,9 @@ const flags = <K extends string>(raw: unknown, def: Record<K, boolean>) => { con
 export function cleanMascot(raw: unknown): MascotSettings {
   const r = isObj(raw) ? raw : {}, D = DEFAULT_MASCOT;
   const lr = isObj(r.lines) ? r.lines : {}, qr = isObj(r.qa) ? r.qa : {}, fr = isObj(r.fun) ? r.fun : {}, nr = isObj(fr.notice) ? fr.notice : {}, mr = isObj(r.moments) ? r.moments : {}, cr = isObj(r.convo) ? r.convo : {}, C = D.convo;
-  const pr = isObj(r.pos) ? r.pos : {};
-  const spot = (v: unknown): MzPos | null => { if (!isObj(v)) return null; const x = Number(v.x), y = Number(v.y); return Number.isFinite(x) && Number.isFinite(y) ? { x: Math.round(Math.min(100, Math.max(0, x)) * 10) / 10, y: Math.round(Math.min(100, Math.max(0, y)) * 10) / 10 } : null; };
   return {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
     place: oneOf(r.place, ["corner", "peek", "host"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size),
-    pos: { desk: spot(pr.desk), phone: spot(pr.phone) },
     skin: typeof r.skin === "string" && /^#[0-9a-f]{6}$/i.test(r.skin) ? r.skin : D.skin,
     hair: oneOf(r.hair, ["curly", "swept", "short"] as const, D.hair), beard: oneOf(r.beard, ["trim", "stubble", "clean"] as const, D.beard), glasses: bool(r.glasses, D.glasses),
     shirt: oneOf(r.shirt, Object.keys(MZ_SHIRTS) as MzShirt[], D.shirt), jeans: oneOf(r.jeans, Object.keys(MZ_JEANS) as MzJeans[], D.jeans),

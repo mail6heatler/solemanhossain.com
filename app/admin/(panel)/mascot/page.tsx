@@ -8,8 +8,7 @@ export default async function MascotPage() {
   const [s, sections] = await Promise.all([getSettings(), getSections()]);
   return (
     <div className="adm-page hst-page">
-      <MascotStudio first={s.mascot} timezone={s.timezone} sections={sections.map((x) => ({ title: x.nav_label || x.title, emoji: x.nav_emoji || "", layout: x.layout, code: x.code }))}
-        phoneMenu={s.menu.phone} bbar={s.effects.bottombar} />
+      <MascotStudio first={s.mascot} timezone={s.timezone} sections={sections.map((x) => ({ title: x.nav_label || x.title, emoji: x.nav_emoji || "", layout: x.layout, code: x.code }))} />
     </div>
   );
 }

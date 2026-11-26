@@ -8,7 +8,6 @@ import {
 import { saveMascot } from "@/app/actions";
 import type { MascotCtl } from "@/components/site/mascotEngine";
 import { SaveBar } from "./ChromeStudio";
-import MascotPlacer from "./MascotPlacer";
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 type Sec = { title: string; emoji: string; layout: string; code: string };
@@ -33,7 +32,7 @@ const Btn = ({ onClick, children }: { onClick: () => void; children: React.React
  * On the left, the real Mini Shourobh (mascotEngine.ts in preview mode) with a button for every move; on the right,
  * every setting in boxes. Changes show on the preview at once; one Save writes settings.mascot (saveMascot).
  */
-export default function MascotStudio({ first, timezone, sections, phoneMenu = "bottom", bbar = true }: { first: MascotSettings; timezone: string; sections: Sec[]; phoneMenu?: string; bbar?: boolean }) {
+export default function MascotStudio({ first, timezone, sections }: { first: MascotSettings; timezone: string; sections: Sec[] }) {
   const router = useRouter();
   const [saved, setSaved] = useState(first);
   const [d, setD] = useState(first);
@@ -193,19 +192,13 @@ export default function MascotStudio({ first, timezone, sections, phoneMenu = "b
               </div>
             </Box>
 
-            <Box title="Where he stands">
-              <div className="hint">Drag him to his spot on a computer and on a phone, anywhere on the screen. That&apos;s where he lives on every page.</div>
-              <div className="hint"><b>Or place him on your website itself:</b> while you&apos;re logged in here, open your site, press and hold him for a moment, carry him anywhere and let go, then tap 📌 Save for everyone. Do it on your phone for phones and on your computer for computers. Visitors can&apos;t do this; a quick drag still throws him, as before.</div>
-              <MascotPlacer d={d} phoneMenu={phoneMenu} bbar={bbar} onPos={(dev, p) => set({ pos: { ...d.pos, [dev]: p } })} />
-            </Box>
-
             <Box title="How he lives there">
               <div className="cs-looks">
                 {([["corner", "Corner buddy", "Stands in the corner and acts there"], ["peek", "Peeks from the edge", "Half hidden, leans in for each section"], ["host", "Walk-on host", "Walks to the middle for each section, then back"]] as const).map(([k, t, desc]) => (
                   <button key={k} type="button" className={`cs-look${d.place === k ? " on" : ""}`} onClick={() => set({ place: k })} aria-pressed={d.place === k}><b>{t}</b><small>{desc}</small></button>
                 ))}
               </div>
-              <span className="lab">The default corner (until you drag him)</span>
+              <span className="lab">His corner</span>
               <Chips list={[["right", "Right side"], ["left", "Left side"]] as const} value={d.side} onPick={(v) => set({ side: v })} />
               <Slider id="mz-size" label="Size" value={d.size} lim={MZ_LIMITS.size} unit="%" onChange={(v) => set({ size: v })} />
               <Sw checked={d.phones} onChange={(v) => set({ phones: v })}>Show him on phones (smaller, above the bottom bar)</Sw>

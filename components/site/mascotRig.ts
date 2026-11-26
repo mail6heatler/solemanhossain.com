@@ -212,8 +212,6 @@ function svgMarkup(u: string) {
 </g></svg>`;
 }
 
-/** Him standing still, for the dashboard's "Where he stands" screens (no GSAP: mascot.css's .mzp-fig hides what moves). */
-export const mascotStill = () => svgMarkup("still");
 
 const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 /** The rocket that takes him away when someone says goodbye: his own private rocket, its name painted on the side (settings.mascot.fun.rocketName). */

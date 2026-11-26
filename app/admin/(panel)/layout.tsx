@@ -5,7 +5,6 @@ import { getSections, getSettings, getMessages, countUnread, getCommentTotals, g
 import Shell from "@/components/admin/Shell";
 import { layoutIcon } from "@/lib/settings";
 import { Toast } from "@/components/admin/Widgets";
-import OwnerMark from "@/components/admin/OwnerMark";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false } };
@@ -39,7 +38,6 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     >
       {children}
       <Suspense><Toast /></Suspense>
-      <OwnerMark />
     </Shell>
   );
 }

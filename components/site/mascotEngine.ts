@@ -15,8 +15,7 @@
  * scene's pieces exist only while it's open. Reduced motion: no jumping or acting, he answers in words. Slow devices
  * (html.lite): no breathing or ambient moves. Every part has a switch in settings.mascot (lib/mascot.ts).
  */
-import { MZ_BIT_OF_LAYOUT, MZ_JEANS, MZ_QA, MZ_SHIRTS, type MascotSettings, type MascotView, type MzPos, type MzQa } from "@/lib/mascot";
-import { saveMascotSpot } from "@/app/actions";
+import { MZ_BIT_OF_LAYOUT, MZ_JEANS, MZ_QA, MZ_SHIRTS, type MascotSettings, type MascotView, type MzQa } from "@/lib/mascot";
 import { pageY, prefersReducedMotion } from "./fx";
 import {
   BITS, FUN, HAT_OF, IDLE_KEYS, MOMENTS, REST, CLEAR, Rig, SND, TALK, TRICKS, duckRig, fillWords, lookVars, markGesture, pick, rocketSvg, rps, setSound,
@@ -106,8 +105,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   function addHeart(k: string) { if (!cfg.fun.hearts || hearts.has(k) || preview) return; hearts.add(k); if (hearts.size >= 5 && !unlocked) { unlocked = true; pendingSecret = true; } saveHearts(); }
 
   /* ---------- where he stands ----------
-     His spot is the one placed by hand (settings.mascot.pos, a computer's and a phone's, carried there on the site itself or
-     dragged on the dashboard), or the corner on `side`. It's worked out when he starts, and again only when the width changes.
+     His spot is the bottom corner on `side` (placing him by hand was removed at the owner's request, 2026-11-26). It's worked
+     out when he starts, and again only when the width changes.
      Steady on every phone browser (the owner's rule, 2026-11-21): when a browser's bars slide away while scrolling, the page's
      area grows at its top (an address bar on top, Chrome's default), its bottom (a bottom toolbar, as on iPhones) or both
      (Samsung Internet). `topShare` is the part that grows at the top. He's held from the edge that doesn't move, and where both
@@ -129,16 +128,13 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   function rebase() { const H = layer.clientHeight; if (!H) return; baseBottom = H - (wrap.offsetTop + wrap.offsetHeight); baseH = H; anchor(); }
   function placeBase(force = false) {
     const W = layer.clientWidth, H = layer.clientHeight; if (!W || (!force && W === baseW)) return; baseW = W;
-    const ph = phone(), p = ph ? cfg.pos.phone : cfg.pos.desk, w = wrap.offsetWidth || (cfg.size / 100) * (ph ? 96 : 150), h = wrap.offsetHeight || w * 1.29;
-    let left = cfg.side === "right" ? W - w - 12 : 12, bottom = 4;
-    if (p) { left = clamp((p.x / 100) * W - w / 2, 4, Math.max(4, W - w - 4)); bottom = clamp((p.y / 100) * H, 2, Math.max(2, H - h - 2)); }
-    if (cfg.place === "peek") left = left + w / 2 > W / 2 ? W - w - 12 : 12; // peeking only works from an edge
+    const ph = phone(), w = wrap.offsetWidth || (cfg.size / 100) * (ph ? 96 : 150), h = wrap.offsetHeight || w * 1.29;
+    let left = cfg.side === "right" ? W - w - 12 : 12;
+    const bottom = 4;
     if (ph && !preview) {
       const orb = document.querySelector<HTMLElement>(".pm-orb-btn"), L = layer.getBoundingClientRect(), o = orb?.getBoundingClientRect();
-      if (o && o.width && left < o.right - L.left + 6 && left + w > o.left - L.left - 6 && bottom < L.bottom - o.top + 8) {
-        if (!p) left = o.left - L.left + o.width / 2 > W / 2 ? 12 : W - w - 12; // the corner by default: the other corner
-        else bottom = L.bottom - o.top + 8; // a placed spot: he stands on top of the orb
-      }
+      if (o && o.width && left < o.right - L.left + 6 && left + w > o.left - L.left - 6 && bottom < L.bottom - o.top + 8)
+        left = o.left - L.left + o.width / 2 > W / 2 ? 12 : W - w - 12; // the orb is in his corner: he takes the other one
     }
     isRight = left + w / 2 > W / 2;
     const s = wrap.style, hs = home.style;
@@ -589,7 +585,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     tapT = window.setTimeout(() => { if (taps.length && taps.length < 3) openScene(); taps = []; }, 300);
   }
   on(wrap, "keydown", (e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!CV.on) openScene(); } });
-  type Hold = { id?: number; x0: number; y0: number; started: boolean; minX: number; maxX: number; minY: number; bx: number; by: number; cx: number; cy: number; vx: number; vy: number; lt: number; qr?: (v: number) => void; carry?: boolean; maxY?: number; natL?: number; natT?: number };
+  type Hold = { id?: number; x0: number; y0: number; started: boolean; minX: number; maxX: number; minY: number; bx: number; by: number; cx: number; cy: number; vx: number; vy: number; lt: number; qr?: (v: number) => void };
   let drag: Hold | null = null;
   const newHold = (x0 = 0, y0 = 0, id?: number): Hold => ({ id, x0, y0, started: false, minX: 0, maxX: 0, minY: 0, bx: 0, by: 0, cx: 0, cy: 0, vx: 0, vy: 0, lt: 0 });
   function bounds() { const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), cx = Number(G.getProperty(wrap, "x")), cy = Number(G.getProperty(wrap, "y")); const natL = W.left - L.left - cx, natT = W.top - L.top - cy; return { minX: 6 - natL, maxX: L.width - W.width - 6 - natL, minY: 6 - natT }; }
@@ -628,89 +624,19 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       t.call(() => { rig.face("grin", "happy"); rig.say(vary(LINES.again2), 1800); }); t.to({}, { duration: 1.3 }); t.call(() => rig.face("grin", "open")); });
     t.eventCallback("onComplete", () => { busy = false; setLive(); if (Math.abs(Number(G.getProperty(wrap, "x"))) > 4) walkTo(0, () => { placeWrap(true); resume(); }); else { placeWrap(true); resume(); } });
   }
-  /* ---------- the owner places him by hand, on the website itself (2026-11-21) ----------
-     Only in the owner's browser (their dashboard leaves the lc_owner mark): press and hold him for a moment without moving and
-     he's lifted; carry him anywhere on the screen and let go, and he stands there. A little bar then offers to save that spot
-     for everyone on this kind of screen (saveMascotSpot checks the real login), or to put him back. A quick drag still throws
-     him, as before, for everyone. */
-  const ownerHere = () => !preview && /(?:^|;\s*)lc_owner=1/.test(document.cookie);
-  const own = mk("div", "mz-own"); own.hidden = true; layer.appendChild(own);
-  let holdT = 0, ownT = 0, ownFor: { dev: "desk" | "phone"; pos: MzPos; before: MzPos | null } | null = null;
-  function startCarry(d: Hold) {
-    d.started = true; d.carry = true; held = true; setLive(); lastAct = Date.now(); hideInvite(true); hideOwn();
-    hostBack?.kill(); hostBack = null; leanBack?.kill(); leanBack = null; G.killTweensOf(wrap); stopSleep(rig); busy = false; rig.hush();
-    G.set(wrap, { xPercent: 0, yPercent: 0, rotation: 0, scale: 1 });
-    const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), cx = Number(G.getProperty(wrap, "x")), cy = Number(G.getProperty(wrap, "y"));
-    d.natL = W.left - L.left - cx; d.natT = W.top - L.top - cy;
-    d.minX = 2 - d.natL; d.maxX = L.width - W.width - 2 - d.natL; d.minY = 2 - d.natT; d.maxY = L.height - W.height - 2 - d.natT;
-    d.bx = cx; d.by = cy; d.cx = cx; d.cy = cy; d.vx = 0; d.lt = performance.now();
-    wrap.classList.add("carried"); G.set(wrap, { transformOrigin: "50% 8%" }); d.qr = G.quickTo(wrap, "rotation", { duration: 0.4, ease: "power2.out" });
-    G.fromTo(wrap, { scale: 1 }, { scale: 1.1, duration: 0.25, ease: "back.out(3)" });
-    const s = rig.s; rig.run((t) => { t.call(() => { rig.setProp(null); rig.face("grin", "happy"); }); t.to(s, { ...REST, ...CLEAR, lx: 70, ly: 98, rx: 170, ry: 98, brow: 0.8, sy: 1.03, duration: 0.22, ease: "back.out(2)" });
-      const k = G.timeline({ repeat: -1, yoyo: true }); k.to(s, { lg: 9, rg: -9, duration: 0.45, ease: "sine.inOut" }); t.add(k); });
-    rig.say(vary(["Where to, boss? 😄", "Ooh, a new home? Take me anywhere!", "Carry me anywhere you like! 😄", "Wheee! Where shall I stand?"]), 1800); SND.pop();
-  }
-  function moveCarry(d: Hold, px: number, py: number) {
-    const x = clamp(d.bx + (px - d.x0), d.minX, d.maxX), y = clamp(d.by + (py - d.y0), d.minY, d.maxY ?? 0), now = performance.now(), dt = Math.max(1, now - d.lt);
-    d.vx = d.vx * 0.6 + ((x - d.cx) / dt) * 1000 * 0.4; d.cx = x; d.cy = y; d.lt = now;
-    G.set(wrap, { x, y }); d.qr?.(clamp(-d.vx * 0.02, -22, 22));
-  }
-  function dropCarry(d: Hold) {
-    const x = Number(G.getProperty(wrap, "x")), y = Number(G.getProperty(wrap, "y")), moved = Math.hypot(x - d.bx, y - d.by) > 6;
-    wrap.classList.remove("carried"); G.killTweensOf(wrap); held = false;
-    const W = layer.clientWidth, H = layer.clientHeight, w = wrap.offsetWidth, h = wrap.offsetHeight, left = (d.natL ?? 0) + x, top = (d.natT ?? 0) + y;
-    const dev = phone() ? "phone" : "desk", before = cfg.pos[dev];
-    const pos: MzPos = { x: Math.round(clamp(((left + w / 2) / W) * 100, 0, 100) * 10) / 10, y: Math.round(clamp(((H - (top + h)) / H) * 100, 0, 100) * 10) / 10 };
-    if (moved) { cfg = { ...cfg, pos: { ...cfg.pos, [dev]: pos } }; rig.cfg = cfg; }
-    G.set(wrap, { x: 0, y: 0, rotation: 0, transformOrigin: "50% 100%" }); placeBase(true);
-    wrap.classList.toggle("left", !isRight); home.classList.toggle("left", !isRight); rig.setMirror(isRight); rig.wrapDir = isRight ? -1 : 1;
-    G.fromTo(wrap, { scale: 1.1 }, { scale: 1, duration: 0.45, ease: "elastic.out(1,.5)" });
-    const s = rig.s, t = rig.run((t) => { t.to(s, { sy: 0.86, sx: 1.1, lg: 0, rg: 0, lx: 70, ly: 214, rx: 170, ry: 214, duration: 0.08 }).to(s, { ...REST, ...CLEAR, duration: 0.5, ease: "elastic.out(1,.45)" });
-      t.call(() => { rig.face("grin", "open"); if (moved) rig.burst(["✨", "📍"], 120, 40, 2, "", 60); SND.thud(); }); });
-    busy = true; setLive(); t.eventCallback("onComplete", () => { busy = false; setLive(); resume(); });
-    if (moved) showOwn({ dev, pos, before });
-  }
-  function hideOwn() { clearTimeout(ownT); own.hidden = true; ownFor = null; }
-  function showOwn(o: NonNullable<typeof ownFor>) {
-    ownFor = o; const where = o.dev === "phone" ? "phones" : "computers";
-    own.innerHTML = `<span class="mz-own-t">📍 New spot on ${where}</span><button type="button" class="mz-own-save">📌 Save for everyone</button><button type="button" class="mz-own-undo" aria-label="Put him back where he was">↺</button>`;
-    own.hidden = false; placeOwn(); if (!still) G.fromTo(own, { opacity: 0, y: 10, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(2.4)" });
-    clearTimeout(ownT); ownT = window.setTimeout(hideOwn, 30000); // unsaved, the spot lasts for this page only
-    (own.querySelector(".mz-own-save") as HTMLElement).onclick = async () => {
-      const f = ownFor; if (!f) return; const t = own.querySelector(".mz-own-t") as HTMLElement; t.textContent = "Saving…"; clearTimeout(ownT);
-      const r = await saveMascotSpot(f.dev, f.pos).catch(() => null);
-      if (r && r.ok) { t.textContent = `✓ Saved for everyone on ${where}`; own.querySelectorAll("button").forEach((b) => b.remove()); rig.say(vary(["My new spot! I love it here. 😎", "Saved! This is home now. 🏠", "Perfect spot, boss! 😄"]), 2200); ownT = window.setTimeout(hideOwn, 2200); }
-      else if (r && !r.ok && r.error === "login") { t.innerHTML = `Log in to your <a href="/admin">dashboard</a> first, then place me again`; own.querySelectorAll("button").forEach((b) => b.remove()); document.cookie = "lc_owner=; path=/; max-age=0"; ownT = window.setTimeout(hideOwn, 9000); }
-      else { t.textContent = "That didn't save. Try again?"; ownT = window.setTimeout(hideOwn, 15000); }
-    };
-    (own.querySelector(".mz-own-undo") as HTMLElement).onclick = () => {
-      const f = ownFor; if (!f) return; hideOwn(); cfg = { ...cfg, pos: { ...cfg.pos, [f.dev]: f.before } }; rig.cfg = cfg; placeBase(true);
-      wrap.classList.toggle("left", !isRight); home.classList.toggle("left", !isRight); rig.setMirror(isRight); rig.wrapDir = isRight ? -1 : 1;
-      if (!still) G.fromTo(wrap, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
-    };
-  }
-  function placeOwn() {
-    if (own.hidden) return; const [px, py] = rig.pt(120 + rig.s.x, 10 + rig.s.y), w = own.offsetWidth, h = own.offsetHeight, L = layer.getBoundingClientRect();
-    let y = py - h - 14; if (y < 8) { const [, by] = rig.pt(120, 300); y = Math.min(L.height - h - 8, by + 10); }
-    own.style.left = clamp(px - w / 2, 8, Math.max(8, L.width - w - 8)) + "px"; own.style.top = Math.max(8, y) + "px";
-  }
-  G.ticker.add(placeOwn); offs.push(() => G.ticker.remove(placeOwn));
-  on(wrap, "contextmenu", (e: Event) => { if (ownerHere()) e.preventDefault(); }); // a long press on a phone shouldn't open the browser's menu
   on(wrap, "pointerdown", (e: PointerEvent) => {
     if ((e.pointerType === "mouse" && e.button !== 0) || away || CV.on) return; markGesture(); drag = newHold(e.clientX, e.clientY, e.pointerId); try { wrap.setPointerCapture(e.pointerId); } catch {}
-    clearTimeout(holdT); if (ownerHere()) { const d = drag; holdT = window.setTimeout(() => { if (drag === d && !d.started) startCarry(d); }, 420); }
   });
   on(wrap, "pointermove", (e: PointerEvent) => {
     if (!drag || drag.id !== e.pointerId) return;
-    if (drag.carry) { moveCarry(drag, e.clientX, e.clientY); return; }
-    if (!drag.started) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 7) return; clearTimeout(holdT); if (!cfg.fun.throw || still) return; startHold(drag); }
+    if (!drag.started) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 7) return; if (!cfg.fun.throw || still) return; startHold(drag); }
     moveHold(drag, e.clientX, e.clientY);
   });
   on(wrap, "pointerup", (e: PointerEvent) => {
-    clearTimeout(holdT); if (CV.on) { drag = null; return; } if (!drag || drag.id !== e.pointerId) return; const d = drag; drag = null;
-    if (d.carry) dropCarry(d); else if (d.started) fall(d, clamp(d.vx, -2600, 2600), clamp(d.vy, -2600, 2600)); else onTap();
+    if (CV.on) { drag = null; return; } if (!drag || drag.id !== e.pointerId) return; const d = drag; drag = null;
+    if (d.started) fall(d, clamp(d.vx, -2600, 2600), clamp(d.vy, -2600, 2600)); else onTap();
   });
-  on(wrap, "pointercancel", () => { clearTimeout(holdT); if (drag?.carry) dropCarry(drag); else if (drag?.started) fall(drag, 0, 0); drag = null; });
+  on(wrap, "pointercancel", () => { if (drag?.started) fall(drag, 0, 0); drag = null; });
   function throwDemo() {
     if (!visible() || away || held || still || CV.on) return; const d = newHold(); startHold(d);
     const L = layer.getBoundingClientRect(), dir = isRight ? -1 : 1, tx = clamp(dir * Math.min(220, L.width * 0.35), d.minX, d.maxX), ty = Math.max(d.minY, -L.height * 0.5);
@@ -869,7 +795,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   return {
     update(m) {
       const before = cfg; cfg = m; rig.cfg = m; rig.setLook(m); paint(); setSound(m.fun.sounds); sizeWrap(); updateVis(); syncTop(); pickVoice();
-      if (before.side !== m.side || before.place !== m.place || JSON.stringify(before.pos) !== JSON.stringify(m.pos)) { if (!CV.on) { hostBack?.kill(); G.set(wrap, { x: 0 }); placeBase(true); placeWrap(true); } }
+      if (before.side !== m.side || before.place !== m.place) { if (!CV.on) { hostBack?.kill(); G.set(wrap, { x: 0 }); placeBase(true); placeWrap(true); } }
       if (before.fun.rocketName !== m.fun.rocketName && !away) drawRocket();
       if (JSON.stringify(before.moments) !== JSON.stringify(m.moments)) setMoment(autoMoment(), false);
       if (CV.on) dim.style.setProperty("--mzd", String(m.convo.dim / 100));
