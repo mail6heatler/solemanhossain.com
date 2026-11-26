@@ -175,3 +175,15 @@ html.lite .mz-rain { display: none !important; }
 .mzs-row small { color: var(--text-muted, #667); }
 .mzs-test { flex: none; white-space: nowrap; }
 .mzs-days { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; }
+
+/* peeking from the edge (2026-11-26): the glowing seam at the screen's edge he comes out of; only transform and opacity move */
+.mz-seam { position: absolute; right: 0; bottom: 0; width: 26px; display: none; pointer-events: none; z-index: 0; border-radius: 26px 0 0 26px;
+  background: linear-gradient(to left, color-mix(in srgb, var(--mz-acc, #ff5a46) 70%, #fff) 0 3px, color-mix(in srgb, var(--mz-acc, #ff5a46) 45%, transparent) 3px, transparent);
+  box-shadow: -6px 0 22px color-mix(in srgb, var(--mz-acc, #ff5a46) 35%, transparent); transform-origin: 100% 50%; }
+.mz-seam.left { right: auto; left: 0; border-radius: 0 26px 26px 0; transform-origin: 0 50%; scale: -1 1; }
+.mz-seam.on { display: block; animation: mz-seam 2.6s ease-in-out infinite; }
+.mz-seam.on.pop { animation: mz-seam-pop .6s ease-out, mz-seam 2.6s ease-in-out .6s infinite; }
+@keyframes mz-seam { 0%, 100% { opacity: .75; transform: scaleY(1); } 50% { opacity: 1; transform: scaleY(1.04); } }
+@keyframes mz-seam-pop { 0% { opacity: 1; transform: scale(1.8, 1.1); } 100% { opacity: .75; transform: scale(1, 1); } }
+html.scrolling .mz-seam, html.lite .mz-seam { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .mz-seam.on { animation: none; opacity: .85; } }
