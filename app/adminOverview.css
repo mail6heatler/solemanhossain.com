@@ -6,7 +6,7 @@
 .adm .ov { max-width: 1180px; --ov-a: var(--au1, var(--b1, var(--mint))); --ov-b: var(--au2, var(--b3, #3d6694)); }
 
 /* ---------- the welcome banner, with Dhaka's skyline at the real time of day ---------- */
-.adm .c.ov-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center; min-height: 236px; padding: 24px 28px 96px; margin-bottom: 14px; border-radius: 20px;
+.adm .c.ov-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: center; min-height: 236px; padding: 24px 28px 96px; margin-bottom: 14px; border-radius: 20px;
   background: linear-gradient(120deg, color-mix(in srgb, var(--ov-a) 30%, var(--card-bg)), var(--card-bg) 55%, color-mix(in srgb, var(--ov-b) 18%, var(--card-bg))); }
 html[data-adm="aurora"] .adm .c.ov-hero { background-image: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .12), transparent 60%), radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--au1) 38%, transparent), transparent 55%), radial-gradient(circle at 88% 10%, color-mix(in srgb, var(--au2) 36%, transparent), transparent 55%), linear-gradient(140deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .03)); }
 html[data-adm="bento"] .adm .c.ov-hero { background: var(--b1); }
@@ -14,19 +14,23 @@ html[data-adm="bento"] .adm .c.ov-hero { background: var(--b1); }
 .ov-date { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 99px; background: color-mix(in srgb, var(--card-bg) 70%, transparent); border: .5px solid var(--card-border); font-size: 11.5px; font-weight: 600; color: var(--text-soft); }
 .ov-date i { color: var(--icon); }
 .ov .ov-hero .adm-h { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; margin: 2px 0 0; }
+/* the greeting's emoji keeps its own colours where the title's letters are a gradient (Aurora), or it shows as a coloured box */
+.ov .ov-emo { background: none; -webkit-text-fill-color: initial; color: initial; }
 .ov-sum { margin: 0; font-size: 13.5px; color: var(--text-soft); }
 .ov-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .ov-quick a { background: color-mix(in srgb, var(--card-bg) 75%, transparent); }
 .ov-quick a.b-mint { background: var(--mint); }
 html[data-adm="aurora"] .adm .ov-quick a.b-mint { background: linear-gradient(90deg, var(--au1), var(--au2)); }
 .ov-quick em { margin-left: 2px; padding: 0 6px; border-radius: 99px; background: var(--danger); color: #fff; font-style: normal; font-size: 10px; font-weight: 700; }
-.ov-face { position: relative; z-index: 2; display: grid; justify-items: center; gap: 10px; }
-.ov-ring { position: relative; display: grid; place-items: center; width: 104px; height: 104px; border-radius: 50%; }
-.ov-ring::before { content: ""; position: absolute; inset: -5px; border-radius: 50%; background: conic-gradient(var(--ov-a), var(--ov-b), var(--ov-a)); animation: ov-spin 8s linear infinite; }
-.ov-ring img, .ov-ring b { position: relative; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--card-bg); background: var(--chip-bg); }
-.ov-ring b { display: grid; place-items: center; font: 800 30px "Syne", sans-serif; color: var(--text-strong); }
-@keyframes ov-spin { to { transform: rotate(360deg); } }
-.ov-live { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 99px; background: var(--card-bg); border: .5px solid var(--card-border); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+/* the owner's cut-out picture (the website's hero photo): whole, no background, standing on the banner's floor in front of the
+   skyline; the text keeps clear of it (padding-right) so nothing is covered (the owner's request, 2026-11-26) */
+.ov-me { position: absolute; z-index: 2; right: 26px; bottom: 0; height: calc(100% - 14px); width: min(300px, 32%); display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
+.ov-me img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; object-position: bottom; filter: drop-shadow(0 12px 16px rgba(0, 0, 0, .35)); animation: ov-rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.ov-me::after { content: ""; position: absolute; z-index: -1; left: 18%; right: 18%; bottom: 2px; height: 14px; border-radius: 50%; background: rgba(0, 0, 0, .28); filter: blur(6px); }
+.ov-me.none { align-items: center; } .ov-me.none b { display: grid; place-items: center; width: 110px; height: 110px; border-radius: 50%; background: var(--ov-a); color: var(--ink); font: 800 34px "Syne", sans-serif; }
+@keyframes ov-rise { from { opacity: 0; transform: translateY(24px); } }
+.ov-hero-txt { padding-right: min(320px, 34%); }
+.ov-live { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 99px; background: color-mix(in srgb, var(--card-bg) 75%, transparent); border: .5px solid var(--card-border); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
 .ov-live i { width: 8px; height: 8px; border-radius: 50%; background: #3fae6b; box-shadow: 0 0 0 0 #3fae6b99; animation: ov-ping 1.8s infinite; }
 @keyframes ov-ping { 70% { box-shadow: 0 0 0 8px transparent; } }
 .ov-city { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 96px; z-index: 1; pointer-events: none; }
@@ -120,7 +124,6 @@ html[data-adm="bento"] .adm .ov-ico { border: 2px solid #1f1d1a; box-shadow: 2px
 @media (max-width: 900px) { .ov-two, .ov-secs { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 760px) {
   .adm .c.ov-hero { grid-template-columns: minmax(0, 1fr); padding: 18px 16px 84px; }
-  .ov-face { position: absolute; top: 14px; right: 14px; } .ov-ring { width: 58px; height: 58px; } .ov-live { display: none; }
-  .ov .ov-hero .adm-h { padding-right: 66px; }
+  .ov-me { right: 4px; width: 36%; height: 70%; } .ov-hero-txt { padding-right: 37%; } .ov-date { white-space: normal; }
   .ov-legend { grid-template-columns: minmax(0, 1fr); }
 }

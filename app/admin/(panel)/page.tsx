@@ -57,8 +57,9 @@ export default async function Overview() {
       <section className={`c ov-hero sky-${sky}`}>
         <div className="ov-hero-txt">
           <span className="ov-date"><i className="ti ti-calendar-event" />{dateLine}</span>
-          <h1 className="adm-h">Good {part}, {first} {emoji}</h1>
+          <h1 className="adm-h">Good {part}, {first} <span className="ov-emo">{emoji}</span></h1>
           <p className="ov-sum">{summary.join(" · ")}.</p>
+          <span className="ov-live"><i />{live} {live === 1 ? "person" : "people"} on your site right now</span>
           <div className="ov-quick">
             <a href="/" target="_blank" className="b-mint b-sm"><i className="ti ti-external-link" />View site</a>
             <a href="/admin/inbox" className="b-out b-sm"><i className="ti ti-inbox" />Inbox{unread ? <em>{unread}</em> : null}</a>
@@ -67,9 +68,9 @@ export default async function Overview() {
             <a href="/admin/appearance" className="b-out b-sm"><i className="ti ti-palette" />Appearance</a>
           </div>
         </div>
-        <div className="ov-face">
-          <span className="ov-ring">{settings.avatarUrl ? <img src={settings.avatarUrl} alt="" /> : <b>{settings.initials}</b>}</span>
-          <span className="ov-live"><i />{live} here now</span>
+        {/* the same cut-out picture as the website's hero, whole and with no background, standing in front of the skyline */}
+        <div className={`ov-me${settings.avatarUrl ? "" : " none"}`} aria-hidden="true">
+          {settings.avatarUrl ? <img src={settings.avatarUrl} alt="" /> : <b>{settings.initials}</b>}
         </div>
         <svg className="ov-city" viewBox="0 0 1000 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
           {sky === "night" || sky === "dusk" ? <g className="ov-stars">{[[80, 18], [190, 34], [300, 12], [420, 28], [560, 16], [680, 36], [790, 14], [900, 30]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.6" style={{ animationDelay: `-${i * 0.4}s` }} />)}</g> : null}
