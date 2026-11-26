@@ -158,7 +158,7 @@ export function startScrollFx(fx: ScrollFxFlags) {
     let lastY = -1, busy = true;
     const clear = (o: (typeof secs)[number]) => {
       if (!o.inner.style.transform) return;
-      o.inner.style.transform = ""; o.inner.style.opacity = ""; o.inner.style.transformOrigin = ""; o.inner.style.willChange = "";
+      o.inner.style.transform = ""; o.inner.style.opacity = ""; o.inner.style.transformOrigin = ""; o.inner.style.willChange = ""; o.inner.style.visibility = "";
     };
     const wantEnter = (top: number) => clamp((vh - top) / (vh * 0.62), 0, 1);
     const wantExit = (bottom: number) => clamp((vh * 0.94 - bottom) / (vh * 0.94), 0, 1);
@@ -193,7 +193,9 @@ export function startScrollFx(fx: ScrollFxFlags) {
         o.inner.style.willChange = "transform, opacity";
         o.inner.style.transformOrigin = "50% 100%";
         o.inner.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0) scale(${sc.toFixed(3)})`;
-        o.inner.style.opacity = Math.max(0.05, 1 - 0.8 * inn - 0.95 * out).toFixed(3);
+        // fully gone (and hidden) before it has quite left, like app/transitions.css, so it never pops back faintly into view
+        const op = clamp(1 - 0.8 * inn - 1.1 * out, 0, 1);
+        o.inner.style.opacity = op.toFixed(3); o.inner.style.visibility = op === 0 ? "hidden" : "";
       }
       return busy;
     };

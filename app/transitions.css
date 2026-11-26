@@ -61,9 +61,16 @@
   }
 }
 
+/* Leaving: it holds back, shrinks and fades. It's fully gone (opacity 0, then hidden) before the end, because a section that has
+   left the top keeps this end pose, which reaches down into the screen. Ending at 5% made that faint copy pop into view when the
+   section woke up again on the way back up: the tremor the owner saw on phones scrolling up (2026-11-26, measured: a 485px jump
+   per section, none after). Hidden also means it isn't drawn and can't catch taps meant for the section below it. */
 @keyframes depth-out {
-  0%, 6% { translate: 0 0; scale: 1; opacity: 1; }
-  100% { translate: 0 calc(55svh / var(--fz, 1)); scale: .9; opacity: .05; }
+  0%, 6% { translate: 0 0; scale: 1; opacity: 1; visibility: visible; }
+  86% { opacity: 0; }
+  87% { visibility: visible; }
+  88% { visibility: hidden; }
+  100% { translate: 0 calc(55svh / var(--fz, 1)); scale: .9; opacity: 0; visibility: hidden; }
 }
 @keyframes depth-head {
   0% { transform: translate(-9vw, -10svh); opacity: 0; }
