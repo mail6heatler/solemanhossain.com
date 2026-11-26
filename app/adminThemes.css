@@ -1,0 +1,101 @@
+/*
+ * The dashboard's themes (2026-11-26). The owner picked Glass Aurora and Bento Bold from the Dashboard Worlds preview
+ * (https://claude.ai/artifact/NpQE1RKLYZ4wZhr2vBSCxy), each with three colour sets; Classic (the sage dashboard, light
+ * or dark) stays a choice. The left menu keeps its shape, place and size (the owner's rule): only its colours follow.
+ *
+ * The choice lives in this browser (localStorage lc_admin_look) and is put on <html> as data-adm and data-adm-v by a
+ * script that runs before the dashboard paints (app/admin/(panel)/layout.tsx), so pages never flash the old colours.
+ * The palette button in the top bar (Shell.tsx) changes it. Every colour is a token on .adm; cards get each theme's own
+ * look; each theme has its own moment when something is saved (Shell.tsx: a ripple for Aurora, confetti and a sticker
+ * for Bento). Only transform and opacity move, and nothing moves with reduced motion.
+ */
+
+/* ---------- colour sets ---------- */
+html[data-adm="aurora"] .adm { --au1: #7cf0d4; --au2: #b69cff; --au3: #ff8fb8; }
+html[data-adm="aurora"][data-adm-v="1"] .adm { --au1: #ffb17a; --au2: #ff6fa5; --au3: #ffd36e; }
+html[data-adm="aurora"][data-adm-v="2"] .adm { --au1: #9fd3ff; --au2: #c9b8ff; --au3: #7ff0ff; }
+html[data-adm="bento"] .adm { --b1: #f2b631; --b2: #9cc5a1; --b3: #2c4a7a; --b3t: #fff; --b4: #e2552d; --b4t: #fff; }
+html[data-adm="bento"][data-adm-v="1"] .adm { --b1: #d9a441; --b2: #a3a97a; --b3: #5b4636; --b3t: #fff; --b4: #b8643f; --b4t: #fff; }
+html[data-adm="bento"][data-adm-v="2"] .adm { --b1: #d9f99d; --b2: #e7e5e4; --b3: #1c1917; --b3t: #d9f99d; --b4: #84cc16; --b4t: #1c1917; }
+
+/* ---------- shared: the mint-tinted hovers and focus rings take the theme's accent ---------- */
+:is(html[data-adm="aurora"], html[data-adm="bento"]) .adm :is(.adm-pillbtn:hover, .adm-iconbtn:hover, .b-out:hover, .adm-search-results a:hover, .adm-search-results a.sel, .adm-notif:hover) { background: color-mix(in srgb, var(--mint) 18%, transparent); }
+:is(html[data-adm="aurora"], html[data-adm="bento"]) .adm :is(.inp:focus, select:focus, textarea:focus, .adm-search input:focus) { border-color: var(--mint); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 28%, transparent); }
+:is(html[data-adm="aurora"], html[data-adm="bento"]) .adm .switch input:checked { background: var(--mint); }
+:is(html[data-adm="aurora"], html[data-adm="bento"]) .adm .spark div { background: color-mix(in srgb, var(--mint) 55%, transparent); }
+:is(html[data-adm="aurora"], html[data-adm="bento"]) .adm .spark div:last-child { background: var(--mint); }
+.adm-sky { display: none; }
+.adm-pick { display: grid; gap: 2px; padding: 6px; }
+.adm-pick button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 9px; border: 0; border-radius: 9px; background: none; color: var(--text-strong); font: 600 12.5px "Space Grotesk", sans-serif; text-align: left; cursor: pointer; }
+.adm-pick button:hover { background: color-mix(in srgb, var(--mint) 14%, transparent); }
+.adm-pick button.on { background: color-mix(in srgb, var(--mint) 22%, transparent); }
+.adm-pick .pv { width: 34px; height: 24px; flex: none; border-radius: 7px; border: 1px solid var(--card-border); }
+.adm-pick small { display: block; font-weight: 500; font-size: 10.5px; color: var(--text-faint); }
+.adm-pick .sets { display: flex; gap: 5px; padding: 0 9px 6px 53px; }
+.adm-pick .sets button { width: auto; padding: 3px 8px 3px 4px; gap: 5px; border: 1px solid var(--card-border); border-radius: 99px; font-size: 11px; }
+.adm-pick .sets i { width: 14px; height: 14px; border-radius: 50%; }
+
+/* =================== Glass Aurora: frosted cards over slow northern lights (always dark) =================== */
+html[data-adm="aurora"] .adm {
+  --page-bg: #0a0c19; --card-bg: #151a30; --card-border: rgba(255, 255, 255, .14); --card-border-hover: rgba(255, 255, 255, .28);
+  --text-strong: #f4f6ff; --text-soft: #dde1f7; --text-muted: #b9bfe2; --text-faint: #9095c0;
+  --topbar-bg: rgba(10, 12, 25, .5); --topbar-border: rgba(255, 255, 255, .1); --chip-bg: color-mix(in srgb, var(--au1) 18%, transparent); --icon: var(--au1);
+  --input-bg: rgba(255, 255, 255, .06); --input-border: rgba(255, 255, 255, .2); --mint: var(--au1); --ink: #0a0c19; --danger: #ff8f86; --shadow: rgba(0, 0, 0, .5);
+  --side-bg: rgba(8, 10, 22, .9); color-scheme: dark;
+}
+html[data-adm="aurora"] .adm .adm-sky { display: block; position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+html[data-adm="aurora"] .adm .adm-sky i { position: absolute; width: 55vmax; aspect-ratio: 1; border-radius: 50%; filter: blur(90px); opacity: .45; will-change: transform; }
+html[data-adm="aurora"] .adm .adm-sky i:nth-child(1) { background: var(--au1); left: 8%; top: -22%; animation: adm-au1 28s ease-in-out infinite alternate; }
+html[data-adm="aurora"] .adm .adm-sky i:nth-child(2) { background: var(--au2); right: -12%; top: 18%; animation: adm-au2 34s ease-in-out infinite alternate; }
+html[data-adm="aurora"] .adm .adm-sky i:nth-child(3) { background: var(--au3); left: 26%; bottom: -34%; opacity: .32; animation: adm-au3 40s ease-in-out infinite alternate; }
+@keyframes adm-au1 { to { transform: translate(26%, 24%); } }
+@keyframes adm-au2 { to { transform: translate(-38%, 18%); } }
+@keyframes adm-au3 { to { transform: translate(18%, -28%); } }
+html[data-adm="aurora"] .adm .adm-shell { z-index: 1; }
+html[data-adm="aurora"] .adm .adm-side { border-right: 1px solid rgba(255, 255, 255, .08); }
+/* glass cards: a frosted gradient, a bright top edge, and a soft light that follows the mouse (--mx, --my from Shell.tsx) */
+html[data-adm="aurora"] .adm .c { background-color: rgba(20, 24, 46, .55); background-image: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .12), transparent 60%), linear-gradient(140deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .03));
+  border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 18px 40px -30px #000; }
+html[data-adm="aurora"] .adm .c.hov:hover { border-color: color-mix(in srgb, var(--au1) 45%, transparent); }
+html[data-adm="aurora"] .adm .stat .v { background: linear-gradient(90deg, #fff, var(--au1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-adm="aurora"] .adm .adm-h { background: linear-gradient(90deg, #fff 30%, var(--au1) 70%, var(--au2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-adm="aurora"] .adm .b-mint { background: linear-gradient(90deg, var(--au1), var(--au2)); color: #0a0c19; }
+html[data-adm="aurora"] .adm .b-dark { background: var(--au1); color: #0a0c19; }
+html[data-adm="aurora"] .adm .adm-toast { background: linear-gradient(90deg, var(--au1), var(--au2)); color: #0a0c19; box-shadow: 0 10px 34px color-mix(in srgb, var(--au1) 40%, transparent); }
+html[data-adm="aurora"] .adm .tagx.blue { background: #26334a; color: #9ec1ec; } html[data-adm="aurora"] .adm .tagx.amber { background: #3d321a; color: #e6c27a; } html[data-adm="aurora"] .adm .tagx.red { background: #48221f; color: #ff9a8a; }
+.adm-ripple { position: fixed; z-index: 99; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 2px solid var(--au1, #7cf0d4); pointer-events: none; animation: adm-rip 1.1s ease-out forwards; }
+.adm-ripple.two { border-color: var(--au2, #b69cff); animation-delay: .15s; opacity: 0; }
+@keyframes adm-rip { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(22); opacity: 0; } }
+
+/* =================== Bento Bold: chunky blocks, black outlines, bold colours (always light) =================== */
+html[data-adm="bento"] .adm {
+  --page-bg: #f3efe6; --card-bg: #fffdf8; --card-border: #1f1d1a; --card-border-hover: #1f1d1a;
+  --text-strong: #1f1d1a; --text-soft: #3b3833; --text-muted: #5f5a51; --text-faint: #857e72;
+  --topbar-bg: rgba(243, 239, 230, .88); --topbar-border: #1f1d1a; --chip-bg: color-mix(in srgb, var(--b1) 40%, transparent); --icon: #1f1d1a;
+  --input-bg: #fffdf8; --input-border: #1f1d1a; --mint: var(--b1); --ink: #1f1d1a; --danger: #c0392b; --shadow: rgba(31, 29, 26, .22); --side-bg: #1f1d1a;
+  background: radial-gradient(rgba(31, 29, 26, .09) 1.2px, transparent 1.6px) 0 0 / 18px 18px, var(--page-bg); color-scheme: light;
+}
+html[data-adm="bento"] .adm .adm-top { border-bottom-width: 2px; }
+html[data-adm="bento"] .adm .c { border: 2px solid #1f1d1a; border-radius: 18px; box-shadow: 4px 4px 0 #1f1d1a; }
+html[data-adm="bento"] .adm .c.hov:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #1f1d1a; }
+html[data-adm="bento"] .adm .adm-h { font-family: "Bricolage Grotesque", "Syne", sans-serif; font-size: 30px; letter-spacing: -.025em; }
+html[data-adm="bento"] .adm .stats > .c:nth-child(4n + 1) { background: var(--b1); }
+html[data-adm="bento"] .adm .stats > .c:nth-child(4n + 2) { background: var(--b2); }
+html[data-adm="bento"] .adm .stats > .c:nth-child(4n + 3) { background: var(--b3); color: var(--b3t); --text-faint: color-mix(in srgb, var(--b3t) 75%, transparent); --text-muted: color-mix(in srgb, var(--b3t) 80%, transparent); --icon: var(--b3t); }
+html[data-adm="bento"] .adm .stats > .c:nth-child(4n + 4) { background: var(--b4); color: var(--b4t); --text-faint: color-mix(in srgb, var(--b4t) 75%, transparent); --text-muted: color-mix(in srgb, var(--b4t) 80%, transparent); --icon: var(--b4t); }
+html[data-adm="bento"] .adm .stats .chipi { background: rgba(255, 255, 255, .55); }
+html[data-adm="bento"] .adm .stat .v { font-family: "Bricolage Grotesque", "Syne", sans-serif; font-size: 28px; letter-spacing: -.02em; }
+html[data-adm="bento"] .adm :is(.b-mint, .b-dark, .b-out, .b-danger) { border-width: 2px; }
+html[data-adm="bento"] .adm .b-mint { background: var(--b1); color: #1f1d1a; border-color: #1f1d1a; box-shadow: 2px 2px 0 #1f1d1a; }
+html[data-adm="bento"] .adm .b-dark { background: #1f1d1a; color: var(--b1); }
+html[data-adm="bento"] .adm .b-out { border-color: #1f1d1a; }
+html[data-adm="bento"] .adm .switch input { background: #d9d3c6; }
+html[data-adm="bento"] .adm .switch input:checked { background: var(--b4); }
+html[data-adm="bento"] .adm .adm-toast { background: var(--b1); color: #1f1d1a; border: 2px solid #1f1d1a; box-shadow: 4px 4px 0 #1f1d1a; }
+html[data-adm="bento"] .adm .adm-iconbtn, html[data-adm="bento"] .adm .adm-pillbtn { border-width: 1.5px; border-color: #1f1d1a; }
+.adm-sticker { position: fixed; z-index: 99; left: 50%; top: 120px; padding: 12px 24px; border: 3px solid #1f1d1a; border-radius: 99px; background: var(--b1, #f2b631); color: #1f1d1a;
+  font: 800 26px "Bricolage Grotesque", "Syne", sans-serif; box-shadow: 6px 6px 0 #1f1d1a; pointer-events: none; animation: adm-slam .45s cubic-bezier(.2, 1.6, .4, 1) both, adm-gone .4s ease-in 1.4s forwards; }
+@keyframes adm-slam { from { transform: translateX(-50%) rotate(-6deg) scale(2.4); opacity: 0; } to { transform: translateX(-50%) rotate(-6deg) scale(1); opacity: 1; } }
+@keyframes adm-gone { to { transform: translateX(-50%) rotate(-6deg) scale(.9); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) { .adm-sky i, .adm-ripple, .adm-sticker { animation: none !important; } .adm-ripple, .adm-sticker { display: none; } }

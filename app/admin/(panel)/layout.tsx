@@ -1,4 +1,5 @@
 import "../../studio.css";
+import "../../adminThemes.css";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth";
 import { getSections, getSettings, getMessages, countUnread, getCommentTotals, getReactionTotals, getRecentComments, getRecentReactions } from "@/lib/data";
@@ -8,6 +9,10 @@ import { Toast } from "@/components/admin/Widgets";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false } };
+
+/** The dashboard's theme (adminThemes.css), put on <html> before anything paints, so pages never flash the old colours.
+ *  Nothing chosen yet: Glass Aurora (the owner's pick, 2026-11-26). Shell.tsx's palette button changes it. */
+const LOOK_SCRIPT = `(function(){var h=document.documentElement,t="aurora",v=0;try{var s=JSON.parse(localStorage.getItem("lc_admin_look")||"null");if(s&&/^(light|dark|aurora|bento)$/.test(s.t)){t=s.t;v=+s.v||0}}catch(e){}h.setAttribute("data-adm",t);h.setAttribute("data-adm-v",String(v))})()`;
 
 function ago(iso: string) {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
@@ -30,6 +35,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     ...newComments.map((c) => ({ key: `c${c.id}`, at: c.created_at, name: c.name, body: c.body, href: "/admin/inbox?f=comments", icon: "message-circle" })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6).map(({ at, ...n }) => ({ ...n, when: ago(at) }));
   return (
+    <>
+    <script dangerouslySetInnerHTML={{ __html: LOOK_SCRIPT }} />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Sora:wght@400;600;700&display=swap" precedence="default" />
     <Shell
       sections={sections.map((s) => ({ id: s.id, code: s.code, title: s.title, nav_label: s.nav_label, visible: s.visible, icon: layoutIcon(s.layout) }))}
       unread={unread + reactions.fresh + talks.fresh}
@@ -39,5 +47,6 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       {children}
       <Suspense><Toast /></Suspense>
     </Shell>
+    </>
   );
 }
