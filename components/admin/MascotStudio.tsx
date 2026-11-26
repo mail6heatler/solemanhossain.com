@@ -30,7 +30,7 @@ const DateList = ({ id, label, value, onChange }: { id: string; label: string; v
   const [add, setAdd] = useState("");
   return (
     <div className="fl"><label htmlFor={id}>{label}</label>
-      {value.length > 0 && <div className="hst-chips">{value.map((x) => <button key={x} type="button" className="hst-chip on" title="Remove this date" onClick={() => onChange(value.filter((y) => y !== x))}>{x} âœ•</button>)}</div>}
+      {value.length > 0 && <div className="hst-chips">{value.map((x) => <button key={x} type="button" className="hst-chip on" title="Remove this date" onClick={() => onChange(value.filter((y) => y !== x))}>{x} ✕</button>)}</div>}
       <div className="hst-chips"><input id={id} className="inp" type="date" value={add} onChange={(e) => setAdd(e.target.value)} /><button type="button" className="hst-chip" disabled={!add} onClick={() => { if (add && !value.includes(add)) onChange([...value, add].sort()); setAdd(""); }}>+ Add</button></div>
     </div>
   );
@@ -39,7 +39,7 @@ const DateList = ({ id, label, value, onChange }: { id: string; label: string; v
 const Row = ({ label, on, onChange, test }: { label: React.ReactNode; on?: boolean; onChange?: (v: boolean) => void; test?: () => void }) => (
   <div className="mzs-row">
     {onChange ? <label className="switch"><input type="checkbox" checked={!!on} onChange={(e) => onChange(e.target.checked)} />{label}</label> : <span className="mzs-rl">{label}</span>}
-    {test && <button type="button" className="hst-chip mzs-test" onClick={test}>â–¶ Test</button>}
+    {test && <button type="button" className="hst-chip mzs-test" onClick={test}>▶ Test</button>}
   </div>
 );
 const Group = ({ title, hint, children, open = false }: { title: string; hint?: string; children: React.ReactNode; open?: boolean }) => (
@@ -92,16 +92,18 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
   return (
     <div className="stu cs">
       <header className="stu-top">
-        <div className="stu-name"><h1 className="adm-h">Mascot</h1><p className="adm-sub">{d.show ? "Mini Shourobh is on every page of your site" : "Hidden: visitors don't see him (the preview still shows him, so you can edit)"}{dirty ? " Â· changes not saved" : ""}</p></div>
+        <div className="stu-name"><h1 className="adm-h">Mascot</h1><p className="adm-sub">{d.show ? "Mini Shourobh is on every page of your site" : "Hidden: visitors don't see him (the preview still shows him, so you can edit)"}{dirty ? " · changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns"><label className="switch cs-show"><input type="checkbox" checked={d.show} onChange={(e) => set({ show: e.target.checked })} />{d.show ? "Showing on site" : "Hidden on site"}</label><a href="/" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
 
       <div className="cs-work">
-        <div className="cs-screens mzs-left">
-          <SiteScreens src="/?mz=studio" draft={draft} ready="lc-mz-ready" hint="Your real homepage with him on it, with your changes before saving. Scroll and click inside: it works like the site, and nothing there counts as a visit" onFrames={(f) => { frames.current = f; }} />
+        <SiteScreens src="/?mz=studio" draft={draft} ready="lc-mz-ready" hint="Your real homepage with him on it, with your changes before saving. Scroll and click inside: it works like the site, and nothing there counts as a visit" onFrames={(f) => { frames.current = f; }} />
+
+        <div className="cs-grid">
+          <div className="cs-panel">
           <div className="mzs-bench">
-            <div className="mzs-bench-top"><b>Test on your site</b><span className="hint">Switch things on or off, and press â–¶ Test to see it on both screens.</span></div>
-            <div className="hst-chips"><button type="button" className="hst-chip on" onClick={() => play("openTalk")}>ðŸŽ™ï¸ Open his chat</button><Btn onClick={() => play("testVoice")}>ðŸ”Š Hear his voice</Btn></div>
+            <div className="mzs-bench-top"><b>Test on your site</b><span className="hint">Switch things on or off, and press ▶ Test to see it on both screens.</span></div>
+            <div className="hst-chips"><button type="button" className="hst-chip on" onClick={() => play("openTalk")}>🎙️ Open his chat</button><Btn onClick={() => play("testVoice")}>🔊 Hear his voice</Btn></div>
             <Group title="Tricks" hint="Today he does these when someone asks &ldquo;Do a trick!&rdquo;, in turn." open>
               {MZ_TRICKS.map(([k, l]) => <Row key={k} label={l} on={d.tricks[k]} onChange={(v) => set({ tricks: { ...d.tricks, [k]: v } })} test={() => play("trick", k)} />)}
             </Group>
@@ -109,25 +111,25 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
               {MZ_GAMES.map(([k, l]) => <Row key={k} label={l} on={d.fun.games[k]} onChange={(v) => setFun({ games: { ...d.fun.games, [k]: v } })} test={() => play("fun", k)} />)}
             </Group>
             <Group title="Fun">
-              <Row label="ðŸ¤­ Giggles when clicked fast" on={d.fun.tickle} onChange={(v) => setFun({ tickle: v })} test={() => play("fun", "tickle")} />
-              <Row label="ðŸ˜¤ Grumpy when the tickling goes on" test={() => play("fun", "grumpy")} />
-              <Row label="ðŸ¤¾ Visitors can pick him up and throw him" on={d.fun.throw} onChange={(v) => setFun({ throw: v })} test={() => play("throwDemo")} />
-              <Row label="ðŸ˜´ Naps when nobody moves" on={d.nap} onChange={(v) => set({ nap: v })} test={() => play("nap")} />
-              <Row label="â° Wakes up" test={() => play("wake")} />
-              <Row label="ðŸš€ Rocket when someone says goodbye" on={d.fun.rocket} onChange={(v) => setFun({ rocket: v })} test={() => play("ask", "bye")} />
-              <Row label="ðŸ’¨ Blown by the wind when they scroll too fast" on={d.fun.notice.fast} onChange={(v) => setNotice("fast", v)} test={() => play("fun", "wind")} />
-              <Row label="ðŸŽ‰ Party at the end of the page" on={d.fun.notice.end} onChange={(v) => setNotice("end", v)} test={() => play("fun", "endParty")} />
-              <Row label="ðŸ¥º Missed them when they come back to the tab" on={d.fun.notice.back} onChange={(v) => setNotice("back", v)} test={() => play("fun", "welcome")} />
-              <Row label="ðŸ™Œ Cheers when they react to something" on={d.cheer} onChange={(v) => set({ cheer: v })} test={() => play("fun", "cheered")} />
-              <Row label="ðŸ‘‰ Points at the card under their mouse" on={d.fun.notice.point} onChange={(v) => setNotice("point", v)} />
-              <Row label="ðŸ•º Secret move (five friendship hearts unlock it)" on={d.fun.hearts} onChange={(v) => setFun({ hearts: v })} test={() => play("fun", "secret")} />
+              <Row label="🤭 Giggles when clicked fast" on={d.fun.tickle} onChange={(v) => setFun({ tickle: v })} test={() => play("fun", "tickle")} />
+              <Row label="😤 Grumpy when the tickling goes on" test={() => play("fun", "grumpy")} />
+              <Row label="🤾 Visitors can pick him up and throw him" on={d.fun.throw} onChange={(v) => setFun({ throw: v })} test={() => play("throwDemo")} />
+              <Row label="😴 Naps when nobody moves" on={d.nap} onChange={(v) => set({ nap: v })} test={() => play("nap")} />
+              <Row label="⏰ Wakes up" test={() => play("wake")} />
+              <Row label="🚀 Rocket when someone says goodbye" on={d.fun.rocket} onChange={(v) => setFun({ rocket: v })} test={() => play("ask", "bye")} />
+              <Row label="💨 Blown by the wind when they scroll too fast" on={d.fun.notice.fast} onChange={(v) => setNotice("fast", v)} test={() => play("fun", "wind")} />
+              <Row label="🎉 Party at the end of the page" on={d.fun.notice.end} onChange={(v) => setNotice("end", v)} test={() => play("fun", "endParty")} />
+              <Row label="🥺 Missed them when they come back to the tab" on={d.fun.notice.back} onChange={(v) => setNotice("back", v)} test={() => play("fun", "welcome")} />
+              <Row label="🙌 Cheers when they react to something" on={d.cheer} onChange={(v) => set({ cheer: v })} test={() => play("fun", "cheered")} />
+              <Row label="👉 Points at the card under their mouse" on={d.fun.notice.point} onChange={(v) => setNotice("point", v)} />
+              <Row label="🕺 Secret move (five friendship hearts unlock it)" on={d.fun.hearts} onChange={(v) => setFun({ hearts: v })} test={() => play("fun", "secret")} />
             </Group>
-            <Group title="Moments" hint="He picks the moment by himself from your clock; â–¶ Test shows each now.">
-              <Row label="â˜• Morning (5 to 10 am)" on={d.moments.morning} onChange={(v) => set({ moments: { ...d.moments, morning: v } })} test={() => play("moment", "morning")} />
-              <Row label="ðŸŒ™ Night (9 pm to 5 am)" on={d.moments.night} onChange={(v) => set({ moments: { ...d.moments, night: v } })} test={() => play("moment", "night")} />
-              <Row label="â˜” Rainy day (switch it on when it rains)" on={d.moments.rain} onChange={(v) => set({ moments: { ...d.moments, rain: v } })} test={() => play("moment", "rain")} />
-              <Row label="ðŸ® Eid (switch it on for Eid, or add dates under Special days)" on={d.moments.eid} onChange={(v) => set({ moments: { ...d.moments, eid: v } })} test={() => play("moment", "eid")} />
-              <Row label="ðŸŽ‚ Your birthday (the date is under Moments)" test={() => play("moment", "birthday")} />
+            <Group title="Moments" hint="He picks the moment by himself from your clock; ▶ Test shows each now.">
+              <Row label="☕ Morning (5 to 10 am)" on={d.moments.morning} onChange={(v) => set({ moments: { ...d.moments, morning: v } })} test={() => play("moment", "morning")} />
+              <Row label="🌙 Night (9 pm to 5 am)" on={d.moments.night} onChange={(v) => set({ moments: { ...d.moments, night: v } })} test={() => play("moment", "night")} />
+              <Row label="☔ Rainy day (switch it on when it rains)" on={d.moments.rain} onChange={(v) => set({ moments: { ...d.moments, rain: v } })} test={() => play("moment", "rain")} />
+              <Row label="🏮 Eid (switch it on for Eid, or add dates under Special days)" on={d.moments.eid} onChange={(v) => set({ moments: { ...d.moments, eid: v } })} test={() => play("moment", "eid")} />
+              <Row label="🎂 Your birthday (the date is under Moments)" test={() => play("moment", "birthday")} />
               <Row label="Back to normal" test={() => play("moment", "normal")} />
             </Group>
             <Group title="Each section" hint="His move when a visitor reaches each kind of section.">
@@ -135,18 +137,14 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
             </Group>
             <Group title="Special days (his clothes)">
               {MZ_AUTO.map(([k, l]) => <Row key={k} label={l} on={d.auto[k]} onChange={(v) => set({ auto: { ...d.auto, [k]: v } })} test={k === "visitors" ? () => play("openTalk") : () => play("dressFor", k)} />)}
-              <Row label="ðŸ‘• His own look" test={() => play("dressFor", "normal")} />
+              <Row label="👕 His own look" test={() => play("dressFor", "normal")} />
             </Group>
             <Group title="Questions in his chat">
               {MZ_QA.map(([k]) => <Row key={k} label={d.qa[k].q} on={d.qa[k].on} onChange={(v) => setQa(k, { on: v })} test={() => play("ask", k)} />)}
             </Group>
           </div>
-        </div>
-
-        <div className="cs-grid">
-          <div className="cs-panel">
             <Box title="His voice">
-              <Sw checked={d.convo.voice} onChange={(v) => setCv({ voice: v })}>He speaks out loud when someone talks to him (visitors can mute him with ðŸ”Š)</Sw>
+              <Sw checked={d.convo.voice} onChange={(v) => setCv({ voice: v })}>He speaks out loud when someone talks to him (visitors can mute him with 🔊)</Sw>
               <div className="mzs-sub">
                 <div className="fl"><label htmlFor="mz-voice">Voice</label>
                   <select id="mz-voice" className="inp" value={d.convo.voiceName} onChange={(e) => setCv({ voiceName: e.target.value })}>
@@ -164,8 +162,8 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
             </Box>
 
             <Box title="The talking scene">
-              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card or send a quick ðŸ‘‹ ðŸ˜‚ â¤ï¸ ðŸ”¥. Typing to him shows as &ldquo;AI Â· coming soon&rdquo; until his AI assistant is built.</div>
-              <div className="hint"><b>Everything he says can have versions.</b> Put | between them and he picks one at random each time, never the same twice in a row. For example: <i>Hi there!|Hey you! ðŸ‘‹|Oh, hello!</i></div>
+              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card or send a quick 👋 😂 ❤️ 🔥. Typing to him shows as &ldquo;AI · coming soon&rdquo; until his AI assistant is built.</div>
+              <div className="hint"><b>Everything he says can have versions.</b> Put | between them and he picks one at random each time, never the same twice in a row. For example: <i>Hi there!|Hey you! 👋|Oh, hello!</i></div>
               <div className="fl"><label htmlFor="mz-hello">His first words</label><input id="mz-hello" className="inp" maxLength={400} value={d.convo.hello} onChange={(e) => setCv({ hello: e.target.value })} /></div>
               <Slider id="mz-dim" label="How dark the site gets behind him" value={d.convo.dim} lim={MZ_LIMITS.dim} unit="%" onChange={(v) => setCv({ dim: v })} />
               <Slider id="mz-scale" label="His size on the stage, at most" value={d.convo.scale} lim={MZ_LIMITS.scale} unit="%" onChange={(v) => setCv({ scale: v })} />
