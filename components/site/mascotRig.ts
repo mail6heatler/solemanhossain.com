@@ -8,7 +8,8 @@
  * elbow, solved each frame from where the hand should be (ik). Props in a hand stay upright, plus `pa`. Every class
  * and data attribute is prefixed (z…, mzj-, data-mz…) because the SVG's styles live in app/mascot.css.
  */
-import type { MascotSettings } from "@/lib/mascot";
+import { wearOf, type MascotSettings, type MzWear } from "@/lib/mascot";
+import { glassesSvg, hatSvg, wearSvg } from "./mascotWear";
 
 type GS = typeof import("gsap").gsap;
 export type TL = ReturnType<GS["timeline"]>;
@@ -117,9 +118,9 @@ const CURL_BACK: C3 = [[80, 86, 14], [82, 66, 16], [96, 50, 17], [118, 42, 19], 
 const CURL_FRONT: C3 = [[86, 74, 10], [96, 63, 12], [109, 57, 12.5], [123, 55, 12.5], [137, 59, 12], [149, 67, 11], [156, 78, 8.5], [100, 72, 8], [116, 69, 8.5], [131, 70, 8], [84, 83, 6.5], [157, 85, 6]];
 
 function svgMarkup(u: string) {
-  const P = `url(#mzPlaid-${u})`, T = `url(#mzTee-${u})`, LENS = `url(#mzLens-${u})`, GOLD = `url(#mzGold-${u})`;
-  const ARM = (cls: string, hp: string, thumb: string) => `<g class="mzj-sh${cls}"><path class="zo" fill="${P}" d="M-11,-7 Q0,-13 11,-7 L10,38 Q0,42 -10,38 Z"/><g class="mzj-el${cls}">
-  <path class="zo zsk" d="M-7,-2 H7 L6.5,30 Q0,33 -6.5,30 Z"/><path class="zo zsh2" d="M-9.5,-3 H9.5 L9,7 H-9 Z"/>
+  const LENS = `url(#mzLens-${u})`, GOLD = `url(#mzGold-${u})`;
+  const ARM = (cls: string, hp: string, thumb: string) => `<g class="mzj-sh${cls}"><g data-mzslv></g><g class="mzj-el${cls}">
+  <g data-mzfore></g>
   <g transform="translate(0 32)"><g class="mzj-hp${cls}">${hp}</g><circle class="zo zsk" r="9"/><path class="zo zsk" d="${thumb}"/><path d="M-3,3.5 Q0,5.5 3,3.5" fill="none" stroke="rgba(90,30,10,.35)" stroke-width="1.5"/></g></g></g>`;
   const PROPS = `
 <g data-mzprop="bino"><rect class="zo" x="-31" y="-7" width="42" height="12" rx="5" fill="#30384a"/><circle class="zo" cx="-20" cy="-1" r="10.5" fill="#3b4559"/><circle cx="-20" cy="-1" r="6.5" fill="${LENS}"/><circle cx="-22.5" cy="-3.5" r="1.8" fill="#fff"/><circle class="zo" cx="0" cy="-1" r="10.5" fill="#3b4559"/><circle cx="0" cy="-1" r="6.5" fill="${LENS}"/><circle cx="-2.5" cy="-3.5" r="1.8" fill="#fff"/></g>
@@ -142,6 +143,7 @@ function svgMarkup(u: string) {
 <radialGradient id="mzSkinHi-${u}" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
 <radialGradient id="mzLens-${u}" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#b9ecff"/><stop offset=".55" stop-color="#3f8fc4"/><stop offset="1" stop-color="#1b3b5e"/></radialGradient>
 <linearGradient id="mzGold-${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a6"/><stop offset=".45" stop-color="#f2bd36"/><stop offset="1" stop-color="#b9781a"/></linearGradient>
+<clipPath id="mzHc-${u}" clipPathUnits="userSpaceOnUse"><rect class="mzj-hcr" x="-60" y="0" width="360" height="420"/></clipPath>
 <linearGradient id="mzTee-${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf6ea"/><stop offset="1" stop-color="#e9e0cc"/></linearGradient></defs>
 <g class="mzj-root">
 <ellipse class="mzj-shadow" cx="120" cy="297" rx="46" ry="7" fill="rgba(0,0,0,.2)"/>
@@ -153,19 +155,11 @@ function svgMarkup(u: string) {
   <path d="M80,-40 C82,-96 100,-125 120,-126 C140,-125 158,-96 160,-40 Q140,-50 120,-40 Q100,-50 80,-40 Z" fill="#fff" opacity=".88"/></g>
 <g class="mzj-body">
   <g class="mzj-cape"><path class="zo" d="M86,154 Q120,146 154,154 L178,262 Q164,255 150,266 Q135,257 120,268 Q105,257 90,266 Q76,255 62,262 Z" fill="var(--mz-acc)"/><path d="M92,160 Q120,154 148,160 L160,220 Q120,210 80,220 Z" fill="rgba(0,0,0,.2)"/></g>
-  <g transform="translate(107 228)"><g class="mzj-legL"><path class="zo zjn" d="M-12,-2 H12 L11,54 H-11 Z"/><path d="M4,4 L3,46" stroke="rgba(0,0,0,.16)" stroke-width="1.5"/><path class="zo zjn2" d="M-12,47 H12 V56 H-12 Z"/>
-    <path class="zo zshoe" d="M-17,60 Q-17,52 -8,52 H8 Q13,52 13,60 V63 Q13,67 8,67 H-13 Q-18,67 -17,60 Z"/><path d="M-17,63.5 H13" stroke="var(--mz-acc)" stroke-width="2"/><path d="M-6,55.5 h8 M-6,58.5 h8" stroke="#b9b9b2" stroke-width="1.4"/></g></g>
-  <g transform="translate(133 228)"><g class="mzj-legR"><path class="zo zjn" d="M-12,-2 H12 L11,54 H-11 Z"/><path d="M-4,4 L-3,46" stroke="rgba(0,0,0,.16)" stroke-width="1.5"/><path class="zo zjn2" d="M-12,47 H12 V56 H-12 Z"/>
-    <path class="zo zshoe" d="M17,60 Q17,52 8,52 H-8 Q-13,52 -13,60 V63 Q-13,67 -8,67 H13 Q18,67 17,60 Z"/><path d="M17,63.5 H-13" stroke="var(--mz-acc)" stroke-width="2"/><path d="M6,55.5 h-8 M6,58.5 h-8" stroke="#b9b9b2" stroke-width="1.4"/></g></g>
+  <g transform="translate(107 228)"><g class="mzj-legL"><g data-mzleg="L"></g></g></g>
+  <g transform="translate(133 228)"><g class="mzj-legR"><g data-mzleg="R"></g></g></g>
   <g class="mzj-upper">
     <path class="zo zsk" d="M110,120 H130 V156 H110 Z"/><path class="zsd" d="M110,136 H130 V148 Q120,153 110,148 Z"/>
-    <path class="zo zjn" d="M88,212 H152 L155,236 Q120,242 85,236 Z"/>
-    <path class="zo" fill="${T}" d="M84,156 C92,150 100,148 108,148 Q120,158 132,148 C140,148 148,150 156,156 C161,182 160,204 158,226 Q120,232 82,226 C80,204 79,182 84,156 Z"/>
-    <path d="M110,196 Q120,200 130,196" fill="none" stroke="rgba(120,90,40,.25)" stroke-width="1.6"/>
-    <path class="zo" fill="${P}" d="M84,156 C92,150 100,148 106,148 L100,168 L108,228 Q94,229 82,226 C80,204 79,182 84,156 Z"/>
-    <path class="zo" fill="${P}" d="M156,156 C148,150 140,148 134,148 L140,168 L132,228 Q146,229 158,226 C160,204 161,182 156,156 Z"/>
-    <path class="zo zsh2" d="M106,148 L99,168 L91,153 Q99,149 106,148 Z"/><path class="zo zsh2" d="M134,148 L141,168 L149,153 Q141,149 134,148 Z"/>
-    <rect class="zo" fill="${P}" x="86" y="175" width="13" height="12" rx="2" stroke-width="1.6"/><circle cx="103" cy="190" r="1.7" fill="var(--mz-ink)"/><circle cx="104.5" cy="208" r="1.7" fill="var(--mz-ink)"/>
+    <g data-mzbody></g>
     <g class="mzj-head">
       <g data-mzhair="curly">${circles(CURL_BACK, "zhro")}${circles(CURL_BACK, "zhr")}${curlHi(CURL_BACK)}</g>
       <ellipse class="zo zsk" cx="76" cy="103" rx="8.5" ry="11.5"/><path d="M74,98 Q71,104 75,109" fill="none" stroke="rgba(110,40,10,.35)" stroke-width="1.8"/>
@@ -188,10 +182,8 @@ function svgMarkup(u: string) {
       <g data-mzhair="curly">${circles(CURL_FRONT, "zhro")}${circles(CURL_FRONT, "zhr")}${curlHi(CURL_FRONT)}</g>
       <g data-mzhair="swept"><path class="zo zhr" d="M77,98 C70,62 92,36 122,38 C152,34 172,58 163,96 C160,80 150,70 138,70 C146,62 136,54 124,60 C112,52 94,62 92,74 C86,78 80,86 77,98 Z"/><path class="zhi" d="M100,50 Q118,40 140,44"/></g>
       <g data-mzhair="short"><path class="zo zhr" d="M77,94 C74,62 96,44 120,44 C146,44 166,60 163,94 C156,76 140,66 120,66 C102,66 86,74 77,94 Z"/><path class="zhi" d="M98,54 Q118,46 138,50"/></g>
-      <g data-mzhat="night"><path class="zo" d="M80,74 Q84,30 124,28 Q162,30 176,68 Q196,86 208,112 Q190,98 168,78 Q148,64 122,62 Q96,62 80,74 Z" fill="#4b5bd6"/><path class="zo" d="M77,76 Q120,56 168,76 L170,86 Q120,66 75,86 Z" fill="#fff"/><circle class="zo" cx="209" cy="115" r="8" fill="#fff"/><circle cx="110" cy="44" r="2.5" fill="#ffd34d"/><circle cx="140" cy="48" r="2" fill="#ffd34d"/></g>
-      <g data-mzhat="party"><path class="zo" d="M98,56 L122,-6 L146,56 Q122,63 98,56 Z" fill="#ffc23a"/><path d="M106,38 L138,38 M111,22 L133,22" stroke="var(--mz-acc)" stroke-width="4"/><circle class="zo" cx="122" cy="-9" r="6.5" fill="var(--mz-acc)"/></g>
-      <g data-mzhat="tupi"><path class="zo" d="M84,66 Q86,40 120,38 Q154,40 156,66 Q120,56 84,66 Z" fill="#fdfcf7"/><path d="M90,58 Q120,50 150,58" fill="none" stroke="#d9c98f" stroke-width="2" stroke-dasharray="3 3"/></g>
-      <g data-mzgl><rect class="zo" x="90" y="89" width="26" height="22" rx="8" fill="rgba(255,255,255,.14)"/><rect class="zo" x="124" y="89" width="26" height="22" rx="8" fill="rgba(255,255,255,.14)"/><path class="zln" d="M116,97 Q120,94 124,97"/></g>
+      <g class="mzj-hat"></g>
+      <g data-mzgl></g>
       <g class="mzj-shades"><path class="zo" d="M88,90 H116 Q117,109 103,111 Q89,110 88,90 Z" fill="#14161c"/><path class="zo" d="M124,90 H152 Q151,110 137,111 Q123,109 124,90 Z" fill="#14161c"/><path class="zln" d="M116,93 Q120,90 124,93"/><path d="M92,94 L101,94 M128,94 L137,94" stroke="#fff" stroke-opacity=".45" stroke-width="2.4" stroke-linecap="round"/></g>
     </g>
     <g data-mzprop="laptop"><path class="zo" d="M80,172 Q80,166 86,166 H154 Q160,166 160,172 V206 H80 Z" fill="#c9cfda"/><path d="M120,192 c-6,-5 -9,-8 -9,-11 a4.5,4.5 0 0 1 9,-1 a4.5,4.5 0 0 1 9,1 c0,3 -3,6 -9,11 z" fill="var(--mz-acc)" opacity=".85"/><rect class="zo" x="72" y="204" width="96" height="7" rx="3" fill="#a7afbe"/></g>
@@ -265,16 +257,19 @@ export class Rig {
   private askAt = 0; private hid = false;
   private el: Record<string, Element>; private blush: Element[]; private written = new Map<Element, string>(); private idle: (Tw | TL)[] = []; private alive = true;
 
+  /** what he has on besides his own look: a special day's (set by the site) and a visitor's pick in his chat, which wins */
+  auto: Partial<MzWear> | null = null; visitor: Partial<MzWear> | null = null;
+  private u = ""; private wornKey = ""; private headKey = "";
   constructor(host: HTMLElement, layer: HTMLElement, cfg: MascotSettings, opts: { mirror?: boolean; still?: boolean } = {}) {
     this.host = host; this.layer = layer; this.cfg = cfg; this.still = !!opts.still;
-    host.insertAdjacentHTML("afterbegin", svgMarkup(String(++uidN)));
+    this.u = String(++uidN); host.insertAdjacentHTML("afterbegin", svgMarkup(this.u));
     const svg = (this.svg = host.querySelector("svg.mz-svg") as SVGSVGElement);
     const q = (c: string) => svg.querySelector(c) as Element;
     this.el = {
       root: q(".mzj-root"), body: q(".mzj-body"), upper: q(".mzj-upper"), head: q(".mzj-head"), shL: q(".mzj-shL"), elL: q(".mzj-elL"), hpL: q(".mzj-hpL"), shR: q(".mzj-shR"), elR: q(".mzj-elR"), hpR: q(".mzj-hpR"),
       legL: q(".mzj-legL"), legR: q(".mzj-legR"), eyeL: q(".mzj-eyeL"), eyeR: q(".mzj-eyeR"), pupL: q(".mzj-pupL"), pupR: q(".mzj-pupR"), brows: q(".mzj-brows"), shadow: q(".mzj-shadow"),
       plane: q(".mzj-plane"), flash: q("[data-mzflash]"), cape: q(".mzj-cape"), shades: q(".mzj-shades"), chute: q(".mzj-chute"), pillow: q(".mzj-pillow"), blanket: q(".mzj-blanket"),
-      snot: q(".mzj-snot"), ball: q(".mzj-ball"), flame: q(".zflame"), gl: q("[data-mzgl]"), football: q('[data-mzball="foot"]'), cball: q('[data-mzball="cricket"]'),
+      snot: q(".mzj-snot"), ball: q(".mzj-ball"), flame: q(".zflame"), football: q('[data-mzball="foot"]'), cball: q('[data-mzball="cricket"]'),
     };
     this.blush = [...svg.querySelectorAll(".mzj-blush")];
     this.s = { ...REST, ...CLEAR, lookX: 0, lookY: 0, blink: 1, breath: 0, plX: 0, plY: 0, plR: 0, plO: 0, bx: 0, by: 0, br: 0, ck: 0, nod: 0, bob: 0 };
@@ -351,13 +346,38 @@ export class Rig {
   setEyes(v: Eyes) { this.eyes = v; const hap = v === "happy"; [this.el.eyeL, this.el.eyeR].forEach((g) => ((g as SVGElement).style.display = hap ? "none" : "")); this.svg.querySelectorAll<SVGElement>("[data-mzeh]").forEach((g) => { g.style.display = hap ? "" : "none"; }); }
   face(m: string, eyes?: Eyes) { this.setMouth(m); if (eyes) this.setEyes(eyes); }
   setProp(p: string | null) { this.svg.querySelectorAll<SVGElement>("[data-mzprop]").forEach((g) => { g.style.display = g.dataset.mzprop === p ? "" : "none"; }); }
-  setHat(h: string | null) { this.hat = h; this.svg.querySelectorAll<SVGElement>("[data-mzhat]").forEach((g) => { g.style.display = g.dataset.mzhat === h ? "" : "none"; }); }
-  setGl(v: boolean) { this.glTemp = v; (this.el.gl as SVGElement).style.display = this.cfg.glasses || v ? "" : "none"; }
+  /** a moment's hat (night cap, party hat, tupi): it goes over whatever hat he wears */
+  setHat(h: string | null) { this.hat = h; this.drawHead(); }
+  /** glasses put on for a moment (the "what do you do?" answer): his own pair if he wears one, else the rounded ones */
+  setGl(v: boolean) { this.glTemp = v; this.drawHead(); }
+  get wear(): MzWear { return { ...wearOf(this.cfg), ...(this.auto || {}), ...(this.visitor || {}) }; }
+  setAuto(a: Partial<MzWear> | null) { this.auto = a; this.drawWear(); this.drawHead(); }
+  setVisitor(v: Partial<MzWear> | null) { this.visitor = v; this.drawWear(); this.drawHead(); }
   setLook(c: MascotSettings) {
     this.cfg = c;
     this.svg.querySelectorAll<SVGElement>("[data-mzhair]").forEach((g) => { g.style.display = g.dataset.mzhair === c.hair ? "" : "none"; });
     this.svg.querySelectorAll<SVGElement>("[data-mzbeard]").forEach((g) => { g.style.display = g.dataset.mzbeard === c.beard ? "" : "none"; });
-    this.setGl(this.glTemp);
+    this.drawWear(); this.drawHead();
+  }
+  /** fills the clothes' holders, only when the outfit, its colour or the shoes changed */
+  private drawWear() {
+    const w = this.wear, key = `${w.outfit}|${w.col}|${w.shoes}`; if (key === this.wornKey) return; this.wornKey = key;
+    const p = wearSvg(w, this.u), q = (sel: string) => this.svg.querySelectorAll(sel);
+    q("[data-mzbody]").forEach((g) => { g.innerHTML = p.body; });
+    q("[data-mzslv]").forEach((g) => { g.innerHTML = p.slv; });
+    q("[data-mzfore]").forEach((g) => { g.innerHTML = p.fore; });
+    q('[data-mzleg="L"]').forEach((g) => { g.innerHTML = p.legL; });
+    q('[data-mzleg="R"]').forEach((g) => { g.innerHTML = p.legR; });
+  }
+  /** glasses and the hat, and his hair tucked under a hat so it never pokes through */
+  private drawHead() {
+    if (!this.svg) return;
+    const w = this.wear, gl = w.glasses !== "none" ? w.glasses : this.glTemp ? "classic" : "none";
+    const hat = this.hat || (w.hat !== "none" ? w.hat : null), key = `${gl}|${hat}|${this.cfg.hair}`; if (key === this.headKey) return; this.headKey = key;
+    const g = this.svg.querySelector("[data-mzgl]"); if (g) g.innerHTML = glassesSvg(gl, this.u);
+    const h = hatSvg(hat, this.cfg.hair), hg = this.svg.querySelector(".mzj-hat"); if (hg) hg.innerHTML = h.svg;
+    this.svg.querySelector(".mzj-hcr")?.setAttribute("y", String(h.clipY ?? -400));
+    this.svg.querySelectorAll("[data-mzhair]").forEach((x) => { if (h.clipY == null) x.removeAttribute("clip-path"); else x.setAttribute("clip-path", `url(#mzHc-${this.u})`); });
   }
   /** eyes and head turn toward a point on the screen (his box's position is read at most four times a second) */
   lookAt(x: number, y: number, on: boolean) {

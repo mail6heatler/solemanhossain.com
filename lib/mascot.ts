@@ -11,6 +11,53 @@ export const MZ_JEANS = { light: ["#8fb3dc", "#6d93c2", "Light blue"], dark: ["#
 export type MzShirt = keyof typeof MZ_SHIRTS;
 export type MzJeans = keyof typeof MZ_JEANS;
 
+/*
+ * His wardrobe (the owner kept every outfit, pair of glasses and hat from the Wardrobe preview on 2026-11-26,
+ * https://claude.ai/artifact/9TP9YUci5ckmKb1um2haFR). Drawn by components/site/mascotWear.ts. Everyday's colours are
+ * `shirt` and `jeans` as before; every other outfit keeps its own colour (`colors`, an index into its list).
+ */
+export const MZ_OUTFITS = [
+  ["everyday", "Everyday", "Plaid shirt open over a tee, jeans, white sneakers"],
+  ["panjabi", "Panjabi", "Embroidered panjabi, white pajama, nagra shoes"],
+  ["suit", "Suit and tie", "Jacket, white shirt, tie, pocket square, formal shoes"],
+  ["winter", "Winter", "Puffer jacket, striped scarf, dark jeans, boots"],
+  ["beach", "Beach", "Board shorts and flip-flops"],
+  ["sporty", "Sporty", "Football jersey with number 10, shorts, socks, boots"],
+  ["smart", "Smart casual", "Shirt with rolled sleeves, belt, chinos, loafers"],
+  ["home", "At home", "Checked lungi, white genji, rubber chappals"],
+] as const;
+export type MzOutfit = (typeof MZ_OUTFITS)[number][0];
+/** [name, main colour, second colour] */
+export const MZ_OUTFIT_COLORS: Record<Exclude<MzOutfit, "everyday">, readonly (readonly [string, string, string])[]> = {
+  panjabi: [["White", "#fbf9f2", "#d4a63a"], ["Cream", "#efe2c4", "#8a5a2b"], ["Sky blue", "#a9d2ef", "#ffffff"], ["Mint", "#b9e3cf", "#2f7d5b"], ["Maroon", "#7d1f2c", "#e8c36a"], ["Black", "#25262d", "#d8b45a"], ["Boishakh red & white", "#fbf9f2", "#d62828"]],
+  suit: [["Navy", "#26355a", "#172238"], ["Charcoal", "#3b3e46", "#25272c"], ["Black", "#1a1b20", "#0c0c0f"], ["Beige", "#c9b48e", "#a38d66"]],
+  winter: [["Mustard", "#e0a526", "#a8761a"], ["Red", "#c8372d", "#8e2219"], ["Navy", "#2b3c66", "#1a2544"], ["Olive", "#6b7a3a", "#465024"]],
+  beach: [["Sky", "#4fb3e8", "#ffffff"], ["Coral", "#ff7a6b", "#ffe08a"], ["Sunny", "#ffc93c", "#e0553f"], ["Teal", "#1fa59a", "#ffd34d"]],
+  sporty: [["Bangladesh green", "#00704f", "#f42a41"], ["Sky stripes", "#ffffff", "#6cb4ee"], ["Cricket whites", "#f7f7f2", "#1f7f4f"]],
+  smart: [["White", "#f7f8fa", "#cfd5df"], ["Light blue", "#b8d4f2", "#7ea6d6"], ["Black", "#25262c", "#111216"], ["Olive", "#7a8450", "#545b33"]],
+  home: [["Blue check", "#2f5fa7", "#9cc0ee"], ["Green check", "#2d7a4f", "#9fdcb6"], ["Maroon check", "#7d2433", "#e7a0ab"]],
+};
+export const MZ_BOISHAKH = 6; // the red and white panjabi
+export const MZ_GLASSES = [["none", "None"], ["classic", "Rounded square"], ["round", "Round"], ["thin", "Thin rectangle"], ["bold", "Bold black"], ["aviator", "Aviators"], ["shades", "Sunglasses"]] as const;
+export type MzGlasses = (typeof MZ_GLASSES)[number][0];
+export const MZ_HATS = [["none", "No hat"], ["tupi", "Tupi"], ["cap", "Cap"], ["capback", "Cap backwards"], ["beanie", "Beanie"], ["straw", "Straw hat"], ["night", "Night cap"], ["party", "Party hat"]] as const;
+export type MzHat = (typeof MZ_HATS)[number][0];
+export const MZ_SHOES = [["own", "Outfit's own"], ["sneaker", "White sneakers"], ["sneakerdk", "Black sneakers"], ["formal", "Formal shoes"], ["loafer", "Loafers"], ["boot", "Boots"], ["nagra", "Nagra"], ["chappal", "Chappals"], ["flip", "Flip-flops"], ["studs", "Football boots"]] as const;
+export type MzShoe = (typeof MZ_SHOES)[number][0];
+/** special days: he dresses for them by himself, all day in the owner's time zone, then goes back to his chosen look */
+export const MZ_AUTO = [
+  ["eid", "Eid days", "Panjabi and tupi (the dates below, or the Eid switch under Moments)"],
+  ["boishakh", "Pohela Boishakh (14 April)", "Red and white panjabi"],
+  ["birthday", "Your birthday", "Suit and tie, with the party hat"],
+  ["match", "Big match days", "Football jersey (the dates below)"],
+  ["friday", "Fridays", "Panjabi"],
+  ["winter", "Winter (December to February)", "Winter jacket and beanie"],
+  ["visitors", "Visitors can dress him", "A Change clothes card in his chat; only for that visitor's visit, nothing is saved"],
+] as const;
+export type MzAuto = (typeof MZ_AUTO)[number][0];
+/** what he has on at one moment */
+export type MzWear = { outfit: MzOutfit; col: number; glasses: MzGlasses; hat: MzHat; shoes: MzShoe };
+
 /** His move in each section, picked by the section's layout. */
 export const MZ_BITS = [
   ["hero", "Hero", "Waves hello"], ["me", "Me (notes)", "Hand on heart, proud nod"], ["made", "Made (projects)", "Types on his laptop"],
@@ -40,7 +87,9 @@ export type MzGame = (typeof MZ_GAMES)[number][0];
 export type MascotSettings = {
   show: boolean; phones: boolean;
   place: "corner" | "peek" | "host"; side: "right" | "left"; size: number;
-  skin: string; hair: "curly" | "swept" | "short"; beard: "trim" | "stubble" | "clean"; glasses: boolean; shirt: MzShirt; jeans: MzJeans;
+  skin: string; hair: "curly" | "swept" | "short"; beard: "trim" | "stubble" | "clean"; glasses: MzGlasses; shirt: MzShirt; jeans: MzJeans;
+  outfit: MzOutfit; colors: Record<Exclude<MzOutfit, "everyday">, number>; hat: MzHat; shoes: MzShoe;
+  auto: Record<MzAuto, boolean>; eidDates: string[]; matchDates: string[];
   chat: "quiet" | "normal" | "chatty"; follow: boolean; duck: boolean; cheer: boolean; nap: boolean; napAfter: number;
   tricks: Record<MzTrick, boolean>;
   acts: Record<MzBit, boolean>;
@@ -70,7 +119,9 @@ const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) 
  */
 export const DEFAULT_MASCOT: MascotSettings = {
   show: true, phones: true, place: "corner", side: "right", size: 100,
-  skin: "#c58a62", hair: "curly", beard: "trim", glasses: false, shirt: "teal", jeans: "light",
+  skin: "#c58a62", hair: "curly", beard: "trim", glasses: "none", shirt: "teal", jeans: "light",
+  outfit: "everyday", colors: { panjabi: 0, suit: 0, winter: 0, beach: 0, sporty: 0, smart: 0, home: 0 }, hat: "none", shoes: "own",
+  auto: allOn(MZ_AUTO), eidDates: [], matchDates: [],
   chat: "normal", follow: true, duck: true, cheer: true, nap: true, napAfter: 45,
   tricks: allOn(MZ_TRICKS),
   acts: allOn(MZ_BITS),
@@ -131,6 +182,8 @@ const num = (v: unknown, [lo, hi]: readonly [number, number], fallback: number) 
 const oneOf = <T extends string>(v: unknown, list: readonly T[], fallback: T): T => (list.includes(v as T) ? (v as T) : fallback);
 const flags = <K extends string>(raw: unknown, def: Record<K, boolean>) => { const r = isObj(raw) ? raw : {}; return Object.fromEntries(Object.keys(def).map((k) => [k, bool(r[k], def[k as K])])) as Record<K, boolean>; };
 
+const dates = (v: unknown) => (Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x)))].sort().slice(-30) : []);
+
 /** Anything stored or sent becomes a complete, safe MascotSettings (missing parts take the defaults). */
 export function cleanMascot(raw: unknown): MascotSettings {
   const r = isObj(raw) ? raw : {}, D = DEFAULT_MASCOT;
@@ -139,8 +192,11 @@ export function cleanMascot(raw: unknown): MascotSettings {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
     place: oneOf(r.place, ["corner", "peek", "host"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size),
     skin: typeof r.skin === "string" && /^#[0-9a-f]{6}$/i.test(r.skin) ? r.skin : D.skin,
-    hair: oneOf(r.hair, ["curly", "swept", "short"] as const, D.hair), beard: oneOf(r.beard, ["trim", "stubble", "clean"] as const, D.beard), glasses: bool(r.glasses, D.glasses),
+    hair: oneOf(r.hair, ["curly", "swept", "short"] as const, D.hair), beard: oneOf(r.beard, ["trim", "stubble", "clean"] as const, D.beard), glasses: r.glasses === true ? "classic" : r.glasses === false ? "none" : oneOf(r.glasses, MZ_GLASSES.map(([k]) => k), D.glasses),
     shirt: oneOf(r.shirt, Object.keys(MZ_SHIRTS) as MzShirt[], D.shirt), jeans: oneOf(r.jeans, Object.keys(MZ_JEANS) as MzJeans[], D.jeans),
+    outfit: oneOf(r.outfit, MZ_OUTFITS.map(([k]) => k), D.outfit), hat: oneOf(r.hat, MZ_HATS.map(([k]) => k), D.hat), shoes: oneOf(r.shoes, MZ_SHOES.map(([k]) => k), D.shoes),
+    colors: Object.fromEntries((Object.keys(MZ_OUTFIT_COLORS) as (keyof typeof MZ_OUTFIT_COLORS)[]).map((k) => [k, num((isObj(r.colors) ? r.colors : {})[k], [0, MZ_OUTFIT_COLORS[k].length - 1], 0)])) as MascotSettings["colors"],
+    auto: flags(r.auto, D.auto), eidDates: dates(r.eidDates), matchDates: dates(r.matchDates),
     chat: oneOf(r.chat, ["quiet", "normal", "chatty"] as const, D.chat), follow: bool(r.follow, D.follow), duck: bool(r.duck, D.duck), cheer: bool(r.cheer, D.cheer),
     nap: bool(r.nap, D.nap), napAfter: num(r.napAfter, MZ_LIMITS.napAfter, D.napAfter),
     tricks: flags(r.tricks, D.tricks), acts: flags(r.acts, D.acts),
@@ -170,3 +226,27 @@ export function cleanMascot(raw: unknown): MascotSettings {
 
 /** What the public page needs besides the settings: the owner's clock, for "good evening" and the moments. */
 export type MascotView = { m: MascotSettings; timezone: string };
+
+/** what he wears by his own choice (the dashboard's look) */
+export const wearOf = (m: MascotSettings): MzWear => ({ outfit: m.outfit, col: m.outfit === "everyday" ? 0 : m.colors[m.outfit], glasses: m.glasses, hat: m.hat, shoes: m.shoes });
+/** today in the owner's time zone: 2026-11-26, its month and day, the weekday (0 Sunday) and the month (1 to 12) */
+export type MzDay = { ymd: string; md: string; dow: number; month: number };
+export function mzDay(timezone: string, at = new Date()): MzDay {
+  try {
+    const p = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }).formatToParts(at);
+    const g = (t: string) => p.find((x) => x.type === t)?.value || "", ymd = `${g("year")}-${g("month")}-${g("day")}`;
+    return { ymd, md: ymd.slice(5), dow: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(g("weekday")), month: Number(g("month")) };
+  } catch { const ymd = at.toISOString().slice(0, 10); return { ymd, md: ymd.slice(5), dow: at.getDay(), month: at.getMonth() + 1 }; }
+}
+export const isEid = (m: MascotSettings, d: MzDay) => m.moments.eid || m.eidDates.includes(d.ymd);
+/** a special day's look, or null on an ordinary day (birthday first, then Eid, Boishakh, a match, Friday, winter) */
+export function autoWear(m: MascotSettings, d: MzDay): (Partial<MzWear> & { day: MzAuto }) | null {
+  const A = m.auto;
+  if (A.birthday && m.moments.birthday && m.moments.birthday.slice(5) === d.md) return { day: "birthday", outfit: "suit", col: m.colors.suit, shoes: "own" };
+  if (A.eid && isEid(m, d)) return { day: "eid", outfit: "panjabi", col: m.colors.panjabi === MZ_BOISHAKH ? 0 : m.colors.panjabi, hat: "tupi", shoes: "own" };
+  if (A.boishakh && d.md === "04-14") return { day: "boishakh", outfit: "panjabi", col: MZ_BOISHAKH, shoes: "own" };
+  if (A.match && m.matchDates.includes(d.ymd)) return { day: "match", outfit: "sporty", col: m.colors.sporty, shoes: "own" };
+  if (A.friday && d.dow === 5) return { day: "friday", outfit: "panjabi", col: m.colors.panjabi, shoes: "own" };
+  if (A.winter && (d.month === 12 || d.month <= 2)) return { day: "winter", outfit: "winter", col: m.colors.winter, hat: m.hat === "none" ? "beanie" : m.hat, shoes: "own" };
+  return null;
+}

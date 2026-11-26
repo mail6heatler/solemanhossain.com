@@ -15,7 +15,7 @@
  * scene's pieces exist only while it's open. Reduced motion: no jumping or acting, he answers in words. Slow devices
  * (html.lite): no breathing or ambient moves. Every part has a switch in settings.mascot (lib/mascot.ts).
  */
-import { MZ_BIT_OF_LAYOUT, MZ_JEANS, MZ_QA, MZ_SHIRTS, type MascotSettings, type MascotView, type MzQa } from "@/lib/mascot";
+import { MZ_BIT_OF_LAYOUT, MZ_JEANS, MZ_OUTFITS, MZ_OUTFIT_COLORS, MZ_QA, MZ_SHIRTS, autoWear, isEid, mzDay, type MascotSettings, type MascotView, type MzAuto, type MzDay, type MzOutfit, type MzQa, type MzWear } from "@/lib/mascot";
 import { pageY, prefersReducedMotion } from "./fx";
 import {
   BITS, FUN, HAT_OF, IDLE_KEYS, MOMENTS, REST, CLEAR, Rig, SND, TALK, TRICKS, duckRig, fillWords, lookVars, markGesture, pick, rocketSvg, rps, setSound,
@@ -24,12 +24,13 @@ import {
 
 type GS = typeof import("gsap").gsap;
 export type MascotCtl = {
-  update(m: MascotSettings): void; ask(k: string): void; fun(k: string): void; trick(k: string): void; bit(k: string): void; moment(k: string): void;
+  update(m: MascotSettings): void; dressFor(day: string): void; ask(k: string): void; fun(k: string): void; trick(k: string): void; bit(k: string): void; moment(k: string): void;
   nap(): void; wake(): void; throwDemo(): void; openTalk(): void; testVoice(): void; stop(): void;
 };
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const TIPS = ["Psst. Click me, I can talk!", "Try dragging me. I dare you.", "There is more below, keep going.", "Ask me who I am. 😎", "Tap me three times. I dare you. 🤭"];
+const OUTFIT_EMOJI: Record<MzOutfit, string> = { everyday: "👕", panjabi: "🕌", suit: "🤵", winter: "🧣", beach: "🏖️", sporty: "⚽", smart: "👔", home: "🏠" };
 const QE: Record<string, string> = { who: "😎", job: "💼", from: "📍", joke: "🥁", food: "🍜", single: "💘", sing: "🎤", trick: "🤸", game: "✊", tour: "🧭", bye: "👋", top: "⬆️" };
 const FOLLOW: Record<string, string[]> = {
   start: ["who", "joke", "game"], who: ["job", "from", "single"], job: ["joke", "food", "sing"], from: ["food", "sing", "who"], joke: ["trick", "sing", "game"],
@@ -234,7 +235,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const dayPart = () => { const h = hourNow(); return h < 5 ? "night" : h < 12 ? "morning" : h < 17 ? "afternoon" : h < 21 ? "evening" : "night"; };
   function autoMoment() {
     const M = cfg.moments; if (!M.auto) return "normal";
-    if (M.birthday && M.birthday.slice(5) === todayMD()) return "birthday"; if (M.eid) return "eid"; if (M.rain) return "rain";
+    if (M.birthday && M.birthday.slice(5) === todayMD()) return "birthday"; if (isEid(cfg, mzDay(view.timezone))) return "eid"; if (M.rain) return "rain";
     const h = hourNow(); if (M.morning && h >= 5 && h < 10) return "morning"; if (M.night && (h >= 21 || h < 5)) return "night"; return "normal";
   }
   function setMoment(m: string, intro: boolean) {
@@ -244,7 +245,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
 
   /* =================== the talking scene =================== */
-  const CV = { on: false, token: 0, asked: new Set<string>(), performing: false, idleAt: 0, nudged: 0, last: "start", mode: "" as "" | "game", lastInvite: 0, mt: 0, S: 1, sx: 0, sy: 0, side: "" };
+  const CV = { on: false, token: 0, asked: new Set<string>(), performing: false, idleAt: 0, nudged: 0, last: "start", mode: "" as "" | "game" | "dress", lastInvite: 0, mt: 0, S: 1, sx: 0, sy: 0, side: "" };
   const dim = mk("div", "mzc-dim"), say = mk("div", "mzc-say"), cards = mk("div", "mzc-cards"), top = mk("div", "mzc-top"), invite = mk("button", "mzc-invite");
   const bar = mk("div", "mzc-bar"), you = mk("div", "mzc-you");
   [dim, say, cards, you, bar, top, invite].forEach((e) => { e.hidden = true; layer.appendChild(e); });
@@ -409,6 +410,17 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       return [() => talk([`${linesOf("tour")[0] || "Follow me!"} Next up: ${title}.`], ["sweep"]), () => closeScene(() => tourGo(n))]; },
     top() { return [() => talk([vary(["Up we go! ⬆️", "To the top! ⬆️", "Going up! 🛗"])], ["point"]), () => closeScene(() => toTop())]; },
     bye() { return [() => rocketBye()]; },
+    /* a visitor dresses him (the owner's "Visitors can dress him" switch): only for this visit, nothing is saved */
+    dressAsk() { return [() => talk([vary(["Ooh, a makeover! Pick something for me. 😄", "Dress me up! What should I wear? 👕", "Fashion time! You choose. 😎"])], ["open"])]; },
+    dress(k) {
+      const o = (MZ_OUTFITS.find(([x]) => x === k)?.[0] || "everyday") as MzOutfit, list = o === "everyday" ? null : MZ_OUTFIT_COLORS[o];
+      const v: Partial<MzWear> = { outfit: o, col: list ? Math.floor(Math.random() * list.length) : 0, shoes: "own" };
+      const put = () => { rig.setVisitor(v); try { sessionStorage.setItem("lc_mz_wear", JSON.stringify(v)); } catch {} };
+      const s = rig.s;
+      return [still ? put : () => play(() => { const t = rig.begin(null, "grin", "happy"); t.to(s, { sx: 0.06, upY: -6, duration: 0.2, ease: "power2.in" }).call(put).to(s, { sx: 1, upY: 0, duration: 0.45, ease: "back.out(2.2)" });
+          t.call(() => { rig.burst(["✨", "⭐", OUTFIT_EMOJI[o]], 120, 40, 4, "", 110); SND.pop(); }, undefined, 0.2); return t; }),
+        () => talk([vary(["Ta-da! How do I look? 😎", "Fresh fit! Not bad, right? 😎", "Looking sharp, if I say so myself! ✨", "New look, who dis? 😄"])], ["open"])];
+    },
     hello(line) { const s = rig.s; return [() => { if (!still) rig.loop(G.fromTo(s, { rx: 182, ry: 100 }, { rx: 195, ry: 113, duration: 0.18, yoyo: true, repeat: 7 })); }, () => talk([line || "Hi! 👋"]), () => rig.stopLoops()]; },
     laugh() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "grin", "happy"); t.to(s, { lx: 108, ly: 200, rx: 132, ry: 200, duration: 0.2 }); t.to(s, { upY: -3, rot: 2, duration: 0.07, yoyo: true, repeat: 11 }); t.call(() => { rig.burst(["😂", "🤣"], 120, 50, 3, "", 120); SND.giggle(); }, undefined, 0.2); return t; }), () => talk([vary(LINES.laugh)], ["open"])]; },
     love() { const s = rig.s; return [() => play(() => { const t = rig.begin(null, "smile"); t.to(s, { blush: 1.3, rx: 126, ry: 178, lx: 110, ly: 200, head: 7, duration: 0.4 }); t.call(() => rig.burst(["💖", "💕", "💗"], 120, 50, 4, "", 130)); return t; }), () => talk([vary(LINES.love)], [], "none"), () => endLoops({ blush: 0 })]; },
@@ -428,7 +440,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     hideCards(); CV.performing = true; CV.idleAt = Date.now(); rig.stopLoops();
     const isQ = QKEYS.includes(k); if (isQ) addHeart("q-" + k);
     let steps: Step[] = still ? [() => talk(k === "start" ? [vary(cfg.convo.hello)] : k === "soon" ? [vary(LINES.soon), vary(LINES.soon2)] : isQ ? linesOf(k) : [arg || "Hmm! 🤔"])] : (SCRIPT[k] || SCRIPT.shrug)(arg);
-    if (still && (k === "bye" || k === "top" || k === "tour")) steps = (SCRIPT[k] || SCRIPT.shrug)(arg);
+    if (still && (k === "bye" || k === "top" || k === "tour" || k === "dress" || k === "dressAsk")) steps = (SCRIPT[k] || SCRIPT.shrug)(arg);
     // asked again: his answer comes in another version anyway (answer() never repeats the last one), so only sometimes he points it out
     if (isQ && CV.asked.has(k) && !["trick", "game", "bye", "tour"].includes(k) && Math.random() < 0.5) steps = [() => talk([vary(LINES.again)], ["shrug"]), ...steps];
     if (isQ) CV.asked.add(k);
@@ -446,7 +458,10 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
   function showCards(k: string) {
     cards.innerHTML = ""; cards.classList.remove("going");
-    if (CV.mode === "game") {
+    if (CV.mode === "dress") {
+      MZ_OUTFITS.forEach(([k, label]) => card(OUTFIT_EMOJI[k], label, (el) => send(label, el, () => convoAsk("dress", k))));
+      card("↩️", "Something else", () => { CV.mode = ""; showCards("start"); });
+    } else if (CV.mode === "game") {
       const sc = mk("div", "mzc-score"); sc.textContent = `You ${score.you} · Him ${score.him} · Draws ${score.draw}`; cards.appendChild(sc);
       ([["rock", "✊"], ["paper", "✋"], ["scissors", "✌️"]] as const).forEach(([c, e]) => card(e, c[0].toUpperCase() + c.slice(1), (el) => send(e, el, () => convoAsk("rps", c))));
       card("↩️", "Something else", () => { CV.mode = ""; showCards("game"); });
@@ -456,6 +471,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       on.forEach((x) => { if (!CV.asked.has(x) && !list.includes(x) && list.length < 3) list.push(x); });
       (FOLLOW[k] || on).forEach((x) => { if (on.includes(x) && !list.includes(x) && list.length < 3) list.push(x); });
       list.forEach((x) => card(QE[x] || "💬", cfg.qa[x as MzQa].q, (el) => send(cfg.qa[x as MzQa].q, el, () => convoAsk(x))));
+      if (cfg.auto.visitors) card("👕", "Change your clothes", (el) => send("Change your clothes", el, () => { CV.mode = "dress"; convoAsk("dressAsk"); }));
       if (cfg.qa.tour.on && !preview) card("🧭", cfg.qa.tour.q, (el) => send(cfg.qa.tour.q, el, () => convoAsk("tour")));
       if (!preview) card("⬆️", "Take me to the top", (el) => send("Take me to the top", el, () => convoAsk("top")));
       if (cfg.qa.bye.on) card("👋", cfg.qa.bye.q, (el) => send(cfg.qa.bye.q, el, () => convoAsk("bye")));
@@ -789,6 +805,10 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   });
 
   /* ---------- start ---------- */
+  /* special days (settings.mascot.auto): he dresses for them by himself, in the owner's time zone; a visitor's pick in his chat wins for that visit */
+  const dressToday = () => rig.setAuto(autoWear(cfg, mzDay(view.timezone)));
+  if (!preview && cfg.auto.visitors) { try { const v = JSON.parse(sessionStorage.getItem("lc_mz_wear") || "null"); if (v && MZ_OUTFITS.some(([k]) => k === v.outfit)) rig.setVisitor(v); } catch {} }
+  dressToday(); every(60000, dressToday);
   sizeWrap(); updateVis(); placeWrap(false); setMoment(autoMoment(), false);
   const startT = window.setTimeout(() => { if (preview) { enterBit("hero", true); return; } const hero = document.getElementById("hero"); const r = hero?.getBoundingClientRect(); if (r && r.bottom > 0 && r.top < innerHeight) enterBit("hero", greetOnce()); else if (!still && !lite) act(TRICKS.wave); }, 900);
 
@@ -797,10 +817,18 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       const before = cfg; cfg = m; rig.cfg = m; rig.setLook(m); paint(); setSound(m.fun.sounds); sizeWrap(); updateVis(); syncTop(); pickVoice();
       if (before.side !== m.side || before.place !== m.place) { if (!CV.on) { hostBack?.kill(); G.set(wrap, { x: 0 }); placeBase(true); placeWrap(true); } }
       if (before.fun.rocketName !== m.fun.rocketName && !away) drawRocket();
-      if (JSON.stringify(before.moments) !== JSON.stringify(m.moments)) setMoment(autoMoment(), false);
+      if (JSON.stringify(before.moments) !== JSON.stringify(m.moments) || before.eidDates.join() !== m.eidDates.join()) setMoment(autoMoment(), false);
+      dressToday(); if (!m.auto.visitors && rig.visitor) rig.setVisitor(null);
       if (CV.on) dim.style.setProperty("--mzd", String(m.convo.dim / 100));
     },
     ask(k) { openScene(k); },
+    /** the dashboard's "try a special day": dresses him as he would be on that day ("normal" undoes it until the next change) */
+    dressFor(k) {
+      const on = Object.fromEntries(Object.keys(cfg.auto).map((x) => [x, true])) as Record<MzAuto, boolean>, bd = "2000-06-06";
+      const m: MascotSettings = { ...cfg, auto: on, moments: { ...cfg.moments, eid: k === "eid", birthday: k === "birthday" ? bd : "" }, eidDates: [], matchDates: k === "match" ? [bd] : [] };
+      const d: MzDay = { ymd: bd, md: k === "boishakh" ? "04-14" : "06-06", dow: k === "friday" ? 5 : 2, month: k === "winter" ? 1 : 6 };
+      rig.setAuto(k === "normal" ? null : autoWear(m, d));
+    },
     openTalk() { openScene(); },
     fun(k) {
       if (k === "sleep") { if (!visible() || away || held || still || CV.on) return; busy = false; setLive(); rig.kill(); if (cfg.fun.ground) sleepGround(rig); else sleepStand(rig); }

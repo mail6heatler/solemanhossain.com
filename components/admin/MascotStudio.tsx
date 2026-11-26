@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  DEFAULT_MASCOT, MZ_BITS, MZ_BIT_OF_LAYOUT, MZ_GAMES, MZ_JEANS, MZ_LIMITS, MZ_QA, MZ_SHIRTS, MZ_SKINS, MZ_TRICKS,
+  DEFAULT_MASCOT, MZ_AUTO, MZ_BITS, MZ_BIT_OF_LAYOUT, MZ_GAMES, MZ_GLASSES, MZ_HATS, MZ_JEANS, MZ_LIMITS, MZ_OUTFITS, MZ_OUTFIT_COLORS, MZ_QA, MZ_SHIRTS, MZ_SHOES, MZ_SKINS, MZ_TRICKS,
   type MascotSettings, type MzBit, type MzGame, type MzQa, type MzTrick,
 } from "@/lib/mascot";
 import { saveMascot } from "@/app/actions";
@@ -25,6 +25,16 @@ const Sw = ({ checked, onChange, children }: { checked: boolean; onChange: (v: b
 const Slider = ({ id, label, value, lim, unit, onChange }: { id: string; label: string; value: number; lim: readonly [number, number]; unit: string; onChange: (v: number) => void }) => (
   <div className="fl cs-slider"><label htmlFor={id}>{label} <b>{value}{unit}</b></label><input id={id} type="range" min={lim[0]} max={lim[1]} step={1} value={value} onChange={(e) => onChange(+e.target.value)} /></div>
 );
+/** a list of dates (Eid days, match days): each with a remove button, and a date box to add one */
+const DateList = ({ id, label, value, onChange }: { id: string; label: string; value: string[]; onChange: (v: string[]) => void }) => {
+  const [add, setAdd] = useState("");
+  return (
+    <div className="fl"><label htmlFor={id}>{label}</label>
+      {value.length > 0 && <div className="hst-chips">{value.map((x) => <button key={x} type="button" className="hst-chip on" title="Remove this date" onClick={() => onChange(value.filter((y) => y !== x))}>{x} ✕</button>)}</div>}
+      <div className="hst-chips"><input id={id} className="inp" type="date" value={add} onChange={(e) => setAdd(e.target.value)} /><button type="button" className="hst-chip" disabled={!add} onClick={() => { if (add && !value.includes(add)) onChange([...value, add].sort()); setAdd(""); }}>+ Add</button></div>
+    </div>
+  );
+};
 const Btn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => <button type="button" className="hst-chip" onClick={onClick}>{children}</button>;
 
 /**
@@ -102,6 +112,8 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
             <div className="hst-chips">{MZ_TRICKS.map(([k, l]) => <Btn key={k} onClick={() => c()?.trick(k)}>{l}</Btn>)}</div>
             <span className="lab">Each section</span>
             <div className="hst-chips">{MZ_BITS.map(([k, l]) => <Btn key={k} onClick={() => c()?.bit(k)}>{l}</Btn>)}</div>
+            <span className="lab">Special days (his clothes)</span>
+            <div className="hst-chips"><Btn onClick={() => c()?.dressFor("normal")}>👕 Normal</Btn>{MZ_AUTO.filter(([k]) => k !== "visitors").map(([k, l]) => <Btn key={k} onClick={() => c()?.dressFor(k)}>{l.replace(/ \(.*\)$/, "")}</Btn>)}</div>
             <span className="lab">Moments</span>
             <div className="hst-chips">{([["normal", "Normal"], ["morning", "☕ Morning"], ["night", "🌙 Night"], ["rain", "☔ Rain"], ["eid", "🏮 Eid"], ["birthday", "🎂 Birthday"]] as const).map(([k, l]) => <Btn key={k} onClick={() => c()?.moment(k)}>{l}</Btn>)}</div>
           </div>
@@ -209,9 +221,34 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
               <div className="hst-chips">{MZ_SKINS.map((k) => <button key={k} type="button" className={`mzs-sw${d.skin === k ? " on" : ""}`} style={{ background: k }} aria-label={`Skin tone ${k}`} onClick={() => set({ skin: k })} />)}</div>
               <span className="lab">Hair</span><Chips list={[["curly", "Curly"], ["swept", "Swept up"], ["short", "Short"]] as const} value={d.hair} onPick={(v) => set({ hair: v })} />
               <span className="lab">Beard</span><Chips list={[["trim", "Trimmed"], ["stubble", "Stubble"], ["clean", "Clean shave"]] as const} value={d.beard} onPick={(v) => set({ beard: v })} />
-              <Sw checked={d.glasses} onChange={(v) => set({ glasses: v })}>Glasses</Sw>
-              <span className="lab">Shirt</span><Chips list={Object.entries(MZ_SHIRTS).map(([k, v]) => [k, v[2]] as const)} value={d.shirt} onPick={(v) => set({ shirt: v as MascotSettings["shirt"] })} />
-              <span className="lab">Jeans</span><Chips list={Object.entries(MZ_JEANS).map(([k, v]) => [k, v[2]] as const)} value={d.jeans} onPick={(v) => set({ jeans: v as MascotSettings["jeans"] })} />
+              <span className="lab">Outfit</span>
+              <div className="cs-looks">
+                {MZ_OUTFITS.map(([k, t, desc]) => <button key={k} type="button" className={`cs-look${d.outfit === k ? " on" : ""}`} onClick={() => set({ outfit: k })} aria-pressed={d.outfit === k}><b>{t}</b><small>{desc}</small></button>)}
+              </div>
+              {d.outfit === "everyday" ? (<>
+                <span className="lab">Shirt</span><Chips list={Object.entries(MZ_SHIRTS).map(([k, v]) => [k, v[2]] as const)} value={d.shirt} onPick={(v) => set({ shirt: v as MascotSettings["shirt"] })} />
+                <span className="lab">Jeans</span><Chips list={Object.entries(MZ_JEANS).map(([k, v]) => [k, v[2]] as const)} value={d.jeans} onPick={(v) => set({ jeans: v as MascotSettings["jeans"] })} />
+              </>) : (<>
+                <span className="lab">Colour</span>
+                <div className="hst-chips">{MZ_OUTFIT_COLORS[d.outfit].map(([n, a, b], i) => {
+                  const k = d.outfit as keyof typeof MZ_OUTFIT_COLORS, on = d.colors[k] === i;
+                  return <button key={n} type="button" className={`mzs-sw${on ? " on" : ""}`} style={{ background: `linear-gradient(135deg, ${a} 55%, ${b} 55%)` }} title={n} aria-label={n} aria-pressed={on} onClick={() => set({ colors: { ...d.colors, [k]: i } })} />;
+                })}</div>
+              </>)}
+              <span className="lab">Glasses</span><Chips list={MZ_GLASSES} value={d.glasses} onPick={(v) => set({ glasses: v })} />
+              <span className="lab">Hat</span><Chips list={MZ_HATS} value={d.hat} onPick={(v) => set({ hat: v })} />
+              <span className="lab">Shoes</span><Chips list={MZ_SHOES} value={d.shoes} onPick={(v) => set({ shoes: v })} />
+              <div className="hint">His hair tucks under any hat, so curls only peek out at the sides. Moments still put on their own hat: the night cap at night, the party hat on your birthday, the tupi on Eid.</div>
+            </Box>
+
+            <Box title="Special days">
+              <div className="hint">He dresses for these by himself, all day in your time zone ({timezone}), then goes back to the look above. Try each with the Special days buttons under his preview.</div>
+              <div className="stu-switches">
+                {MZ_AUTO.map(([k, t, desc]) => <Sw key={k} checked={d.auto[k]} onChange={(v) => set({ auto: { ...d.auto, [k]: v } })}><span>{t}: {desc}</span></Sw>)}
+              </div>
+              <DateList id="mz-eid" label="Eid dates (each day he wears panjabi and tupi)" value={d.eidDates} onChange={(v) => set({ eidDates: v })} />
+              <DateList id="mz-match" label="Big match days (he wears his jersey)" value={d.matchDates} onChange={(v) => set({ matchDates: v })} />
+              <div className="hint">Your birthday is the date under Moments.</div>
             </Box>
 
             <Box title="Personality">
