@@ -249,6 +249,8 @@ export class Rig {
   s: S; tl: TL | null = null; loops: (Tw | TL)[] = []; ints: number[] = [];
   mouth = "grin"; eyes: Eyes = "open"; sleeping = false; bubOn = false; glTemp = false; hat: string | null = null;
   zzz = 0; snoreTl: TL | null = null; sayT = 0; flapI = 0; bubAt = 0; rect: DOMRect | null = null; rectAt = 0;
+  /** where his bubble is (bx, by) and where it's heading (btx, bty), in the layer's pixels; it glides there every frame */
+  private bx = 0; private by = 0; private btx = 0; private bty = 0; private bLast = 0; private bSide = "";
   bub: HTMLDivElement; qx: (v: number) => void; qy: (v: number) => void;
   /** set by the site: the box he stands in, so a move can slide him (the secret moonwalk) */
   wrap: HTMLElement | null = null; wrapDir = 1;
@@ -335,7 +337,14 @@ export class Rig {
     this.w(e.flame, "opacity", String(f(s.flame)));
     this.show(e.plane, s.plO > 0.01); if (s.plO > 0.01) { this.w(e.plane, "transform", `translate(${f(s.plX)} ${f(s.plY)}) rotate(${f(s.plR)})`); this.w(e.plane, "opacity", String(f(s.plO))); }
     this.w(e.flash, "opacity", String(f(s.flash)));
-    if (this.bubOn) { const n = performance.now(); if (n - this.bubAt > 90) { this.bubAt = n; this.placeBub(); } }
+    if (this.bubOn) {
+      // where it should be is measured ~11 times a second (measuring asks the browser for layout); it glides there every frame,
+      // on real time, so it never jumps while he moves (the parachute's words used to stutter, the owner's step 6, 2026-11-26)
+      const n = performance.now(); if (n - this.bubAt > 90) { this.bubAt = n; this.placeBub(); }
+      const dt = this.bLast ? Math.min(0.05, (n - this.bLast) / 1000) : 0; this.bLast = n;
+      const k = 1 - Math.exp(-dt / 0.09), dx = this.btx - this.bx, dy = this.bty - this.by;
+      if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) { this.bx += dx * k; this.by += dy * k; this.moveBub(); }
+    } else this.bLast = 0;
   }
   /** a point of his drawing, in the layer's pixels */
   pt(x: number, y: number): [number, number] {
@@ -405,19 +414,36 @@ export class Rig {
         onComplete() { G.to(sp, { opacity: 0, y: "-=34", duration: 0.7, delay: 0.15, ease: "power1.in", onComplete: () => sp.remove() }); } });
     }
   }
-  placeBub() {
-    const b = this.bub, [px, py] = this.pt(120 + this.s.x, 22 + this.s.y);
-    const lw = this.layer.clientWidth, lh = this.layer.clientHeight, bw = b.offsetWidth, bh = b.offsetHeight;
-    const left = clamp(px - bw / 2, 8, Math.max(8, lw - bw - 8)), top = clamp(py - bh - 10, 8, Math.max(8, lh - bh - 8));
-    b.style.left = left + "px"; b.style.top = top + "px"; b.style.setProperty("--tail", clamp(px - left, 16, bw - 16) + "px");
+  /**
+   * Where his bubble goes: over his head, or, while he hangs under the parachute, level beside his head on the side with more
+   * room (with its tail on that side), so it never covers the canopy and never swings with him. `snap` puts it there at once.
+   * It's moved with the `translate` property, so GSAP's pop (transform) still works on top.
+   */
+  placeBub(snap = false) {
+    const b = this.bub, s = this.s, lw = this.layer.clientWidth, lh = this.layer.clientHeight, bw = b.offsetWidth, bh = b.offsetHeight;
+    let left: number, top: number, side = "";
+    if (s.chute > 0.3) {
+      const [hx, hy] = this.pt(120 + s.x, 100 + s.y), [ex] = this.pt(176 + s.x, 100 + s.y), r = Math.abs(ex - hx) + 14;
+      side = hx + r + bw <= lw - 8 || hx - r - bw < 8 ? "r" : "l";
+      left = clamp(side === "r" ? hx + r : hx - r - bw, 8, Math.max(8, lw - bw - 8)); top = clamp(hy - bh / 2, 8, Math.max(8, lh - bh - 8));
+      b.style.setProperty("--tail-y", Math.round(clamp(hy - top, 16, bh - 16)) + "px");
+    } else {
+      const [px, py] = this.pt(120 + s.x, 22 + s.y);
+      left = clamp(px - bw / 2, 8, Math.max(8, lw - bw - 8)); top = clamp(py - bh - 10, 8, Math.max(8, lh - bh - 8));
+      b.style.setProperty("--tail", Math.round(clamp(px - left, 16, bw - 16)) + "px");
+    }
+    if (side !== this.bSide) { this.bSide = side; b.classList.toggle("side-r", side === "r"); b.classList.toggle("side-l", side === "l"); }
+    this.btx = left; this.bty = top;
+    if (snap) { this.bx = left; this.by = top; this.moveBub(); }
   }
+  private moveBub() { this.bub.style.translate = `${Math.round(this.bx)}px ${Math.round(this.by)}px`; }
   /** set by the site while his chat is open: what he says goes into the chat instead of the bubble over his head */
   sayHook: ((text: string) => boolean | "quiet") | null = null;
   say(text: string, ms?: number) {
     if (!text) return;
     const hooked = this.sayHook?.(text);
     if (hooked) { if (this.bubOn) this.hush(); if (hooked !== "quiet") this.flap(text); return; }
-    const b = this.bub; fillWords(b, text); this.bubOn = true; this.placeBub(); this.bubAt = performance.now();
+    const b = this.bub, was = this.bubOn; fillWords(b, text); this.bubOn = true; this.placeBub(!was); this.bubAt = performance.now();
     G.killTweensOf(b); G.fromTo(b, { opacity: 0, scale: 0.7, y: 8 }, { opacity: 1, scale: 1, y: 0, duration: this.still ? 0.01 : 0.38, ease: "back.out(2.2)" });
     clearTimeout(this.sayT); this.sayT = window.setTimeout(() => G.to(b, { opacity: 0, scale: 0.9, duration: 0.25, onComplete: () => { this.bubOn = false; } }), ms || Math.max(2400, text.length * 75));
     this.flap(text);

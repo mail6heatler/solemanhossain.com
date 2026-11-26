@@ -39,6 +39,11 @@
   transform-origin: var(--tail, 50%) 100%; z-index: 4; overflow-wrap: anywhere; }
 /* every bubble is one size (the owner's rule, 2026-11-21); its words fade in one after another (fillWords in mascotRig.ts) */
 @media (max-width: 760px) { .mz-bub { width: 180px; font-size: 13px; } }
+/* beside him while he hangs under the parachute (placeBub): the tail points at his head from the bubble's side */
+.mz-bub.side-r { transform-origin: 0 var(--tail-y, 50%); }
+.mz-bub.side-l { transform-origin: 100% var(--tail-y, 50%); }
+.mz-bub.side-r::after { left: -7px; top: var(--tail-y, 50%); bottom: auto; transform: translateY(-50%) rotate(135deg); }
+.mz-bub.side-l::after { left: auto; right: -7px; top: var(--tail-y, 50%); bottom: auto; transform: translateY(-50%) rotate(-45deg); }
 .mz-w { display: inline-block; }
 .mz-bub .mz-w { animation: mz-w .32s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
 @keyframes mz-w { from { opacity: 0; translate: 0 .35em; } }
