@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DEFAULT_MASCOT, MZ_AUTO, MZ_BITS, MZ_BIT_OF_LAYOUT, MZ_GAMES, MZ_GLASSES, MZ_HATS, MZ_JEANS, MZ_LIMITS, MZ_OUTFITS, MZ_OUTFIT_COLORS, MZ_QA, MZ_SHIRTS, MZ_SHOES, MZ_SKINS, MZ_TRICKS,
-  type MascotSettings, type MzBit, type MzGame, type MzQa, type MzTrick,
+  type MascotSettings, type MzBit, type MzQa,
 } from "@/lib/mascot";
 import { saveMascot } from "@/app/actions";
-import type { MascotCtl } from "@/components/site/mascotEngine";
-import { SaveBar } from "./ChromeStudio";
+import type { MzStudioMsg } from "@/components/site/Mascot";
+import { SaveBar, SiteScreens } from "./ChromeStudio";
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 type Sec = { title: string; emoji: string; layout: string; code: string };
@@ -30,11 +30,21 @@ const DateList = ({ id, label, value, onChange }: { id: string; label: string; v
   const [add, setAdd] = useState("");
   return (
     <div className="fl"><label htmlFor={id}>{label}</label>
-      {value.length > 0 && <div className="hst-chips">{value.map((x) => <button key={x} type="button" className="hst-chip on" title="Remove this date" onClick={() => onChange(value.filter((y) => y !== x))}>{x} ✕</button>)}</div>}
+      {value.length > 0 && <div className="hst-chips">{value.map((x) => <button key={x} type="button" className="hst-chip on" title="Remove this date" onClick={() => onChange(value.filter((y) => y !== x))}>{x} âœ•</button>)}</div>}
       <div className="hst-chips"><input id={id} className="inp" type="date" value={add} onChange={(e) => setAdd(e.target.value)} /><button type="button" className="hst-chip" disabled={!add} onClick={() => { if (add && !value.includes(add)) onChange([...value, add].sort()); setAdd(""); }}>+ Add</button></div>
     </div>
   );
 };
+/** one thing he can do: its switch (when it has one) and a button that plays it on both screens */
+const Row = ({ label, on, onChange, test }: { label: React.ReactNode; on?: boolean; onChange?: (v: boolean) => void; test?: () => void }) => (
+  <div className="mzs-row">
+    {onChange ? <label className="switch"><input type="checkbox" checked={!!on} onChange={(e) => onChange(e.target.checked)} />{label}</label> : <span className="mzs-rl">{label}</span>}
+    {test && <button type="button" className="hst-chip mzs-test" onClick={test}>â–¶ Test</button>}
+  </div>
+);
+const Group = ({ title, hint, children, open = false }: { title: string; hint?: string; children: React.ReactNode; open?: boolean }) => (
+  <details className="mzs-group" open={open}><summary>{title}</summary>{hint && <p className="hint">{hint}</p>}<div className="mzs-rows">{children}</div></details>
+);
 const Btn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => <button type="button" className="hst-chip" onClick={onClick}>{children}</button>;
 
 /**
@@ -49,19 +59,9 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState<{ t: string; bad?: boolean } | null>(null);
   const dirty = !same(d, saved);
-  const stage = useRef<HTMLDivElement>(null);
-  const ctl = useRef<MascotCtl | null>(null);
-  const firstD = useRef(d);
-
-  useEffect(() => {
-    let dead = false;
-    Promise.all([import("gsap"), import("@/components/site/mascotEngine")]).then(([g, e]) => {
-      if (dead || !stage.current) return;
-      ctl.current = e.startMascot(stage.current, { m: firstD.current, timezone }, g.gsap, { preview: true });
-    }).catch(() => {});
-    return () => { dead = true; ctl.current?.stop(); ctl.current = null; };
-  }, [timezone]);
-  useEffect(() => { ctl.current?.update(d); }, [d]);
+  /* the screens: your real homepage on a computer and a phone (/?mz=studio, components/site/Mascot.tsx), with this page's unsaved settings */
+  const frames = useRef<(HTMLIFrameElement | null)[]>([]);
+  const draft: MzStudioMsg = { type: "lc-mz-draft", m: d };
   useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), 4000); return () => clearTimeout(t); }, [note]);
 
   const set = (patch: Partial<MascotSettings>) => setD((x) => ({ ...x, ...patch }));
@@ -84,45 +84,69 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
     setSaved(d); setNote({ t: "Saved. It's live on your site." }); router.refresh();
   };
 
-  const c = () => ctl.current;
+  /** plays something on both screens */
+  const play = (cmd: string, k?: string) => frames.current.forEach((f) => f?.contentWindow?.postMessage({ type: "lc-mz-cmd", cmd, k } satisfies MzStudioMsg, location.origin));
+  const setNotice = (k: keyof MascotSettings["fun"]["notice"], v: boolean) => setFun({ notice: { ...d.fun.notice, [k]: v } });
   const bitSections = (k: MzBit) => sections.filter((s) => MZ_BIT_OF_LAYOUT[s.layout] === k).map((s) => `${s.emoji} ${s.title}`.trim()).join(", ");
 
   return (
     <div className="stu cs">
       <header className="stu-top">
-        <div className="stu-name"><h1 className="adm-h">Mascot</h1><p className="adm-sub">{d.show ? "Mini Shourobh is on every page of your site" : "Hidden: visitors don't see him (the preview still shows him, so you can edit)"}{dirty ? " · changes not saved" : ""}</p></div>
+        <div className="stu-name"><h1 className="adm-h">Mascot</h1><p className="adm-sub">{d.show ? "Mini Shourobh is on every page of your site" : "Hidden: visitors don't see him (the preview still shows him, so you can edit)"}{dirty ? " Â· changes not saved" : ""}</p></div>
         <div className="btns stu-topbtns"><label className="switch cs-show"><input type="checkbox" checked={d.show} onChange={(e) => set({ show: e.target.checked })} />{d.show ? "Showing on site" : "Hidden on site"}</label><a href="/" target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a></div>
       </header>
 
       <div className="cs-work">
-        <div className="cs-screens">
-          <div className="mzs-stage" ref={stage} />
-          <div className="mzs-tries">
-            <p className="hint">This is him, live. Click him to talk, drag him to throw him, click three times fast to tickle him. Or try anything below.</p>
-            <div className="hst-chips"><button type="button" className="hst-chip on" onClick={() => c()?.openTalk()}>🎙️ Talk to him</button><button type="button" className="hst-chip" onClick={() => c()?.testVoice()}>🔊 Hear his voice</button></div>
-            <span className="lab">Questions</span>
-            <div className="hst-chips">{MZ_QA.map(([k]) => d.qa[k].on && <Btn key={k} onClick={() => c()?.ask(k)}>{d.qa[k].q}</Btn>)}</div>
-            <span className="lab">Fun</span>
-            <div className="hst-chips">
-              <Btn onClick={() => c()?.nap()}>😴 Sleep</Btn><Btn onClick={() => c()?.wake()}>⏰ Wake</Btn><Btn onClick={() => c()?.throwDemo()}>🤾 Throw him</Btn>
-              <Btn onClick={() => c()?.fun("tickle")}>🤭 Tickle</Btn><Btn onClick={() => c()?.fun("grumpy")}>😤 Grumpy</Btn><Btn onClick={() => c()?.fun("secret")}>🕺 Secret move</Btn>
-              {MZ_GAMES.map(([k, l]) => <Btn key={k} onClick={() => c()?.fun(k)}>{l}</Btn>)}
-            </div>
-            <span className="lab">Tricks</span>
-            <div className="hst-chips">{MZ_TRICKS.map(([k, l]) => <Btn key={k} onClick={() => c()?.trick(k)}>{l}</Btn>)}</div>
-            <span className="lab">Each section</span>
-            <div className="hst-chips">{MZ_BITS.map(([k, l]) => <Btn key={k} onClick={() => c()?.bit(k)}>{l}</Btn>)}</div>
-            <span className="lab">Special days (his clothes)</span>
-            <div className="hst-chips"><Btn onClick={() => c()?.dressFor("normal")}>👕 Normal</Btn>{MZ_AUTO.filter(([k]) => k !== "visitors").map(([k, l]) => <Btn key={k} onClick={() => c()?.dressFor(k)}>{l.replace(/ \(.*\)$/, "")}</Btn>)}</div>
-            <span className="lab">Moments</span>
-            <div className="hst-chips">{([["normal", "Normal"], ["morning", "☕ Morning"], ["night", "🌙 Night"], ["rain", "☔ Rain"], ["eid", "🏮 Eid"], ["birthday", "🎂 Birthday"]] as const).map(([k, l]) => <Btn key={k} onClick={() => c()?.moment(k)}>{l}</Btn>)}</div>
+        <div className="cs-screens mzs-left">
+          <SiteScreens src="/?mz=studio" draft={draft} ready="lc-mz-ready" hint="Your real homepage with him on it, with your changes before saving. Scroll and click inside: it works like the site, and nothing there counts as a visit" onFrames={(f) => { frames.current = f; }} />
+          <div className="mzs-bench">
+            <div className="mzs-bench-top"><b>Test on your site</b><span className="hint">Switch things on or off, and press â–¶ Test to see it on both screens.</span></div>
+            <div className="hst-chips"><button type="button" className="hst-chip on" onClick={() => play("openTalk")}>ðŸŽ™ï¸ Open his chat</button><Btn onClick={() => play("testVoice")}>ðŸ”Š Hear his voice</Btn></div>
+            <Group title="Tricks" hint="Today he does these when someone asks &ldquo;Do a trick!&rdquo;, in turn." open>
+              {MZ_TRICKS.map(([k, l]) => <Row key={k} label={l} on={d.tricks[k]} onChange={(v) => set({ tricks: { ...d.tricks, [k]: v } })} test={() => play("trick", k)} />)}
+            </Group>
+            <Group title="Games when he's bored">
+              {MZ_GAMES.map(([k, l]) => <Row key={k} label={l} on={d.fun.games[k]} onChange={(v) => setFun({ games: { ...d.fun.games, [k]: v } })} test={() => play("fun", k)} />)}
+            </Group>
+            <Group title="Fun">
+              <Row label="ðŸ¤­ Giggles when clicked fast" on={d.fun.tickle} onChange={(v) => setFun({ tickle: v })} test={() => play("fun", "tickle")} />
+              <Row label="ðŸ˜¤ Grumpy when the tickling goes on" test={() => play("fun", "grumpy")} />
+              <Row label="ðŸ¤¾ Visitors can pick him up and throw him" on={d.fun.throw} onChange={(v) => setFun({ throw: v })} test={() => play("throwDemo")} />
+              <Row label="ðŸ˜´ Naps when nobody moves" on={d.nap} onChange={(v) => set({ nap: v })} test={() => play("nap")} />
+              <Row label="â° Wakes up" test={() => play("wake")} />
+              <Row label="ðŸš€ Rocket when someone says goodbye" on={d.fun.rocket} onChange={(v) => setFun({ rocket: v })} test={() => play("ask", "bye")} />
+              <Row label="ðŸ’¨ Blown by the wind when they scroll too fast" on={d.fun.notice.fast} onChange={(v) => setNotice("fast", v)} test={() => play("fun", "wind")} />
+              <Row label="ðŸŽ‰ Party at the end of the page" on={d.fun.notice.end} onChange={(v) => setNotice("end", v)} test={() => play("fun", "endParty")} />
+              <Row label="ðŸ¥º Missed them when they come back to the tab" on={d.fun.notice.back} onChange={(v) => setNotice("back", v)} test={() => play("fun", "welcome")} />
+              <Row label="ðŸ™Œ Cheers when they react to something" on={d.cheer} onChange={(v) => set({ cheer: v })} test={() => play("fun", "cheered")} />
+              <Row label="ðŸ‘‰ Points at the card under their mouse" on={d.fun.notice.point} onChange={(v) => setNotice("point", v)} />
+              <Row label="ðŸ•º Secret move (five friendship hearts unlock it)" on={d.fun.hearts} onChange={(v) => setFun({ hearts: v })} test={() => play("fun", "secret")} />
+            </Group>
+            <Group title="Moments" hint="He picks the moment by himself from your clock; â–¶ Test shows each now.">
+              <Row label="â˜• Morning (5 to 10 am)" on={d.moments.morning} onChange={(v) => set({ moments: { ...d.moments, morning: v } })} test={() => play("moment", "morning")} />
+              <Row label="ðŸŒ™ Night (9 pm to 5 am)" on={d.moments.night} onChange={(v) => set({ moments: { ...d.moments, night: v } })} test={() => play("moment", "night")} />
+              <Row label="â˜” Rainy day (switch it on when it rains)" on={d.moments.rain} onChange={(v) => set({ moments: { ...d.moments, rain: v } })} test={() => play("moment", "rain")} />
+              <Row label="ðŸ® Eid (switch it on for Eid, or add dates under Special days)" on={d.moments.eid} onChange={(v) => set({ moments: { ...d.moments, eid: v } })} test={() => play("moment", "eid")} />
+              <Row label="ðŸŽ‚ Your birthday (the date is under Moments)" test={() => play("moment", "birthday")} />
+              <Row label="Back to normal" test={() => play("moment", "normal")} />
+            </Group>
+            <Group title="Each section" hint="His move when a visitor reaches each kind of section.">
+              {MZ_BITS.map(([k, l, move]) => <Row key={k} label={<>{l}: <small>{move}</small></>} on={d.acts[k]} onChange={(v) => set({ acts: { ...d.acts, [k]: v } })} test={() => play("bit", k)} />)}
+            </Group>
+            <Group title="Special days (his clothes)">
+              {MZ_AUTO.map(([k, l]) => <Row key={k} label={l} on={d.auto[k]} onChange={(v) => set({ auto: { ...d.auto, [k]: v } })} test={k === "visitors" ? () => play("openTalk") : () => play("dressFor", k)} />)}
+              <Row label="ðŸ‘• His own look" test={() => play("dressFor", "normal")} />
+            </Group>
+            <Group title="Questions in his chat">
+              {MZ_QA.map(([k]) => <Row key={k} label={d.qa[k].q} on={d.qa[k].on} onChange={(v) => setQa(k, { on: v })} test={() => play("ask", k)} />)}
+            </Group>
           </div>
         </div>
 
         <div className="cs-grid">
           <div className="cs-panel">
             <Box title="His voice">
-              <Sw checked={d.convo.voice} onChange={(v) => setCv({ voice: v })}>He speaks out loud when someone talks to him (visitors can mute him with 🔊)</Sw>
+              <Sw checked={d.convo.voice} onChange={(v) => setCv({ voice: v })}>He speaks out loud when someone talks to him (visitors can mute him with ðŸ”Š)</Sw>
               <div className="mzs-sub">
                 <div className="fl"><label htmlFor="mz-voice">Voice</label>
                   <select id="mz-voice" className="inp" value={d.convo.voiceName} onChange={(e) => setCv({ voiceName: e.target.value })}>
@@ -135,13 +159,13 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
                 <Slider id="mz-rate" label="Speed" value={d.convo.rate} lim={MZ_LIMITS.rate} unit="%" onChange={(v) => setCv({ rate: v })} />
                 <Slider id="mz-pitch" label="Pitch (higher sounds more cartoony)" value={d.convo.pitch} lim={MZ_LIMITS.pitch} unit="%" onChange={(v) => setCv({ pitch: v })} />
                 <Slider id="mz-vol" label="Volume" value={d.convo.volume} lim={MZ_LIMITS.volume} unit="%" onChange={(v) => setCv({ volume: v })} />
-                <div className="btns"><button type="button" className="b-out b-sm" onClick={() => c()?.testVoice()}><i className="ti ti-volume" />Hear him say his first words</button></div>
+                <div className="btns"><button type="button" className="b-out b-sm" onClick={() => play("testVoice")}><i className="ti ti-volume" />Hear him say his first words</button></div>
               </div>
             </Box>
 
             <Box title="The talking scene">
-              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card or send a quick 👋 😂 ❤️ 🔥. Typing to him shows as &ldquo;AI · coming soon&rdquo; until his AI assistant is built.</div>
-              <div className="hint"><b>Everything he says can have versions.</b> Put | between them and he picks one at random each time, never the same twice in a row. For example: <i>Hi there!|Hey you! 👋|Oh, hello!</i></div>
+              <div className="hint">Clicking him (or his invite bubble) dims the site and brings him to the middle, where he talks, gestures and acts out his answers. Visitors pick a card or send a quick ðŸ‘‹ ðŸ˜‚ â¤ï¸ ðŸ”¥. Typing to him shows as &ldquo;AI Â· coming soon&rdquo; until his AI assistant is built.</div>
+              <div className="hint"><b>Everything he says can have versions.</b> Put | between them and he picks one at random each time, never the same twice in a row. For example: <i>Hi there!|Hey you! ðŸ‘‹|Oh, hello!</i></div>
               <div className="fl"><label htmlFor="mz-hello">His first words</label><input id="mz-hello" className="inp" maxLength={400} value={d.convo.hello} onChange={(e) => setCv({ hello: e.target.value })} /></div>
               <Slider id="mz-dim" label="How dark the site gets behind him" value={d.convo.dim} lim={MZ_LIMITS.dim} unit="%" onChange={(v) => setCv({ dim: v })} />
               <Slider id="mz-scale" label="His size on the stage, at most" value={d.convo.scale} lim={MZ_LIMITS.scale} unit="%" onChange={(v) => setCv({ scale: v })} />
@@ -167,39 +191,26 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
             <Box title="Fun">
               <div className="stu-switches">
                 <Sw checked={d.fun.ground} onChange={(v) => setFun({ ground: v })}>Naps on the ground with a pillow and blanket (off: naps standing up)</Sw>
-                <Sw checked={d.fun.throw} onChange={(v) => setFun({ throw: v })}>Visitors can pick him up and throw him</Sw>
-                <Sw checked={d.fun.tickle} onChange={(v) => setFun({ tickle: v })}>Giggles when clicked fast, grumpy if it goes on</Sw>
                 <Sw checked={d.fun.bored} onChange={(v) => setFun({ bored: v })}>Plays when he&apos;s bored</Sw>
               </div>
               <div className="mzs-sub">
-                <div className="hst-chips">{MZ_GAMES.map(([k, l]) => <button key={k} type="button" className={`hst-chip${d.fun.games[k] ? " on" : ""}`} onClick={() => setFun({ games: { ...d.fun.games, [k]: !d.fun.games[k as MzGame] } })}>{l}</button>)}</div>
+                <div className="hint">Which games he plays: Games when he&apos;s bored, under the screens.</div>
                 <Slider id="mz-bored" label="Starts after nobody moves for" value={d.fun.boredAfter} lim={MZ_LIMITS.boredAfter} unit=" s" onChange={(v) => setFun({ boredAfter: v })} />
               </div>
-              <Sw checked={d.fun.rocket} onChange={(v) => setFun({ rocket: v })}>Leaves in a rocket when someone says goodbye</Sw>
+              <span className="lab">The rocket (switched on or off under the screens)</span>
               <div className="mzs-sub">
                 <div className="fl"><label htmlFor="mz-rkname">The rocket&apos;s name, painted on its side</label><input id="mz-rkname" className="inp" maxLength={24} value={d.fun.rocketName} onChange={(e) => setFun({ rocketName: e.target.value })} placeholder="SHOUROBH ONE" /><div className="hint">The last word goes on a second line with stars around it. Empty leaves the rocket plain.</div></div>
                 <Slider id="mz-back" label="Comes back by parachute after" value={d.fun.backAfter} lim={MZ_LIMITS.backAfter} unit=" s" onChange={(v) => setFun({ backAfter: v })} />
               </div>
-              <span className="lab">Notices what visitors do</span>
-              <div className="mzs-sub stu-switches">
-                <Sw checked={d.fun.notice.fast} onChange={(v) => setFun({ notice: { ...d.fun.notice, fast: v } })}>Blown by the wind when they scroll too fast</Sw>
-                <Sw checked={d.fun.notice.end} onChange={(v) => setFun({ notice: { ...d.fun.notice, end: v } })}>Celebrates when they reach the end</Sw>
-                <Sw checked={d.fun.notice.back} onChange={(v) => setFun({ notice: { ...d.fun.notice, back: v } })}>Missed them when they come back to the tab</Sw>
-                <Sw checked={d.fun.notice.point} onChange={(v) => setFun({ notice: { ...d.fun.notice, point: v } })}>Points at the card under their mouse</Sw>
-              </div>
               <div className="stu-switches">
-                <Sw checked={d.fun.hearts} onChange={(v) => setFun({ hearts: v })}>Friendship hearts: five different things with him unlock his secret move</Sw>
                 <Sw checked={d.fun.sounds} onChange={(v) => setFun({ sounds: v })}>Little sound effects (only after a visitor taps or types something)</Sw>
               </div>
             </Box>
 
             <Box title="Moments">
               <Sw checked={d.moments.auto} onChange={(v) => set({ moments: { ...d.moments, auto: v } })}>Pick the moment by itself, from your clock ({timezone}) and the dates below</Sw>
+              <div className="hint">Which moments he has: Moments, under the screens.</div>
               <div className="mzs-sub stu-switches">
-                <Sw checked={d.moments.morning} onChange={(v) => set({ moments: { ...d.moments, morning: v } })}>Morning (5 to 10 am): stretches and drinks cha</Sw>
-                <Sw checked={d.moments.night} onChange={(v) => set({ moments: { ...d.moments, night: v } })}>Night (9 pm to 5 am): night cap and stars</Sw>
-                <Sw checked={d.moments.rain} onChange={(v) => set({ moments: { ...d.moments, rain: v } })}>Rainy day: umbrella and rain (switch it on when it rains)</Sw>
-                <Sw checked={d.moments.eid} onChange={(v) => set({ moments: { ...d.moments, eid: v } })}>Eid: cap, lantern and &ldquo;Eid Mubarak&rdquo; (switch it on for Eid)</Sw>
                 <div className="fl"><label htmlFor="mz-bday">Your birthday: party hat, cake and confetti all day</label><input id="mz-bday" className="inp" type="date" value={d.moments.birthday} onChange={(e) => set({ moments: { ...d.moments, birthday: e.target.value } })} /></div>
               </div>
             </Box>
@@ -243,9 +254,7 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
 
             <Box title="Special days">
               <div className="hint">He dresses for these by himself, all day in your time zone ({timezone}), then goes back to the look above. Try each with the Special days buttons under his preview.</div>
-              <div className="stu-switches">
-                {MZ_AUTO.map(([k, t, desc]) => <Sw key={k} checked={d.auto[k]} onChange={(v) => set({ auto: { ...d.auto, [k]: v } })}><span>{t}: {desc}</span></Sw>)}
-              </div>
+              <ul className="mzs-days">{MZ_AUTO.map(([k, t, desc]) => <li key={k}><b>{t}</b>: {desc}{d.auto[k] ? "" : " (off)"}</li>)}</ul>
               <DateList id="mz-eid" label="Eid dates (each day he wears panjabi and tupi)" value={d.eidDates} onChange={(v) => set({ eidDates: v })} />
               <DateList id="mz-match" label="Big match days (he wears his jersey)" value={d.matchDates} onChange={(v) => set({ matchDates: v })} />
               <div className="hint">Your birthday is the date under Moments.</div>
@@ -262,16 +271,11 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
               <Slider id="mz-nap" label="Naps after nobody moves for" value={d.napAfter} lim={MZ_LIMITS.napAfter} unit=" s" onChange={(v) => set({ napAfter: v })} />
             </Box>
 
-            <Box title="Tricks">
-              <div className="hint">He goes through the ones you tick when someone asks &ldquo;Do a trick!&rdquo;.</div>
-              <div className="hst-chips">{MZ_TRICKS.map(([k, l]) => <button key={k} type="button" className={`hst-chip${d.tricks[k] ? " on" : ""}`} onClick={() => set({ tricks: { ...d.tricks, [k]: !d.tricks[k as MzTrick] } })}>{l}</button>)}</div>
-            </Box>
-
             <Box title="Each section">
               <div className="fl"><label htmlFor="mz-greet">Greeting, once per visit</label><textarea id="mz-greet" className="inp" rows={2} maxLength={600} value={d.greet} onChange={(e) => set({ greet: e.target.value })} /><div className="hint">{"{time}"} becomes morning, afternoon, evening or night on your clock. Put | between versions and he picks one at random.</div></div>
               {MZ_BITS.filter(([k]) => k !== "hero").map(([k, label, move]) => (
                 <div key={k} className="mzs-qa">
-                  <Sw checked={d.acts[k]} onChange={(v) => set({ acts: { ...d.acts, [k]: v } })}><b>{label}</b></Sw>
+                  <b>{label}</b>
                   <textarea className="inp" rows={2} maxLength={600} value={d.lines[k as Exclude<MzBit, "hero">]} aria-label={`${label}: his line`} onChange={(e) => set({ lines: { ...d.lines, [k]: e.target.value } })} />
                   <p className="hint">{move}. {bitSections(k) ? `Your sections: ${bitSections(k)}.` : "None of your sections uses this look right now."}</p>
                 </div>

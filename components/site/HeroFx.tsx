@@ -177,7 +177,7 @@ export function LivePill() {
     }
     let stop = false;
     const ping = async () => {
-      if (document.hidden) return;
+      if (document.hidden || window.self !== window.top) return; // the dashboard's previews aren't people here
       try {
         const r = await fetch("/api/presence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
         const d = await r.json();

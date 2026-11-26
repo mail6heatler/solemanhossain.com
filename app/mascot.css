@@ -159,3 +159,21 @@ html.lite .mz-rain { display: none !important; }
 
 /* holding him to throw him: no text selection or a phone's long-press menu */
 .mz { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* the Mascot page (2026-11-26): your real homepage on two screens, and under them the test bench (a switch and ▶ Test for each thing he does) */
+.cs-work > .mzs-left { max-height: calc(100vh - 150px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+@media (max-width: 1100px) { .cs-work > .mzs-left { max-height: none; overflow: visible; } }
+.mzs-bench { display: grid; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid var(--card-border, #ddd); background: var(--card-bg, #fff); }
+.mzs-bench-top { display: grid; gap: 2px; }
+.mzs-bench-top b { font-size: 15px; }
+.mzs-bench-top .hint { margin: 0; }
+.mzs-group { border-top: 1px solid var(--card-border, #ddd); padding-top: 8px; }
+.mzs-group > summary { cursor: pointer; font-weight: 700; font-size: 13.5px; padding: 4px 0; }
+.mzs-group > .hint { margin: 2px 0 6px; }
+.mzs-rows { display: grid; gap: 2px; }
+.mzs-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 36px; padding: 2px 4px; border-radius: 8px; }
+.mzs-row:hover { background: color-mix(in srgb, var(--text, #223) 5%, transparent); }
+.mzs-row .switch, .mzs-rl { flex: 1; min-width: 0; font-size: 13.5px; }
+.mzs-row small { color: var(--text-muted, #667); }
+.mzs-test { flex: none; white-space: nowrap; }
+.mzs-days { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; }

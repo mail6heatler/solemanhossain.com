@@ -53,6 +53,15 @@ const pick = (key: string, n: number, max: number) => { try { const v = Number(l
  * chosen by presets (lc_cs_desk, lc_cs_phone), and Both, Computer or Phone shows one bigger (lc_cs_view).
  */
 function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: SiteSettings; skin: string }) {
+  const draft: ChromeDraft = { type: "lc-chrome-draft", settings, skin };
+  return <SiteScreens src={`/admin/preview?part=${part}`} draft={draft} ready="lc-chrome-ready" hint="Both screens show your changes as you make them, before saving" />;
+}
+
+/**
+ * The same two screens for any page: `src` is loaded in both, `draft` is posted into each whenever it changes and whenever a screen
+ * posts `ready`. `onFrames` hands the two iframes to the editor, so it can send them more (the Mascot page's ▶ Test buttons).
+ */
+export function SiteScreens({ src, draft, ready, hint, onFrames }: { src: string; draft: object; ready: string; hint: string; onFrames?: (f: (HTMLIFrameElement | null)[]) => void }) {
   const [di, setDi] = useState(1), [pi, setPi] = useState(1), [w, setW] = useState(0), [vh, setVh] = useState(800);
   const [view, setView] = useState<"both" | "desk" | "phone">("both");
   const box = useRef<HTMLDivElement>(null);
@@ -68,14 +77,15 @@ function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: 
     return () => { ro.disconnect(); removeEventListener("resize", tall); };
   }, []);
   // send the draft in, now and whenever a screen says it's ready
-  const draft = useRef<ChromeDraft>({ type: "lc-chrome-draft", settings, skin });
-  draft.current = { type: "lc-chrome-draft", settings, skin };
-  useEffect(() => { frames.current.forEach((f) => f?.contentWindow?.postMessage(draft.current, location.origin)); }, [settings, skin]);
+  const cur = useRef(draft); cur.current = draft;
+  const key = JSON.stringify(draft);
+  useEffect(() => { frames.current.forEach((f) => f?.contentWindow?.postMessage(cur.current, location.origin)); }, [key]);
   useEffect(() => {
-    const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === "lc-chrome-ready") (e.source as Window | null)?.postMessage(draft.current, location.origin); };
+    const on = (e: MessageEvent) => { if (e.origin === location.origin && e.data?.type === ready) (e.source as Window | null)?.postMessage(cur.current, location.origin); };
     addEventListener("message", on);
     return () => removeEventListener("message", on);
-  }, []);
+  }, [ready]);
+  useEffect(() => { onFrames?.(frames.current); });
   const [dw, dh] = DESKS[di], [pw, ph] = PHONES[pi];
   const gap = 18, bez = 10;
   // one height for both, as big as the left side's width and the window's height allow
@@ -85,7 +95,6 @@ function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: 
   else if (view === "phone") kp = Math.min((w - 2 * bez) / pw, (capH - 2 * bez) / ph, 1.2);
   else { const H = Math.min(capH, w ? (w - gap - 2 * bez) / (dw / dh + pw / ph) : 0); kd = H / dh; kp = (H - 2 * bez) / ph; }
   const setV = (v: typeof view) => { setView(v); try { localStorage.setItem("lc_cs_view", v); } catch { /* */ } };
-  const src = `/admin/preview?part=${part}`;
   return (
     <div className="cs-screens">
       <div className="cs-sizes">
@@ -104,7 +113,7 @@ function Screens({ part, settings, skin }: { part: "menu" | "footer"; settings: 
           </div>
         </>}
       </div>
-      <p className="hint cs-hint">Both screens show your changes as you make them, before saving, at a real {dw}×{dh} computer and {pw}×{ph} phone, scaled to fit. Scroll and click inside them: they work like the site.</p>
+      <p className="hint cs-hint">{hint}, at a real {dw}×{dh} computer and {pw}×{ph} phone, scaled to fit. Scroll and click inside them: they work like the site.</p>
     </div>
   );
 }
