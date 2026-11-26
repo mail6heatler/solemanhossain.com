@@ -249,8 +249,9 @@ export class Rig {
   s: S; tl: TL | null = null; loops: (Tw | TL)[] = []; ints: number[] = [];
   mouth = "grin"; eyes: Eyes = "open"; sleeping = false; bubOn = false; glTemp = false; hat: string | null = null;
   zzz = 0; snoreTl: TL | null = null; sayT = 0; flapI = 0; bubAt = 0; rect: DOMRect | null = null; rectAt = 0;
-  /** where his bubble is (bx, by) and where it's heading (btx, bty), in the layer's pixels; it glides there every frame */
-  private bx = 0; private by = 0; private btx = 0; private bty = 0; private bLast = 0; private bSide = "";
+  /** his bubble's place relative to his box's movement (bx, by) and where that's heading (btx, bty); sizes for keeping it on screen */
+  private bx = 0; private by = 0; private btx = 0; private bty = 0; private bLast = 0; private bSide = ""; private bPut = "";
+  private bBox = [0, 0, 0, 0]; private wh = [0, 0];
   bub: HTMLDivElement; qx: (v: number) => void; qy: (v: number) => void;
   /** set by the site: the box he stands in, so a move can slide him (the secret moonwalk) */
   wrap: HTMLElement | null = null; wrapDir = 1;
@@ -338,12 +339,14 @@ export class Rig {
     this.show(e.plane, s.plO > 0.01); if (s.plO > 0.01) { this.w(e.plane, "transform", `translate(${f(s.plX)} ${f(s.plY)}) rotate(${f(s.plR)})`); this.w(e.plane, "opacity", String(f(s.plO))); }
     this.w(e.flash, "opacity", String(f(s.flash)));
     if (this.bubOn) {
-      // where it should be is measured ~11 times a second (measuring asks the browser for layout); it glides there every frame,
-      // on real time, so it never jumps while he moves (the parachute's words used to stutter, the owner's step 6, 2026-11-26)
+      // The bubble rides along with his box exactly, every frame (its movement is read from GSAP's own numbers, no layout), so it
+      // never trails behind him while he falls, flies or walks. Where it sits on him (over his head, or beside him under the
+      // parachute) is measured ~11 times a second, because measuring asks the browser for layout, and only that small offset
+      // glides, on real time. The owner found the parachute's "I'm back!" lagging (step 6, 2026-11-26).
       const n = performance.now(); if (n - this.bubAt > 90) { this.bubAt = n; this.placeBub(); }
       const dt = this.bLast ? Math.min(0.05, (n - this.bLast) / 1000) : 0; this.bLast = n;
-      const k = 1 - Math.exp(-dt / 0.09), dx = this.btx - this.bx, dy = this.bty - this.by;
-      if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) { this.bx += dx * k; this.by += dy * k; this.moveBub(); }
+      const k = 1 - Math.exp(-dt / 0.1); this.bx += (this.btx - this.bx) * k; this.by += (this.bty - this.by) * k;
+      this.moveBub();
     } else this.bLast = 0;
   }
   /** a point of his drawing, in the layer's pixels */
@@ -425,18 +428,28 @@ export class Rig {
     if (s.chute > 0.3) {
       const [hx, hy] = this.pt(120 + s.x, 100 + s.y), [ex] = this.pt(176 + s.x, 100 + s.y), r = Math.abs(ex - hx) + 14;
       side = hx + r + bw <= lw - 8 || hx - r - bw < 8 ? "r" : "l";
-      left = clamp(side === "r" ? hx + r : hx - r - bw, 8, Math.max(8, lw - bw - 8)); top = clamp(hy - bh / 2, 8, Math.max(8, lh - bh - 8));
-      b.style.setProperty("--tail-y", Math.round(clamp(hy - top, 16, bh - 16)) + "px");
+      left = side === "r" ? hx + r : hx - r - bw; top = hy - bh / 2;
+      b.style.setProperty("--tail-y", Math.round(clamp(hy - clamp(top, 8, Math.max(8, lh - bh - 8)), 16, bh - 16)) + "px");
     } else {
       const [px, py] = this.pt(120 + s.x, 22 + s.y);
-      left = clamp(px - bw / 2, 8, Math.max(8, lw - bw - 8)); top = clamp(py - bh - 10, 8, Math.max(8, lh - bh - 8));
-      b.style.setProperty("--tail", Math.round(clamp(px - left, 16, bw - 16)) + "px");
+      left = px - bw / 2; top = py - bh - 10; // kept as wished for: moveBub keeps it on screen every frame
+      b.style.setProperty("--tail", Math.round(clamp(px - clamp(left, 8, Math.max(8, lw - bw - 8)), 16, bw - 16)) + "px");
     }
     if (side !== this.bSide) { this.bSide = side; b.classList.toggle("side-r", side === "r"); b.classList.toggle("side-l", side === "l"); }
-    this.btx = left; this.bty = top;
-    if (snap) { this.bx = left; this.by = top; this.moveBub(); }
+    this.bBox = [bw, bh, lw, lh]; if (this.wrap) this.wh = [this.wrap.offsetWidth, this.wrap.offsetHeight];
+    const [mx, my] = this.moved(); this.btx = left - mx; this.bty = top - my;
+    if (snap) { this.bx = this.btx; this.by = this.bty; this.moveBub(); }
   }
-  private moveBub() { this.bub.style.translate = `${Math.round(this.bx)}px ${Math.round(this.by)}px`; }
+  /** how far his box has been moved by GSAP right now (x, y and the percentage shifts), from GSAP's cache: no layout */
+  private moved(): [number, number] {
+    const w = this.wrap; if (!w) return [0, 0]; const g = (p: string) => Number(G.getProperty(w, p)) || 0;
+    return [g("x") + (g("xPercent") * this.wh[0]) / 100, g("y") + (g("yPercent") * this.wh[1]) / 100];
+  }
+  private moveBub() {
+    const [mx, my] = this.moved(), [bw, bh, lw, lh] = this.bBox;
+    const x = clamp(this.bx + mx, 8, Math.max(8, lw - bw - 8)), y = clamp(this.by + my, 8, Math.max(8, lh - bh - 8)), v = `${Math.round(x)}px ${Math.round(y)}px`;
+    if (v !== this.bPut) { this.bPut = v; this.bub.style.translate = v; }
+  }
   /** set by the site while his chat is open: what he says goes into the chat instead of the bubble over his head */
   sayHook: ((text: string) => boolean | "quiet") | null = null;
   say(text: string, ms?: number) {
