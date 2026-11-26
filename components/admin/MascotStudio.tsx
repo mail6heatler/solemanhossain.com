@@ -86,6 +86,7 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
 
   /** plays something on both screens */
   const play = (cmd: string, k?: string) => frames.current.forEach((f) => f?.contentWindow?.postMessage({ type: "lc-mz-cmd", cmd, k } satisfies MzStudioMsg, location.origin));
+  const setShows = (patch: Partial<MascotSettings["shows"]>) => setD((x) => ({ ...x, shows: { ...x.shows, ...patch } }));
   const setNotice = (k: keyof MascotSettings["fun"]["notice"], v: boolean) => setFun({ notice: { ...d.fun.notice, [k]: v } });
   const bitSections = (k: MzBit) => sections.filter((s) => MZ_BIT_OF_LAYOUT[s.layout] === k).map((s) => `${s.emoji} ${s.title}`.trim()).join(", ");
 
@@ -104,10 +105,18 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
           <div className="mzs-bench">
             <div className="mzs-bench-top"><b>Test on your site</b><span className="hint">Switch things on or off, and press ▶ Test to see it on both screens.</span></div>
             <div className="hst-chips"><button type="button" className="hst-chip on" onClick={() => play("openTalk")}>🎙️ Open his chat</button><Btn onClick={() => play("testVoice")}>🔊 Hear his voice</Btn></div>
-            <Group title="Tricks" hint="Today he does these when someone asks &ldquo;Do a trick!&rdquo;, in turn." open>
+            <Group title="Shows by himself" hint="While someone is on your page, about every so often he picks a show at random from what's switched on below: never the same one twice in a row, never while they scroll, talk to him or point at a card. The moment that's on (morning cha, night, rain, Eid, birthday) also plays once per visit, a few seconds after he arrives." open>
+              <Row label={<b>He puts on shows by himself</b>} on={d.shows.on} onChange={(v) => setShows({ on: v })} test={() => play("show")} />
+              <Slider id="mz-every" label="About one show every" value={d.shows.every} lim={MZ_LIMITS.every} unit=" s" onChange={(v) => setShows({ every: v })} />
+              <div className="hst-chips">{([[60, "Calm"], [30, "Normal"], [15, "Lively"]] as const).map(([n, l]) => <button key={l} type="button" className={`hst-chip${d.shows.every === n ? " on" : ""}`} onClick={() => setShows({ every: n })}>{l} ({n} s)</button>)}</div>
+              <Row label="🤸 Tricks (the ones switched on under Tricks)" on={d.shows.tricks} onChange={(v) => setShows({ tricks: v })} />
+              <Row label="⚽ Games (the ones switched on under Games)" on={d.shows.games} onChange={(v) => setShows({ games: v })} />
+              <Row label="☕ The moment that's on now, and once per visit" on={d.shows.moments} onChange={(v) => setShows({ moments: v })} />
+            </Group>
+            <Group title="Tricks" hint="He picks from these at random: in his shows, and when someone asks &ldquo;Do a trick!&rdquo; in his chat." open>
               {MZ_TRICKS.map(([k, l]) => <Row key={k} label={l} on={d.tricks[k]} onChange={(v) => set({ tricks: { ...d.tricks, [k]: v } })} test={() => play("trick", k)} />)}
             </Group>
-            <Group title="Games when he's bored">
+            <Group title="Games" hint="In his shows, and when nobody has moved for a while (the slider under Fun on the right).">
               {MZ_GAMES.map(([k, l]) => <Row key={k} label={l} on={d.fun.games[k]} onChange={(v) => setFun({ games: { ...d.fun.games, [k]: v } })} test={() => play("fun", k)} />)}
             </Group>
             <Group title="Fun">

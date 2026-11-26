@@ -24,7 +24,7 @@ import {
 
 type GS = typeof import("gsap").gsap;
 export type MascotCtl = {
-  update(m: MascotSettings): void; dressFor(day: string): void; ask(k: string): void; fun(k: string): void; trick(k: string): void; bit(k: string): void; moment(k: string): void;
+  update(m: MascotSettings): void; dressFor(day: string): void; show(): void; ask(k: string): void; fun(k: string): void; trick(k: string): void; bit(k: string): void; moment(k: string): void;
   nap(): void; wake(): void; throwDemo(): void; openTalk(): void; testVoice(): void; stop(): void;
 };
 
@@ -92,7 +92,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   rig.wrap = wrap;
   setSound(cfg.fun.sounds);
 
-  let cur = "", curBit = "", busy = false, away = false, held = false, lastAct = Date.now(), lastBored = 0, duckCool = 0, trickI = 0, endDone = false;
+  let cur = "", curBit = "", busy = false, away = false, held = false, lastAct = Date.now(), lastBored = 0, duckCool = 0, lastTrick = "", endDone = false;
   let hostBack: ReturnType<GS["delayedCall"]> | null = null, leanBack: ReturnType<GS["delayedCall"]> | null = null;
   const setLive = () => { rig.live = busy || away || held || CV.on; };
   const phone = () => phoneMq.matches;
@@ -166,7 +166,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   /* On phones he holds completely still while the page scrolls (the owner's rule, 2026-11-21): whatever he's doing pauses where it
      is and carries on once scrolling stops, and nothing new starts meanwhile. A throw, the rocket or the talking scene isn't paused. */
   type Pausable = { pause(): unknown; resume(): unknown; isActive(): boolean; paused(): boolean; parent?: unknown };
-  let scrollingNow = false, scrollStop = 0, frozen: Pausable[] = [];
+  let scrollingNow = false, scrollStop = 0, frozen: Pausable[] = [], lastScrollAt = 0, curMom = "normal";
   function freeze() {
     if (frozen.length || CV.on || away || held) return;
     const top = (t: Pausable) => !t.parent || t.parent === G.globalTimeline; // a tween inside a timeline pauses with it
@@ -239,6 +239,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     const h = hourNow(); if (M.morning && h >= 5 && h < 10) return "morning"; if (M.night && (h >= 21 || h < 5)) return "night"; return "normal";
   }
   function setMoment(m: string, intro: boolean) {
+    curMom = m;
     rig.setHat(HAT_OF[m] || null);
     rainEl.style.display = m === "rain" && !lite && !still ? "block" : "none"; nightEl.style.display = m === "night" ? "block" : "none";
     if (intro && MOMENTS[m]) act(MOMENTS[m], { heart: "moment" });
@@ -403,7 +404,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     sing() { const s = rig.s; return [
       () => play(() => { const t = rig.begin("mic", "grin", "happy"); t.to(s, { rx: 136, ry: 136, lx: 70, ly: 150, brow: 0.6, duration: 0.35, ease: "back.out(1.5)" }); t.call(() => { rig.loop(G.to(s, { rot: 4, head: 6, duration: 0.5, yoyo: true, repeat: -1, ease: "sine.inOut" })); rig.every(600, () => rig.burst([pick(["🎵", "🎶"])], 150, 110, 1, "", 60)); SND.notes(); }); return t; }),
       () => talk(linesOf("sing"), ["sweep"], "left"), () => endLoops({ rot: 0, head: 0 })]; },
-    trick() { const list = Object.entries(cfg.tricks).filter(([, v]) => v).map(([k]) => k), k = list.length ? list[trickI++ % list.length] : "wave"; return [() => talk([vary(LINES.watch)], ["point"]), () => play(() => TRICKS[k](rig))]; },
+    trick() { const list = Object.entries(cfg.tricks).filter(([, v]) => v).map(([k]) => k), k = list.length ? pick(list.length > 1 ? list.filter((x) => x !== lastTrick) : list) : "wave"; lastTrick = k; return [() => talk([vary(LINES.watch)], ["point"]), () => play(() => TRICKS[k](rig))]; },
     game() { return [() => talk(linesOf("game"), ["count"]), () => { CV.mode = "game"; }]; },
     rps(you) { return [() => play(() => rps(rig, you || "rock", (res) => { score[res]++; }))]; },
     tour() { const n = nextSection(), title = n ? (n.id === "hero" ? "the top" : (n.querySelector("h2")?.textContent || n.id).trim().slice(0, 40)) : "the homepage";
@@ -745,6 +746,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     if (footer) { endIo = new IntersectionObserver((es) => { const e = es[0]; if (e.isIntersecting && !endDone && cfg.fun.notice.end && pageY() > 400) { endDone = true; window.setTimeout(() => { if (free() && !scrollingNow) act(FUN.endParty, { heart: "end" }); }, 400); } }, { threshold: 0.3 }); endIo.observe(footer); }
     let told = "";
     on(window, "scroll", () => {
+      lastScrollAt = Date.now();
       const now = performance.now(), y = pageY(), v = Math.abs(y - lastY) / Math.max(1, now - lastT); lastY = y; lastT = now;
       phoneScroll();
       // on phones scrolling never moves him: he isn't woken or blown about by it (a tap still wakes him)
@@ -810,6 +812,43 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   if (!preview && cfg.auto.visitors) { try { const v = JSON.parse(sessionStorage.getItem("lc_mz_wear") || "null"); if (v && MZ_OUTFITS.some(([k]) => k === v.outfit)) rig.setVisitor(v); } catch {} }
   dressToday(); every(60000, dressToday);
   sizeWrap(); updateVis(); placeWrap(false); setMoment(autoMoment(), false);
+  /* ---------- shows he puts on by himself (the owner's step 4, 2026-11-26) ----------
+     Before, tricks only played when a visitor asked in his chat, games only after nobody had moved for a while, and a moment's
+     act never played on the site. Now, while someone's on the page, about every `shows.every` seconds (a little more or less
+     each time) he picks one at random from the tricks, games and the moment that are switched on, never the same twice in a
+     row. Never while the page scrolls (or for 1.5 s after), while he talks, naps, is busy, or the mouse is on a card he's
+     pointing at; not on slow devices or with reduced motion. The moment that's on (morning cha, night, rain, Eid, birthday)
+     also plays once per visit, a few seconds after he arrives. */
+  let lastShow = "", nextShow = Date.now() + 9000;
+  const bornAt = Date.now(), gap = () => cfg.shows.every * 1000 * (0.75 + Math.random() * 0.5);
+  function showPool() {
+    const p: [string, (r: Rig) => TL][] = [];
+    if (cfg.shows.tricks) Object.entries(cfg.tricks).forEach(([k, v]) => { if (v && TRICKS[k]) p.push(["t:" + k, TRICKS[k]]); });
+    if (cfg.shows.games) IDLE_KEYS.forEach((k) => { if (cfg.fun.games[k] && FUN[k]) p.push(["g:" + k, FUN[k]]); });
+    if (cfg.shows.moments && MOMENTS[curMom]) p.push(["m:" + curMom, MOMENTS[curMom]]);
+    return p;
+  }
+  function putOnShow() {
+    if (!visible() || away || held || CV.on) return false;
+    const p = showPool(); if (!p.length) return false;
+    const [k, fn] = pick(p.length > 1 ? p.filter(([x]) => x !== lastShow) : p); lastShow = k;
+    if (rig.sleeping) stopSleep(rig);
+    act(fn, { idle: true }); return true;
+  }
+  let momentDue = "";
+  { const m = curMom, key = `${m}:${mzDay(view.timezone).ymd}`; let seen = false; try { seen = sessionStorage.getItem("lc_mz_mom") === key; } catch {}
+    if (!preview && MOMENTS[m] && !seen) momentDue = key; }
+  every(1000, () => {
+    if (preview || still || lite || document.hidden || !free() || rig.sleeping || rig.bubOn || scrollingNow || pointing) return;
+    const now = Date.now(); if (now - lastScrollAt < 1500) return;
+    if (momentDue && now - bornAt > 6000) {
+      const key = momentDue, m = key.split(":")[0]; momentDue = ""; try { sessionStorage.setItem("lc_mz_mom", key); } catch {}
+      if (MOMENTS[m] && cfg.shows.moments) { act(MOMENTS[m], { heart: "moment", idle: true }); nextShow = now + gap(); return; }
+    }
+    if (!cfg.shows.on || now < nextShow) return;
+    nextShow = now + (putOnShow() ? gap() : 5000);
+  });
+
   const startT = window.setTimeout(() => { if (preview) { enterBit("hero", true); return; } const hero = document.getElementById("hero"); const r = hero?.getBoundingClientRect(); if (r && r.bottom > 0 && r.top < innerHeight) enterBit("hero", greetOnce()); else if (!still && !lite) act(TRICKS.wave); }, 900);
 
   return {
@@ -823,6 +862,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     },
     ask(k) { openScene(k); },
     /** the dashboard's "try a special day": dresses him as he would be on that day ("normal" undoes it until the next change) */
+    /** the dashboard's "play one now": a random show, even if shows are off */
+    show() { putOnShow(); },
     dressFor(k) {
       const on = Object.fromEntries(Object.keys(cfg.auto).map((x) => [x, true])) as Record<MzAuto, boolean>, bd = "2000-06-06";
       const m: MascotSettings = { ...cfg, auto: on, moments: { ...cfg.moments, eid: k === "eid", birthday: k === "birthday" ? bd : "" }, eidDates: [], matchDates: k === "match" ? [bd] : [] };

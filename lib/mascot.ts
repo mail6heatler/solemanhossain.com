@@ -86,6 +86,8 @@ export type MzGame = (typeof MZ_GAMES)[number][0];
 
 export type MascotSettings = {
   show: boolean; phones: boolean;
+  /** shows he puts on by himself (2026-11-26): about every `every` seconds while someone's on the page, a random pick from what's switched on */
+  shows: { on: boolean; every: number; tricks: boolean; games: boolean; moments: boolean };
   place: "corner" | "peek" | "host"; side: "right" | "left"; size: number;
   skin: string; hair: "curly" | "swept" | "short"; beard: "trim" | "stubble" | "clean"; glasses: MzGlasses; shirt: MzShirt; jeans: MzJeans;
   outfit: MzOutfit; colors: Record<Exclude<MzOutfit, "everyday">, number>; hat: MzHat; shoes: MzShoe;
@@ -108,7 +110,7 @@ export type MascotSettings = {
   };
 };
 
-export const MZ_LIMITS = { size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30], rate: [60, 160], pitch: [50, 200], volume: [10, 100], dim: [30, 90], scale: [120, 240], inviteEvery: [15, 300] } as const;
+export const MZ_LIMITS = { size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30], rate: [60, 160], pitch: [50, 200], volume: [10, 100], dim: [30, 90], scale: [120, 240], inviteEvery: [15, 300], every: [10, 180] } as const;
 
 const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) => Object.fromEntries(keys.map(([k]) => [k, true])) as Record<K, boolean>;
 
@@ -118,7 +120,7 @@ const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) 
  * other version of the answer (a joke's setup and punchline stay together). mascotRig.ts reads them with vary() and answer().
  */
 export const DEFAULT_MASCOT: MascotSettings = {
-  show: true, phones: true, place: "corner", side: "right", size: 100,
+  show: true, phones: true, shows: { on: true, every: 30, tricks: true, games: true, moments: true }, place: "corner", side: "right", size: 100,
   skin: "#c58a62", hair: "curly", beard: "trim", glasses: "none", shirt: "teal", jeans: "light",
   outfit: "everyday", colors: { panjabi: 0, suit: 0, winter: 0, beach: 0, sporty: 0, smart: 0, home: 0 }, hat: "none", shoes: "own",
   auto: allOn(MZ_AUTO), eidDates: [], matchDates: [],
@@ -190,6 +192,7 @@ export function cleanMascot(raw: unknown): MascotSettings {
   const lr = isObj(r.lines) ? r.lines : {}, qr = isObj(r.qa) ? r.qa : {}, fr = isObj(r.fun) ? r.fun : {}, nr = isObj(fr.notice) ? fr.notice : {}, mr = isObj(r.moments) ? r.moments : {}, cr = isObj(r.convo) ? r.convo : {}, C = D.convo;
   return {
     show: bool(r.show, D.show), phones: bool(r.phones, D.phones),
+    shows: (() => { const x = isObj(r.shows) ? r.shows : {}, S = D.shows; return { on: bool(x.on, S.on), every: num(x.every, MZ_LIMITS.every, S.every), tricks: bool(x.tricks, S.tricks), games: bool(x.games, S.games), moments: bool(x.moments, S.moments) }; })(),
     place: oneOf(r.place, ["corner", "peek", "host"] as const, D.place), side: oneOf(r.side, ["right", "left"] as const, D.side), size: num(r.size, MZ_LIMITS.size, D.size),
     skin: typeof r.skin === "string" && /^#[0-9a-f]{6}$/i.test(r.skin) ? r.skin : D.skin,
     hair: oneOf(r.hair, ["curly", "swept", "short"] as const, D.hair), beard: oneOf(r.beard, ["trim", "stubble", "clean"] as const, D.beard), glasses: r.glasses === true ? "classic" : r.glasses === false ? "none" : oneOf(r.glasses, MZ_GLASSES.map(([k]) => k), D.glasses),
