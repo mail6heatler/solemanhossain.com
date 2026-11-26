@@ -29,6 +29,9 @@ export default async function AppearancePage() {
     <form action={saveAppearance} className="adm-page">
       <h1 className="adm-h">Appearance</h1>
       <p className="adm-sub">Theme, mood, status and every effect on your site, in one place. Press <b>i</b> next to anything to see what it does and preview it.</p>
+      <div className="c" style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+        <i className="ti ti-info-circle" style={{ color: "var(--icon)" }} /> After you save, everyone sees the new theme, you included, even if they picked another one with the theme button before. On a slow computer (like a busy laptop) your site turns many effects off by itself to stay smooth, so switching them here can look like it does nothing. <b>View site with all effects</b> below opens your site with every effect on, so you can see exactly what your switches do.
+      </div>
 
       <div className="adm-label">Theme</div>
       <div className="c f">
@@ -105,7 +108,7 @@ export default async function AppearancePage() {
       </div>
 
       <SaveBox label="Save appearance">
-        <a href="/" target="_blank" className="b-out"><i className="ti ti-eye" />View site</a>
+        <a href="/?fx=full" target="_blank" className="b-out"><i className="ti ti-eye" />View site with all effects</a>
       </SaveBox>
     </form>
   );

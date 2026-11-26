@@ -95,7 +95,11 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
     // starts full again (it used to be remembered for the visit, and the owner saw their emojis, background marks and neon vanish after a
     // reload). The first 6 seconds don't count, because pictures, fonts, the 3D and screen fitting all land then, and it needs three slow
     // stretches in a row, so a busy moment never sets it off.
-    if (fx.autolite && !reduced && !html.classList.contains("lite")) {
+    // ?fx=full (the dashboard's View site on the Appearance page) skips the lighter version for the rest of the visit, so the owner
+    // sees what the effect switches do even on a slow computer (2026-11-26)
+    let full = false;
+    try { if (new URLSearchParams(location.search).get("fx") === "full") sessionStorage.setItem("lc_fx_full", "1"); full = sessionStorage.getItem("lc_fx_full") === "1"; } catch {}
+    if (fx.autolite && !full && !reduced && !html.classList.contains("lite")) {
       let prev = 0, sum = 0, n = 0, strikes = 0, raf = 0, until = 0;
       const from = performance.now() + 6000;
       const goLite = () => {

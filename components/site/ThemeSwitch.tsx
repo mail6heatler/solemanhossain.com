@@ -44,7 +44,7 @@ export default function ThemeSwitch({ defaultTheme, timezone, shuffle, menu = tr
       h.dataset.skin = s;
       h.dataset.skinPref = p;
       h.removeAttribute("data-skin-preview");
-      try { localStorage.setItem("lc_skin", p); } catch {}
+      try { localStorage.setItem("lc_skin", p); localStorage.setItem("lc_skin_d", String((window as unknown as { __lcSkinD?: string }).__lcSkinD ?? "")); } catch {} // the default it was picked against (skinScript)
       setPref(p);
       setShown(s);
       window.dispatchEvent(new CustomEvent("skinchange"));

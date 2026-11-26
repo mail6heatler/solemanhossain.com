@@ -143,7 +143,7 @@ Tables: `settings` (one JSON document), `sections`, `items`, `files`, `messages`
 ## How the look works
 
 - Colours are CSS variables on `.site`. `html[data-skin]` swaps them for the 30 themes (10 in `site.css`, 20 fan themes in `themes.css`, where a few tokens set by each theme derive the rest), and `--m` / `--m-deep` (inline on `.site`) carry the mood colour. Use `var(--mint)`, `--fg`, `--bg`, `--card`, `--line`, `--hero-*`, `--pop2`, `--pop3`. Never hard-code a colour; it has to work on every theme, including the light heroes (`paper`, `candy`).
-- `skinScript` runs before first paint: it sets the theme, adds the page-transition opt-in, and decides whether the curtain plays.
+- `skinScript` runs before first paint: it sets the theme, adds the page-transition opt-in, and decides whether the curtain plays. A visitor's own pick (`lc_skin`) only counts while the site's default is still the one it was made against (`lc_skin_d`, saved by `ThemeSwitch` from `window.__lcSkinD`): a new default saved on the dashboard reaches everyone, the owner included (2026-11-26, the owner's old pick had hidden every theme change). `?fx=full` (the Appearance page's View site with all effects) skips the lighter version for the rest of that visit (`sessionStorage` `lc_fx_full`), so the owner sees what the effect switches do on their slow PC.
 - Public pages navigate with plain `<a>` (full page loads), so page transitions are cross-document view transitions. Every effect starts fresh on each page.
 
 ## Adding a theme

@@ -413,9 +413,11 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
 export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects">) {
   const cfg = JSON.stringify({ d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SELECTABLE, pv: SKINS, t: LIVE_THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, f: THEME_FONTS }).replace(/</g, "\\u003c");
-  // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random
+  // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random.
+  // A visitor's own choice only counts while the site's default is the one it was made against (lc_skin_d): when the owner
+  // saves a new default on the dashboard, everyone sees it, the owner included (2026-11-26: their own old pick hid every change).
   return `(function(){var c=${cfg},h=document.documentElement;if(location.pathname.indexOf("/admin")===0)return;` +
-    `var p=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0)p=v}catch(e){}` +
+    `var p=c.d;window.__lcSkinD=c.d;try{var v=localStorage.getItem("lc_skin");if(c.sw&&c.all.indexOf(v)>=0&&localStorage.getItem("lc_skin_d")===c.d)p=v}catch(e){}` +
     `try{var q=new URLSearchParams(location.search).get("theme");if(q&&c.pv.indexOf(q)>=0){p=q;h.setAttribute("data-skin-preview","1")}}catch(e){}` +
     `var s=p;if(p==="auto"){var hr=0;try{hr=parseInt(new Date().toLocaleString("en-US",{timeZone:c.tz,hour:"numeric",hourCycle:"h23"}),10)%24}catch(e){hr=new Date().getHours()}s=(hr>=18||hr<6)?"night":"day"}` +
     `if(p==="random"){s=c.t[Math.floor(Math.random()*c.t.length)]}` +
