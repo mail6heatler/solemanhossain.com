@@ -105,6 +105,17 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   useEffect(() => { setBell(false); setPicker(false); setQ(""); }, [path]);
+  const pickRef = useRef<HTMLDivElement>(null), bellRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!picker && !bell) return;
+    const out = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (picker && pickRef.current && !pickRef.current.contains(t)) setPicker(false);
+      if (bell && bellRef.current && !bellRef.current.contains(t)) setBell(false);
+    };
+    document.addEventListener("pointerdown", out);
+    return () => document.removeEventListener("pointerdown", out);
+  }, [picker, bell]);
 
   return (
     <div className={`adm ${dark ? "dark" : ""}`}>
@@ -158,7 +169,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
             </div>
             <div className="adm-top-actions">
               <a href="/" target="_blank" className="adm-pillbtn">View site<i className="ti ti-external-link" /></a>
-              <div style={{ position: "relative" }}>
+              <div ref={pickRef} style={{ position: "relative" }}>
                 <button className="adm-iconbtn" onClick={() => { setPicker((p) => !p); setBell(false); }} aria-label="Dashboard theme" aria-expanded={picker} title="Dashboard theme">
                   <i className="ti ti-palette" />
                 </button>
@@ -174,7 +185,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
                           {l.sets && look.t === l.t && (
                             <div className="sets">{l.sets.map(([n, a, b], i) => (
                               <button key={n} type="button" className={look.v === i ? "on" : ""} onClick={() => setLook({ t: l.t, v: i })} aria-pressed={look.v === i}>
-                                <i style={{ background: `linear-gradient(135deg, ${a} 50%, ${b} 50%)` }} />{n}
+                                <i style={{ background: `linear-gradient(90deg, ${a} 50%, ${b} 50%)` }} />{n}
                               </button>
                             ))}</div>
                           )}
@@ -184,7 +195,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
                   </div>
                 )}
               </div>
-              <div style={{ position: "relative" }}>
+              <div ref={bellRef} style={{ position: "relative" }}>
                 <button className="adm-iconbtn" onClick={() => { setBell((b) => !b); setPicker(false); }} aria-label="Notifications">
                   <i className="ti ti-bell" />{unread > 0 && <span className="dotb" />}
                 </button>

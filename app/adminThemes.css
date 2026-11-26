@@ -31,9 +31,10 @@ html[data-adm="bento"][data-adm-v="2"] .adm { --b1: #d9f99d; --b2: #e7e5e4; --b3
 .adm-pick button.on { background: color-mix(in srgb, var(--mint) 22%, transparent); }
 .adm-pick .pv { width: 34px; height: 24px; flex: none; border-radius: 7px; border: 1px solid var(--card-border); }
 .adm-pick small { display: block; font-weight: 500; font-size: 10.5px; color: var(--text-faint); }
-.adm-pick .sets { display: flex; gap: 5px; padding: 0 9px 6px 53px; }
-.adm-pick .sets button { width: auto; padding: 3px 8px 3px 4px; gap: 5px; border: 1px solid var(--card-border); border-radius: 99px; font-size: 11px; }
-.adm-pick .sets i { width: 14px; height: 14px; border-radius: 50%; }
+.adm-pick .sets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 2px 0 6px; padding: 8px; border-radius: 11px; background: color-mix(in srgb, var(--mint) 8%, transparent); }
+.adm-pick .sets button { display: grid; justify-items: center; gap: 5px; width: 100%; padding: 6px 4px 7px; border: 1.5px solid var(--card-border); border-radius: 10px; background: var(--card-bg); font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; }
+.adm-pick .sets button.on { border-color: var(--mint); background: var(--card-bg); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mint) 35%, transparent); }
+.adm-pick .sets i { display: block; width: 100%; height: 16px; border-radius: 6px; }
 
 /* =================== Glass Aurora: frosted cards over slow northern lights (always dark) =================== */
 html[data-adm="aurora"] .adm {
