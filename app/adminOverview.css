@@ -1,0 +1,126 @@
+/*
+ * The dashboard's Overview, decorated (the owner's request, 2026-11-26; app/admin/(panel)/page.tsx). Every colour comes
+ * from the dashboard theme's tokens (adminThemes.css): --ov-a is the theme's main colour (Aurora's first light, Bento's
+ * first block, else the mint), --ov-b its second. Each section keeps its own colour (--hue). Only transform and opacity move.
+ */
+.adm .ov { max-width: 1180px; --ov-a: var(--au1, var(--b1, var(--mint))); --ov-b: var(--au2, var(--b3, #3d6694)); }
+
+/* ---------- the welcome banner, with Dhaka's skyline at the real time of day ---------- */
+.adm .c.ov-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center; min-height: 236px; padding: 24px 28px 96px; margin-bottom: 14px; border-radius: 20px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--ov-a) 30%, var(--card-bg)), var(--card-bg) 55%, color-mix(in srgb, var(--ov-b) 18%, var(--card-bg))); }
+html[data-adm="aurora"] .adm .c.ov-hero { background-image: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .12), transparent 60%), radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--au1) 38%, transparent), transparent 55%), radial-gradient(circle at 88% 10%, color-mix(in srgb, var(--au2) 36%, transparent), transparent 55%), linear-gradient(140deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .03)); }
+html[data-adm="bento"] .adm .c.ov-hero { background: var(--b1); }
+.ov-hero-txt { position: relative; z-index: 2; display: grid; gap: 8px; justify-items: start; min-width: 0; }
+.ov-date { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 99px; background: color-mix(in srgb, var(--card-bg) 70%, transparent); border: .5px solid var(--card-border); font-size: 11.5px; font-weight: 600; color: var(--text-soft); }
+.ov-date i { color: var(--icon); }
+.ov .ov-hero .adm-h { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; margin: 2px 0 0; }
+.ov-sum { margin: 0; font-size: 13.5px; color: var(--text-soft); }
+.ov-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.ov-quick a { background: color-mix(in srgb, var(--card-bg) 75%, transparent); }
+.ov-quick a.b-mint { background: var(--mint); }
+html[data-adm="aurora"] .adm .ov-quick a.b-mint { background: linear-gradient(90deg, var(--au1), var(--au2)); }
+.ov-quick em { margin-left: 2px; padding: 0 6px; border-radius: 99px; background: var(--danger); color: #fff; font-style: normal; font-size: 10px; font-weight: 700; }
+.ov-face { position: relative; z-index: 2; display: grid; justify-items: center; gap: 10px; }
+.ov-ring { position: relative; display: grid; place-items: center; width: 104px; height: 104px; border-radius: 50%; }
+.ov-ring::before { content: ""; position: absolute; inset: -5px; border-radius: 50%; background: conic-gradient(var(--ov-a), var(--ov-b), var(--ov-a)); animation: ov-spin 8s linear infinite; }
+.ov-ring img, .ov-ring b { position: relative; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--card-bg); background: var(--chip-bg); }
+.ov-ring b { display: grid; place-items: center; font: 800 30px "Syne", sans-serif; color: var(--text-strong); }
+@keyframes ov-spin { to { transform: rotate(360deg); } }
+.ov-live { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 99px; background: var(--card-bg); border: .5px solid var(--card-border); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.ov-live i { width: 8px; height: 8px; border-radius: 50%; background: #3fae6b; box-shadow: 0 0 0 0 #3fae6b99; animation: ov-ping 1.8s infinite; }
+@keyframes ov-ping { 70% { box-shadow: 0 0 0 8px transparent; } }
+.ov-city { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 96px; z-index: 1; pointer-events: none; }
+.ov-sky { fill: color-mix(in srgb, var(--text-strong) 78%, transparent); }
+html[data-adm="aurora"] .adm .ov-sky { fill: rgba(4, 6, 16, .82); }
+html[data-adm="bento"] .adm .ov-sky { fill: #1f1d1a; }
+.ov-sun { fill: #f6c453; } .sky-dawn .ov-sun { fill: #f6a98a; } .sky-dusk .ov-sun { fill: #f08a5a; } .sky-night .ov-sun { fill: #f3ecd2; }
+.ov-cloud { fill: color-mix(in srgb, #fff 65%, transparent); animation: ov-drift 16s ease-in-out infinite alternate; } .sky-night .ov-cloud { display: none; }
+@keyframes ov-drift { to { transform: translateX(80px); } }
+.ov-stars circle { fill: #fff; animation: ov-tw 3s ease-in-out infinite; } html:not([data-adm="aurora"]) .sky-dusk .ov-stars { opacity: .5; }
+.ov-win rect { fill: #ffd98a; animation: ov-tw 4s ease-in-out infinite; }
+@keyframes ov-tw { 50% { opacity: .25; } }
+
+/* ---------- the numbers ---------- */
+.ov-stats { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.ov-stats .stat { transition: transform .2s, box-shadow .2s; }
+.ov-stats .stat:hover { transform: translateY(-3px); }
+.ov-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ov-stats .stat .v { font-size: 28px; }
+.ov-stats .stat .v.sm { font-size: 17px; }
+.ov-note { margin-top: 3px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+.ov-note.up { color: #3fae6b; } .ov-note.down { color: var(--danger); }
+html[data-adm="aurora"] .adm .ov-note.up { color: var(--au1); }
+html[data-adm="bento"] .adm .ov-note { color: inherit; opacity: .8; }
+.ov-spark { width: 70px; height: 22px; overflow: visible; } .ov-spark polyline { fill: none; stroke: var(--ov-a); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+html[data-adm="bento"] .adm .ov-spark polyline { stroke: #1f1d1a; }
+.ov-pulse { width: 10px; height: 10px; border-radius: 50%; background: #3fae6b; box-shadow: 0 0 0 0 #3fae6b99; animation: ov-ping 1.8s infinite; }
+
+/* ---------- chart and the site's entries ---------- */
+.ov-two { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.ov-two > .c { margin-bottom: 0; }
+.ov-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.ov-h b { font-size: 13.5px; } .ov-h small { font-size: 11.5px; color: var(--text-faint); }
+.ov-chart svg { display: block; width: 100%; height: 170px; overflow: visible; }
+.ov-a0 { stop-color: var(--ov-a); stop-opacity: .45; } .ov-a1 { stop-color: var(--ov-a); stop-opacity: 0; }
+html[data-adm="bento"] .adm .ov-a0 { stop-color: var(--b4); } html[data-adm="bento"] .adm .ov-a1 { stop-color: var(--b4); }
+.ov-line { fill: none; stroke: var(--ov-a); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 2400; stroke-dashoffset: 2400; animation: ov-draw 1.6s ease-out .15s forwards; }
+html[data-adm="bento"] .adm .ov-line { stroke: #1f1d1a; }
+@keyframes ov-draw { to { stroke-dashoffset: 0; } }
+.ov-avg { stroke: var(--text-faint); stroke-width: 1.2; stroke-dasharray: 4 6; opacity: .7; }
+.ov-pt { fill: var(--card-bg); stroke: var(--ov-a); stroke-width: 2; }
+.ov-pt.now { fill: var(--ov-a); stroke: var(--card-bg); stroke-width: 3; }
+html[data-adm="bento"] .adm .ov-pt { stroke: #1f1d1a; } html[data-adm="bento"] .adm .ov-pt.now { fill: var(--b4); stroke: #1f1d1a; }
+.ov-axis { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); margin-top: 4px; font-size: 10px; color: var(--text-faint); text-align: center; white-space: nowrap; }
+.ov-axis span:last-child { color: var(--text-strong); font-weight: 700; }
+.ov-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ov-chips span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; background: var(--chip-bg); font-size: 11.5px; font-weight: 600; }
+.ov-chips i { color: var(--icon); }
+.ov-big { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.ov-big b { font: 800 42px/1 "Syne", sans-serif; font-variant-numeric: tabular-nums; }
+html[data-adm="aurora"] .adm .ov-big b { background: linear-gradient(90deg, #fff, var(--au1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-adm="bento"] .adm .ov-big b { font-family: "Bricolage Grotesque", "Syne", sans-serif; }
+.ov-big span { font-size: 12px; color: var(--text-muted); }
+.ov-bar { display: flex; gap: 3px; height: 16px; border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
+.ov-bar i { display: block; min-width: 6px; transform-origin: left; animation: ov-grow .9s cubic-bezier(.2, .8, .2, 1) both; }
+.ov-bar i:nth-child(2) { animation-delay: .06s; } .ov-bar i:nth-child(3) { animation-delay: .12s; } .ov-bar i:nth-child(4) { animation-delay: .18s; } .ov-bar i:nth-child(n + 5) { animation-delay: .24s; }
+@keyframes ov-grow { from { transform: scaleX(0); } }
+html[data-adm="bento"] .adm .ov-bar { border: 2px solid #1f1d1a; height: 20px; }
+.ov-legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 14px; font-size: 12px; }
+.ov-legend li { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.ov-legend i { width: 9px; height: 9px; flex: none; border-radius: 3px; }
+.ov-legend a { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; color: var(--text-soft); }
+.ov-legend a:hover { color: var(--text-strong); } .ov-legend b { font-variant-numeric: tabular-nums; }
+
+/* ---------- activity as a timeline ---------- */
+.adm .ov-tl { position: relative; padding: 8px 10px; }
+.ov-tl::before { content: ""; position: absolute; left: 31px; top: 20px; bottom: 20px; width: 2px; background: var(--card-border); }
+.ov-ev { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 6px; border-radius: 11px; text-decoration: none; transition: background .15s, transform .15s; }
+.ov-ev:hover { background: var(--chip-bg); transform: translateX(3px); }
+.ov-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: #fff; font-size: 15px; background: var(--ov-a); box-shadow: 0 0 0 4px var(--card-bg); }
+html[data-adm="aurora"] .adm .ov-dot { box-shadow: 0 0 0 4px #141831; color: #0a0c19; }
+.k-entry .ov-dot { background: var(--ov-a); } .k-msg .ov-dot { background: #3d6694; color: #fff; } .k-react .ov-dot { background: #e5487b; color: #fff; }
+html[data-adm="bento"] .adm .ov-dot { border: 2px solid #1f1d1a; color: #1f1d1a; } html[data-adm="bento"] .adm .k-msg .ov-dot { background: var(--b3); color: var(--b3t); } html[data-adm="bento"] .adm .k-react .ov-dot { background: var(--b4); color: var(--b4t); }
+.ov-ev-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.ov-ev-t small { display: block; font-size: 10.5px; color: var(--text-faint); }
+.ov-empty { margin: 8px; font-size: 13px; color: var(--text-muted); }
+
+/* ---------- sections as cards ---------- */
+.ov-secs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ov-secs > .c { margin: 0; display: grid; gap: 10px; align-content: start; }
+.ov-ico { display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 13px; background: var(--hue, var(--ov-a)); color: #fff; font-size: 20px; box-shadow: 0 6px 14px -8px var(--hue, #000); }
+html[data-adm="bento"] .adm .ov-ico { border: 2px solid #1f1d1a; box-shadow: 2px 2px 0 #1f1d1a; }
+.ov-sec .c-title a { display: inline-flex; align-items: center; gap: 7px; }
+.ov-code { padding: 1px 7px; border-radius: 6px; background: color-mix(in srgb, var(--hue) 18%, transparent); color: var(--text-strong); font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; }
+.ov-meter { height: 5px; border-radius: 99px; background: var(--chip-bg); overflow: hidden; }
+.ov-meter i { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--hue); transform-origin: left; animation: ov-grow 1s cubic-bezier(.2, .8, .2, 1) .2s both; }
+.ov-acts { justify-content: flex-end; }
+.adm .ov-add { margin-top: 12px; align-items: center; }
+.ov-ico.plus { width: 34px; height: 34px; border-radius: 10px; background: var(--ov-a); color: var(--ink); font-size: 16px; }
+
+@media (max-width: 900px) { .ov-two, .ov-secs { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .adm .c.ov-hero { grid-template-columns: minmax(0, 1fr); padding: 18px 16px 84px; }
+  .ov-face { position: absolute; top: 14px; right: 14px; } .ov-ring { width: 58px; height: 58px; } .ov-live { display: none; }
+  .ov .ov-hero .adm-h { padding-right: 66px; }
+  .ov-legend { grid-template-columns: minmax(0, 1fr); }
+}
