@@ -145,7 +145,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const cardOf = (it: Item) => book
     ? <ScrapCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} fallback={draft.section.nav_label || draft.section.title} href="#" edit foot={bar(it, true)} />
     : wall
-    ? <AwardCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} owner={{ fullName: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials }} href="#" edit foot={bar(it, true)} />
+    ? <AwardCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} owner={{ fullName: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials }} href="#" edit bar={stickers(it)} />
     : comic
     ? <ComicCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" edit bar={stickers(it)} />
     : shelf

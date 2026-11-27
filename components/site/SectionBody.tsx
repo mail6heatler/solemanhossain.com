@@ -397,7 +397,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     const owner = { fullName: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials };
     const cells = items.map((it, i) => (
       <AwardCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} code={section.code} fallback={section.nav_label || section.title} owner={owner} href={href(section, it)}
-        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} bar={(p) => <StickerBar id={it.id} href={href(section, it)} label={it.title} talk={it.talk} parts={stickerParts(p)} reactions={fx.reactions} />} />
     ));
     return row("grid3 tkt-row aw-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <AwardMore />}{!grid && fx.awardfx && <TicketRider className="aw-rider" count={items.length}><i className="aw-can" /><i className="aw-cone" /></TicketRider>}</>);
   }
