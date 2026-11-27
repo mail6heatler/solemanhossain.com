@@ -29,6 +29,7 @@
 .ti-arrows-exchange:before { content: "\f1f4"; }
 .ti-arrows-maximize:before { content: "\ea28"; }
 .ti-arrows-move:before { content: "\f22f"; }
+.ti-arrows-shuffle:before { content: "\f000"; }
 .ti-arrows-sort:before { content: "\eb5a"; }
 .ti-article:before { content: "\f1e2"; }
 .ti-aspect-ratio:before { content: "\ed30"; }
@@ -55,6 +56,7 @@
 .ti-book:before { content: "\ea39"; }
 .ti-bookmark:before { content: "\ea3a"; }
 .ti-books:before { content: "\eff2"; }
+.ti-boom:before { content: "\fdbe"; }
 .ti-border-bottom:before { content: "\ea3c"; }
 .ti-border-left:before { content: "\ea3f"; }
 .ti-border-radius:before { content: "\eb7c"; }
@@ -344,6 +346,7 @@
 .ti-pinned-off:before { content: "\ed5f"; }
 .ti-placeholder:before { content: "\f626"; }
 .ti-plane:before { content: "\eb6f"; }
+.ti-plane-departure:before { content: "\eb9a"; }
 .ti-planet:before { content: "\ec08"; }
 .ti-plant:before { content: "\ed50"; }
 .ti-player-play:before { content: "\ed46"; }

@@ -265,13 +265,20 @@ function Banner({ data, demo, fall }: { data: BannerView; demo: boolean; fall: b
     place(); paint();
 
     // pops down by itself each time the site is opened, but not on every move between its own pages
-    // (it waits for the opening curtain)
+    // (it waits for the opening curtain, or for the launch screen to open onto the site)
     const intro = document.querySelector(".intro");
     const wait = intro && getComputedStyle(intro).display !== "none" ? 2500 : 1000;
-    const timer = (data.autoDrop && justArrived()) || demo ? window.setTimeout(() => setDrop(true, true), wait) : 0;
+    let timer = 0;
+    const dropSoon = () => { timer = window.setTimeout(() => setDrop(true, true), wait); };
+    const afterLaunch = () => { timer = window.setTimeout(() => setDrop(true, true), 900); };
+    if ((data.autoDrop && justArrived()) || demo) {
+      if (document.documentElement.classList.contains("launching")) window.addEventListener("lc-launch-done", afterLaunch, { once: true });
+      else dropSoon();
+    }
 
     return () => {
       clearTimeout(timer);
+      window.removeEventListener("lc-launch-done", afterLaunch);
       clearTimeout(upTimer);
       cancelAnimationFrame(raf);
       el.removeEventListener("pointerenter", enter);

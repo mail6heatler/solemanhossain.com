@@ -858,7 +858,11 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     nextShow = now + (putOnShow() ? gap() : 5000);
   });
 
-  const startT = window.setTimeout(() => { if (preview) { enterBit("hero", true); return; } const hero = document.getElementById("hero"); const r = hero?.getBoundingClientRect(); if (r && r.bottom > 0 && r.top < innerHeight) enterBit("hero", greetOnce()); else if (!still && !lite) act(TRICKS.wave); }, 900);
+  // he says hello once the launch screen has opened onto the site, not behind it
+  const launching = () => document.documentElement.classList.contains("launching");
+  let startT = 0;
+  const start = () => { startT = window.setTimeout(() => { if (preview) { enterBit("hero", true); return; } const hero = document.getElementById("hero"); const r = hero?.getBoundingClientRect(); if (r && r.bottom > 0 && r.top < innerHeight) enterBit("hero", greetOnce()); else if (!still && !lite) act(TRICKS.wave); }, 900); };
+  if (!preview && launching()) window.addEventListener("lc-launch-done", start, { once: true }); else start();
 
   return {
     update(m) {
@@ -898,7 +902,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       if (!VOX.ok) return; hush(); try { const u = new SpeechSynthesisUtterance(stripEmoji(line)); if (VOX.v) { u.voice = VOX.v; u.lang = VOX.v.lang; } u.rate = cfg.convo.rate / 100; u.pitch = cfg.convo.pitch / 100; u.volume = cfg.convo.volume / 100; speechSynthesis.speak(u); } catch {}
     },
     stop() {
-      alive = false; clearTimeout(startT); clearTimeout(restT); clearTimeout(tapT); clearTimeout(tickleT); timers.forEach(clearInterval); offs.forEach((f) => f()); io?.disconnect(); endIo?.disconnect(); hush();
+      alive = false; clearTimeout(startT); window.removeEventListener("lc-launch-done", start); clearTimeout(restT); clearTimeout(tapT); clearTimeout(tickleT); timers.forEach(clearInterval); offs.forEach((f) => f()); io?.disconnect(); endIo?.disconnect(); hush();
       rocketTl?.kill(); leanBack?.kill(); G.killTweensOf(wrap); G.killTweensOf(rocket); stopSleep(rig); rig.destroy(); layer.innerHTML = "";
     },
   };

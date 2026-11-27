@@ -1,3 +1,4 @@
+import LaunchScreen from "./LaunchScreen";
 import type { Section } from "@/lib/data";
 import { bannerView, MOODS, type SiteSettings } from "@/lib/settings";
 import Effects from "./Effects";
@@ -95,6 +96,8 @@ export function SiteShell({ settings, sections, onHome, children }:
       <Mascot view={{ m: settings.mascot, timezone: settings.timezone }} phoneMenu={phone} />
       {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
+      {/* the launch screen: shown before the first paint by skinScript when it should play (lib/launch.ts) */}
+      <LaunchScreen cfg={settings.launch} names={{ nick: settings.nickname || settings.fullName, name: settings.fullName, rocket: settings.mascot.fun.rocketName || "SHOUROBH ONE" }} />
       <VisitTracker />
       <OpenInBrowser />
     </div>

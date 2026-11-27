@@ -1,5 +1,6 @@
 "use server";
 
+import { cleanLaunch } from "@/lib/launch";
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
 import { cleanAward } from "@/lib/awardItem";
@@ -248,6 +249,16 @@ export async function saveMascot(raw: unknown): Promise<{ ok: true } | { ok: fal
     refresh();
     return { ok: true };
   } catch (e) { console.error("saveMascot", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
+/** The launch screen's dashboard page (components/admin/LaunchStudio.tsx): everything in settings.launch, cleaned (lib/launch.ts). */
+export async function saveLaunch(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    await saveSettingsData({ launch: cleanLaunch(raw) });
+    refresh();
+    return { ok: true };
+  } catch (e) { console.error("saveLaunch", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
 }
 
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */

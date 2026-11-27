@@ -9,6 +9,7 @@ import "./chrome.css";
 import "./admin.css";
 import "./fonts.css";
 import "./icons.css";
+import "./launch.css";
 import { getSettings } from "@/lib/data";
 import IconFallback from "@/components/IconFallback";
 import { skinScript } from "@/lib/settings";
@@ -30,7 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: skinScript(s) }} />
-        <noscript><style>{".reveal,.split-host .ch{opacity:1!important;transform:none!important}.intro{display:none}"}</style></noscript>
+        <noscript><style>{".reveal,.split-host .ch{opacity:1!important;transform:none!important}.intro,.lch{display:none!important}"}</style></noscript>
         {/* fonts and icons come from the site itself (app/fonts.css, app/icons.css): no waiting on other servers before the first paint */}
         <link rel="preload" href="/icons/ti.woff2" as="font" type="font/woff2" crossOrigin="" />
       </head>

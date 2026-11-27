@@ -27,6 +27,9 @@ export function pageY() {
 type Waking = { fn: () => void; order: number; dead: boolean };
 const waking: Waking[] = [];
 let wakingNow = false;
+// how far the waking has got, for the launch screen's progress: jobs added, jobs done, and when the last one woke
+const woke = { n: 0, d: 0, last: 0 };
+export const wakeState = () => ({ n: woke.n, d: woke.d, last: woke.last, idle: !wakingNow && waking.every((j) => j.dead) });
 const idle = (f: () => void) => {
   const w = window as unknown as { requestIdleCallback?: (f: () => void, o?: object) => number };
   if (w.requestIdleCallback) w.requestIdleCallback(f, { timeout: 1500 }); else window.setTimeout(f, 200);
@@ -35,6 +38,7 @@ const wakeNext = () => {
   waking.sort((a, b) => a.order - b.order);
   const j = waking.shift();
   if (!j) { wakingNow = false; return; }
+  woke.d++; woke.last = performance.now();
   if (j.dead) { wakeNext(); return; }
   try { j.fn(); } catch {}
   window.setTimeout(() => idle(wakeNext), 450);
@@ -43,6 +47,7 @@ const beginWaking = () => { if (wakingNow) return; wakingNow = true; idle(wakeNe
 export function whenSettled(fn: () => void, order = 5) {
   const job: Waking = { fn, order, dead: false };
   waking.push(job);
+  woke.n++;
   if (document.readyState === "complete") beginWaking();
   else window.addEventListener("load", beginWaking, { once: true });
   return () => { job.dead = true; };
