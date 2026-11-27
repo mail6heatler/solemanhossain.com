@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Sticker buttons made smoother (2026-11-28, live, waiting for keep or undo)
+
+- The owner asked for smoother React, Comment and Share. Frames a second on this PC (real graphics card), before → after: emojis up 34–40 → 84–87, mouse along the buttons 38–48 → 79–87, Comment flip 64–68 → 82–85; at a 4x slower CPU 10 → 21, 10 → 18–19, 8–12 → 23–25. Restore point: tag `before-smoother-stickers`.
+
 ## Sticker buttons on G1 (2026-11-28, kept)
 
 - The owner wrote their own list, chose number 3 from the Tab Footer Picker (https://claude.ai/artifact/4UaJ3D5M3msnXCdoPD21rP) with the theme's colour and the Ink finish, asked for animations after reacting, commenting and sharing, and said to start with G1 · Me, one section at a time. They chose the Comment button on all six G1 cards.

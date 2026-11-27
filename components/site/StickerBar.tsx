@@ -65,7 +65,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   const talkN = useRef<HTMLElement>(null);
   // kept across draws, so a timer set before a re-draw still knows the truth
   const st = useRef({ by: "" as "" | "hover" | "click", openT: 0 as ReturnType<typeof setTimeout> | 0, closeT: 0 as ReturnType<typeof setTimeout> | 0, busy: false, up: false, closing: false,
-    cur: null as HTMLElement | null, total: -1, comments: -1, own: [] as Line[], lines: [] as Line[], last: -1, timer: 0 as ReturnType<typeof setInterval> | 0, typer: 0 as ReturnType<typeof setInterval> | 0, seen: false });
+    cur: null as HTMLElement | null, total: -1, comments: -1, own: [] as Line[], lines: [] as Line[], last: -1, timer: 0 as ReturnType<typeof setInterval> | 0, typer: 0, seen: false });
   st.current.up = tray;
 
   const showReact = reactions && cfg.react && t.react;
@@ -98,21 +98,26 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   useEffect(() => { const s = st.current; if (s.comments >= 0 && s.comments !== comments && talkN.current) { const el = talkN.current, up = comments > s.comments; fx((f) => f.rollIn(el, up)); } s.comments = comments; }, [comments]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- the LIVE strip: one line after another, typed, only while it's on screen ----------
+  // types by the screen's own frames into one text node, about 38 letters a second, then shows the line with its bold name
   const write = (l: Line, type: boolean) => {
     const el = line.current; if (!el) return;
-    clearInterval(st.current.typer);
+    cancelAnimationFrame(st.current.typer);
     const head = `<span class="stb-li">${l.ic}</span>`;
     const root = document.documentElement;
     if (!type || !lively() || root.classList.contains("scrolling")) { el.innerHTML = `${head}<span class="stb-lt">${l.html}</span>`; return; }
     const plain = Array.from(l.html.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&"));
-    let i = 0;
     el.innerHTML = `${head}<span class="stb-lt"><span class="stb-caret"></span></span>`;
-    const body = el.querySelector(".stb-lt") as HTMLElement;
-    st.current.typer = setInterval(() => {
-      i += 1;
-      body.innerHTML = esc(plain.slice(0, i).join("")) + '<span class="stb-caret"></span>';
-      if (i >= plain.length) { clearInterval(st.current.typer); setTimeout(() => { if (body.isConnected) body.innerHTML = l.html; }, 500); }
-    }, 28);
+    const body = el.querySelector(".stb-lt") as HTMLElement, txt = document.createTextNode("");
+    body.prepend(txt);
+    const t0 = performance.now();
+    let shown = 0;
+    const step = (now: number) => {
+      const i = Math.min(plain.length, Math.floor(((now - t0) / 1000) * 38));
+      if (i !== shown) { shown = i; txt.data = plain.slice(0, i).join(""); }
+      if (i < plain.length) st.current.typer = requestAnimationFrame(step);
+      else setTimeout(() => { if (body.isConnected && txt.isConnected) body.innerHTML = l.html; }, 450);
+    };
+    st.current.typer = requestAnimationFrame(step);
   };
   const next = () => {
     const s = st.current, all = [...s.own, ...s.lines];
@@ -137,7 +142,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
     const io = new IntersectionObserver(([e]) => { st.current.seen = e.isIntersecting; });
     io.observe(el);
     restart();
-    return () => { io.disconnect(); clearInterval(st.current.timer); clearInterval(st.current.typer); };
+    return () => { io.disconnect(); clearInterval(st.current.timer); cancelAnimationFrame(st.current.typer); };
   }, [still]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- the emojis that come up ----------
@@ -254,7 +259,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
     loadFx().then((f) => f.label(tab, ok ? "Link copied ✓" : "Couldn't copy it", !lively())).catch(() => {});
   };
 
-  // ---------- pointing, leaving and pressing; nothing of this in the live editor ----------
+  // ---------- pointing and leaving (the press itself is CSS: stickerbar.css); nothing of this in the live editor ----------
   useEffect(() => {
     const b = bar.current, foot = b?.parentElement, root = document.documentElement;
     if (still || !b || !foot) return;
@@ -277,19 +282,13 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
       enter(tabOf(e.target));
     };
     const onLeave = (e: PointerEvent) => { if (e.pointerType !== "mouse") return; enter(null); clearTimeout(s.openT); if (s.by === "hover") { clearTimeout(s.closeT); s.closeT = setTimeout(closeTray, 300); } };
-    const onDown = (e: PointerEvent) => { const tab = tabOf(e.target); if (tab) fx((f) => f.press(tab)); };
-    const onUp = (e: PointerEvent) => { const tab = tabOf(e.target); if (tab && fxP) loadFx().then((f) => f.release(tab)).catch(() => {}); };
     const warm = () => { if (cfg.motion === "lively") loadFx().catch(() => {}); };
     foot.addEventListener("pointermove", onMove);
     foot.addEventListener("pointerleave", onLeave);
-    foot.addEventListener("pointerdown", onDown);
-    foot.addEventListener("pointerup", onUp);
-    foot.addEventListener("pointercancel", onUp);
     foot.addEventListener("pointerenter", warm, { once: true });
     return () => {
       clearTimeout(s.openT); clearTimeout(s.closeT);
       foot.removeEventListener("pointermove", onMove); foot.removeEventListener("pointerleave", onLeave);
-      foot.removeEventListener("pointerdown", onDown); foot.removeEventListener("pointerup", onUp); foot.removeEventListener("pointercancel", onUp);
       foot.removeEventListener("pointerenter", warm);
     };
   });
@@ -317,7 +316,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   if (!n && !cfg.strip) return null;
   const stop = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
   const ti = still ? { tabIndex: -1 } : {};
-  const openInner = <><span className="stb-ic"><i className="ti ti-arrows-maximize" aria-hidden /></span><span className="stb-w">Open</span></>;
+  const openInner = <span className="stb-face"><span className="stb-ic"><i className="ti ti-arrows-maximize" aria-hidden /></span><span className="stb-w">Open</span></span>;
 
   return (
     <>
@@ -334,19 +333,19 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
                   else if (st.current.by === "hover") st.current.by = "click";
                   else closeTray();
                 }}>
-                <span className="stb-ic">{myEmoji ? <span className="stb-me">{myEmoji}</span> : <i className="ti ti-mood-smile" aria-hidden />}{total > 0 && <b ref={totalEl} className="stb-n" key={total}>{total}</b>}</span>
-                <span className="stb-w">React</span>
+                <span className="stb-face"><span className="stb-ic">{myEmoji ? <span className="stb-me">{myEmoji}</span> : <i className="ti ti-mood-smile" aria-hidden />}{total > 0 && <b ref={totalEl} className="stb-n" key={total}>{total}</b>}</span>
+                <span className="stb-w">React</span></span>
               </button>
             )}
             {showTalk && (
               <button ref={talkTab} type="button" className="stb-t stb-talk" {...ti} {...p("t-talk")} aria-label={`Comment (${comments} so far)`} onClick={(e) => { stop(e); openSay(); }}>
-                <span className="stb-ic"><i className="ti ti-message-circle" aria-hidden /><span className="stb-dots" aria-hidden><i /><i /><i /></span>{comments > 0 && <b ref={talkN} className="stb-n" key={comments}>{comments}</b>}</span>
-                <span className="stb-w">Comment</span>
+                <span className="stb-face"><span className="stb-ic"><i className="ti ti-message-circle" aria-hidden /><span className="stb-dots" aria-hidden><i /><i /><i /></span>{comments > 0 && <b ref={talkN} className="stb-n" key={comments}>{comments}</b>}</span>
+                <span className="stb-w">Comment</span></span>
               </button>
             )}
             {showShare && (
               <button type="button" className="stb-t stb-share" {...ti} {...p("t-share")} aria-label="Share this" onClick={(e) => { stop(e); if (!still) share(e.currentTarget); }}>
-                <span className="stb-ic"><i className="ti ti-share" aria-hidden /></span><span className="stb-w">Share</span>
+                <span className="stb-face"><span className="stb-ic"><i className="ti ti-share" aria-hidden /></span><span className="stb-w">Share</span></span>
               </button>
             )}
             {showOpen && (still || !href

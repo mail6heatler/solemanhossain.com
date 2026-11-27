@@ -10,13 +10,20 @@
 .card-foot.stb-foot ~ .mn-warn:not([data-sz~="x"]) { bottom: 122px; }
 .stb[data-sz~="w"], .stb-strip[data-sz~="w"] { align-self: flex-start; }
 .stb { z-index: 3; container-type: inline-size; perspective: 700px; }
-.stb-tabs { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; transform-style: preserve-3d; backface-visibility: hidden; }
+.stb-tabs { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; }
 
-.stb-t { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; margin: 0; padding: 6px 3px 5px;
-  border: 2px solid var(--fg); border-radius: 11px; background: var(--card); color: var(--fg); box-shadow: 3px 3px 0 var(--fg);
+/* each button is a sticker: its hard shadow (::before) stays put while its face (.stb-face) lifts off it under the mouse and presses down
+   into it on a click, then springs back. Plain CSS transitions on transform, which the browser runs by itself, smooth on any device. */
+.stb-t { position: relative; min-width: 0; display: grid; margin: 0; padding: 0; border: 0; background: none; color: var(--fg);
   font: 700 clamp(10px, 3.3cqi, 12.5px)/1.1 var(--body); text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stb-t::before { content: ""; position: absolute; inset: 0; border-radius: 11px; background: var(--fg); transform: translate(3px, 3px); }
+.stb-face { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; padding: 6px 3px 5px;
+  border: 2px solid var(--fg); border-radius: 11px; background: var(--card); transition: transform .24s cubic-bezier(.3, 1.45, .5, 1), background-color .2s; }
+@media (hover: hover) { .stb-t:hover .stb-face { transform: translate(-1.5px, -1.5px); } }
+.stb-up .stb-react .stb-face { transform: translate(-1.5px, -1.5px); }
+.stb-t:active .stb-face { transform: translate(3px, 3px); transition: transform .07s ease-out; }
 .stb-t[data-sz~="w"] { justify-self: start; }
-.stb-t:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+.stb-t:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 .stb-ic { position: relative; display: grid; place-items: center; width: 1.25em; height: 1.25em; font-size: clamp(17px, 5.6cqi, 21px); line-height: 1; color: var(--mint-deep); }
 .stb-ic > .ti { display: inline-block; }
 .stb-me { display: inline-block; font-size: .95em; line-height: 1; }
@@ -24,19 +31,19 @@
 /* numbers sit on the icon's corner, so a word always has its whole button */
 .stb-n { position: absolute; left: 74%; top: -8px; min-width: 16px; padding: 0 4px; border-radius: 99px; background: var(--mint); color: var(--on-mint); box-shadow: 0 0 0 2px var(--card);
   font: 800 9.5px/1.5 var(--body); text-align: center; font-variant-numeric: tabular-nums; }
-.stb-react.stb-mine { background: color-mix(in srgb, var(--mint) 28%, var(--card)); }
-.stb-up .stb-react { background: color-mix(in srgb, var(--mint) 14%, var(--card)); }
-.stb-open { background: var(--mint); color: var(--on-mint); }
+.stb-react.stb-mine .stb-face { background: color-mix(in srgb, var(--mint) 28%, var(--card)); }
+.stb-up .stb-react:not(.stb-mine) .stb-face { background: color-mix(in srgb, var(--mint) 14%, var(--card)); }
+.stb-open .stb-face { background: var(--mint); color: var(--on-mint); }
 .stb-open .stb-ic { color: var(--on-mint); }
 .stb-dots { position: absolute; left: 50%; top: 45%; translate: -50% -50%; display: none; gap: 2px; }
 .stb-typing .stb-dots { display: flex; }
 .stb-dots i { display: block; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
 /* words fit any width: beside the icon when there's room, under it in a normal card, icons and numbers only when narrow */
-@container (min-width: 400px) { .stb-t { flex-direction: row; gap: 7px; min-height: 44px; font-size: 13px; } }
-@container (max-width: 250px) { .stb-w { display: none; } .stb-t { min-height: 42px; } }
+@container (min-width: 400px) { .stb-t { font-size: 13px; } .stb-face { flex-direction: row; gap: 7px; min-height: 44px; } }
+@container (max-width: 250px) { .stb-w { display: none; } .stb-face { min-height: 42px; } }
 
 /* Comment: the back of the four buttons */
-.stb-say { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; gap: 7px; transform-style: preserve-3d; backface-visibility: hidden; }
+.stb-say { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; gap: 7px; }
 .stb-say[hidden] { display: none; }
 .stb-say input { flex: 1; min-width: 0; height: 100%; max-height: 48px; padding: 0 14px; border: 2px solid var(--fg); border-radius: 11px; background: var(--card); color: var(--fg); box-shadow: 3px 3px 0 var(--fg); font: 500 13.5px var(--body); outline: none; }
 .stb-say input::placeholder { color: color-mix(in srgb, var(--fg) 55%, transparent); }
@@ -51,7 +58,9 @@
 .stb-tray.stb-pre { opacity: 0; }
 .stb-tray::after { content: ""; position: absolute; left: 22px; top: 100%; border: 7px solid transparent; border-top-color: var(--fg); }
 .stb-e { position: relative; flex: 0 1 42px; min-width: 30px; display: grid; justify-items: center; gap: 1px; padding: 4px 0 2px; border: 0; border-radius: 14px; background: none; color: var(--fg); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.stb-em { display: block; font-size: 25px; line-height: 1.12; filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff); }
+/* each emoji is its own layer while the tray is up (it only exists then), so its moves are drawn once and slid, not redrawn every frame */
+.stb-e, .stb-em { will-change: transform; }
+.stb-em { display: block; font-size: 25px; line-height: 1.12; }
 .stb-c { min-height: 12px; font: 700 10px/1.2 var(--body); color: color-mix(in srgb, var(--fg) 62%, transparent); font-variant-numeric: tabular-nums; }
 .stb-e.stb-on { background: color-mix(in srgb, var(--mint) 30%, transparent); }
 .stb-e.stb-on .stb-c { color: var(--fg); }
@@ -69,10 +78,13 @@
 @keyframes stb-blink { 50% { opacity: .25; } }
 .stb-win { position: relative; flex: 1; min-width: 0; height: 100%; overflow: hidden; }
 .stb-line { position: absolute; inset: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.stb-li { flex: none; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; font-size: 10.5px; background: color-mix(in srgb, var(--mint) 35%, var(--card)); }
+.stb-li { flex: none; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; font-size: 10.5px; background: color-mix(in srgb, var(--mint) 35%, var(--card)); animation: stb-pop .3s cubic-bezier(.3, 1.5, .5, 1) both; }
+@keyframes stb-pop { from { transform: scale(.4); opacity: 0; } }
 .stb-lt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .stb-lt b { font-weight: 700; }
-.stb-caret { display: inline-block; width: 1px; height: 12px; margin-left: 1px; background: currentColor; vertical-align: -2px; }
+.stb-caret { display: inline-block; width: 1px; height: 12px; margin-left: 1px; background: currentColor; vertical-align: -2px; animation: stb-caret .9s steps(1) infinite; }
+@keyframes stb-caret { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .stb-face { transition: none; } .stb-li, .stb-caret { animation: none; } }
 /* the blinking dot and the strip rest while the page scrolls, on slow devices and for visitors who turned motion off */
 html.scrolling .stb-live::before, html.lite .stb-live::before { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .stb-live::before { animation: none; } }
