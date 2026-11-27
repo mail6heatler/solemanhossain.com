@@ -17,7 +17,7 @@
 .mb-prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--mint); transform-origin: left; transform: scaleX(0); pointer-events: none; }
 .mb-new { display: none; }
 .navlinks a.is-new .mb-new { display: block; position: absolute; top: 1px; right: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--pop2); box-shadow: 0 0 0 2px var(--bg); animation: mb-beat 1.8s ease-in-out infinite; }
-.mb-hello { flex: none; padding: 7px 14px; border-radius: 99px; background: var(--pop2); color: #fff; font: 700 13px var(--display); text-decoration: none; white-space: nowrap; box-shadow: 0 3px 0 color-mix(in srgb, var(--pop2) 55%, #000); animation: mb-nudge 5s ease-in-out infinite; }
+.mb-hello { flex: none; padding: 7px 14px; border-radius: 99px; background: var(--mint); color: var(--on-mint, #0b1a12); font: 700 13px var(--display); text-decoration: none; white-space: nowrap; box-shadow: 0 3px 0 color-mix(in srgb, var(--mint) 55%, #000); animation: mb-nudge 5s ease-in-out infinite; }
 .mb-search { font-size: 15px; }
 @media (max-width: 1240px) { .nav.mb:not(.mb-classic) .navlinks .lbl { display: none; } .nav.mb .navlinks a { padding-inline: 8px; } }
 @media (max-width: 960px) { .mb-hello { display: none; } }
