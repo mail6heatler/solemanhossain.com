@@ -363,8 +363,8 @@ html[data-skin="playful"] .site .aurora { opacity: .7; background:
 
 /* cursor fx */
 #hack-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 70; }
-/* the dot and ring are their own layers, so moving them never redraws the page; the dot's thin --bg edge keeps it visible on any colour (no blend mode, which made the page under it redraw at every move) */
-#cursor-dot { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bg) 85%, transparent); pointer-events: none; z-index: 10000; transform: translate(-99px,-99px); left: 0; top: 0; will-change: transform; contain: strict; }
+/* the dot and ring are their own layers, so moving them never redraws the page; the dot is the theme's second colour (--pop2) so it stands apart from the ring and the web, and its thin --bg edge keeps it visible on any colour (no blend mode, which made the page under it redraw at every move) */
+#cursor-dot { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: var(--pop2, var(--mint)); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bg) 85%, transparent), 0 0 10px 1px color-mix(in srgb, var(--pop2, var(--mint)) 55%, transparent); pointer-events: none; z-index: 10000; transform: translate(-99px,-99px); left: 0; top: 0; will-change: transform; contain: strict; }
 #cursor-ring { position: fixed; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none; z-index: 9999; transform: translate(-99px,-99px); left: 0; top: 0; will-change: transform; }
 @media (hover: none), (pointer: coarse) { #hack-canvas, #cursor-dot, #cursor-ring { display: none; } }
 
