@@ -18,7 +18,11 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
-## Sticker buttons on G6 · Growth (2026-11-28, live, waiting for keep or undo)
+## Sticker buttons on G7 · Life (2026-11-28, live, waiting for keep or undo)
+
+- Every scrapbook page (diary, map scrap, habit tracker, photo pile) gets the sticker buttons and the strip; the punched holes end above them; comments on for G7 (following the owner's choice). Restore point: tag `before-g7-stickers`. Still saved for 2026-11-29: Connect's pinned cards and one equal card size for every section.
+
+## Sticker buttons on G6 · Growth (2026-11-28, kept)
 
 - Every achievement card (staff card, certificate, front page, mended in gold, star) gets the sticker buttons and the strip; comments on for G6 (following the owner's choice). Restore point: tag `before-g6-stickers`. Saved for 2026-11-29: G7 · Life, Connect's pinned cards, and one equal card size for every section (measured: G1's button words 10.6px on a laptop, G4's and G5's 8.7px, because each section has its own card size and is shrunk separately to fit one screen).
 

@@ -407,7 +407,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "scrapbook") {
     const cells = items.map((it, i) => (
       <ScrapCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} fallback={section.nav_label || section.title} href={href(section, it)}
-        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} bar={(p) => <StickerBar id={it.id} href={href(section, it)} label={it.title} talk={it.talk} parts={stickerParts(p)} reactions={fx.reactions} />} />
     ));
     return row("grid3 tkt-row sb-row", <>{cells}{!grid && items.length > 0 && items.length <= 2 && <ScrapMore />}{!grid && fx.scrapfx && <TicketRider className="sb-rider" count={items.length}><Pencil /></TicketRider>}</>);
   }

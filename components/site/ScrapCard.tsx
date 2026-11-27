@@ -11,10 +11,11 @@ import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn }
  * of photos (ScrapFrame.tsx). The homepage row draws it and so does the dashboard's live editor, which is why it's a file of its own. With `edit`, each
  * part carries its name (`data-part`) for the editor's labels, nothing on it leads anywhere and a poll stands still.
  */
-export default function ScrapCard({ it, l, index, count, fallback, href, vt, zoom, confetti = false, edit, foot }: {
+export default function ScrapCard({ it, l, index, count, fallback, href, vt, zoom, confetti = false, edit, foot, bar }: {
   it: Item; l: Look; index: number; count: number; fallback: string; href: string;
   vt?: React.CSSProperties; zoom?: React.ReactNode; confetti?: boolean; edit?: boolean;
   /** the reaction bar, given the size and place of the bar and of the comment box */ foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode;
+  /** the sticker buttons (StickerBar.tsx), which bring their own Open button; given the card's part function, so each button and the strip can be sized */ bar?: (p: PartFn) => React.ReactNode;
 }) {
   const p: PartFn = partFn(edit, it.card.parts);
   const v = scrapView(it, { fallback, hideDate: l.hide("date") });
@@ -28,8 +29,8 @@ export default function ScrapCard({ it, l, index, count, fallback, href, vt, zoo
     <div className={`tkt-cell sb-cell${index === 0 ? " first" : ""}${index === count - 1 ? " last" : ""}${l.className}`} style={l.style}>
       <div className={`trip tkt sb on-${v.look}`} style={style}>
         <ScrapFrame view={v} link={edit ? undefined : <a className="tkt-link" href={href} tabIndex={-1} aria-hidden />} pics={pics} zoom={pics.length ? zoom : null} fixedPic={"--pic" in (l.style ?? {})} p={p}>
-          <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-            full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
+          <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+            full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
             {!edit && <CardLink to={href} label={it.title} />}
             <div className="tb">
               <h3 {...p("title")}>{it.title}</h3>

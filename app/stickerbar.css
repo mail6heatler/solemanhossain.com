@@ -7,6 +7,8 @@
 .stb, .stb-strip { position: relative; min-width: 0; }
 /* G4's phone sends its little hearts up from just above the old row of emojis: start them above the taller buttons and strip */
 .pn-screen .pn-fly { bottom: 128px; }
+/* G7's punched holes ran down to just above the old row of emojis: end them above the taller buttons and strip */
+.trip.tkt.sb > .sb-holes { height: calc(100% - 176px); }
 /* the manual's HANDLE WITH CARE sticker sat just above the old row of emojis: keep it above the taller buttons and strip, unless the owner
    moved it in the live editor (its move is measured from where it sat, so lifting it would carry the owner's place up with it) */
 .card-foot.stb-foot ~ .mn-warn:not([data-sz~="x"]) { bottom: 122px; }

@@ -143,7 +143,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   /** a trip's number on its pass is its place among what visitors see */
   const tripNo = (it: Item) => Math.max(0, draft.items.filter((x) => x.visible || x.id === it.id).findIndex((x) => x.id === it.id));
   const cardOf = (it: Item) => book
-    ? <ScrapCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} fallback={draft.section.nav_label || draft.section.title} href="#" edit foot={bar(it, true)} />
+    ? <ScrapCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} fallback={draft.section.nav_label || draft.section.title} href="#" edit bar={stickers(it)} />
     : wall
     ? <AwardCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} owner={{ fullName: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials }} href="#" edit bar={stickers(it)} />
     : comic
