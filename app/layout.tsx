@@ -7,7 +7,10 @@ import "./mascot.css";
 import "./heroLooks.css";
 import "./chrome.css";
 import "./admin.css";
+import "./fonts.css";
+import "./icons.css";
 import { getSettings } from "@/lib/data";
+import IconFallback from "@/components/IconFallback";
 import { skinScript } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,12 +31,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: skinScript(s) }} />
         <noscript><style>{".reveal,.split-host .ch{opacity:1!important;transform:none!important}.intro{display:none}"}</style></noscript>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Permanent+Marker&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Orbitron:wght@700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&display=swap" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.35.0/dist/tabler-icons.min.css" />
+        {/* fonts and icons come from the site itself (app/fonts.css, app/icons.css): no waiting on other servers before the first paint */}
+        <link rel="preload" href="/icons/ti.woff2" as="font" type="font/woff2" crossOrigin="" />
       </head>
-      <body>{children}</body>
+      <body>{children}<IconFallback /></body>
     </html>
   );
 }

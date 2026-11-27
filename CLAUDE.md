@@ -382,6 +382,15 @@ Every visual effect has a switch on the Appearance page. To add one:
 3. Add its preview to `components/site/Demo.tsx`.
 4. Implement it. For CSS-only effects, add the key to `LOOKS` in `Chrome.tsx` and scope the CSS under `.site.fx-<key>`. For JS, pass the flag through `Living` in `Chrome.tsx` into `hoverFx.ts` or `scrollFx.ts`.
 
+## Loading fast (2026-11-27)
+
+- **Fonts and icons come from the site itself.** `app/fonts.css` + `public/fonts/` (latin and latin-ext only, same family names, made by `scripts/fonts-local.py`) and `app/icons.css` + `public/icons/ti.woff2` (only the ~490 Tabler icons whose names appear anywhere in `app/`, `components/` or `lib/`, made by `scripts/icons-subset.py`; list in `lib/iconNames.ts`). **Using a new icon? Re-run the subset script** (it says how). Until then `IconFallback` loads the full set from the CDN when it sees an unknown `ti-` class, so nothing goes blank. The fan themes' fonts and the dashboard's own fonts still come from Google.
+- **Heavy things wake one at a time** after the page's `load`: `whenSettled(fn, order)` in `fx.ts` (3D hero 1, theme background 2, mascot 3), about half a second apart, each when the browser is idle. Something new and heavy joins that queue instead of starting on mount.
+- **Every visible entry page is built ahead** (`generateStaticParams` in `app/s/[slug]/[id]/page.tsx`); dashboard changes still refresh them.
+- **Card pictures are sized** (`srcSetFor` and `CARD_SIZES` in `lib/sized.ts`, used by `Cover`): WebP at 384 to 1200px through `/_next/image` for Blob and `/media/` uploads; GIFs and outside links stay as they are, and the viewer uses the original.
+- **Pressing a link to `/s/…` prerenders it** (speculation rules in `skinScript`: prefetch on hover, prerender on press).
+- `admin.css` is still in the visitors' CSS: many of its plain class names (`.c`, `.f`, `.chips`, `.spin`, `.box`…) are also used on public pages, so taking it out would change their look. Scope it under `.adm` first if it ever needs to go.
+
 ## Keeping scrolling smooth
 
 **The browser scrolls the page (2026-11-25, the owner's "universally smoother and lighter" on computers).** Lenis is gone: it moved the page from the page's scripts, so the page could only move as often as they ran (about 26 times a second here while the screen drew 70). Now the browser moves it by itself, scripts busy or not: with every script frozen for 0.9 s a glide still ran its full length. Keep it that way:

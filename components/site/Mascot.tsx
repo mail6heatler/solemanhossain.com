@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import type { MascotSettings, MascotView } from "@/lib/mascot";
 import type { MascotCtl } from "./mascotEngine";
+import { whenSettled } from "./fx";
 
 /** Messages from the dashboard's Mascot page to its screens (the homepage in an iframe, `/?mz=studio`). */
 export type MzStudioMsg = { type: "lc-mz-draft"; m: MascotSettings } | { type: "lc-mz-cmd"; cmd: string; k?: string };
@@ -42,8 +43,10 @@ export default function Mascot({ view, phoneMenu = "bottom" }: { view: MascotVie
       if (typeof f === "function" && d.cmd !== "stop" && d.cmd !== "update") f(d.k);
     };
     if (studio) addEventListener("message", on);
-    const t = studio ? window.setTimeout(() => void go(), 50) : window.setTimeout(() => ("requestIdleCallback" in window ? window.requestIdleCallback(() => void go(), { timeout: 2500 }) : void go()), 1500);
-    return () => { dead = true; clearTimeout(t); removeEventListener("message", on); ctl?.stop(); };
+    // on the site he's third in line once the page has loaded, after the 3D hero and the theme's background
+    const t = studio ? window.setTimeout(() => void go(), 50) : 0;
+    const cancel = studio ? () => {} : whenSettled(() => void go(), 3);
+    return () => { dead = true; clearTimeout(t); cancel(); removeEventListener("message", on); ctl?.stop(); };
   }, [key]);
   return <div ref={ref} className={`mz-layer ph-${phoneMenu}`} />;
 }

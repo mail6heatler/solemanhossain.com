@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { pageY, prefersReducedMotion, toHex } from "./fx";
+import { pageY, prefersReducedMotion, toHex, whenSettled } from "./fx";
 import type { Frame, Palette, Scene } from "./themeScenes";
 
 /**
@@ -18,7 +18,8 @@ export default function ThemeFx() {
     let dead = false, stop = () => {};
     const toLite = () => { dead = true; stop(); canvas.classList.remove("on"); };
     window.addEventListener("lc-lite", toLite);
-    import("./themeScenes").then(({ makeScene, drawBursts, clickBurst }) => {
+    // second in line once the page has loaded, after the 3D hero
+    const cancel = whenSettled(() => import("./themeScenes").then(({ makeScene, drawBursts, clickBurst }) => {
       if (dead) return;
       const h = document.documentElement;
       let skin = "", palette: Palette = { a: "#7ee8a2", b: "#9fd8e6", c: "#f2a5c0", deep: "#2f7a52", fg: "#ffffff" }, scene: Scene | null = null;
@@ -84,8 +85,8 @@ export default function ThemeFx() {
         document.removeEventListener("visibilitychange", play);
         document.removeEventListener("pointerdown", click);
       };
-    }).catch(() => {});
-    return () => { dead = true; stop(); window.removeEventListener("lc-lite", toLite); };
+    }).catch(() => {}), 2);
+    return () => { dead = true; cancel(); stop(); window.removeEventListener("lc-lite", toLite); };
   }, []);
   return <canvas ref={ref} className="theme-canvas" aria-hidden />;
 }

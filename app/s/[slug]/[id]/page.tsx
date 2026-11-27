@@ -17,9 +17,19 @@ import { noteLookOf } from "@/lib/cardLook";
 
 type P = { params: Promise<{ slug: string; id: string }> };
 
-// made on the first visit and kept, so opening a card doesn't wait for the database. Dashboard changes clear it (`refresh` in actions.ts).
+// every visible entry is made when the site is built, so even the first visitor gets it at once; one added later is made
+// on its first visit and kept. Dashboard changes clear them (`refresh` in actions.ts), and the old copy is served while
+// the new one is made, so nobody waits for the database.
 export const revalidate = 300;
-export async function generateStaticParams() { return []; }
+export async function generateStaticParams() {
+  try {
+    const sections = await getSections({ visibleOnly: true });
+    const lists = await Promise.all(sections.map(async (s) => (await getItems(s.id, { visibleOnly: true })).map((it) => ({ slug: s.slug, id: String(it.id) }))));
+    return lists.flat();
+  } catch {
+    return []; // a database that can't be reached at build time just means pages are made on first visit, as before
+  }
+}
 
 async function load(slug: string, id: string) {
   const section = await getSection({ slug }, true);

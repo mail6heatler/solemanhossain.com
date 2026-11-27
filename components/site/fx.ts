@@ -19,6 +19,35 @@ export function pageY() {
   return scrollNow;
 }
 
+/**
+ * Heavy things (the 3D hero, the theme's background, the mascot) wake one at a time once the page has loaded and
+ * the browser is idle, about half a second apart, so they never all land on the same moment and freeze the page.
+ * A lower `order` goes first. Returns a cancel.
+ */
+type Waking = { fn: () => void; order: number; dead: boolean };
+const waking: Waking[] = [];
+let wakingNow = false;
+const idle = (f: () => void) => {
+  const w = window as unknown as { requestIdleCallback?: (f: () => void, o?: object) => number };
+  if (w.requestIdleCallback) w.requestIdleCallback(f, { timeout: 1500 }); else window.setTimeout(f, 200);
+};
+const wakeNext = () => {
+  waking.sort((a, b) => a.order - b.order);
+  const j = waking.shift();
+  if (!j) { wakingNow = false; return; }
+  if (j.dead) { wakeNext(); return; }
+  try { j.fn(); } catch {}
+  window.setTimeout(() => idle(wakeNext), 450);
+};
+const beginWaking = () => { if (wakingNow) return; wakingNow = true; idle(wakeNext); };
+export function whenSettled(fn: () => void, order = 5) {
+  const job: Waking = { fn, order, dead: false };
+  waking.push(job);
+  if (document.readyState === "complete") beginWaking();
+  else window.addEventListener("load", beginWaking, { once: true });
+  return () => { job.dead = true; };
+}
+
 /** An element's top in the page, ignoring transforms. Read it when the layout changes and keep it. */
 export function docTop(el: HTMLElement) {
   let top = 0;

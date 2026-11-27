@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { pageY, prefersReducedMotion, toHex } from "./fx";
+import { pageY, prefersReducedMotion, toHex, whenSettled } from "./fx";
 import type { HeroSceneHandle, SceneColors } from "./heroEngine";
 
 function readColors(): SceneColors {
@@ -101,12 +101,12 @@ export default function HeroScene() {
       sync();
     };
 
-    const w = window as unknown as { requestIdleCallback?: (f: () => void, o?: object) => number; cancelIdleCallback?: (n: number) => void };
-    const id = w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 1200 }) : window.setTimeout(start, 300);
+    // first in line once the page has loaded: it's what the visitor sees first
+    const cancel = whenSettled(start, 1);
     return () => {
       dead = true;
       window.removeEventListener("lc-lite", toLite);
-      if (w.cancelIdleCallback) w.cancelIdleCallback(id); else clearTimeout(id);
+      cancel();
       off.forEach((f) => f());
       scene?.destroy();
     };
