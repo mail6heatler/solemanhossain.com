@@ -162,6 +162,16 @@ export const SCHEMA = [
   )`,
   // Changes to live content that must happen only once, however many times this list runs, so a later choice in the dashboard stands.
   `CREATE TABLE IF NOT EXISTS done_once (key TEXT PRIMARY KEY)`,
+  // Settings → safety and security (lib/opsServer.ts, 2026-11-27): private values (Telegram, two-step login, the private-mode password,
+  // spam words, blocked visitors) never go in the settings document, which pages can show; backups, the recycle bin, settings history,
+  // the login history and signed-in devices each have a table.
+  `CREATE TABLE IF NOT EXISTS secrets (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '')`,
+  `CREATE TABLE IF NOT EXISTS backups (id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), kind TEXT NOT NULL DEFAULT 'auto', size INT NOT NULL DEFAULT 0, summary TEXT NOT NULL DEFAULT '', data TEXT NOT NULL DEFAULT '')`,
+  `CREATE TABLE IF NOT EXISTS bin (id SERIAL PRIMARY KEY, kind TEXT NOT NULL, label TEXT NOT NULL DEFAULT '', data TEXT NOT NULL DEFAULT '', deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+  `CREATE TABLE IF NOT EXISTS settings_history (id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), label TEXT NOT NULL DEFAULT '', data TEXT NOT NULL DEFAULT '')`,
+  `CREATE TABLE IF NOT EXISTS login_log (id SERIAL PRIMARY KEY, at TIMESTAMPTZ NOT NULL DEFAULT NOW(), ok BOOLEAN NOT NULL DEFAULT false, ip_hash TEXT NOT NULL DEFAULT '', ip_hint TEXT NOT NULL DEFAULT '', device TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '')`,
+  `CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(), device TEXT NOT NULL DEFAULT '', ip_hint TEXT NOT NULL DEFAULT '', revoked BOOLEAN NOT NULL DEFAULT false)`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS ip_hash TEXT NOT NULL DEFAULT ''`,
   // G2's new look, agreed with the owner on 2026-11-07. The old cards stay a choice under Section settings.
   `WITH first AS (INSERT INTO done_once (key) VALUES ('made-windows') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'windows' WHERE slug = 'made' AND layout = 'cards' AND EXISTS (SELECT 1 FROM first)`,

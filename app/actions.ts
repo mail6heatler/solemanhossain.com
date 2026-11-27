@@ -1,5 +1,8 @@
 "use server";
 
+import { after } from "next/server";
+import { alertOwner, binItems, binSection, binWhere, historyPush, ipHash, ipOf, loginBlocked, logLogin, spamVerdict, totpOk, useRecoveryCode, getSecret } from "@/lib/opsServer";
+import { deviceName } from "@/lib/ops";
 import { cleanLaunch } from "@/lib/launch";
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
@@ -23,7 +26,7 @@ import { headers } from "next/headers";
 import { query, queryOne } from "@/lib/db";
 import { getComments, getPollCounts, getReactionCounts, getReactionPeople, getSettings, type Comment } from "@/lib/data";
 import {
-  checkCurrentPassword, checkLogin, createSession, destroySession, hashPassword, isAdmin, requireAdmin,
+  checkCurrentPassword, checkLogin, checkTicket, createSession, currentSid, destroySession, hashPassword, isAdmin, makeTicket, requireAdmin,
 } from "@/lib/auth";
 import { cleanStyle } from "@/lib/contentStyle";
 import { BANNER_KINDS, cleanRibbonSize, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
@@ -82,21 +85,56 @@ export async function resetSectionLooks(fd: FormData) {
   redirect(`/admin/s/${id}?${saved()}#look`);
 }
 
-async function saveSettingsData(patch: Partial<SiteSettings>) {
+/** how a deleted chat is named in the recycle bin */
+const CHAT_LABEL = (rows: { name?: string; from_owner?: boolean }[]) => `Chat with ${rows.find((x: { from_owner?: boolean }) => !x.from_owner)?.name || "a visitor"} (${rows.length} message${rows.length === 1 ? "" : "s"})`;
+
+async function saveSettingsData(patch: Partial<SiteSettings>, label = "Settings saved") {
+  await historyPush(label).catch(() => {}); // a copy of how it was, for Settings → Settings history
   const current = await getSettings();
   await query("UPDATE settings SET data=$1 WHERE id=1", [JSON.stringify({ ...current, ...patch })]);
 }
 
 // ---------- auth ----------
-export async function login(_prev: { error?: string; username?: string } | undefined, fd: FormData) {
+type LoginState = { error?: string; username?: string; step?: "code"; ticket?: string };
+/**
+ * Signing in: a lockout after too many wrong tries from one place (Settings → Login protection), every try in the login
+ * history, and, with two-step login on, a second step that asks for the code from the owner's authenticator app
+ * (or a recovery code, once). The ticket proves the password was right for the next 5 minutes.
+ */
+export async function login(_prev: LoginState | undefined, fd: FormData): Promise<LoginState> {
   if (!process.env.ADMIN_PASSWORD) return { error: "ADMIN_PASSWORD is not set on the server." };
   if (process.env.NODE_ENV === "production" && (process.env.AUTH_SECRET ?? "").length < 16)
     return { error: "AUTH_SECRET is not set on the server (needs 16+ characters)." };
-  const ok = await checkLogin(str(fd, "username", 100), String(fd.get("password") ?? ""));
-  if (!ok) {
-    await new Promise((r) => setTimeout(r, 900)); // slow down guessing
-    return { error: "Wrong username or password.", username: str(fd, "username", 100) };
+  const h = await headers();
+  const ip = ipOf(h), device = deviceName(h.get("user-agent") ?? ""), username = str(fd, "username", 100);
+  const wait = await loginBlocked(ipHash(ip));
+  if (wait) return { error: `Too many wrong tries. Try again in ${wait} minute${wait === 1 ? "" : "s"}.`, username };
+  const slow = () => new Promise((r) => setTimeout(r, 900)); // slows down guessing
+
+  const ticket = str(fd, "ticket", 1000);
+  if (ticket) {
+    if (!(await checkTicket(ticket))) return { error: "That took a while, so sign in again from the start.", username };
+    const code = str(fd, "code", 20).replace(/\s/g, "");
+    const good = totpOk(await getSecret("2fa_secret"), code) || (code.length > 6 && (await useRecoveryCode(code)));
+    if (!good) {
+      await logLogin(false, ip, device, "wrong code");
+      await slow();
+      return { step: "code", ticket, username, error: "That code didn't work. Type the one showing now." };
+    }
+    await logLogin(true, ip, device, code.length > 6 ? "with a recovery code" : "with a code from the app");
+    await createSession();
+    redirect("/admin");
   }
+
+  const ok = await checkLogin(username, String(fd.get("password") ?? ""));
+  if (!ok) {
+    await logLogin(false, ip, device, "wrong password");
+    await slow();
+    return { error: "Wrong username or password.", username };
+  }
+  const s = await getSettings();
+  if (s.ops.twoStep.on && (await getSecret("2fa_secret"))) return { step: "code", ticket: await makeTicket(), username };
+  await logLogin(true, ip, device);
   await createSession();
   redirect("/admin");
 }
@@ -109,6 +147,7 @@ export async function logout() {
 export async function logoutEverywhere() {
   await requireAdmin();
   await query("UPDATE settings SET session_version = session_version + 1 WHERE id=1");
+  await query("UPDATE sessions SET revoked=true");
   await destroySession();
   redirect("/admin/login");
 }
@@ -401,6 +440,7 @@ export async function updateSection(fd: FormData) {
 
 export async function deleteSection(fd: FormData) {
   await requireAdmin();
+  await binSection(int(fd, "id"));
   await query("DELETE FROM sections WHERE id=$1", [int(fd, "id")]);
   refresh();
   redirect("/admin?deleted=1");
@@ -490,6 +530,7 @@ export async function updateItem(fd: FormData) {
 
 export async function deleteItem(fd: FormData) {
   await requireAdmin();
+  await binItems([int(fd, "id")]);
   const row = await queryOne("DELETE FROM items WHERE id=$1 RETURNING section_id", [int(fd, "id")]);
   refresh();
   redirect(row ? `/admin/s/${row.section_id}?deleted=1` : "/admin");
@@ -535,7 +576,7 @@ export async function messageAction(fd: FormData) {
   const op = str(fd, "op");
   if (op === "read") await query("UPDATE messages SET read = NOT read WHERE id=$1", [id]);
   if (op === "approve") await query("UPDATE messages SET approved = NOT approved, read = TRUE WHERE id=$1", [id]);
-  if (op === "delete") await query("DELETE FROM messages WHERE id=$1", [id]);
+  if (op === "delete") { await binWhere("message", "messages", "id=$1", [id], (rows) => `Message from ${rows[0].name}`); await query("DELETE FROM messages WHERE id=$1", [id]); }
   // "Mark all read" clears everything the Inbox's number counts: messages, new reactions and new comments
   if (op === "allread") {
     await query("UPDATE messages SET read = TRUE WHERE NOT read");
@@ -560,7 +601,7 @@ export async function commentAction(fd: FormData) {
   const itemId = Number(row.item_id);
   if (op === "reply") await query("UPDATE comments SET reply=$1, seen=TRUE WHERE id=$2", [str(fd, "reply", COMMENT_MAX), id]);
   if (op === "hide") await query("UPDATE comments SET hidden = NOT hidden, seen=TRUE WHERE id=$1", [id]);
-  if (op === "delete") await query("DELETE FROM comments WHERE id=$1", [id]);
+  if (op === "delete") { await binWhere("comment", "comments", "id=$1", [id], (rows) => `Comment by ${rows[0].name}`); await query("DELETE FROM comments WHERE id=$1", [id]); }
   if (op === "pin") { // one at a time: pinning another replaces it
     await query("UPDATE comments SET pinned=FALSE WHERE item_id=$1", [itemId]);
     if (!row.pinned) await query("UPDATE comments SET pinned=TRUE, seen=TRUE WHERE id=$1", [id]);
@@ -591,8 +632,20 @@ export async function sendHello(_prev: HelloState | undefined, fd: FormData): Pr
   if (now - (recent.get(ip) ?? 0) < (conv ? 4_000 : 20_000)) return { error: "Easy there, try again in a few seconds.", values };
   recent.set(ip, now);
 
-  await query("INSERT INTO messages (name, email, body, wants_public, conv) VALUES ($1,$2,$3,$4,$5)",
-    [name, email, body, bool(fd, "public"), conv]);
+  // Settings → Spam control: a blocked visitor is told it was sent (so they don't try another way), blocked words and too many
+  // messages in an hour get a plain no
+  const ipH = ipHash(ip);
+  const verdict = await spamVerdict(`${name}
+${body}`, ipH, conv);
+  if (verdict === "blocked") return { ok: true };
+  if (verdict === "words") return { error: "This message couldn't be sent.", values };
+  if (verdict === "busy") return { error: "That's a lot of messages for one hour. Please try again later.", values };
+
+  await query("INSERT INTO messages (name, email, body, wants_public, conv, ip_hash) VALUES ($1,$2,$3,$4,$5,$6)",
+    [name, email, body, bool(fd, "public"), conv, ipH]);
+  after(() => alertOwner("chat", `💬 New message from ${name}${email ? ` (${email})` : ""}:
+
+${body}`));
   return { ok: true };
 }
 
@@ -629,6 +682,7 @@ export async function saveStudio(raw: StudioSave): Promise<{ ok: true; data: Stu
     const own = new Map((await query("SELECT id, type FROM items WHERE section_id=$1", [sectionId])).map((r) => [Number(r.id), String(r.type)]));
     const sectionIds = new Set((await query("SELECT id FROM sections")).map((r) => Number(r.id)));
     const gone = new Set(list(raw.deleted).map(Number).filter((id) => own.has(id)));
+    if (gone.size) await binItems([...gone]);
     for (const id of gone) await query("DELETE FROM items WHERE id=$1", [id]);
 
     let sort = 0;
@@ -689,7 +743,7 @@ export async function studioComment(id: number, op: "reply" | "pin" | "hide" | "
   const itemId = Number(row.item_id);
   if (op === "reply") await query("UPDATE comments SET reply=$1, seen=TRUE WHERE id=$2", [String(reply ?? "").trim().slice(0, COMMENT_MAX), id]);
   if (op === "hide") await query("UPDATE comments SET hidden = NOT hidden, seen=TRUE WHERE id=$1", [id]);
-  if (op === "delete") await query("DELETE FROM comments WHERE id=$1", [id]);
+  if (op === "delete") { await binWhere("comment", "comments", "id=$1", [id], (rows) => `Comment by ${rows[0].name}`); await query("DELETE FROM comments WHERE id=$1", [id]); }
   if (op === "pin") { // one at a time: pinning another replaces it
     await query("UPDATE comments SET pinned=FALSE WHERE item_id=$1", [itemId]);
     if (!row.pinned) await query("UPDATE comments SET pinned=TRUE, seen=TRUE WHERE id=$1", [id]);
@@ -755,6 +809,9 @@ export async function inboxWall(id: number, on: boolean, reply: string): Promise
 export async function inboxDelete(open: string, id?: number) {
   await requireAdmin();
   const key = chatKey(open);
+  if (id) await binWhere("message", "messages", "id=$1", [Number(id)], (rows) => `Message from ${rows[0].name}`);
+  else if (isConvId(key)) await binWhere("chat", "messages", "conv=$1", [key], CHAT_LABEL);
+  else if (key) await binWhere("chat", "messages", "id=$1 AND conv IS NULL", [Number(key.slice(1))], CHAT_LABEL);
   if (id) await query("DELETE FROM messages WHERE id=$1", [Number(id)]);
   else if (isConvId(key)) await query("DELETE FROM messages WHERE conv=$1", [key]);
   else if (key) await query("DELETE FROM messages WHERE id=$1 AND conv IS NULL", [Number(key.slice(1))]);
@@ -797,7 +854,7 @@ export async function inboxBulk(op: BulkOp, keys: string[], body = ""): Promise<
       }
     }
     else if (op === "unpin") await query(`UPDATE messages SET approved=FALSE WHERE ${cond} AND NOT from_owner`, [arg]);
-    else if (op === "delete") await query(`DELETE FROM messages WHERE ${cond}`, [arg]);
+    else if (op === "delete") { await binWhere("chat", "messages", cond, [arg], CHAT_LABEL); await query(`DELETE FROM messages WHERE ${cond}`, [arg]); }
     else if (op === "reply") {
       if (!isConvId(key)) { skipped++; continue; }
       await query("INSERT INTO messages (name, email, body, conv, from_owner, read) VALUES ($1, '', $2, $3, TRUE, TRUE)", [s!.connect.name || s!.nickname || s!.fullName || "Me", text, key]);
@@ -812,6 +869,7 @@ export async function inboxBulk(op: BulkOp, keys: string[], body = ""): Promise<
 /** Deletes every chat and message, after the Inbox's confirmation. */
 export async function inboxDeleteAll(): Promise<{ ok: true }> {
   await requireAdmin();
+  await binWhere("chat", "messages", "TRUE", [], (rows) => `Every chat and message (${rows.length})`);
   await query("DELETE FROM messages");
   refresh();
   return { ok: true };

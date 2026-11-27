@@ -1,4 +1,5 @@
 "use client";
+import { BlockChatButton } from "./SettingsTools";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMsg, ChatSummary } from "@/lib/chat";
 import { inboxBulk, inboxDelete, inboxDeleteAll, inboxPoll, inboxReact, inboxReply, inboxSaved, inboxWall, type BulkOp } from "@/app/actions";
@@ -221,6 +222,7 @@ export default function ChatInbox({ initial, startOpen, owner, avatar, saved: sa
               <span className="ci-who"><b>{cur.name}</b><small>{cur.email || "No email left"}{cur.canReply ? "" : " · wrote before replies existed"}</small></span>
               <span className="ci-acts">
                 {cur.email && <a className="b-out b-sm" href={gmail(cur.email, cur.name)} target="_blank" rel="noopener noreferrer" title="Opens an email to them in Gmail"><i className="ti ti-mail" />Gmail</a>}
+                {open && <BlockChatButton key={open} chat={open} />}
                 {confirmDel
                   ? <span className="ci-confirm">Delete this whole chat for good? <button type="button" className="b-danger b-sm" onClick={del}>Yes, delete</button><button type="button" className="b-out b-sm" onClick={() => setConfirmDel(false)}>No</button></span>
                   : <button type="button" className="adm-iconbtn" aria-label="Delete this chat" title="Delete this chat" onClick={() => setConfirmDel(true)}><i className="ti ti-trash" /></button>}

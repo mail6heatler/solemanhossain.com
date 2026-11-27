@@ -1,7 +1,10 @@
+import { after } from "next/server";
+import { housekeeping } from "@/lib/opsServer";
 import { query } from "@/lib/db";
 
 // Tiny privacy-friendly analytics: counts per day, no personal data stored.
 export async function POST(req: Request) {
+  after(housekeeping); // automatic backups happen even in weeks the dashboard isn't opened (at most every 10 minutes)
   const ua = req.headers.get("user-agent") ?? "";
   if (/bot|crawl|spider|preview|headless/i.test(ua)) return new Response(null, { status: 204 });
   const body = await req.json().catch(() => ({}));

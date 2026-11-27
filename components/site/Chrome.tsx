@@ -1,3 +1,4 @@
+import SiteGate from "./SiteGate";
 import LaunchScreen from "./LaunchScreen";
 import type { Section } from "@/lib/data";
 import { bannerView, MOODS, type SiteSettings } from "@/lib/settings";
@@ -98,6 +99,7 @@ export function SiteShell({ settings, sections, onHome, children }:
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
       {/* the launch screen: shown before the first paint by skinScript when it should play (lib/launch.ts) */}
       <LaunchScreen cfg={settings.launch} names={{ nick: settings.nickname || settings.fullName, name: settings.fullName, rocket: settings.mascot.fun.rocketName || "SHOUROBH ONE" }} />
+      {(settings.ops.maintenance.on || settings.ops.private.on) && <SiteGate ops={settings.ops} name={settings.nickname || settings.fullName} />}
       <VisitTracker />
       <OpenInBrowser />
     </div>

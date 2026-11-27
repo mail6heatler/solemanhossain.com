@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { alertOwner, spamVerdict } from "@/lib/opsServer";
 import { createHash, randomBytes } from "crypto";
 import { cookies, headers } from "next/headers";
 import { query, queryOne } from "@/lib/db";
@@ -64,6 +66,14 @@ export async function POST(req: Request) {
   if (Number(seen?.same ?? 0) > 0) return Response.json({ error: "You've already said that." }, { status: 409 });
   if (Number(seen?.today ?? 0) >= MOST_PER_DAY) return Response.json({ error: "That's a lot of comments for one day. Try again tomorrow." }, { status: 429 });
 
+  // Settings → Spam control: blocked visitors and blocked words (a blocked visitor's comment is quietly dropped)
+  const verdict = await spamVerdict(`${name}
+${body}`, ip, null);
+  if (verdict === "blocked") return Response.json(await listFor(itemId, talk.replies));
+  if (verdict === "words") return Response.json({ error: "This comment couldn't be posted." }, { status: 400 });
   await query("INSERT INTO comments (item_id, voter, ip, name, body, seen) VALUES ($1,$2,$3,$4,$5,$6)", [itemId, voter, ip, name, body, !talk.notify]);
+  after(async () => { const it = await queryOne("SELECT title FROM items WHERE id=$1", [itemId]); await alertOwner("comments", `💭 ${name} commented on “${it?.title ?? "an entry"}”:
+
+${body}`); });
   return Response.json(await listFor(itemId, talk.replies));
 }

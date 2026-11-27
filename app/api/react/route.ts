@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { alertOwner } from "@/lib/opsServer";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { query, queryOne } from "@/lib/db";
@@ -50,6 +52,7 @@ export async function POST(req: Request) {
   if (!removed) {
     if (!name) return Response.json({ error: "Your name is needed to react", needName: true }, { status: 400 });
     await query("INSERT INTO reactions (item_id, voter, emoji, name) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING", [itemId, voter, emoji, name]);
+    after(async () => { const it = await queryOne("SELECT title FROM items WHERE id=$1", [itemId]); await alertOwner("reactions", `${emoji} ${name || "Someone"} reacted to “${it?.title ?? "an entry"}”`); });
   }
   // the same browser is the same person: their earlier reactions pick up the name too
   if (name) await query("UPDATE reactions SET name=$1 WHERE voter=$2 AND name <> $1", [name, voter]);

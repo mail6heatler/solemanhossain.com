@@ -1,0 +1,21 @@
+/* ===== maintenance mode and private mode (components/site/SiteGate.tsx; decided before the first paint by skinScript) ===== */
+.gate, .gate-note { display: none; }
+html.gate-m .site > :not(.gate-mt), html.gate-p .site > :not(.gate-pv) { display: none !important; }
+html:is(.gate-m, .gate-p) { overflow: hidden; }
+html.gate-m .gate-mt, html.gate-p .gate-pv { display: grid; position: fixed; inset: 0; z-index: 9995; place-items: center; padding: 24px max(20px, env(safe-area-inset-left, 0px)); background: radial-gradient(70% 60% at 50% 35%, color-mix(in srgb, var(--mint) 16%, var(--bg)), var(--bg)); color: var(--fg); }
+.gate-card { display: grid; justify-items: center; gap: 12px; max-width: 520px; text-align: center; }
+.gate-card h1 { margin: 0; font: 800 clamp(30px, 6vw, 56px)/1.05 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+.gate-card p { margin: 0; font-size: clamp(15px, 2.2vw, 18px); line-height: 1.55; color: color-mix(in srgb, var(--fg) 75%, transparent); text-wrap: pretty; }
+.gate-card small { margin-top: 10px; font: 600 12px/1 var(--body); letter-spacing: .18em; text-transform: uppercase; color: var(--mint); }
+.gate-emo { font-size: clamp(48px, 9vw, 76px); line-height: 1; animation: gate-bob 2.6s ease-in-out infinite; }
+@keyframes gate-bob { 50% { translate: 0 -8px; rotate: -4deg; } }
+@media (prefers-reduced-motion: reduce) { .gate-emo { animation: none; } }
+.gate-form { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 6px; }
+.gate-form input { min-width: 0; width: min(260px, 70vw); padding: 12px 16px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: color-mix(in srgb, var(--fg) 6%, transparent); color: var(--fg); font: 500 15px var(--body); }
+.gate-form button { padding: 12px 22px; border-radius: 99px; border: 0; background: var(--mint); color: var(--on-mint, #07130c); font: 700 15px var(--body); cursor: pointer; }
+.gate-form input:focus-visible, .gate-form button:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+.gate-err { flex-basis: 100%; margin: 0; color: var(--danger-soft, #ff9a8a); font-size: 14px; }
+html.gate-own .gate-note { display: flex; align-items: center; gap: 10px; position: fixed; z-index: 9996; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; max-width: calc(100vw - 24px); padding: 9px 12px 9px 14px; border-radius: 14px; background: #14181a; color: #f1f5f2; font: 500 13px/1.35 var(--body); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.gate-note a { flex: none; padding: 5px 11px; border-radius: 99px; background: var(--mint); color: var(--on-mint, #07130c); font-weight: 700; text-decoration: none; }
+.gate-note .gn-m, .gate-note .gn-p { display: none; }
+html.gate-own-m .gate-note .gn-m, html.gate-own-p:not(.gate-own-m) .gate-note .gn-p { display: inline; }

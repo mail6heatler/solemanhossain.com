@@ -5,6 +5,7 @@ import { cleanFooter, cleanMenu, DEFAULT_FOOTER, DEFAULT_MENU, type FooterDesign
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 import { cleanMascot, DEFAULT_MASCOT, type MascotSettings } from "./mascot";
 import { cleanLaunch, DEFAULT_LAUNCH, LAUNCH_KEYS, type LaunchSettings } from "./launch";
+import { cleanOps, DEFAULT_OPS, type OpsSettings } from "./ops";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
 // so new fields can be added later without a migration.
@@ -267,6 +268,8 @@ export type SiteSettings = {
   mascot: MascotSettings;
   /** The launch screen that plays while the site loads (lib/launch.ts; dashboard page /admin/launch). */
   launch: LaunchSettings;
+  /** Settings → backups, security, site status, visitors and tools (lib/ops.ts). */
+  ops: OpsSettings;
   /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
   themePics: Record<string, string>;
   /** Size and look for all content; sections and entries can override it (lib/contentStyle.ts). */
@@ -322,6 +325,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   banner: DEFAULT_BANNER,
   mascot: DEFAULT_MASCOT,
   launch: DEFAULT_LAUNCH,
+  ops: DEFAULT_OPS,
   themePics: {},
   contentStyle: {},
   effects: ALL_ON,
@@ -351,6 +355,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     footer: cleanFooter(obj.footer),
     mascot: cleanMascot(obj.mascot),
     launch: cleanLaunch(obj.launch),
+    ops: cleanOps(obj.ops),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);
   if (!(s.banner.kind in BANNER_KINDS)) s.banner.kind = DEFAULT_BANNER.kind;
@@ -416,9 +421,9 @@ export const MOODS: Record<string, { label: string; emoji: string; color: string
 };
 
 /** Inline script for <head>: picks the theme before the first paint, so there is no flash. */
-export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects" | "launch">) {
+export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" | "timezone" | "effects" | "launch" | "ops">, unlockHash = "") {
   const ln = s.launch;
-  const cfg = JSON.stringify({ ln: { on: ln.on, d: ln.design, pool: ln.pool, f: ln.freq, w: ln.where, ph: ln.phones, max: ln.maxSec, ks: LAUNCH_KEYS }, d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SELECTABLE, pv: SKINS, t: LIVE_THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, f: THEME_FONTS }).replace(/</g, "\\u003c");
+  const cfg = JSON.stringify({ gate: { m: s.ops.maintenance.on, p: s.ops.private.on, ph: unlockHash, nc: s.ops.countMe }, ln: { on: ln.on, d: ln.design, pool: ln.pool, f: ln.freq, w: ln.where, ph: ln.phones, max: ln.maxSec, ks: LAUNCH_KEYS }, d: s.defaultTheme, sw: s.themeSwitch, tz: s.timezone || "UTC", all: SELECTABLE, pv: SKINS, t: LIVE_THEMES, vt: s.effects.morph || s.effects.pagefx, gl: s.effects.pagefx, f: THEME_FONTS }).replace(/</g, "\\u003c");
   // order: ?theme= preview link (not saved) > the visitor's own choice > the site default; then resolve auto/random.
   // A visitor's own choice only counts while the site's default is the one it was made against (lc_skin_d): when the owner
   // saves a new default on the dashboard, everyone sees it, the owner included (2026-11-26: their own old pick hid every change).
@@ -449,6 +454,10 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
     `addEventListener("pagereveal",function(e){var v=e.viewTransition;if(!v)return;var n=window.navigation&&navigation.activation,back=n&&n.navigationType==="traverse",open=false;try{open=sessionStorage.getItem("lc_open")==="1";sessionStorage.removeItem("lc_open")}catch(x){}var done=function(){h.classList.remove("vt-back");var p=document.querySelector(".vt-panel");if(p)p.remove();var q=window.__lcCard;if(q)q.style.viewTransitionName=""};` +
     `if(back){h.classList.add("vt-back");var k=window.__lcCard;if(k&&k.isConnected){var r=k.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth)k.style.viewTransitionName="open-card"}}else if(open){var s=document.querySelector(".site");if(s&&document.body){var p=document.createElement("i");p.className="vt-panel";p.style.background=getComputedStyle(s).getPropertyValue("--bg");document.body.appendChild(p)}}v.finished.then(done,done)});` +
     `try{if(HTMLScriptElement.supports&&HTMLScriptElement.supports("speculationrules")){var sr=document.createElement("script");sr.type="speculationrules";sr.textContent=JSON.stringify({prefetch:[{where:{href_matches:"/s/*"},eagerness:"moderate"}],prerender:[{where:{href_matches:"/s/*"},eagerness:"conservative"}]});document.head.appendChild(sr)}else{var seen={},pf=function(e){var a=e.target.closest&&e.target.closest('a[href^="/s/"]');if(!a||seen[a.href])return;seen[a.href]=1;var l=document.createElement("link");l.rel="prefetch";l.href=a.href;document.head.appendChild(l)};addEventListener("pointerover",pf,{passive:true});addEventListener("touchstart",pf,{passive:true})}}catch(e){}}` +
+    // maintenance mode and private mode (lib/ops.ts, SiteGate.tsx): visitors get the gate page from the first paint; the owner
+    // (the lc_owner cookie, set while signed in to the dashboard) sees the site with a note. A private-mode visitor who has unlocked it
+    // keeps a token (lc_unlock) that is checked against its hash; until that check passes, the gate shows.
+    `var G=c.gate,own=/(?:^|; )lc_owner=1/.test(document.cookie)&&!/[?&]gate=see/.test(location.search);if(own&&!G.nc)h.classList.add("no-count");if(G.m||G.p){if(own)h.classList.add("gate-own",G.m?"gate-own-m":"gate-own-p");else if(G.m)h.classList.add("gate-m");else{h.classList.add("gate-p");try{var ut=localStorage.getItem("lc_unlock");if(ut&&G.ph&&crypto.subtle)crypto.subtle.digest("SHA-256",new TextEncoder().encode(ut)).then(function(b){var x=Array.from(new Uint8Array(b)).map(function(n){return n.toString(16).padStart(2,"0")}).join("");if(x===G.ph)h.classList.remove("gate-p")})}catch(e){}}}` +
     // the launch screen (lib/launch.ts): decided here, before the first paint, so it covers the page from its very first frame.
     // ?launch=<design> (or random) shows it whatever the settings say, for previews; ?launch=studio is the dashboard's preview,
     // which starts it itself. It never plays inside a frame, over a demo or theme link, or for someone who has seen it as often as
@@ -456,7 +465,7 @@ export function skinScript(s: Pick<SiteSettings, "defaultTheme" | "themeSwitch" 
     // scripts never take it over (launch-run), it lifts itself a few seconds after the longest wait, so it can never trap anyone.
     `try{var lu=new URLSearchParams(location.search),lf=lu.get("launch"),L=c.ln;if(lf!=="studio"){var force=!!lf&&(L.ks.indexOf(lf)>=0||lf==="random"),seen=false;` +
     `try{var ld=localStorage.getItem("lc_launch_d");seen=L.f==="visit"?!!sessionStorage.getItem("lc_launch"):L.f==="day"?ld===new Date().toDateString():!!ld}catch(e){}` +
-    `if(force||(L.on&&!seen&&!lu.get("demo")&&!lu.get("theme")&&!lu.get("mz")&&window.self===window.top&&(L.w==="any"||location.pathname==="/")&&(L.ph||!matchMedia("(max-width: 760px)").matches))){` +
+    `if(force||(L.on&&!seen&&!h.classList.contains("gate-m")&&!h.classList.contains("gate-p")&&!lu.get("demo")&&!lu.get("theme")&&!lu.get("mz")&&window.self===window.top&&(L.w==="any"||location.pathname==="/")&&(L.ph||!matchMedia("(max-width: 760px)").matches))){` +
     `var lk=force&&lf!=="random"?lf:L.d;if(lk==="random"){var pl=L.pool.length?L.pool:L.ks;lk=pl[Math.floor(Math.random()*pl.length)]}if(matchMedia("(prefers-reduced-motion: reduce)").matches)lk="calm";` +
     `h.setAttribute("data-launch",lk);h.classList.add("launching","intro-skip");if(!force)try{sessionStorage.setItem("lc_launch","1");localStorage.setItem("lc_launch_d",new Date().toDateString())}catch(e){}` +
     `setTimeout(function(){if(!h.classList.contains("launch-run")){h.classList.remove("launching");h.removeAttribute("data-launch")}},(L.max+6)*1000)}}}catch(e){}` +

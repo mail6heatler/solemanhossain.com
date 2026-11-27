@@ -4,6 +4,21 @@ import { login, changePassword } from "@/app/actions";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);
+  // two-step login: after the password, the code from the authenticator app (or a recovery code)
+  if (state?.step === "code") return (
+    <form action={action}>
+      <input type="hidden" name="ticket" value={state.ticket ?? ""} />
+      <input type="hidden" name="username" value={state.username ?? ""} />
+      <label htmlFor="c">6-digit code from your authenticator app</label>
+      <div className="iw"><i className="ti ti-shield-lock" /><input id="c" name="code" inputMode="numeric" autoComplete="one-time-code" required autoFocus placeholder="123 456" maxLength={20} /></div>
+      <details className="forgot">
+        <summary>lost your phone?</summary>
+        <p>Type one of the recovery codes you saved when you set up two-step login. Each works once.</p>
+      </details>
+      {state?.error && <p className="err">{state.error}</p>}
+      <button disabled={pending}><i className="ti ti-login-2" />{pending ? "checking…" : "sign in"}</button>
+    </form>
+  );
   return (
     <form action={action}>
       <label htmlFor="u">username</label>

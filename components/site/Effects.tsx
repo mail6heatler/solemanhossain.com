@@ -549,6 +549,7 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
 function send(body: object) {
   try {
     if (window.self !== window.top) return; // a preview inside the dashboard (the Mascot page's screens) isn't a visit
+    if (document.documentElement.classList.contains("no-count")) return; // the owner, who chose not to count their own visits (Settings)
     fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true });
   } catch {}
 }

@@ -7,6 +7,9 @@ import { getSections, getSettings, getMessages, countUnread, getCommentTotals, g
 import Shell from "@/components/admin/Shell";
 import { layoutIcon } from "@/lib/settings";
 import { Toast } from "@/components/admin/Widgets";
+import OwnerMark from "@/components/admin/OwnerMark";
+import { after } from "next/server";
+import { housekeeping } from "@/lib/opsServer";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false } };
@@ -26,6 +29,7 @@ function ago(iso: string) {
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
+  after(housekeeping); // automatic backups and clean-up, after the page is sent (lib/opsServer.ts)
   const [settings, sections, unread, unreadMsgs, reactions, newReactions, talks, newComments] = await Promise.all([
     getSettings(), getSections(), countUnread(), getMessages("unread"), getReactionTotals(), getRecentReactions(5, true), getCommentTotals(), getRecentComments(5, true),
   ]);
@@ -47,6 +51,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     >
       {children}
       <Suspense><Toast /></Suspense>
+      <OwnerMark />
     </Shell>
     </>
   );

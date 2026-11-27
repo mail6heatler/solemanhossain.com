@@ -2,6 +2,7 @@
 @font-face { font-family: "tabler-icons"; font-style: normal; font-weight: 400; font-display: block; src: url("/icons/ti.woff2") format("woff2"); }
 .ti { font-family: "tabler-icons" !important; speak: none; font-style: normal; font-weight: normal; font-variant: normal; text-transform: none; line-height: 1; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 .ti-123:before { content: "\f554"; }
+.ti-2fa:before { content: "\eca0"; }
 .ti-360:before { content: "\f62f"; }
 .ti-abc:before { content: "\f567"; }
 .ti-activity:before { content: "\ed23"; }
@@ -17,6 +18,7 @@
 .ti-anchor:before { content: "\eb76"; }
 .ti-angle:before { content: "\ef20"; }
 .ti-api:before { content: "\effd"; }
+.ti-app-window:before { content: "\efe6"; }
 .ti-apple:before { content: "\ef21"; }
 .ti-apps:before { content: "\ebb6"; }
 .ti-arrow-back-up:before { content: "\eb77"; }
@@ -39,12 +41,14 @@
 .ti-badge:before { content: "\efc2"; }
 .ti-badges:before { content: "\efc3"; }
 .ti-balloon:before { content: "\ef3a"; }
+.ti-ban:before { content: "\ea2e"; }
 .ti-barcode:before { content: "\ebc6"; }
 .ti-baseline:before { content: "\f024"; }
 .ti-bat:before { content: "\f284"; }
 .ti-beach:before { content: "\ef3d"; }
 .ti-bed:before { content: "\eb5c"; }
 .ti-bell:before { content: "\ea35"; }
+.ti-bell-ringing:before { content: "\ed07"; }
 .ti-bike:before { content: "\ea36"; }
 .ti-binoculars:before { content: "\fefe"; }
 .ti-blob:before { content: "\feaf"; }
@@ -145,11 +149,14 @@
 .ti-chevron-up:before { content: "\ea62"; }
 .ti-chevrons-down:before { content: "\ea63"; }
 .ti-circle:before { content: "\ea6b"; }
+.ti-circle-check:before { content: "\ea67"; }
+.ti-circle-x:before { content: "\ea6a"; }
 .ti-circles:before { content: "\ece5"; }
 .ti-click:before { content: "\ebbc"; }
 .ti-clipboard:before { content: "\ea6f"; }
 .ti-clock:before { content: "\ea70"; }
 .ti-cloud:before { content: "\ea76"; }
+.ti-cloud-upload:before { content: "\ea75"; }
 .ti-code:before { content: "\ea77"; }
 .ti-coffee:before { content: "\ef0e"; }
 .ti-coin:before { content: "\eb82"; }
@@ -173,7 +180,6 @@
 .ti-cut:before { content: "\ea86"; }
 .ti-dashboard:before { content: "\ea87"; }
 .ti-database:before { content: "\ea88"; }
-.ti-database-export:before { content: "\ee6e"; }
 .ti-delta:before { content: "\f53c"; }
 .ti-desk:before { content: "\fd35"; }
 .ti-details:before { content: "\ee71"; }
@@ -208,6 +214,8 @@
 .ti-file-cv:before { content: "\fa5a"; }
 .ti-file-text:before { content: "\eaa2"; }
 .ti-file-type-pdf:before { content: "\fb10"; }
+.ti-file-upload:before { content: "\ec91"; }
+.ti-file-zip:before { content: "\ed4e"; }
 .ti-files:before { content: "\edef"; }
 .ti-filter:before { content: "\eaa5"; }
 .ti-filters:before { content: "\f793"; }
@@ -237,6 +245,7 @@
 .ti-heading:before { content: "\ee9b"; }
 .ti-headphones:before { content: "\eabd"; }
 .ti-heart:before { content: "\eabe"; }
+.ti-heart-rate-monitor:before { content: "\ef61"; }
 .ti-hearts:before { content: "\f387"; }
 .ti-helmet:before { content: "\efca"; }
 .ti-help:before { content: "\eabf"; }
@@ -278,6 +287,7 @@
 .ti-loader-2:before { content: "\f226"; }
 .ti-location:before { content: "\eae0"; }
 .ti-lock:before { content: "\eae2"; }
+.ti-lock-square:before { content: "\ef51"; }
 .ti-login:before { content: "\eba7"; }
 .ti-login-2:before { content: "\fc76"; }
 .ti-logout:before { content: "\eba8"; }
@@ -337,6 +347,7 @@
 .ti-perspective:before { content: "\eebd"; }
 .ti-phone:before { content: "\eb09"; }
 .ti-photo:before { content: "\eb0a"; }
+.ti-photo-down:before { content: "\f35f"; }
 .ti-photo-plus:before { content: "\f363"; }
 .ti-pick:before { content: "\fafc"; }
 .ti-pill:before { content: "\ec44"; }
@@ -353,6 +364,7 @@
 .ti-player-play-filled:before { content: "\f691"; }
 .ti-playlist:before { content: "\eec0"; }
 .ti-plug:before { content: "\ebd9"; }
+.ti-plug-off:before { content: "\f180"; }
 .ti-plus:before { content: "\eb0b"; }
 .ti-png:before { content: "\f3ad"; }
 .ti-point:before { content: "\eb0c"; }
@@ -366,12 +378,14 @@
 .ti-printer:before { content: "\eb0e"; }
 .ti-progress:before { content: "\fa0d"; }
 .ti-prompt:before { content: "\eb0f"; }
+.ti-protocol:before { content: "\fd81"; }
 .ti-quote:before { content: "\efbe"; }
 .ti-quotes:before { content: "\fb1e"; }
 .ti-radio:before { content: "\ef2d"; }
 .ti-rainbow:before { content: "\edbc"; }
 .ti-receipt:before { content: "\edfd"; }
 .ti-rectangle:before { content: "\ed37"; }
+.ti-recycle:before { content: "\eb9b"; }
 .ti-refresh:before { content: "\eb13"; }
 .ti-registered:before { content: "\eb14"; }
 .ti-reload:before { content: "\f3ae"; }
@@ -409,6 +423,10 @@
 .ti-shadow:before { content: "\eed8"; }
 .ti-shape:before { content: "\eb9c"; }
 .ti-share:before { content: "\eb21"; }
+.ti-shield-lock:before { content: "\ed58"; }
+.ti-shield-off:before { content: "\ecf8"; }
+.ti-shield-plus:before { content: "\f9cb"; }
+.ti-shield-x:before { content: "\eb23"; }
 .ti-ship:before { content: "\ec84"; }
 .ti-shirt:before { content: "\ec0a"; }
 .ti-shoe:before { content: "\efd2"; }
@@ -433,6 +451,7 @@
 .ti-star:before { content: "\eb2e"; }
 .ti-stars:before { content: "\ed38"; }
 .ti-steam:before { content: "\f24b"; }
+.ti-stethoscope:before { content: "\edbe"; }
 .ti-sticker:before { content: "\eb2f"; }
 .ti-sum:before { content: "\eb73"; }
 .ti-sun:before { content: "\eb30"; }
@@ -469,6 +488,8 @@
 .ti-upload:before { content: "\eb47"; }
 .ti-urgent:before { content: "\eb48"; }
 .ti-user:before { content: "\eb4d"; }
+.ti-user-check:before { content: "\eb49"; }
+.ti-user-off:before { content: "\ecf9"; }
 .ti-users:before { content: "\ebf2"; }
 .ti-variable:before { content: "\ef05"; }
 .ti-vector:before { content: "\eca9"; }
@@ -490,6 +511,7 @@
 .ti-world:before { content: "\eb54"; }
 .ti-writing:before { content: "\ef08"; }
 .ti-x:before { content: "\eb55"; }
+.ti-zip:before { content: "\f3b4"; }
 .ti-zoom:before { content: "\fdaa"; }
 .ti-zoom-in:before { content: "\eb56"; }
 .ti-zzz:before { content: "\f228"; }
