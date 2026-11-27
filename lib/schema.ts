@@ -198,6 +198,10 @@ export const SCHEMA = [
   `WITH first AS (INSERT INTO done_once (key) VALUES ('g1-comments-on') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE items SET talk = ((CASE WHEN talk LIKE '{%' THEN talk::jsonb ELSE '{}'::jsonb END) || '{"comments": true}'::jsonb)::text
    WHERE section_id IN (SELECT id FROM sections WHERE slug = 'me') AND EXISTS (SELECT 1 FROM first)`,
+  // 2026-11-28: the same for G2's windows, the owner's choice when G2 got the sticker buttons
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('g2-comments-on') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE items SET talk = ((CASE WHEN talk LIKE '{%' THEN talk::jsonb ELSE '{}'::jsonb END) || '{"comments": true}'::jsonb)::text
+   WHERE section_id IN (SELECT id FROM sections WHERE slug = 'made') AND EXISTS (SELECT 1 FROM first)`,
   // 2026-11-19: the owner asked for the hero photo back where it hung (it had been dragged up past the top edge in the editor).
   `WITH first AS (INSERT INTO done_once (key) VALUES ('hero-photo-reset') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE settings SET data = (data::jsonb #- '{heroDesign,parts,photo}')::text WHERE data LIKE '{%' AND EXISTS (SELECT 1 FROM first)`,

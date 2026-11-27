@@ -4,7 +4,7 @@
  * [key, starts on, what the switch says, what it does]
  */
 export const TALK_FEATURES = [
-  ["react", true, "React button on the card", "On cards with the sticker buttons (G1 so far): the emojis come up when someone points at it."],
+  ["react", true, "React button on the card", "On cards with the sticker buttons (G1 and G2 so far): the emojis come up when someone points at it."],
   ["open", true, "Open button on the card", "On cards with the sticker buttons: opens this entry's full page. A click on the card opens it too."],
   ["comments", false, "Let people comment", "A comment box under the emojis, and a 💬 button with the count."],
   ["float", true, "Comments float up with a burst", "A new comment rises from the box when it's sent."],

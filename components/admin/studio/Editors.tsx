@@ -322,7 +322,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       <div className="fl stu-f">
         <span className="lab">What this card offers beyond its emojis</span>
         <div className="stu-switches">{TALK_FEATURES.map(([key, , label, hint]) => <Sw key={key} label={label} hint={hint} on={it.talk[key]} onChange={(on) => ed.setItem({ talk: { ...it.talk, [key]: on } })} />)}</div>
-        <span className="hint">On G1&apos;s sticker buttons these show or hide each button; the defaults for every card are on the <a href="/admin/cardbar">Card buttons</a> page.</span>
+        <span className="hint">On cards with the sticker buttons (G1 and G2 so far) these show or hide each button; the defaults for every card are on the <a href="/admin/cardbar">Card buttons</a> page.</span>
       </div>
       <div className="fl stu-f">
         <span className="lab">Reactions so far</span>

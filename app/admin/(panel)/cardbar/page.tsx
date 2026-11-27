@@ -7,7 +7,7 @@ import { STICKER_LAYOUTS } from "@/lib/cardBar";
 export default async function CardBarPage() {
   await requireAdmin(); // pages render in parallel with the layout, so each page must check too
   const [s, sections] = await Promise.all([getSettings(), getSections({ visibleOnly: true })]);
-  // the preview opens at the first section that has the sticker buttons (G1 so far)
+  // the preview opens at the first section that has the sticker buttons (G1 first)
   const first = sections.find((x) => STICKER_LAYOUTS.includes(x.layout)) ?? sections[0];
   return (
     <div className="adm-page hst-page">

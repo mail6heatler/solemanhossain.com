@@ -434,7 +434,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     // each window is the app its subsection names (lib/cardLook.ts): a spreadsheet, a code editor, a notes app, a pocket games console, or the browser
     const windows = items.map((it) => (
       <WinCard key={it.id} it={it} l={lookFor(it)} href={href(section, it)} home={section.nav_label || section.title} slug={section.slug} vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti}
-        foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+        bar={(p) => <StickerBar id={it.id} href={href(section, it)} label={it.title} talk={it.talk} parts={stickerParts(p)} reactions={fx.reactions} />} />
     ));
     const dock = items.map((it) => {
       const m = lookFor(it).hide("pic") ? undefined : it.media[0];

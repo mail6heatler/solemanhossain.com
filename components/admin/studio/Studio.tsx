@@ -131,7 +131,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const bar = (it: Item, compact: boolean) => (settings.effects.reactions
     ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
     : undefined);
-  /** G1's sticker buttons, standing still: the newest comment (or the most-used emoji) is what the LIVE strip shows */
+  /** The sticker buttons (G1, G2), standing still: the newest comment (or the most-used emoji) is what the LIVE strip shows */
   const stickers = (it: Item) => (p: PartFn) => {
     const counts = live.reactions[it.id] ?? {}, shown = (live.comments[it.id] ?? []).filter((c) => !c.hidden);
     const newest = shown.reduce<(typeof shown)[number] | null>((a, c) => (!a || c.created_at > a.created_at ? c : a), null);
@@ -153,7 +153,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     : trips
     ? <TripCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} trip={trip} href="#" route={false} edit foot={bar(it, true)} />
     : win
-    ? <WinCard it={it} l={lookFor(it)} href="#" home={draft.section.nav_label || draft.section.title} slug={draft.section.slug} edit foot={bar(it, true)} />
+    ? <WinCard it={it} l={lookFor(it)} href="#" home={draft.section.nav_label || draft.section.title} slug={draft.section.slug} edit bar={stickers(it)} />
     : <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit bar={stickers(it)} />;
   const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? (win ? 380 : celled ? 320 : 340), h: p?.h ?? s.h ?? (win ? 480 : celled ? 500 : 440) }; };
   const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions, kind)) : []), [item, card, settings.effects.reactions, kind]);

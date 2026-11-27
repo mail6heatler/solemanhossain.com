@@ -36,9 +36,10 @@ function CodeView({ it, hideSubtitle, hideTags, hideDate, attrs }: { it: Item; h
  * or the browser. The homepage row draws it and so does the dashboard's live editor, which is why it's a file of its own. With `edit`, each part carries
  * its name (`data-part`) for the editor's labels, nothing on it leads anywhere, and a poll stands still. `home` names the window when it has no subsection.
  */
-export default function WinCard({ it, l, href, home, slug, vt, zoom, confetti = false, edit, foot }: {
+export default function WinCard({ it, l, href, home, slug, vt, zoom, confetti = false, edit, foot, bar }: {
   it: Item; l: Look; href: string; home: string; slug: string; vt?: React.CSSProperties; zoom?: React.ReactNode; confetti?: boolean; edit?: boolean;
   /** the reaction bar, given the size and place of the bar and of the comment box */ foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode;
+  /** the sticker buttons (StickerBar.tsx), which bring their own Open button; given the card's part function, so each button and the strip can be sized */ bar?: (p: PartFn) => React.ReactNode;
 }) {
   const p: PartFn = partFn(edit, it.card.parts);
   const look = winLookOf(it.category, it.card.look);
@@ -88,8 +89,8 @@ export default function WinCard({ it, l, href, home, slug, vt, zoom, confetti = 
           </div>
         </div>
       )}
-      <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-        full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
+      <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+        full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
         {!edit && <CardLink to={href} label={it.title} />}
         {pic && <div className="pic-box" {...p("pic")}><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt} /><MediaBadges media={it.media} /></div>{zoom}</div>}
         {look === "sheet" && rows.length > 0 && (
