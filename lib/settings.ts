@@ -6,6 +6,7 @@ import { cleanStyle, type ContentStyle } from "./contentStyle";
 import { cleanMascot, DEFAULT_MASCOT, type MascotSettings } from "./mascot";
 import { cleanLaunch, DEFAULT_LAUNCH, LAUNCH_KEYS, type LaunchSettings } from "./launch";
 import { cleanOps, DEFAULT_OPS, type OpsSettings } from "./ops";
+import { cleanCardBar, DEFAULT_CARD_BAR, type CardBarSettings } from "./cardBar";
 
 // Site-wide settings. Stored as JSON in the database; anything missing falls back to these defaults,
 // so new fields can be added later without a migration.
@@ -268,6 +269,8 @@ export type SiteSettings = {
   mascot: MascotSettings;
   /** The launch screen that plays while the site loads (lib/launch.ts; dashboard page /admin/launch). */
   launch: LaunchSettings;
+  /** The tab bar at the bottom of every card: React, Comment, Share, Open (lib/cardBar.ts; dashboard page /admin/cardbar). */
+  cardBar: CardBarSettings;
   /** Settings → backups, security, site status, visitors and tools (lib/ops.ts). */
   ops: OpsSettings;
   /** Pictures the owner added to themes, by theme key. Empty means the theme's built-in art. */
@@ -325,6 +328,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   banner: DEFAULT_BANNER,
   mascot: DEFAULT_MASCOT,
   launch: DEFAULT_LAUNCH,
+  cardBar: DEFAULT_CARD_BAR,
   ops: DEFAULT_OPS,
   themePics: {},
   contentStyle: {},
@@ -355,6 +359,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     footer: cleanFooter(obj.footer),
     mascot: cleanMascot(obj.mascot),
     launch: cleanLaunch(obj.launch),
+    cardBar: cleanCardBar(obj.cardBar),
     ops: cleanOps(obj.ops),
   };
   s.ribbonSize = cleanRibbonSize(s.ribbonSize);

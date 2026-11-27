@@ -21,8 +21,11 @@ const ago = (iso: string) => {
   return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 };
 
-/** Tells every bar for this entry how many comments it now has. */
-const tellCount = (id: number, count: number) => window.dispatchEvent(new CustomEvent("lc-talk", { detail: { id, count } }));
+/** Tells every bar for this entry how many comments it now has, and the newest one (the line above a card's tabs). */
+const tellCount = (id: number, list: Comment[]) => {
+  const newest = list.reduce<Comment | null>((a, c) => (!a || c.at > a.at ? c : a), null);
+  window.dispatchEvent(new CustomEvent("lc-talk", { detail: { id, count: list.length, last: newest ? { name: newest.name, body: newest.body } : null } }));
+};
 
 /** The box you type in. A new comment rises from it, unless that's switched off. */
 function Say({ id, float, big, onPosted }: { id: number; float: boolean; big?: boolean; onPosted: (a: Answer) => void }) {
@@ -94,7 +97,7 @@ export function TalkPanel({ id, float, attrs }: { id: number; float: boolean; at
   }, [id]);
   return (
     <div className="talk-panel" {...attrs}>
-      <Say id={id} float={float} big onPosted={(a) => { if (a.comments) { setList(a.comments); tellCount(id, a.comments.length); } }} />
+      <Say id={id} float={float} big onPosted={(a) => { if (a.comments) { setList(a.comments); tellCount(id, a.comments); } }} />
       <ul className="talk-list">
         {list === null && <li className="talk-none">Loading…</li>}
         {list?.length === 0 && <li className="talk-none">Nobody has said anything yet. Be the first!</li>}
@@ -111,7 +114,7 @@ export function TalkPanel({ id, float, attrs }: { id: number; float: boolean; at
 }
 
 /** All of an entry's comments, opened from a card. Native, so it sits above everything, and it lives in `.site` so the card's own colours don't reach it. */
-function TalkDialog({ id, float, onClose }: { id: number; float: boolean; onClose: () => void }) {
+export function TalkDialog({ id, float, onClose }: { id: number; float: boolean; onClose: () => void }) {
   const box = useRef<HTMLDialogElement>(null);
   const [home, setHome] = useState<Element | null>(null);
   useEffect(() => { setHome(document.querySelector(".site") ?? document.body); }, []);
@@ -139,7 +142,7 @@ export function TalkRow({ id, count, float, attrs }: { id: number; count: number
       <button type="button" className="talk-count" aria-label={`Open the comments (${count})`} onClick={(e) => { e.preventDefault(); setOpen(true); }}>
         <i className="ti ti-message-circle" aria-hidden="true" />{count > 0 && <b>{count}</b>}
       </button>
-      <Say id={id} float={float} onPosted={(a) => { if (a.comments) tellCount(id, a.comments.length); }} />
+      <Say id={id} float={float} onPosted={(a) => { if (a.comments) tellCount(id, a.comments); }} />
       {open && <TalkDialog id={id} float={float} onClose={() => setOpen(false)} />}
     </div>
   );

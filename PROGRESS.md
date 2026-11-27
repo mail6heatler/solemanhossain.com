@@ -18,6 +18,12 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## One tab bar on every card (2026-11-27, live, waiting for keep or undo)
+
+- The owner picked design 6, "Tab footer", from the Card Action Bar Picker (https://claude.ai/artifact/M8Cpv5vcAaTGNjx3aR7euL; they found the animated round two "nope" and went back to the first six), asking for the emojis to come up on hover with their own motion and a framework, and for the tabs to be clearly visible, lively and dynamic, as the default for every card while the dashboard's per-card settings stay.
+- Built: `CardBar.tsx` (React, Comment, Share; the newest comment's line), `FullView.tsx` as the Open tab, `cardBarFx.ts` (GSAP), `BarCtx.tsx`, `reactLoad.ts`, `lib/cardBar.ts` (`settings.cardBar`), `app/cardbar.css`, and the dashboard's Card buttons page (`/admin/cardbar`, `CardBarStudio.tsx`). `/api/react` also sends each entry's newest comment. The live editor draws the same bar standing still.
+- Restore point: tag `before-card-tabs`.
+
 ## Launch screen, faster loading, smoother mouse dot (2026-11-27, all kept)
 
 - **Mouse dot:** no blend mode, its own layer, white with a glow in the theme's colour; the connecting web drawn cheaply; card tilt, glare, lit borders, section glow and magnets read then write once per frame (`schedule` in `hoverFx.ts`). The menu bar's Say hello button is the theme's main colour instead of pink (the owner doesn't like pink). Kept.
