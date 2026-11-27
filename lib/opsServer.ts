@@ -252,6 +252,7 @@ export async function alertOwner(kind: "chat" | "comments" | "reactions", text: 
     const [token, chat] = await Promise.all([getSecret("tg_token"), getSecret("tg_chat")]);
     if (!token || !chat) return;
     await telegram(token, "sendMessage", { chat_id: chat, text: text.slice(0, 3500), disable_web_page_preview: true });
+    await setSecret("tg_last", new Date().toISOString());
   } catch { /* an alert that can't be sent is skipped */ }
 }
 export async function telegram(token: string, method: string, body: object) {
@@ -289,6 +290,7 @@ export async function housekeeping() {
     await query(`DELETE FROM bin WHERE deleted_at < NOW() - ($1 || ' days')::interval`, [String(o.bin.days)]);
     await query("DELETE FROM login_log WHERE id NOT IN (SELECT id FROM login_log ORDER BY id DESC LIMIT 500)");
     await query("DELETE FROM sessions WHERE revoked OR last_seen < NOW() - INTERVAL '45 days'");
+    await dailyChecks(); // the Overview's broken-picture scan and speed test, once a day
     if (o.cleanup.on) {
       const old = "created_at < NOW() - ($1 || ' months')::interval";
       await binWhere("chat", "messages", old, [String(o.cleanup.months)], (rows) => `Old messages cleaned up (${rows.length})`);
@@ -341,3 +343,60 @@ export async function healthCheck() {
 // ---------- private mode: the token a visitor keeps after typing the password (checked before the first paint by skinScript) ----------
 export const unlockToken = (storedHash: string) => createHmac("sha256", process.env.AUTH_SECRET ?? "dev").update(`unlock:${storedHash}`).digest("hex");
 export const unlockHashFor = (storedHash: string) => createHash("sha256").update(unlockToken(storedHash)).digest("hex");
+
+// ---------- the Overview's live cards (components/admin/LiveCards.tsx): daily checks kept here, refreshed by housekeeping ----------
+export type HealthLast = { at: string; pictures: number; checked: number; broken: { url: string; where: string }[] };
+export type SpeedLast = { at: string; score: number; lcp: string; fcp: string; tbt: string };
+export async function scanHealth() {
+  const h = await healthCheck();
+  const last: HealthLast = { at: new Date().toISOString(), pictures: h.pictures, checked: h.checked, broken: h.broken.slice(0, 50) };
+  await setSecret("health_last", JSON.stringify(last));
+  return last;
+}
+/** Google's free speed test of the homepage on a phone (PageSpeed Insights); about 20–40 seconds */
+export async function speedTest(): Promise<SpeedLast | null> {
+  const site = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (!site) return null;
+  try {
+    const r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(`https://${site}`)}&strategy=mobile&category=performance`, { signal: AbortSignal.timeout(55_000) });
+    const lh = ((await r.json()) as { lighthouseResult?: { categories: { performance: { score: number } }; audits: Record<string, { displayValue?: string }> } }).lighthouseResult;
+    if (!lh) return null;
+    const last: SpeedLast = { at: new Date().toISOString(), score: Math.round(lh.categories.performance.score * 100), lcp: lh.audits["largest-contentful-paint"]?.displayValue ?? "", fcp: lh.audits["first-contentful-paint"]?.displayValue ?? "", tbt: lh.audits["total-blocking-time"]?.displayValue ?? "" };
+    await setSecret("speed_last", JSON.stringify(last));
+    return last;
+  } catch { return null; }
+}
+const readJson = <T,>(s: string): T | null => { try { return s ? (JSON.parse(s) as T) : null; } catch { return null; } };
+export async function dailyChecks() {
+  const day = 86400_000;
+  const h = readJson<HealthLast>(await getSecret("health_last"));
+  if (!h || Date.now() - new Date(h.at).getTime() > day) await scanHealth().catch(() => {});
+  const s = readJson<SpeedLast>(await getSecret("speed_last"));
+  if (!s || Date.now() - new Date(s.at).getTime() > day) await speedTest();
+}
+export async function overviewLive() {
+  const s = await getSettings();
+  const t0 = Date.now();
+  await queryOne("SELECT 1");
+  const dbMs = Date.now() - t0;
+  const [files, last, bin, failed, unanswered, bot, chat, tgLast, health, speed] = await Promise.all([
+    queryOne("SELECT COALESCE(SUM(size),0)::bigint AS bytes FROM files"),
+    queryOne("SELECT created_at FROM backups ORDER BY id DESC LIMIT 1"),
+    queryOne("SELECT COUNT(*)::int AS n FROM bin"),
+    queryOne("SELECT COUNT(*)::int AS n FROM login_log WHERE NOT ok AND at > NOW() - INTERVAL '1 day'"),
+    // chats where the visitor wrote last (older messages from before replies existed can't be answered on the site)
+    queryOne("SELECT COUNT(*)::int AS n FROM (SELECT DISTINCT ON (conv) from_owner FROM messages WHERE conv IS NOT NULL ORDER BY conv, created_at DESC) t WHERE NOT from_owner"),
+    getSecret("tg_bot"), getSecret("tg_chat"), getSecret("tg_last"), getSecret("health_last"), getSecret("speed_last"),
+  ]);
+  const o = s.ops;
+  return {
+    at: new Date().toISOString(), dbMs, mb: Number(files?.bytes ?? 0) / 1048576,
+    lastBackup: last ? new Date(last.created_at).toISOString() : null, backups: o.backups,
+    twoStep: o.twoStep.on, lockout: o.lockout.on, bin: Number(bin?.n ?? 0), failed: Number(failed?.n ?? 0),
+    status: { maintenance: o.maintenance.on, private: o.private.on, noindex: o.noindex },
+    unanswered: Number(unanswered?.n ?? 0),
+    alerts: { on: o.alerts.on, connected: !!(bot && chat), last: tgLast || null },
+    health: readJson<HealthLast>(health), speed: readJson<SpeedLast>(speed),
+  };
+}
+export type OverviewLive = Awaited<ReturnType<typeof overviewLive>>;

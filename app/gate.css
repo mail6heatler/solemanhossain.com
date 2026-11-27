@@ -19,3 +19,7 @@ html.gate-own .gate-note { display: flex; align-items: center; gap: 10px; positi
 .gate-note a { flex: none; padding: 5px 11px; border-radius: 99px; background: var(--mint); color: var(--on-mint, #07130c); font-weight: 700; text-decoration: none; }
 .gate-note .gn-m, .gate-note .gn-p { display: none; }
 html.gate-own-m .gate-note .gn-m, html.gate-own-p:not(.gate-own-m) .gate-note .gn-p { display: inline; }
+.gate-pw { position: relative; display: inline-flex; }
+.gate-pw input { padding-right: 46px !important; }
+.gate-eye { position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 34px; height: 34px; border: 0; border-radius: 99px; background: none; font-size: 17px; cursor: pointer; }
+.gate-eye:focus-visible { outline: 2px solid var(--mint); }

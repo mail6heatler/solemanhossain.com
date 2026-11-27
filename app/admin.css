@@ -533,3 +533,13 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
   .ci-quick { position: static; translate: none; justify-content: flex-end; padding: 0 12px 8px; opacity: 1; pointer-events: auto; }
   .ci-row:hover .ci-end { opacity: 1; }
 }
+
+/* a password box's show/hide eye (components/admin/PasswordInput.tsx) */
+.pw-wrap, .pw-in { position: relative; display: block; }
+.pw-wrap > input { width: 100%; padding-right: 40px; }
+.pw-eye { position: absolute; right: 4px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: inherit; opacity: .65; cursor: pointer; }
+.pw-eye:hover, .pw-eye:focus-visible { opacity: 1; background: color-mix(in srgb, currentColor 10%, transparent); }
+.pw-eye i { position: static !important; transform: none !important; font-size: 17px !important; color: inherit !important; }
+.adm-login .pw-in > input { padding-right: 40px; }
+.adm-login .pw-eye { width: 32px; padding: 0; margin: 0; background: none; color: #bbb; }
+.adm-login .pw-eye:hover { background: rgba(255,255,255,.08); }

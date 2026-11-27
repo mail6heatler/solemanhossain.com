@@ -1,5 +1,5 @@
 "use client";
-import { BlockChatButton } from "./SettingsTools";
+import { BlockChatButton } from "./settings/tabs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMsg, ChatSummary } from "@/lib/chat";
 import { inboxBulk, inboxDelete, inboxDeleteAll, inboxPoll, inboxReact, inboxReply, inboxSaved, inboxWall, type BulkOp } from "@/app/actions";

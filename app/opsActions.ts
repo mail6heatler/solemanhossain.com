@@ -10,6 +10,7 @@ import {
   restoreBin, restoreHistory, restoreSnapshot, setSecret, telegram, totpOk,
 } from "@/lib/opsServer";
 import { chatWhere } from "@/lib/chat";
+import { overviewLive as overviewLiveData, scanHealth as scanHealthNow, speedTest as speedTestNow } from "@/lib/opsServer";
 
 type R = { ok: true; note?: string } | { ok: false; error: string };
 const refresh = () => revalidatePath("/", "layout");
@@ -227,3 +228,43 @@ export async function dangerZone(op: string, typed: string): Promise<R> {
   refresh();
   return { ok: true, note: d.note + (op !== "stats" ? " A backup from just before is under Backups." : "") };
 }
+
+// ---------- one box at a time: each feature saves the moment it's changed (components/admin/settings) ----------
+/** one feature's switch and options (settings.ops[key]), merged into what's saved now, so two boxes saving at once can't undo each other */
+export async function saveOpsGroup(key: keyof OpsSettings, value: unknown): Promise<R> {
+  await requireAdmin();
+  try {
+    const cur = (await getSettings()).ops;
+    const next = cleanOps({ ...cur, [key]: value });
+    next.twoStep = cur.twoStep; // switched on by setting it up and off with the password, never from here
+    if (key === "private" && next.private.on && !cur.private.on && !(await getSecret("private_pw"))) return fail("Set private mode's password first (in this box), then switch it on.");
+    await patchSettings({ ops: next }, "Settings saved");
+    refresh();
+    return { ok: true };
+  } catch (e) { console.error("saveOpsGroup", e); return fail("That didn't save. Try again."); }
+}
+export async function saveTimezone(tz: string): Promise<R> {
+  await requireAdmin();
+  if (!isZone(String(tz))) return fail("That time zone isn't known.");
+  await patchSettings({ timezone: String(tz) }, "Time zone changed");
+  refresh();
+  return { ok: true };
+}
+export async function saveSiteText(siteTitle: string, siteDescription: string): Promise<R> {
+  await requireAdmin();
+  await patchSettings({ siteTitle: String(siteTitle ?? "").trim().slice(0, 120), siteDescription: String(siteDescription ?? "").trim().slice(0, 300) }, "Site name changed");
+  refresh();
+  return { ok: true };
+}
+export async function saveUsername(name: string): Promise<R> {
+  await requireAdmin();
+  const u = String(name ?? "").trim().slice(0, 60);
+  if (u.length < 3) return fail("Use at least 3 characters.");
+  await patchSettings({ adminUsername: u }, "Login name changed");
+  return { ok: true, note: `Saved. Sign in with “${u}” from now on.` };
+}
+
+// ---------- the Overview's live cards ----------
+export async function liveOverview() { await requireAdmin(); return overviewLiveData(); }
+export async function healthNow() { await requireAdmin(); return scanHealthNow(); }
+export async function speedNow() { await requireAdmin(); return speedTestNow(); }

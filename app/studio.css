@@ -435,3 +435,64 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .ops-danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--card-border)); }
 .ops-danger .ops-h > i { color: var(--danger); }
 .ops-block { display: inline-flex; align-items: center; gap: 6px; }
+
+/* one box per feature (components/admin/settings): the switch in the card's corner, a quiet card when it's off, Saving… / Saved ✓ */
+.ops-flip { margin-left: auto; gap: 8px; font: 700 12px "Space Grotesk", sans-serif; color: var(--text-muted); white-space: nowrap; }
+.ops-h .ops-count + .ops-flip, .ops-h .ops-sv + .ops-flip { margin-left: 10px; }
+.ops-h .ops-sv { margin-left: auto; font: 600 11.5px "Space Grotesk", sans-serif; color: var(--text-muted); }
+.ops-h .ops-sv.ok, label .ops-sv.ok { color: var(--icon); }
+label .ops-sv { margin-left: 6px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.ops-box.off > :not(.ops-h):not(.err) { opacity: .62; }
+.ops-box.off:focus-within > *, .ops-box.off:hover > * { opacity: 1; }
+.ops-count.on { background: color-mix(in srgb, var(--mint) 24%, transparent); color: var(--text-strong); }
+.ops-row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 22px; }
+.ops-row > * { flex: 1 1 220px; min-width: 0; }
+.ops-sub2 { display: grid; gap: 8px; padding-top: 12px; border-top: 1px dashed var(--card-border); }
+.ops-thumbs .ops-thumb { flex: none; width: 46px; height: 46px; border-radius: 8px; overflow: hidden; background: var(--input-bg); }
+.ops-thumbs .ops-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ops-short { align-items: center; }
+.ops-pre { font: 600 13px "JetBrains Mono", ui-monospace, monospace; color: var(--text-muted); }
+.ops-qrmaker { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+.ops-qr.big { width: 200px; }
+.ops-qrmaker > .f { flex: 1 1 260px; min-width: 0; }
+.ops-color { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-soft); }
+.ops-color input { width: 38px; height: 30px; padding: 0; border: 1px solid var(--input-border); border-radius: 7px; background: none; cursor: pointer; }
+.ops-bulk { display: grid; gap: 10px; max-height: 420px; overflow: auto; overscroll-behavior: contain; padding: 4px; border: 1px solid var(--card-border); border-radius: 12px; }
+.ops-bulk-sec { display: grid; gap: 2px; }
+.ops-bulk-h { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; background: color-mix(in srgb, var(--mint) 9%, transparent); color: var(--text-strong); cursor: pointer; }
+.ops-bulk-h small { margin-left: auto; color: var(--text-faint); }
+.ops-bulk-i { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 22px; border-radius: 8px; font-size: 13.5px; color: var(--text-soft); cursor: pointer; }
+.ops-bulk-i:hover { background: color-mix(in srgb, var(--mint) 6%, transparent); }
+.ops-bulk-i.hid { color: var(--text-faint); }
+.ops-bulk-i small { margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: var(--input-bg); font-size: 10.5px; }
+.ops-list mark { background: color-mix(in srgb, var(--mint) 40%, transparent); color: var(--text-strong); border-radius: 3px; padding: 0 2px; }
+.ops-list input[type="checkbox"], .ops-bulk input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--mint); }
+
+/* the Overview's live cards (components/admin/LiveCards.tsx) */
+.lv { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.lv-card { display: grid; gap: 10px; align-content: start; border-top: 3px solid var(--card-border); }
+.lv-card.lv-ok { border-top-color: #3fb27f; } .lv-card.lv-warn { border-top-color: #e0a53a; } .lv-card.lv-bad { border-top-color: #e2554a; }
+.lv-h { display: flex; align-items: center; gap: 8px; font: 700 14.5px "Space Grotesk", sans-serif; color: var(--text-strong); }
+.lv-h > i { font-size: 18px; color: var(--icon); }
+.lv-live { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--text-faint); }
+.lv-live i { width: 7px; height: 7px; border-radius: 50%; background: #3fb27f; animation: lv-ping 1.8s ease-out infinite; }
+@keyframes lv-ping { 0% { box-shadow: 0 0 0 0 rgba(63,178,127,.55); } 80%, 100% { box-shadow: 0 0 0 7px rgba(63,178,127,0); } }
+@media (prefers-reduced-motion: reduce) { .lv-live i { animation: none; } }
+.lv-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lv-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; color: var(--text-soft); }
+.lv-row b { font-weight: 600; color: var(--text-strong); text-align: right; }
+.lv-row b a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.lv-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-faint); }
+.lv-row.ok .lv-dot { background: #3fb27f; } .lv-row.warn .lv-dot { background: #e0a53a; } .lv-row.bad .lv-dot { background: #e2554a; } .lv-row.none .lv-dot { background: color-mix(in srgb, var(--text-faint) 60%, transparent); }
+.lv-broken { padding-left: 20px !important; list-style: disc !important; font-size: 12px; color: var(--danger); }
+.lv-foot { font-size: 11.5px; color: var(--text-faint); }
+.lv-foot.bad { color: var(--danger); font-weight: 600; }
+.lv-big { font: 800 22px "Space Grotesk", sans-serif; color: var(--text-strong); }
+.lv-none { margin: 0; font-size: 13px; color: var(--text-muted); }
+.lv-score { position: relative; width: 84px; height: 84px; }
+.lv-score svg { width: 100%; height: 100%; rotate: -90deg; }
+.lv-score circle { fill: none; stroke-width: 3.2; }
+.lv-score .t { stroke: var(--input-bg); }
+.lv-score .v { stroke: var(--icon); stroke-linecap: round; transition: stroke-dasharray .6s; }
+.lv-ok .lv-score .v { stroke: #3fb27f; } .lv-warn .lv-score .v { stroke: #e0a53a; } .lv-bad .lv-score .v { stroke: #e2554a; }
+.lv-score b { position: absolute; inset: 0; display: grid; place-items: center; font: 800 22px "Space Grotesk", sans-serif; color: var(--text-strong); }

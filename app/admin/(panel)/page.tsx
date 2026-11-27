@@ -4,6 +4,11 @@ import { createSection, moveSection, toggleSection } from "@/app/actions";
 import { layoutIcon } from "@/lib/settings";
 import { requireAdmin } from "@/lib/auth";
 import CountUp from "@/components/admin/CountUp";
+import LiveCards from "@/components/admin/LiveCards";
+import { overviewLive } from "@/lib/opsServer";
+
+// the live cards' buttons (picture check, speed test) can take up to a minute
+export const maxDuration = 60;
 
 /** each section's own colour on the Overview: its icon tile, its share of the entries bar */
 const HUES = ["#3fae6b", "#3d6694", "#d39a2a", "#c8574c", "#7a5ac8", "#1f8f8a", "#d06a9b", "#6b7f2e", "#b07a45", "#4f8fc0"];
@@ -21,7 +26,8 @@ function ago(iso: string) {
  * activity timeline and the sections as cards. Colours come from the dashboard theme's tokens (app/adminOverview.css).
  */
 export default async function Overview() {
-  await requireAdmin(); // pages render in parallel with the layout, so each page must check too
+  await requireAdmin();
+  const liveData = await overviewLive(); // pages render in parallel with the layout, so each page must check too
   const [settings, stats, sections, counts, recent, msgs, unread, live, reactions, recentReactions] = await Promise.all([
     getSettings(), getStats(), getSections(), getItemCounts(), getRecentItems(5), getMessages(), countUnread(), getLiveCount(),
     getReactionTotals(), getRecentReactions(5),
@@ -91,6 +97,7 @@ export default async function Overview() {
         <Stat icon="chart-pie" k="active polls" v={stats.activePolls} />
       </div>
 
+      <LiveCards first={liveData} />
       <div className="ov-two">
         <div className="c ov-chart">
           <div className="ov-h"><b>Visitors · last 14 days</b><small>{stats.visitorsWeek} this week · {stats.viewsToday} page views today</small></div>

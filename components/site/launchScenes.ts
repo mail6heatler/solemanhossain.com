@@ -226,6 +226,7 @@ function street({ el, g, cfg, names }: Ctx): Ctl {
       const range = el.clientWidth * 0.64;
       // moved by `translate` with a CSS transition, so the ride stays smooth however often this runs
       cng.style.translate = `${Math.round(p * range)}px 0`; rick.style.translate = `${Math.round(p * range * 0.86)}px 0`;
+      bub?.parentElement?.classList.toggle("flip", p > 0.42); // past the middle, the bubble hangs to the CNG's left
       pct.textContent = v + "%";
     },
     exit() {

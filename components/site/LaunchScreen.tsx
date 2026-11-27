@@ -15,6 +15,9 @@ const isStudio = () => { try { return window.self !== window.top && new URLSearc
 /** the same "random" numbers on the server and in the browser (whole-number arithmetic), so the page hydrates cleanly */
 const seeded = (seed: number) => { let x = seed; return () => (x = (x * 16807) % 2147483647) / 2147483647; };
 const p1 = (v: number) => `${Math.round(v * 10) / 10}%`;
+/** letters in the longest word (and in the whole text): the CSS sizes the lettering from them, so nothing runs off a phone */
+const lw = (t: string) => Math.max(1, ...t.split(/\s+/).map((x) => [...x].length));
+const len = (t: string) => Math.max(1, [...t].length);
 const firstLine = (s: string) => s.split(/\r?\n/).map((l) => l.trim()).find(Boolean) ?? "";
 
 const PLANE = <svg viewBox="0 0 24 24" aria-hidden><path fill="currentColor" transform="rotate(90 12 12)" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" /></svg>;
@@ -65,7 +68,7 @@ function Rocket({ c, w, rocket }: { c: LaunchSettings["rocket"]; w: (s: string) 
 function Particles({ c, w }: { c: LaunchSettings["particles"]; w: (s: string) => string }) {
   return (
     <div className="lch-scene lch-particles">
-      <div className="lp-bg" /><div className="lp-word">{w(c.word)}</div><canvas className="lp-cv" />
+      <div className="lp-bg" /><div className="lp-word" style={{ ["--n" as string]: len(w(c.word)) }}>{w(c.word)}</div><canvas className="lp-cv" />
       <div className="lp-sub">{w(c.sub)}</div><div className="lp-pct">GATHERING · 0%</div>{c.touch && c.hint && <div className="lp-hint">{w(c.hint)}</div>}
     </div>
   );
@@ -75,10 +78,10 @@ function Movie({ c, w }: { c: LaunchSettings["movie"]; w: (s: string) => string 
   return (
     <div className="lch-scene lch-movie">
       <div className="lm-bg" />{c.grain && <canvas className="lm-grain" width={240} height={150} />}<div className="lm-leak" /><div className="lm-vig" />
-      <div className="lm-prod"><div>{c.pre && <span>{w(c.pre)}</span>}<b>{w(c.studio)}</b>{c.post && <span>{w(c.post)}</span>}</div></div>
+      <div className="lm-prod"><div>{c.pre && <span>{w(c.pre)}</span>}<b style={{ ["--lw" as string]: lw(w(c.studio)) }}>{w(c.studio)}</b>{c.post && <span>{w(c.post)}</span>}</div></div>
       <div className="lm-leader"><div className="lm-sweep" /><div className="lm-ring" /><div className="lm-num">5</div></div>
       <div className="lm-load">LOADING REEL · 0%</div>
-      <div className="lm-title"><b>{w(c.title)}</b><span>{[...w(c.starring)].map((ch, i) => <i key={i}>{ch === " " ? " " : ch}</i>)}</span></div>
+      <div className="lm-title"><b style={{ ["--lw" as string]: lw(w(c.title)) }}>{w(c.title)}</b><span>{[...w(c.starring)].map((ch, i) => <i key={i}>{ch === " " ? " " : ch}</i>)}</span></div>
       <div className="lm-streak" /><div className="lm-flash" /><div className="lm-bar t" /><div className="lm-bar b" />
     </div>
   );
@@ -191,7 +194,7 @@ export default function LaunchScreen({ cfg: first, names }: { cfg: LaunchSetting
         {keys.includes("movie") && <Movie c={cfg.movie} w={w} />}
         {keys.includes("street") && <Street c={cfg.street} w={w} />}
         {keys.includes("book") && <Book c={cfg.book} w={w} />}
-        <div className="lch-scene lch-calm"><div className="lq-wrap"><b>{names.nick}</b><span>Life Chronicle</span><div className="lq-bar"><i /></div></div></div>
+        <div className="lch-scene lch-calm"><div className="lq-wrap"><b style={{ ["--n" as string]: len(names.nick) }}>{names.nick}</b><span>Life Chronicle</span><div className="lq-bar"><i /></div></div></div>
       </div>
       <div className="lch-ui">
         {cfg.skip && <button type="button" className="lch-skip">{cfg.skipLabel}</button>}

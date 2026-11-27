@@ -19,6 +19,8 @@ export type OpsSettings = {
   alerts: { on: boolean; chat: boolean; comments: boolean; reactions: boolean };
   spam: { on: boolean; perHour: number };
   cleanup: { on: boolean; months: number };
+  /** short links: yoursite/<slug> opens <url> (app/[short]/page.tsx) */
+  links: { slug: string; url: string }[];
 };
 
 export const OPS_LIMITS = {
@@ -41,6 +43,7 @@ export const DEFAULT_OPS: OpsSettings = {
   alerts: { on: false, chat: true, comments: true, reactions: false },
   spam: { on: true, perHour: 12 },
   cleanup: { on: false, months: 12 },
+  links: [],
 };
 
 const obj = (v: unknown) => (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
@@ -69,7 +72,25 @@ export function cleanOps(raw: unknown): OpsSettings {
     alerts: { on: flag(al.on, d.alerts.on), chat: flag(al.chat, d.alerts.chat), comments: flag(al.comments, d.alerts.comments), reactions: flag(al.reactions, d.alerts.reactions) },
     spam: { on: flag(sp.on, d.spam.on), perHour: num(sp.perHour, d.spam.perHour, OPS_LIMITS.perHour) },
     cleanup: { on: flag(cl.on, d.cleanup.on), months: num(cl.months, d.cleanup.months, OPS_LIMITS.months) },
+    links: cleanLinks(o.links),
   };
+}
+
+/** words the site's own pages use, so a short link can't take them */
+export const RESERVED_SLUGS = ["admin", "api", "s", "media", "surprise", "robots.txt", "manifest.webmanifest", "icon.svg", "favicon.ico", "sitemap.xml", "_next", "fonts", "icons", "themes"];
+export const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,29}$/;
+function cleanLinks(v: unknown) {
+  if (!Array.isArray(v)) return [];
+  const seen = new Set<string>(), out: { slug: string; url: string }[] = [];
+  for (const x of v.slice(0, 60)) {
+    const o = obj(x);
+    const slug = String(o.slug ?? "").trim().toLowerCase();
+    const url = String(o.url ?? "").trim().slice(0, 600);
+    if (!SLUG_RE.test(slug) || RESERVED_SLUGS.includes(slug) || seen.has(slug)) continue;
+    if (!/^(https?:\/\/|mailto:|tel:|\/)[^\s"'<>]+$/i.test(url)) continue;
+    seen.add(slug); out.push({ slug, url });
+  }
+  return out;
 }
 
 /** a device's name from its browser's description, e.g. "Chrome on Windows" */

@@ -48,7 +48,6 @@
 .ti-beach:before { content: "\ef3d"; }
 .ti-bed:before { content: "\eb5c"; }
 .ti-bell:before { content: "\ea35"; }
-.ti-bell-ringing:before { content: "\ed07"; }
 .ti-bike:before { content: "\ea36"; }
 .ti-binoculars:before { content: "\fefe"; }
 .ti-blob:before { content: "\feaf"; }
@@ -156,7 +155,6 @@
 .ti-clipboard:before { content: "\ea6f"; }
 .ti-clock:before { content: "\ea70"; }
 .ti-cloud:before { content: "\ea76"; }
-.ti-cloud-upload:before { content: "\ea75"; }
 .ti-code:before { content: "\ea77"; }
 .ti-coffee:before { content: "\ef0e"; }
 .ti-coin:before { content: "\eb82"; }
@@ -175,6 +173,7 @@
 .ti-cross:before { content: "\ef8f"; }
 .ti-crosshair:before { content: "\ec3e"; }
 .ti-crown:before { content: "\ed12"; }
+.ti-csv:before { content: "\f791"; }
 .ti-cube:before { content: "\fa97"; }
 .ti-cup:before { content: "\ef28"; }
 .ti-cut:before { content: "\ea86"; }
@@ -195,6 +194,7 @@
 .ti-dice:before { content: "\eb66"; }
 .ti-directions:before { content: "\ea8e"; }
 .ti-disabled:before { content: "\ea8f"; }
+.ti-disc:before { content: "\ea90"; }
 .ti-door:before { content: "\ef4e"; }
 .ti-dots:before { content: "\ea95"; }
 .ti-download:before { content: "\ea96"; }
@@ -209,12 +209,13 @@
 .ti-eye:before { content: "\ea9a"; }
 .ti-eye-off:before { content: "\ecf0"; }
 .ti-fall:before { content: "\ecb9"; }
+.ti-favicon:before { content: "\fd65"; }
 .ti-ferry:before { content: "\10074"; }
 .ti-file:before { content: "\eaa4"; }
 .ti-file-cv:before { content: "\fa5a"; }
+.ti-file-spreadsheet:before { content: "\f03e"; }
 .ti-file-text:before { content: "\eaa2"; }
 .ti-file-type-pdf:before { content: "\fb10"; }
-.ti-file-upload:before { content: "\ec91"; }
 .ti-file-zip:before { content: "\ed4e"; }
 .ti-files:before { content: "\edef"; }
 .ti-filter:before { content: "\eaa5"; }
@@ -235,6 +236,7 @@
 .ti-frustum:before { content: "\fa9f"; }
 .ti-function:before { content: "\f225"; }
 .ti-galaxy:before { content: "\fcb6"; }
+.ti-gauge:before { content: "\eab1"; }
 .ti-ghost:before { content: "\eb8e"; }
 .ti-gif:before { content: "\f257"; }
 .ti-glass:before { content: "\eab8"; }
@@ -282,6 +284,8 @@
 .ti-line:before { content: "\ec40"; }
 .ti-line-height:before { content: "\eb94"; }
 .ti-link:before { content: "\eade"; }
+.ti-link-off:before { content: "\f402"; }
+.ti-link-plus:before { content: "\fd17"; }
 .ti-list:before { content: "\eb6b"; }
 .ti-list-details:before { content: "\ef40"; }
 .ti-loader-2:before { content: "\f226"; }
@@ -348,7 +352,9 @@
 .ti-phone:before { content: "\eb09"; }
 .ti-photo:before { content: "\eb0a"; }
 .ti-photo-down:before { content: "\f35f"; }
+.ti-photo-off:before { content: "\ecf6"; }
 .ti-photo-plus:before { content: "\f363"; }
+.ti-photo-search:before { content: "\f364"; }
 .ti-pick:before { content: "\fafc"; }
 .ti-pill:before { content: "\ec44"; }
 .ti-pills:before { content: "\ef66"; }
@@ -379,6 +385,7 @@
 .ti-progress:before { content: "\fa0d"; }
 .ti-prompt:before { content: "\eb0f"; }
 .ti-protocol:before { content: "\fd81"; }
+.ti-qrcode:before { content: "\eb11"; }
 .ti-quote:before { content: "\efbe"; }
 .ti-quotes:before { content: "\fb1e"; }
 .ti-radio:before { content: "\ef2d"; }
@@ -423,14 +430,15 @@
 .ti-shadow:before { content: "\eed8"; }
 .ti-shape:before { content: "\eb9c"; }
 .ti-share:before { content: "\eb21"; }
+.ti-shield-check:before { content: "\eb22"; }
 .ti-shield-lock:before { content: "\ed58"; }
 .ti-shield-off:before { content: "\ecf8"; }
-.ti-shield-plus:before { content: "\f9cb"; }
 .ti-shield-x:before { content: "\eb23"; }
 .ti-ship:before { content: "\ec84"; }
 .ti-shirt:before { content: "\ec0a"; }
 .ti-shoe:before { content: "\efd2"; }
 .ti-signature:before { content: "\eee0"; }
+.ti-sitemap:before { content: "\eb9d"; }
 .ti-skull:before { content: "\f292"; }
 .ti-slash:before { content: "\f4f9"; }
 .ti-slashes:before { content: "\f588"; }
@@ -451,7 +459,6 @@
 .ti-star:before { content: "\eb2e"; }
 .ti-stars:before { content: "\ed38"; }
 .ti-steam:before { content: "\f24b"; }
-.ti-stethoscope:before { content: "\edbe"; }
 .ti-sticker:before { content: "\eb2f"; }
 .ti-sum:before { content: "\eb73"; }
 .ti-sun:before { content: "\eb30"; }
@@ -461,6 +468,7 @@
 .ti-switch:before { content: "\eb33"; }
 .ti-sword:before { content: "\f030"; }
 .ti-table:before { content: "\eba1"; }
+.ti-table-export:before { content: "\eef8"; }
 .ti-tag:before { content: "\10096"; }
 .ti-tags:before { content: "\ef86"; }
 .ti-target:before { content: "\eb35"; }

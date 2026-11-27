@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { login, changePassword } from "@/app/actions";
+import PasswordInput from "./PasswordInput";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);
@@ -24,7 +25,7 @@ export function LoginForm() {
       <label htmlFor="u">username</label>
       <div className="iw"><i className="ti ti-user" /><input id="u" name="username" autoComplete="username" required autoFocus defaultValue={state?.username ?? ""} /></div>
       <label htmlFor="p">password</label>
-      <div className="iw"><i className="ti ti-lock" /><input id="p" name="password" type="password" autoComplete="current-password" required placeholder="••••••••••" /></div>
+      <div className="iw"><i className="ti ti-lock" /><PasswordInput id="p" name="password" autoComplete="current-password" required placeholder="••••••••••" className="" wrap="pw-in" /></div>
       <details className="forgot">
         <summary>forgot password?</summary>
         <p>The password saved as <b>ADMIN_PASSWORD</b> in your Vercel project settings always works as a recovery key. Use it to log in, then set a new password in Settings.</p>
@@ -40,9 +41,9 @@ export function PasswordForm() {
   return (
     <form action={action} className="f">
       <div className="f3">
-        <div className="fl"><label>Current password</label><input className="inp" name="current" type="password" required autoComplete="current-password" /></div>
-        <div className="fl"><label>New password</label><input className="inp" name="next" type="password" required minLength={8} autoComplete="new-password" /></div>
-        <div className="fl"><label>Repeat new password</label><input className="inp" name="confirm" type="password" required minLength={8} autoComplete="new-password" /></div>
+        <div className="fl"><label htmlFor="pw-cur">Current password</label><PasswordInput id="pw-cur" name="current" required autoComplete="current-password" /></div>
+        <div className="fl"><label htmlFor="pw-new">New password</label><PasswordInput id="pw-new" name="next" required minLength={8} autoComplete="new-password" /></div>
+        <div className="fl"><label htmlFor="pw-rep">Repeat new password</label><PasswordInput id="pw-rep" name="confirm" required minLength={8} autoComplete="new-password" /></div>
       </div>
       {state?.error && <div className="err">{state.error}</div>}
       {state?.ok && <div style={{ color: "var(--icon)", fontSize: 12.5 }}>✓ {state.ok}</div>}
