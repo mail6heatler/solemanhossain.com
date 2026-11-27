@@ -11,6 +11,7 @@ import "./fonts.css";
 import "./icons.css";
 import "./launch.css";
 import "./gate.css";
+import "./cardbar.css";
 import { getSettings } from "@/lib/data";
 import IconFallback from "@/components/IconFallback";
 import { getSecret, unlockHashFor } from "@/lib/opsServer";

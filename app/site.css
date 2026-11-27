@@ -1446,11 +1446,7 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 .card-foot.plain { padding: 2px 0 0; border-top: 0; }
 .card-foot .reacts.mini { flex: 0 1 auto; min-width: 0; gap: 3px; }
 .card-foot .reacts.mini button { padding: 3px 6px; }
-/* always in view: opens the entry's full page */
-.full-view { position: relative; z-index: 2; margin-left: auto; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: var(--r-pill); border: 1px solid var(--mint); color: var(--mint-deep); font: 700 11.5px var(--body); white-space: nowrap; text-decoration: none; transition: background .2s, color .2s, translate .15s; }
-.full-view:hover, .full-view:focus-visible { background: var(--mint); color: var(--on-mint); translate: 2px 0; }
-.full-view i { font-size: 13px; }
-@container (max-width: 250px) { .full-view { padding: 4px 7px; } .full-view > span { display: none; } }
+/* the Open tab, like the rest of a card's bar, is in app/cardbar.css */
 .wall-note .card-foot { padding: 6px 12px 9px; }
 .card-foot .reacts.mini { margin-top: 0; }
 .more-hint { position: absolute; inset: auto 0 0 0; height: 52px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; background: linear-gradient(transparent, var(--card)); color: var(--mint-deep); font-size: 14px; border-radius: 0 0 var(--r-card) var(--r-card); opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 2; }
@@ -1933,7 +1929,6 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .trip .bk-head h3 { margin: 5px 0 0; overflow-wrap: break-word; font: 800 calc(21px * var(--fs, 1))/1.12 var(--display); color: inherit; }
 .bk-head > p { margin: 2px 0 0; font: 500 13px/1.25 var(--body); opacity: .85; }
 .bk-panel .card-foot { background: none; border-top-color: var(--inv-line); }
-.bk-panel .full-view:not(:hover, :focus-visible) { background: var(--card); }
 .bk-panel .reacts-as { color: var(--inv-muted); }
 .bk-words { position: absolute; z-index: 1; left: 10%; right: 10%; bottom: 0; height: 0; pointer-events: none; }
 .bk-full > .bk-words { bottom: 30%; }

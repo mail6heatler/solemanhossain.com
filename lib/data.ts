@@ -249,6 +249,15 @@ export async function getCommentCountsFor(ids: number[]) {
   return out;
 }
 
+/** Each entry's newest visible comment, for the line above a card's tabs (components/site/CardBar.tsx). Name and words only. */
+export async function getLastCommentsFor(ids: number[]) {
+  const out: Record<number, { name: string; body: string }> = {};
+  if (!ids.length) return out;
+  const rows = await query(`SELECT DISTINCT ON (item_id) item_id, name, body FROM comments WHERE NOT hidden AND item_id IN (${placeholders(ids.length)}) ORDER BY item_id, created_at DESC, id DESC`, ids);
+  for (const r of rows) out[Number(r.item_id)] = { name: String(r.name ?? ""), body: String(r.body ?? "").slice(0, 140) };
+  return out;
+}
+
 export async function getCommentTotals() {
   const r = await queryOne("SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE NOT seen)::int AS fresh FROM comments");
   return { total: Number(r?.total ?? 0), fresh: Number(r?.fresh ?? 0) };

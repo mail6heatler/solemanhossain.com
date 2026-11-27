@@ -6,6 +6,7 @@ import { Cover, MediaBadges } from "./Media";
 import { isNextTrip, Vehicle, vehicleFor } from "./vehicles";
 import { passView, TripFrame, type FrameBody, type tripContext } from "./TripFrame";
 import { Box, CardLink, LinkButtons, Mood, partFn, type PartAttrs, type PartFn } from "./cardParts";
+import FullView from "./FullView";
 
 /**
  * One G3 trip: its cell on the route, and the frame its subsection names (or the owner chose): a boarding pass, a camera, a bucket-list note,
@@ -34,7 +35,7 @@ export default function TripCard({ it, l, index, count, trip, href, route = true
     : <PollCard id={it.id} options={it.poll_options} confetti={confetti} />;
   const body: FrameBody = ({ above, showTitle, inText, list, stub }) => (
     <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} stub={stub} fullAttrs={p("open")}
-      full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
+      full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       {above}
       <div className="tb">

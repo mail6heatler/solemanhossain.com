@@ -6,6 +6,7 @@ import type { Comment } from "@/lib/data";
 import { FV_COLS, FV_MAX_ROWS, FV_ROW, FV_ZOOM, type FvBox } from "@/lib/fullView";
 import { PART_LIMITS, SIZED_PARTS, cleanPartSize, type PartSize, type PartSizes } from "@/lib/partSize";
 import type { PartAttrs } from "@/components/site/cardParts";
+import CardBar from "@/components/site/CardBar";
 
 type Mark = { key: string; n: number; x: number; y: number; w: number; h: number; tx: number; ty: number; tag: boolean; rs: boolean };
 type Grip = { part: string; x: number; y: number; w: number; h: number };
@@ -422,6 +423,11 @@ export function StillReacts({ counts, talk, compact, comments, owner, attrs }: {
   const ranked = REACTION_EMOJIS.map((e) => counts[e] ?? 0).sort((a, b) => b - a);
   const crowned = talk.top && ranked[0] > (ranked[1] ?? 0) ? REACTION_EMOJIS.find((e) => (counts[e] ?? 0) === ranked[0]) : undefined;
   const shown = comments.filter((c) => !c.hidden);
+  // a card's bar is the tab bar (CardBar.tsx), standing still: its `reacts` part is the tabs, its `comments` part the newest comment's line
+  if (compact) {
+    const newest = shown.reduce<Comment | null>((a, c) => (!a || c.created_at > a.created_at ? c : a), null);
+    return <CardBar id={0} talk={talk} attrs={attrs} still={{ counts, comments: shown.length, last: newest ? { name: newest.name, body: newest.body } : null }} />;
+  }
   return (
     <>
       <div className={`reacts${compact ? " mini" : ""}`} data-part="reacts" {...attrs?.bar}>

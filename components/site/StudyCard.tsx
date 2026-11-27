@@ -6,6 +6,7 @@ import TvPlay from "./TvPlay";
 import { Cover, MediaBadges } from "./Media";
 import { StudyFrame, studyView, type StudyBody } from "./StudyFrame";
 import { Box, CardLink, LinkButtons, Mood, partFn, type PartAttrs, type PartFn } from "./cardParts";
+import FullView from "./FullView";
 
 /**
  * One G4 entry on the study shelf: its cell, standing on a plank, and the object its subsection names (or the owner chose): a book, a TV player,
@@ -33,7 +34,7 @@ export default function StudyCard({ it, l, index, count, code, fallback, href, r
     : <PollCard id={it.id} options={it.poll_options} confetti={confetti} />;
   const body: StudyBody = ({ above, showTitle }) => (
     <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-      full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
+      full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       {above}
       <div className="tb">
