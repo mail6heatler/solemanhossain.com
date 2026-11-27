@@ -55,7 +55,7 @@ export function Lightbox({ slides, index, onIndex, onClose, reactions = false }:
         {cur.type === "pdf" && <a href={cur.url} target="_blank" rel="noopener">Open PDF</a>}
         {cur.href && <a href={cur.href}>Open entry</a>}
         <button ref={closeBtn} type="button" onClick={onClose}>Close</button>
-        {reactions && cur.itemId && <div className="lb-reacts"><Reactions key={cur.itemId} id={cur.itemId} compact strip /></div>}
+        {reactions && cur.itemId && <div className="lb-reacts"><Reactions key={cur.itemId} id={cur.itemId} compact /></div>}
       </div>
     </div>,
     document.querySelector(".site") ?? document.body

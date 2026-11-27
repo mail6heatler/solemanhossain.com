@@ -5,7 +5,6 @@ import PollCard from "./PollCard";
 import { Cover, MediaBadges } from "./Media";
 import { AwardFrame, awardView, type AwardBody } from "./AwardFrame";
 import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn } from "./cardParts";
-import FullView from "./FullView";
 
 /**
  * One G6 achievement on the wall: the whole card is the thing itself (AwardFrame.tsx): a staff card, a certificate, a front page, a card mended in
@@ -28,7 +27,7 @@ export default function AwardCard({ it, l, index, count, code, fallback, owner, 
     : <PollCard id={it.id} options={it.poll_options} confetti={confetti} />;
   const body: AwardBody = ({ above, showTitle, showSubtitle, inBody }) => (
     <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-      full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
+      full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       {inBody}
       <div className="tb">

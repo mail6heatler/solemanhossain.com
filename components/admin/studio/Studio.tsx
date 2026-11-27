@@ -21,7 +21,6 @@ import { comicOptionsFromTitle, comicReadyOptions } from "@/lib/comicItem";
 import { tripContext } from "@/components/site/TripFrame";
 import EntryFull, { fvPresent } from "@/components/site/EntryFull";
 import { StillReacts, Surface, type Typing } from "./Surface";
-import { CardBarProvider } from "@/components/site/BarCtx";
 import { CARD_KEYS, CardEditor, FullEditor, SEC_NAMES, SectionEditor, TYPED, partName, type Ed } from "./Editors";
 
 type Scope = "card" | "fv" | "sec";
@@ -479,7 +478,6 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const popTitle = pop ? (pop.scope === "sec" ? "Section settings" : pop.key === "fv" ? "Full view options" : pop.key.startsWith("fvb:") ? `Full view · ${partName(pop.key, card)}` : partName(pop.key, card)) : "";
 
   return (
-    <CardBarProvider value={data.settings.cardBar}>
     <div className={`stu${labels ? "" : " plain"}`} key={draft.section.id}>
       <header className="stu-top">
         <div className="stu-name">
@@ -620,7 +618,6 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
         <dl className="stu-where">{WHERE.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       </Dialog>
     </div>
-    </CardBarProvider>
   );
 }
 

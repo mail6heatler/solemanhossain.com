@@ -4,7 +4,6 @@ import { after } from "next/server";
 import { alertOwner, binItems, binSection, binWhere, historyPush, ipHash, ipOf, loginBlocked, logLogin, spamVerdict, totpOk, useRecoveryCode, getSecret } from "@/lib/opsServer";
 import { deviceName } from "@/lib/ops";
 import { cleanLaunch } from "@/lib/launch";
-import { cleanCardBar } from "@/lib/cardBar";
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
 import { cleanAward } from "@/lib/awardItem";
@@ -299,16 +298,6 @@ export async function saveLaunch(raw: unknown): Promise<{ ok: true } | { ok: fal
     refresh();
     return { ok: true };
   } catch (e) { console.error("saveLaunch", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
-}
-
-/** The bar at the bottom of every card (lib/cardBar.ts): the dashboard's Card buttons page saves it in one go. */
-export async function saveCardBar(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
-  await requireAdmin();
-  try {
-    await saveSettingsData({ cardBar: cleanCardBar(raw) });
-    refresh();
-    return { ok: true };
-  } catch (e) { console.error("saveCardBar", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
 }
 
 /** Takes the hero off the homepage or brings it back. Everything in it stays saved, because the name and photo are used elsewhere too. */

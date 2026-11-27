@@ -6,7 +6,6 @@ import Markdown from "./Markdown";
 import PollCard from "./PollCard";
 import { Cover, MediaBadges } from "./Media";
 import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn } from "./cardParts";
-import FullView from "./FullView";
 
 /**
  * One G1 note: the card its subsection names (lib/cardLook.ts): an instruction manual, a protest sign, a story, a collectible card, or the plain note.
@@ -73,7 +72,7 @@ export default function NoteCard({ it, l, index, factNo, foot, href, owner, face
     <div className={`note note-${look}${look === "plain" && index === 0 && it.body.length > 280 ? " wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={style}>
       {look === "story" && <div className="sy-bg" aria-hidden {...(m && edit ? { "data-part": "pic", "data-fixed": "" } : {})}>{m && <Cover m={m} className="sy-img" style={vt} />}</div>}
       <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-        full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
+        full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
         {!edit && <CardLink to={href} label={it.title} />}
         {inner}
       </Box>

@@ -5,7 +5,6 @@ import PollCard from "./PollCard";
 import ComicPoll from "./ComicPoll";
 import { ComicFrame, comicView, type ComicBody } from "./ComicFrame";
 import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn } from "./cardParts";
-import FullView from "./FullView";
 
 /**
  * One G5 entry: a comic panel, the one its subsection names (or the owner chose); a poll's panel also goes by its options (ComicFrame.tsx).
@@ -29,7 +28,7 @@ export default function ComicCard({ it, l, index, count, code, fallback, href, s
   const says = v.subtitle ? <p className="sub" {...p("subtitle")}>{v.subtitle}</p> : null;
   const body: ComicBody = ({ above, withPoll }) => (
     <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-      full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
+      full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       <div className="tb">
         {above}
