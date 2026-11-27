@@ -206,6 +206,9 @@ export const SCHEMA = [
   `WITH first AS (INSERT INTO done_once (key) VALUES ('g3-comments-on') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE items SET talk = ((CASE WHEN talk LIKE '{%' THEN talk::jsonb ELSE '{}'::jsonb END) || '{"comments": true}'::jsonb)::text
    WHERE section_id IN (SELECT id FROM sections WHERE slug = 'adventures') AND EXISTS (SELECT 1 FROM first)`,
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('g4-comments-on') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE items SET talk = ((CASE WHEN talk LIKE '{%' THEN talk::jsonb ELSE '{}'::jsonb END) || '{"comments": true}'::jsonb)::text
+   WHERE section_id IN (SELECT id FROM sections WHERE slug = 'influences') AND EXISTS (SELECT 1 FROM first)`,
   // 2026-11-19: the owner asked for the hero photo back where it hung (it had been dragged up past the top edge in the editor).
   `WITH first AS (INSERT INTO done_once (key) VALUES ('hero-photo-reset') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE settings SET data = (data::jsonb #- '{heroDesign,parts,photo}')::text WHERE data LIKE '{%' AND EXISTS (SELECT 1 FROM first)`,

@@ -149,7 +149,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     : comic
     ? <ComicCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" edit foot={bar(it, true)} />
     : shelf
-    ? <StudyCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" rail={false} edit foot={bar(it, true)} />
+    ? <StudyCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" rail={false} edit bar={stickers(it)} />
     : trips
     ? <TripCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} trip={trip} href="#" route={false} edit bar={stickers(it)} />
     : win

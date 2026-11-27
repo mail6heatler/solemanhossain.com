@@ -424,7 +424,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "study") {
     const cells = items.map((it, i) => (
       <StudyCard key={it.id} it={it} l={lookFor(it)} index={i} count={items.length} code={section.code} fallback={section.nav_label || section.title} href={href(section, it)} rail={!grid}
-        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} />
+        vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} bar={(p) => <StickerBar id={it.id} href={href(section, it)} label={it.title} talk={it.talk} parts={stickerParts(p)} reactions={fx.reactions} />} />
     ));
     return row("grid3 tkt-row sty-row", <>{cells}{!grid && items.length <= 2 && <ShelfDecor />}{!grid && fx.studyfx && <TicketRider className="sty-lamp" count={items.length}><ShelfLamp /></TicketRider>}</>);
   }
