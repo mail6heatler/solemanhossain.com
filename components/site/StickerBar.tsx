@@ -65,7 +65,9 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   const talkN = useRef<HTMLElement>(null);
   // kept across draws, so a timer set before a re-draw still knows the truth
   const st = useRef({ by: "" as "" | "hover" | "click", openT: 0 as ReturnType<typeof setTimeout> | 0, closeT: 0 as ReturnType<typeof setTimeout> | 0, busy: false, up: false, closing: false,
-    cur: null as HTMLElement | null, total: -1, comments: -1, own: [] as Line[], lines: [] as Line[], last: -1, timer: 0 as ReturnType<typeof setInterval> | 0, typer: 0, seen: false });
+    cur: null as HTMLElement | null, total: -1, comments: -1, own: [] as Line[], lines: [] as Line[], shown: "", timer: 0 as ReturnType<typeof setTimeout> | 0, typer: 0, seen: false,
+    // each card types at its own speed, so two strips that do change together still don't move in step
+    cps: 32 + Math.random() * 12 });
   st.current.up = tray;
 
   const showReact = reactions && cfg.react && t.react;
@@ -98,10 +100,13 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   useEffect(() => { const s = st.current; if (s.comments >= 0 && s.comments !== comments && talkN.current) { const el = talkN.current, up = comments > s.comments; fx((f) => f.rollIn(el, up)); } s.comments = comments; }, [comments]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- the LIVE strip: one line after another, typed, only while it's on screen ----------
-  // types by the screen's own frames into one text node, about 38 letters a second, then shows the line with its bold name
+  // Every card keeps its own time (the owner saw them all type at once, 2026-11-28): the first change comes after a random 1 to 6 seconds, each
+  // next one after a random 4 to 9, and a card with only one line types it once and then rests until something new happens.
+  // It types by the screen's own frames into one text node, at the card's own speed, then shows the line with its bold name.
   const write = (l: Line, type: boolean) => {
     const el = line.current; if (!el) return;
     cancelAnimationFrame(st.current.typer);
+    st.current.shown = l.html;
     const head = `<span class="stb-li">${l.ic}</span>`;
     const root = document.documentElement;
     if (!type || !lively() || root.classList.contains("scrolling")) { el.innerHTML = `${head}<span class="stb-lt">${l.html}</span>`; return; }
@@ -112,7 +117,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
     const t0 = performance.now();
     let shown = 0;
     const step = (now: number) => {
-      const i = Math.min(plain.length, Math.floor(((now - t0) / 1000) * 38));
+      const i = Math.min(plain.length, Math.floor(((now - t0) / 1000) * st.current.cps));
       if (i !== shown) { shown = i; txt.data = plain.slice(0, i).join(""); }
       if (i < plain.length) st.current.typer = requestAnimationFrame(step);
       else setTimeout(() => { if (body.isConnected && txt.isConnected) body.innerHTML = l.html; }, 450);
@@ -121,28 +126,30 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   };
   const next = () => {
     const s = st.current, all = [...s.own, ...s.lines];
-    if (!all.length) return;
-    let i = 0;
-    if (all.length > 1) do { i = Math.floor(Math.random() * all.length); } while (i === s.last);
-    s.last = i;
-    write(all[i], true);
+    const fresh = all.filter((l) => l.html !== s.shown);
+    if (!fresh.length) return; // only the line that's already showing: it stays still
+    write(fresh[Math.floor(Math.random() * fresh.length)], true);
   };
-  const restart = () => { const s = st.current; clearInterval(s.timer); s.timer = setInterval(() => { if (!document.hidden && st.current.seen) next(); }, 3400); };
-  const pushOwn = (l: Line) => { const s = st.current; s.own = [l, ...s.own].slice(0, 3); s.last = 0; write(l, true); if (strip.current) fx((f) => f.bump(strip.current as HTMLElement)); restart(); };
+  const schedule = (first: boolean) => {
+    const s = st.current;
+    clearTimeout(s.timer);
+    s.timer = setTimeout(() => { if (!document.hidden && st.current.seen) next(); schedule(false); }, first ? 1000 + Math.random() * 5000 : 4000 + Math.random() * 5000);
+  };
+  const pushOwn = (l: Line) => { const s = st.current; s.own = [l, ...s.own.filter((x) => x.html !== l.html)].slice(0, 3); write(l, true); if (strip.current) fx((f) => f.bump(strip.current as HTMLElement)); schedule(false); };
   useEffect(() => {
     const s = st.current;
     const kinds = feed.filter((e) => (e.k === "react" ? showReact : e.k === "talk" ? showTalk : showShare));
     s.lines = kinds.length ? kinds.map(lineOf) : [{ ic: "✨", html: showReact ? "Be the first to react" : showTalk ? "Be the first to say something" : "Nothing here yet" }];
     if (still) { write(s.lines[0], false); return; }
-    if (!s.own.length) { s.last = 0; write(s.lines[0], false); }
+    if (!s.own.length) write(s.lines[0], false);
   }, [feed, showReact, showTalk, showShare, still]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = strip.current;
     if (still || !el) return;
     const io = new IntersectionObserver(([e]) => { st.current.seen = e.isIntersecting; });
     io.observe(el);
-    restart();
-    return () => { io.disconnect(); clearInterval(st.current.timer); cancelAnimationFrame(st.current.typer); };
+    schedule(true);
+    return () => { io.disconnect(); clearTimeout(st.current.timer); cancelAnimationFrame(st.current.typer); };
   }, [still]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- the emojis that come up ----------
