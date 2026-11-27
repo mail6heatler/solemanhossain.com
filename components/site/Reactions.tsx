@@ -6,24 +6,40 @@ import { ShareButton, TalkPanel, TalkRow } from "./Talk";
 import type { PartAttrs } from "./cardParts";
 import { burst } from "./fx";
 import { askName, savedName } from "./askName";
-import { loadReactions as load, type ReactState as State } from "./reactLoad";
-import CardBar from "./CardBar";
+
+type State = { counts: Record<string, number>; mine: string[]; comments?: number };
 
 /** Each emoji's own way of moving on hover (see `reactfx` in site.css). */
 const MOVES: Record<string, string> = { "❤️": "heart", "🔥": "fire", "😂": "laugh", "🤯": "mind", "👏": "clap" };
 
-/**
- * ❤️ 🔥 😂 🤯 👏 under an entry. Tap to add, tap again to take it back. `compact` = a card's: since 2026-11-27 that is the tab bar
- * (CardBar.tsx: React, Comment, Share, and the Open tab Box adds); `strip` keeps the small row of emojis (the photo viewer).
- * `talk` is what this entry has switched on beyond the emojis, in the dashboard: the total, the crown, Share and comments. `href` is its page.
- * `attrs` are the size and place the owner gave the bar and the comment box in the dashboard (lib/partSize.ts).
- */
-export default function Reactions(props: { id: number; compact?: boolean; strip?: boolean; talk?: TalkInfo; href?: string; attrs?: { bar?: PartAttrs; talk?: PartAttrs } }) {
-  if (props.compact && !props.strip) return <CardBar id={props.id} talk={props.talk} href={props.href} attrs={props.attrs} />;
-  return <Strip {...props} />;
+// All reaction bars on a page ask at once: one request for every entry instead of one each.
+const waiting = new Map<number, ((s: State) => void)[]>();
+let timer: ReturnType<typeof setTimeout> | undefined;
+function load(id: number) {
+  return new Promise<State>((resolve) => {
+    waiting.set(id, [...(waiting.get(id) ?? []), resolve]);
+    clearTimeout(timer);
+    timer = setTimeout(flush, 40);
+  });
+}
+async function flush() {
+  const batch = new Map(waiting);
+  waiting.clear();
+  const ids = [...batch.keys()];
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    let items: Record<string, State> = {};
+    try { items = (await (await fetch(`/api/react?ids=${chunk.join(",")}`)).json()).items ?? {}; } catch {}
+    for (const id of chunk) batch.get(id)?.forEach((cb) => cb(items[id] ?? { counts: {}, mine: [] }));
+  }
 }
 
-function Strip({ id, compact = false, talk, href, attrs }: { id: number; compact?: boolean; talk?: TalkInfo; href?: string; attrs?: { bar?: PartAttrs; talk?: PartAttrs } }) {
+/**
+ * ❤️ 🔥 😂 🤯 👏 under an entry. Tap to add, tap again to take it back. `compact` = the small version for cards.
+ * `talk` is what this entry has switched on beyond the emojis, in the dashboard: the total, the crown, Share and comments. `href` is its page.
+ */
+/** `attrs` are the size and place the owner gave the bar and the comment box in the dashboard (lib/partSize.ts). */
+export default function Reactions({ id, compact = false, talk, href, attrs }: { id: number; compact?: boolean; talk?: TalkInfo; href?: string; attrs?: { bar?: PartAttrs; talk?: PartAttrs } }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [mine, setMine] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);

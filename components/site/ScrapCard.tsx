@@ -5,7 +5,6 @@ import PollCard from "./PollCard";
 import { Cover, MediaBadges } from "./Media";
 import { ScrapFrame, scrapView } from "./ScrapFrame";
 import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn } from "./cardParts";
-import FullView from "./FullView";
 
 /**
  * One G7 entry: a page torn from a scrapbook, the one its subsection names (or the owner chose): a diary page, a scrap of map, a habit tracker or a pile
@@ -30,7 +29,7 @@ export default function ScrapCard({ it, l, index, count, fallback, href, vt, zoo
       <div className={`trip tkt sb on-${v.look}`} style={style}>
         <ScrapFrame view={v} link={edit ? undefined : <a className="tkt-link" href={href} tabIndex={-1} aria-hidden />} pics={pics} zoom={pics.length ? zoom : null} fixedPic={"--pic" in (l.style ?? {})} p={p}>
           <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-            full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
+            full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
             {!edit && <CardLink to={href} label={it.title} />}
             <div className="tb">
               <h3 {...p("title")}>{it.title}</h3>

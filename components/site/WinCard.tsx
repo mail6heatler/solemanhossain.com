@@ -5,7 +5,6 @@ import Markdown from "./Markdown";
 import PollCard from "./PollCard";
 import { Cover, MediaBadges } from "./Media";
 import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn } from "./cardParts";
-import FullView from "./FullView";
 
 export const fileName = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "project";
 export const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
@@ -90,7 +89,7 @@ export default function WinCard({ it, l, href, home, slug, vt, zoom, confetti = 
         </div>
       )}
       <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-        full={edit ? <FullView label={it.title} attrs={p("open")} /> : undefined}>
+        full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
         {!edit && <CardLink to={href} label={it.title} />}
         {pic && <div className="pic-box" {...p("pic")}><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt} /><MediaBadges media={it.media} /></div>{zoom}</div>}
         {look === "sheet" && rows.length > 0 && (
