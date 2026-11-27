@@ -13,6 +13,7 @@ export async function setSecret(key: string, value: string) {
   await query("INSERT INTO secrets (key, value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value", [key, value]);
 }
 export async function delSecret(key: string) { await query("DELETE FROM secrets WHERE key=$1", [key]); }
+const readJson = <T,>(s: string): T | null => { try { return s ? (JSON.parse(s) as T) : null; } catch { return null; } };
 
 // ---------- who is asking ----------
 export const ipOf = (h: Headers) => (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
@@ -346,7 +347,8 @@ export const unlockHashFor = (storedHash: string) => createHash("sha256").update
 
 // ---------- the Overview's live cards (components/admin/LiveCards.tsx): daily checks kept here, refreshed by housekeeping ----------
 export type HealthLast = { at: string; pictures: number; checked: number; broken: { url: string; where: string }[] };
-export type SpeedLast = { at: string; score: number; lcp: string; fcp: string; tbt: string };
+export type SpeedLast = { at: string; score: number; lcp: string; fcp: string; tbt: string; lcpMs?: number; fcpMs?: number; tbtMs?: number };
+export type SpeedPoint = { at: string; score: number };
 export async function scanHealth() {
   const h = await healthCheck();
   const last: HealthLast = { at: new Date().toISOString(), pictures: h.pictures, checked: h.checked, broken: h.broken.slice(0, 50) };
@@ -361,12 +363,19 @@ export async function speedTest(): Promise<SpeedLast | null> {
     const r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(`https://${site}`)}&strategy=mobile&category=performance`, { signal: AbortSignal.timeout(55_000) });
     const lh = ((await r.json()) as { lighthouseResult?: { categories: { performance: { score: number } }; audits: Record<string, { displayValue?: string }> } }).lighthouseResult;
     if (!lh) return null;
-    const last: SpeedLast = { at: new Date().toISOString(), score: Math.round(lh.categories.performance.score * 100), lcp: lh.audits["largest-contentful-paint"]?.displayValue ?? "", fcp: lh.audits["first-contentful-paint"]?.displayValue ?? "", tbt: lh.audits["total-blocking-time"]?.displayValue ?? "" };
+    const a = lh.audits as Record<string, { displayValue?: string; numericValue?: number }>;
+    const last: SpeedLast = {
+      at: new Date().toISOString(), score: Math.round(lh.categories.performance.score * 100),
+      lcp: a["largest-contentful-paint"]?.displayValue ?? "", fcp: a["first-contentful-paint"]?.displayValue ?? "", tbt: a["total-blocking-time"]?.displayValue ?? "",
+      lcpMs: Math.round(a["largest-contentful-paint"]?.numericValue ?? 0), fcpMs: Math.round(a["first-contentful-paint"]?.numericValue ?? 0), tbtMs: Math.round(a["total-blocking-time"]?.numericValue ?? 0),
+    };
     await setSecret("speed_last", JSON.stringify(last));
+    // the last 30 results, for the score's line on the Overview
+    const hist = readJson<SpeedPoint[]>(await getSecret("speed_hist")) ?? [];
+    await setSecret("speed_hist", JSON.stringify([...hist, { at: last.at, score: last.score }].slice(-30)));
     return last;
   } catch { return null; }
 }
-const readJson = <T,>(s: string): T | null => { try { return s ? (JSON.parse(s) as T) : null; } catch { return null; } };
 export async function dailyChecks() {
   const day = 86400_000;
   const h = readJson<HealthLast>(await getSecret("health_last"));
@@ -388,8 +397,28 @@ export async function overviewLive() {
     queryOne("SELECT COUNT(*)::int AS n FROM (SELECT DISTINCT ON (conv) from_owner FROM messages WHERE conv IS NOT NULL ORDER BY conv, created_at DESC) t WHERE NOT from_owner"),
     getSecret("tg_bot"), getSecret("tg_chat"), getSecret("tg_last"), getSecret("health_last"), getSecret("speed_last"),
   ]);
+  const days14 = "generate_series(CURRENT_DATE - 13, CURRENT_DATE, '1 day') d";
+  const day = "to_char(d::date, 'YYYY-MM-DD')";
+  const [series, views, live, hist] = await Promise.all([
+    query(`SELECT ${day} AS day,
+        (SELECT COUNT(*) FROM login_log WHERE ok AND at::date = d::date)::int AS sign_ok,
+        (SELECT COUNT(*) FROM login_log WHERE NOT ok AND at::date = d::date)::int AS sign_bad,
+        (SELECT COUNT(*) FROM messages WHERE NOT from_owner AND created_at::date = d::date)::int AS msgs,
+        (SELECT COUNT(*) FROM comments WHERE created_at::date = d::date)::int AS comments,
+        (SELECT COUNT(*) FROM reactions WHERE created_at::date = d::date)::int AS reacts,
+        (SELECT COUNT(*) FROM backups WHERE created_at::date = d::date)::int AS backups
+      FROM ${days14} ORDER BY d`),
+    query(`SELECT COALESCE(NULLIF(MAX(s.nav_label), ''), MAX(s.title), sv.slug) AS title, SUM(sv.n)::int AS n FROM section_views sv LEFT JOIN sections s ON s.slug = sv.slug
+      WHERE sv.day > CURRENT_DATE - 7 GROUP BY sv.slug ORDER BY n DESC LIMIT 6`),
+    queryOne("SELECT COUNT(*)::int AS n FROM presence WHERE last_seen > NOW() - INTERVAL '60 seconds'"),
+    getSecret("speed_hist"),
+  ]);
   const o = s.ops;
   return {
+    days: series.map((x) => ({ day: String(x.day), signOk: Number(x.sign_ok), signBad: Number(x.sign_bad), msgs: Number(x.msgs), comments: Number(x.comments), reacts: Number(x.reacts), backups: Number(x.backups) })),
+    views: views.map((x) => ({ title: String(x.title ?? ""), n: Number(x.n) })),
+    live: Number(live?.n ?? 0),
+    speedHist: readJson<SpeedPoint[]>(hist) ?? [],
     at: new Date().toISOString(), dbMs, mb: Number(files?.bytes ?? 0) / 1048576,
     lastBackup: last ? new Date(last.created_at).toISOString() : null, backups: o.backups,
     twoStep: o.twoStep.on, lockout: o.lockout.on, bin: Number(bin?.n ?? 0), failed: Number(failed?.n ?? 0),
