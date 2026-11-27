@@ -208,7 +208,9 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   const closeSay = () => {
     const f = front.current, b = say.current;
     if (!saying || !f || !b) return;
-    const done = () => { f.style.opacity = ""; f.style.pointerEvents = ""; b.style.opacity = ""; setSaying(false); };
+    // hide the box in this same frame, before anything about it is reset: React would only hide it on its next render, and for that one frame
+    // the box showed again, flat over the buttons (the owner saw the flick, 2026-11-28)
+    const done = () => { b.hidden = true; b.style.opacity = ""; f.style.opacity = ""; f.style.pointerEvents = ""; setSaying(false); };
     if (lively() && fxP) loadFx().then((x) => x.flip(f, b, false)).then(done).catch(done);
     else done();
   };
