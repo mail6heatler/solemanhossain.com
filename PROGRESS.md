@@ -18,6 +18,13 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Launch screen, faster loading, smoother mouse dot (2026-11-27, all kept)
+
+- **Mouse dot:** no blend mode, its own layer, white with a glow in the theme's colour; the connecting web drawn cheaply; card tilt, glare, lit borders, section glow and magnets read then write once per frame (`schedule` in `hoverFx.ts`). The menu bar's Say hello button is the theme's main colour instead of pink (the owner doesn't like pink). Kept.
+- **Faster loading** (steps 1 to 7 of the 25 November plan; step 4 skipped because `admin.css` shares class names with public pages; step 8, lighter titles, still under Later): icons and fonts from the site itself, heavy parts wake one at a time (`whenSettled`), entry pages built ahead, card-sized pictures, prerender on press. Live homepage: 1.8 MB → 1.06 MB, 3.5 s → 1.6 s of blocking; first paint about the same (2 to 2.5 s). Kept.
+- **Launch screen:** the owner liked all six designs on the picker (https://claude.ai/artifact/SxZox2HvEvYLCatAFUDnk7), so all six are live with `/admin/launch` (see "The launch screen" in `CLAUDE.md`). Starts as a different design each visit, once per visit. Kept.
+- Restore points: tags `restore-before-smooth-cursor-2026-11-27`, `restore-before-dot-colour-2026-11-27`, `restore-before-hello-colour-2026-11-27`, `restore-before-white-dot-2026-11-27`, `restore-before-faster-2026-11-27`, `restore-before-launch-2026-11-27`.
+
 ## Links open in Chrome, not in apps' browsers (2026-11-26)
 
 The owner asked whether a link to the site tapped in Messenger, WhatsApp and so on could open in Chrome by default, then said to build it without waiting. Android: apps' own browsers are recognised and the page is handed to Chrome at once (once per visit). iPhone: not allowed by Apple, so a small "Best in your browser" bar offers Safari and Chrome. Normal browsers see nothing. Built and checked that the delivered early script is valid and recognises Messenger and Instagram but not Chrome or Safari; not tested inside the real apps.
