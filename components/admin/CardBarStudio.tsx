@@ -20,7 +20,7 @@ const Sw = ({ checked, onChange, children }: { checked: boolean; onChange: (v: b
  * on screen show its emojis coming up. One Save writes settings.cardBar (saveCardBar). Each card's own switches and the sizes dragged in the
  * live editors still apply on top. Sections get the sticker buttons one at a time (STICKER_LAYOUTS): G1 first.
  */
-export default function CardBarStudio({ first, anchor }: { first: CardBarSettings; anchor: string }) {
+export default function CardBarStudio({ first, anchor, has }: { first: CardBarSettings; anchor: string; has: string[] }) {
   const router = useRouter();
   const [saved, setSaved] = useState(first);
   const [d, setD] = useState(first);
@@ -57,7 +57,7 @@ export default function CardBarStudio({ first, anchor }: { first: CardBarSetting
 
         <div className="cs-grid">
           <div className="cs-panel">
-            <p className="hint">These are the starting point for every card that has the sticker buttons (G1 · Me and G2 · Made so far; the other sections get them one at a time), and for cards you add later. Each card&apos;s own switches (its Reactions &amp; comments box) and the sizes and places you drag in a section&apos;s live editor still win.</p>
+            <p className="hint">These are the starting point for every card that has the sticker buttons ({has.join(", ") || "none yet"} so far; the other sections get them one at a time), and for cards you add later. Each card&apos;s own switches (its Reactions &amp; comments box) and the sizes and places you drag in a section&apos;s live editor still win.</p>
             <Box title="The four buttons">
               <Sw checked={d.react} onChange={(v) => set({ react: v })}>React: the emojis come up when someone points at it</Sw>
               <Sw checked={d.talk} onChange={(v) => set({ talk: v })}>Comment: the buttons flip into a comment box (on cards whose comments are on)</Sw>

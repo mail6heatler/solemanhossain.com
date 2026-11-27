@@ -131,7 +131,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const bar = (it: Item, compact: boolean) => (settings.effects.reactions
     ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
     : undefined);
-  /** The sticker buttons (G1, G2), standing still: the newest comment (or the most-used emoji) is what the LIVE strip shows */
+  /** The sticker buttons (the layouts in STICKER_LAYOUTS), standing still: the newest comment (or the most-used emoji) is what the LIVE strip shows */
   const stickers = (it: Item) => (p: PartFn) => {
     const counts = live.reactions[it.id] ?? {}, shown = (live.comments[it.id] ?? []).filter((c) => !c.hidden);
     const newest = shown.reduce<(typeof shown)[number] | null>((a, c) => (!a || c.created_at > a.created_at ? c : a), null);
@@ -151,7 +151,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     : shelf
     ? <StudyCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" rail={false} edit foot={bar(it, true)} />
     : trips
-    ? <TripCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} trip={trip} href="#" route={false} edit foot={bar(it, true)} />
+    ? <TripCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} trip={trip} href="#" route={false} edit bar={stickers(it)} />
     : win
     ? <WinCard it={it} l={lookFor(it)} href="#" home={draft.section.nav_label || draft.section.title} slug={draft.section.slug} edit bar={stickers(it)} />
     : <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit bar={stickers(it)} />;

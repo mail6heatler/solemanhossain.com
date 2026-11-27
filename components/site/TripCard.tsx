@@ -13,11 +13,12 @@ import { Box, CardLink, LinkButtons, Mood, partFn, type PartAttrs, type PartFn }
  * With `edit`, each part carries its name (`data-part`) for the editor's labels, nothing on it leads anywhere, a poll stands still and the route's
  * stop is left out.
  */
-export default function TripCard({ it, l, index, count, trip, href, route = true, vt, zoom, confetti = false, edit, foot }: {
+export default function TripCard({ it, l, index, count, trip, href, route = true, vt, zoom, confetti = false, edit, foot, bar }: {
   it: Item; l: Look; index: number; count: number; trip: ReturnType<typeof tripContext>; href: string;
   /** its stretch of the dashed route (not on a See all page) */ route?: boolean;
   vt?: React.CSSProperties; zoom?: React.ReactNode; confetti?: boolean; edit?: boolean;
   /** the reaction bar, given the size and place of the bar and of the comment box */ foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode;
+  /** the sticker buttons (StickerBar.tsx), which bring their own Open button; given the card's part function, so each button and the strip can be sized */ bar?: (p: PartFn) => React.ReactNode;
 }) {
   const p: PartFn = partFn(edit, it.card.parts);
   const pic = it.media[0] && !l.hide("pic");
@@ -33,8 +34,8 @@ export default function TripCard({ it, l, index, count, trip, href, route = true
     ? <div className="poll" {...p("poll")}>{it.poll_options.map((o, i) => <button key={i} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}<div className="poll-foot">Tap an option to vote and see results</div></div>
     : <PollCard id={it.id} options={it.poll_options} confetti={confetti} />;
   const body: FrameBody = ({ above, showTitle, inText, list, stub }) => (
-    <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} stub={stub} fullAttrs={p("open")}
-      full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
+    <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} stub={stub} fullAttrs={p("open")}
+      full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       {above}
       <div className="tb">

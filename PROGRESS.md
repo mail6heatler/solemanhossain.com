@@ -18,7 +18,11 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
-## Sticker buttons on G2 · Made (2026-11-28, live, waiting for keep or undo)
+## Sticker buttons on G3 · Adventures (2026-11-28, live, waiting for keep or undo)
+
+- All five frames (pass, camera, bucket list, polaroid, postcard) get the sticker buttons and the strip; comments switched on for G3's cards, following the owner's choice for G1 and G2. The comment box's close flick was fixed for every section first. Restore point: tag `before-g3-stickers`. Next: G4 · Influences.
+
+## Sticker buttons on G2 · Made (2026-11-28, kept)
 
 - The owner said "g2" (taken as keep for the smoother buttons). G2's five windows get the sticker buttons and the LIVE strip, and their comments are on (the owner's choice). Restore point: tag `before-g2-stickers`. Next: G3 · Adventures.
 
