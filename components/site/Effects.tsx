@@ -299,16 +299,23 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       }
     }
 
-    // card glow follows the mouse
-    const glow = (e: MouseEvent) => {
-      const card = (e.target as HTMLElement).closest?.(".card") as HTMLElement | null;
-      if (!card) return;
-      const r = card.getBoundingClientRect();
-      card.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
-      card.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
+    // card glow follows the mouse: measured and written once per frame, never inside the mouse event
+    let glowCard: HTMLElement | null = null, glowRaf = 0, glowX = 0, glowY = 0;
+    const glowPaint = () => {
+      glowRaf = 0;
+      if (!glowCard) return;
+      const r = glowCard.getBoundingClientRect();
+      glowCard.style.setProperty("--gx", `${(((glowX - r.left) / r.width) * 100).toFixed(1)}%`);
+      glowCard.style.setProperty("--gy", `${(((glowY - r.top) / r.height) * 100).toFixed(1)}%`);
     };
-    document.addEventListener("mousemove", glow);
-    cleanups.push(() => document.removeEventListener("mousemove", glow));
+    const glow = (e: MouseEvent) => {
+      glowCard = (e.target as HTMLElement).closest?.(".card") as HTMLElement | null;
+      if (!glowCard) return;
+      glowX = e.clientX; glowY = e.clientY;
+      if (!glowRaf) glowRaf = requestAnimationFrame(glowPaint);
+    };
+    document.addEventListener("mousemove", glow, { passive: true });
+    cleanups.push(() => { cancelAnimationFrame(glowRaf); document.removeEventListener("mousemove", glow); });
 
     // click sparkles: the hero emojis burst out wherever someone clicks
     if (fx.sparkles && !reduced && sparkleEmojis.length) {
@@ -410,64 +417,105 @@ export default function Effects({ cursor, track, totop = false, fx, partyWord, s
       };
       readColor();
       window.addEventListener("skinchange", readColor);
-      let mx = -999, my = -999, rx = -999, ry = -999, raf = 0, ringShownAt = "";
+      let mx = -999, my = -999, rx = -999, ry = -999, raf = 0, ringShownAt = "", last = 0;
+      const R = 200, LINK = 130; // how far the mouse reaches the dots, and dots reach each other
       const dots = Array.from({ length: 60 }, () => ({
         x: Math.random() * innerWidth, y: Math.random() * innerHeight,
         vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
       }));
-      const resize = () => { if (canvas) { canvas.width = innerWidth; canvas.height = innerHeight; } };
+      const resize = () => { if (canvas) { canvas.width = innerWidth; canvas.height = innerHeight; drawn = null; } };
+      // the part of the canvas drawn last frame: only that is cleared, never the whole screen
+      let drawn: { x: number; y: number; w: number; h: number } | null = null;
+      const wipe = () => { if (ctx && drawn) ctx.clearRect(drawn.x, drawn.y, drawn.w, drawn.h); drawn = null; };
       resize();
-      // moved by transform: changing left and top makes the browser redo the page layout every frame
+      // moved by transform, written the moment the mouse moves, before any other mouse effect runs
       let dotScale = 1;
-      const placeDot = () => { if (dot) dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%) scale(${dotScale})`; };
-      const mm = (e: MouseEvent) => { mx = e.clientX; my = e.clientY; placeDot(); };
+      const placeDot = () => { if (dot) dot.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%,-50%) scale(${dotScale})`; };
+      const mm = (e: PointerEvent) => { if (e.pointerType === "touch") return; mx = e.clientX; my = e.clientY; if (rx < -900) { rx = mx; ry = my; } placeDot(); wake(); };
       const md = () => { dotScale = 1.8; placeDot(); };
       const mu = () => { dotScale = 1; placeDot(); };
-      const loop = () => {
+      // lines are grouped by how see-through they are, so a frame strokes a handful of paths instead of hundreds
+      const BANDS = 6;
+      const paths: Path2D[] = [];
+      const loop = (now: number) => {
+        raf = 0;
+        const dt = last ? Math.min(64, now - last) : 16.7;
+        last = now;
+        const step = dt / 16.7;
+        // the ring follows on real time, so it glides the same at 30 or 144 frames a second
+        const k = 1 - Math.pow(0.86, step);
         const gapX = mx - rx, gapY = my - ry;
-        rx += gapX * 0.14; ry += gapY * 0.14;
+        rx += gapX * k; ry += gapY * k;
         if (ring) {
           // the plain ring stretches along its path when moving fast; a labelled one stays round so its text reads
           const speed = Math.min(1, Math.hypot(gapX, gapY) / 160);
-          const place = `translate(${rx.toFixed(1)}px, ${ry.toFixed(1)}px) translate(-50%,-50%)`;
+          const place = `translate3d(${rx.toFixed(1)}px, ${ry.toFixed(1)}px, 0) translate(-50%,-50%)`;
           const next = ring.className || speed < 0.02 ? place : `${place} rotate(${Math.atan2(gapY, gapX).toFixed(3)}rad) scale(${(1 + speed * 0.55).toFixed(3)},${(1 - speed * 0.3).toFixed(3)})`;
           if (next !== ringShownAt) { ring.style.transform = next; ringShownAt = next; }
         }
         // the dots hold still while the page moves, and aren't drawn when the mouse is nowhere near
-        if (ctx && canvas && mx > -900 && !html.classList.contains("lite") && !html.classList.contains("scrolling")) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const drawDots = !!ctx && !!canvas && mx > -900 && !html.classList.contains("lite") && !html.classList.contains("scrolling");
+        if (drawDots && ctx && canvas) {
+          wipe();
           for (const d of dots) {
-            d.x += d.vx; d.y += d.vy;
+            d.x += d.vx * step; d.y += d.vy * step;
             if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
             if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
           }
-          for (let i = 0; i < dots.length; i++) {
-            const d = dots[i];
+          for (let i = 0; i < BANDS; i++) paths[i] = new Path2D();
+          const near: { i: number; x: number; y: number; f: number }[] = [];
+          const isNear: boolean[] = [];
+          dots.forEach((d, i) => {
             const dm = Math.hypot(d.x - mx, d.y - my);
-            if (dm >= 200) continue;
-            const f = 1 - dm / 200;
-            ctx.beginPath(); ctx.arc(d.x, d.y, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${rgb},${f * 0.9})`; ctx.fill();
-            ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(mx, my);
-            ctx.strokeStyle = `rgba(${rgb},${f * 0.35})`; ctx.lineWidth = 0.8; ctx.stroke();
-            for (let j = i + 1; j < dots.length; j++) {
-              const e = dots[j];
-              const dd = Math.hypot(d.x - e.x, d.y - e.y);
-              if (dd < 130) {
-                ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(e.x, e.y);
-                ctx.strokeStyle = `rgba(${rgb},${(1 - dd / 130) * 0.3 * f})`; ctx.lineWidth = 0.6; ctx.stroke();
+            if (dm < R) { near.push({ i, x: d.x, y: d.y, f: 1 - dm / R }); isNear[i] = true; }
+          });
+          if (near.length) {
+            ctx.lineWidth = 0.7;
+            for (const n of near) {
+              const p = paths[Math.min(BANDS - 1, Math.floor(n.f * BANDS))];
+              p.moveTo(n.x, n.y); p.lineTo(mx, my);
+              for (let j = 0; j < dots.length; j++) {
+                // a line between two lit dots is drawn once, from the first of them
+                if (j === n.i || (isNear[j] && j < n.i)) continue;
+                const e = dots[j];
+                const dd = Math.hypot(n.x - e.x, n.y - e.y);
+                if (dd < LINK) {
+                  const q = paths[Math.min(BANDS - 1, Math.floor((1 - dd / LINK) * n.f * BANDS))];
+                  q.moveTo(n.x, n.y); q.lineTo(e.x, e.y);
+                }
               }
             }
+            for (let i = 0; i < BANDS; i++) {
+              ctx.strokeStyle = `rgba(${rgb},${(((i + 0.5) / BANDS) * 0.32).toFixed(3)})`;
+              ctx.stroke(paths[i]);
+            }
+            for (const n of near) {
+              ctx.fillStyle = `rgba(${rgb},${(n.f * 0.9).toFixed(2)})`;
+              ctx.beginPath(); ctx.arc(n.x, n.y, 2.5, 0, Math.PI * 2); ctx.fill();
+            }
+            // everything drawn lies within reach of the mouse plus a link's length
+            const m = R + LINK + 4;
+            drawn = { x: mx - m, y: my - m, w: m * 2, h: m * 2 };
           }
-        }
-        raf = requestAnimationFrame(loop);
+        } else if (html.classList.contains("lite")) wipe();
+        // keep going while the ring is still catching up or dots are moving near the mouse; otherwise sleep until the mouse moves
+        const settling = Math.abs(gapX) > 0.3 || Math.abs(gapY) > 0.3;
+        if (settling || (drawDots && drawn)) raf = requestAnimationFrame(loop);
+        else last = 0;
       };
-      loop();
+      const wake = () => { if (!raf) raf = requestAnimationFrame(loop); };
+      const leave = (e: MouseEvent) => { if (!e.relatedTarget) { wipe(); mx = my = -999; rx = ry = -999; placeDot(); if (ring) ring.style.transform = ringShownAt = "translate(-99px,-99px)"; } };
+      wake();
       addEventListener("resize", resize);
-      document.addEventListener("mousemove", mm);
+      // dots resume drifting after the page stops scrolling
+      const unscroll = () => { if (!html.classList.contains("scrolling")) wake(); };
+      const mo = new MutationObserver(unscroll);
+      mo.observe(html, { attributes: true, attributeFilter: ["class"] });
+      document.addEventListener("pointermove", mm, { passive: true, capture: true });
       document.addEventListener("mousedown", md);
       document.addEventListener("mouseup", mu);
-      cleanups.push(() => { cancelAnimationFrame(raf); removeEventListener("resize", resize); window.removeEventListener("skinchange", readColor); document.removeEventListener("mousemove", mm); document.removeEventListener("mousedown", md); document.removeEventListener("mouseup", mu); });
+      document.addEventListener("mouseout", leave);
+      cleanups.push(() => { cancelAnimationFrame(raf); mo.disconnect(); removeEventListener("resize", resize); window.removeEventListener("skinchange", readColor); document.removeEventListener("pointermove", mm, { capture: true }); document.removeEventListener("mousedown", md); document.removeEventListener("mouseup", mu); document.removeEventListener("mouseout", leave); });
     }
 
     // anonymous visit counter (once per page load; "new visitor" once per day per browser)

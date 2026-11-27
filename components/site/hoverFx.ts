@@ -154,89 +154,128 @@ export function startHoverFx(fx: HoverFxFlags) {
 
   if (!fine) return () => cleanups.forEach((c) => c());
 
-  // ---------- 3D tilt with spring ----------
+  // ---------- one frame for every mouse effect ----------
+  // Each effect first reads where things are, then all of them write, so the browser works out the page
+  // once per frame instead of once per card (reading after a write makes it redo its styles on the spot).
+  type Job = { read?: () => void; write: () => void };
+  const jobs = new Set<Job>();
+  let jobRaf = 0;
+  const runJobs = () => {
+    jobRaf = 0;
+    const list = [...jobs];
+    jobs.clear();
+    for (const j of list) j.read?.();
+    for (const j of list) j.write();
+  };
+  const schedule = (j: Job) => { jobs.add(j); if (!jobRaf) jobRaf = requestAnimationFrame(runJobs); };
+  cleanups.push(() => { cancelAnimationFrame(jobRaf); jobs.clear(); });
+  let px = -999, py = -999;
+  on("pointermove", (e) => { px = e.clientX; py = e.clientY; }, { passive: true }); // first, so every effect below sees this move
+
+  // ---------- 3D tilt with spring, and the glare inside the card ----------
   if (fx.cardtilt) {
-    type T = { el: HTMLElement; rx: number; ry: number; lift: number; trx: number; try_: number; tlift: number };
+    type T = { el: HTMLElement; rx: number; ry: number; lift: number; trx: number; try_: number; tlift: number; gx: number; gy: number };
     const live = new Map<HTMLElement, T>();
-    let cur: T | null = null, raf = 0;
-    const loop = () => {
-      raf = 0;
-      for (const [el, t] of live) {
-        t.rx += (t.trx - t.rx) * 0.14; t.ry += (t.try_ - t.ry) * 0.14; t.lift += (t.tlift - t.lift) * 0.14;
-        if (t !== cur && Math.abs(t.rx) < 0.06 && Math.abs(t.ry) < 0.06 && Math.abs(t.lift) < 0.12) {
-          el.style.transform = ""; el.classList.remove("tilting"); live.delete(el); continue;
+    let cur: T | null = null, moved = false, last = 0;
+    const job: Job = {
+      read: () => {
+        if (!moved || !cur) return;
+        const r = cur.el.getBoundingClientRect();
+        const ux = (px - r.left) / r.width, uy = (py - r.top) / r.height;
+        cur.try_ = (ux - 0.5) * 18; cur.trx = -(uy - 0.5) * 18; cur.tlift = 6;
+        cur.gx = ux * 100; cur.gy = uy * 100;
+      },
+      write: () => {
+        if (moved && cur) {
+          cur.el.style.setProperty("--gx", `${cur.gx.toFixed(1)}%`);
+          cur.el.style.setProperty("--gy", `${cur.gy.toFixed(1)}%`);
         }
-        el.style.transform = `perspective(900px) rotateX(${t.rx.toFixed(2)}deg) rotateY(${t.ry.toFixed(2)}deg) translateY(${(-t.lift).toFixed(2)}px)`;
-      }
-      if (live.size) raf = requestAnimationFrame(loop);
+        moved = false;
+        // the spring runs on real time, so it feels the same at any frame rate
+        const now = performance.now();
+        const dt = last ? Math.min(64, now - last) : 16.7;
+        last = now;
+        const k = 1 - Math.pow(0.86, dt / 16.7);
+        for (const [el, t] of live) {
+          t.rx += (t.trx - t.rx) * k; t.ry += (t.try_ - t.ry) * k; t.lift += (t.tlift - t.lift) * k;
+          if (t !== cur && Math.abs(t.rx) < 0.06 && Math.abs(t.ry) < 0.06 && Math.abs(t.lift) < 0.12) {
+            el.style.transform = ""; el.classList.remove("tilting"); live.delete(el); continue;
+          }
+          el.style.transform = `perspective(900px) rotateX(${t.rx.toFixed(2)}deg) rotateY(${t.ry.toFixed(2)}deg) translateY(${(-t.lift).toFixed(2)}px)`;
+        }
+        if (live.size) schedule(job); else last = 0;
+      },
     };
-    const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
     on("pointermove", (e) => {
       if (e.pointerType !== "mouse") return;
       // on the reaction bar the card settles flat: tilting would slide the small buttons out from under the mouse
       const el = (e.target as Element).closest?.(".card-foot, .reacts, .win-url a, .tv-panel") ? null : (e.target as Element).closest?.(TILT) as HTMLElement | null;
       if (cur && cur.el !== el) { cur.trx = cur.try_ = cur.tlift = 0; cur = null; }
-      if (!el) { kick(); return; }
-      let t = live.get(el);
-      if (!t) { t = { el, rx: 0, ry: 0, lift: 0, trx: 0, try_: 0, tlift: 0 }; live.set(el, t); el.classList.add("tilting"); }
-      cur = t;
-      const r = el.getBoundingClientRect();
-      const dx = (e.clientX - r.left) / r.width - 0.5, dy = (e.clientY - r.top) / r.height - 0.5;
-      t.try_ = dx * 18; t.trx = -dy * 18; t.tlift = 6;
-      kick();
+      if (el) {
+        let t = live.get(el);
+        if (!t) { t = { el, rx: 0, ry: 0, lift: 0, trx: 0, try_: 0, tlift: 0, gx: 50, gy: 50 }; live.set(el, t); el.classList.add("tilting"); }
+        cur = t;
+        moved = true;
+      }
+      schedule(job);
     }, { passive: true });
-    on("pointerleave", () => { if (cur) { cur.trx = cur.try_ = cur.tlift = 0; cur = null; kick(); } });
+    on("pointerleave", () => { if (cur) { cur.trx = cur.try_ = cur.tlift = 0; cur = null; schedule(job); } });
     cleanups.push(() => {
-      cancelAnimationFrame(raf);
       live.forEach((t) => { t.el.style.transform = ""; t.el.classList.remove("tilting"); });
     });
   }
 
-  // ---------- mouse position for the glare inside a card and the lit-up border on it and its neighbours ----------
-  if (fx.spotlight || fx.cardtilt) {
-    let group: Element | null = null, pending: PointerEvent | null = null, raf = 0;
-    const paint = () => {
-      raf = 0;
-      if (!pending || !group) return;
-      const e = pending;
-      for (const c of qsa(SPOT_ITEMS, group)) {
-        const r = c.getBoundingClientRect();
-        c.style.setProperty("--bx", `${e.clientX - r.left}px`);
-        c.style.setProperty("--by", `${e.clientY - r.top}px`);
-        c.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`);
-        c.style.setProperty("--my", `${((e.clientY - r.top) / r.height) * 100}%`);
-      }
+  // ---------- the lit-up border on the card under the mouse and its neighbours ----------
+  if (fx.spotlight) {
+    let group: Element | null = null, items: HTMLElement[] = [], rects: DOMRect[] = [];
+    const lit = new Set<HTMLElement>();
+    const unlight = (c: HTMLElement) => { c.style.removeProperty("--lit-x"); c.style.removeProperty("--lit-y"); lit.delete(c); };
+    const job: Job = {
+      read: () => { rects = group ? items.map((c) => c.getBoundingClientRect()) : []; },
+      write: () => {
+        items.forEach((c, i) => {
+          const r = rects[i];
+          if (!r) return;
+          // only boxes the light can reach change; the rest are put out of reach once
+          if (px > r.left - 250 && px < r.right + 250 && py > r.top - 250 && py < r.bottom + 250) {
+            c.style.setProperty("--lit-x", `${Math.round(px - r.left)}px`);
+            c.style.setProperty("--lit-y", `${Math.round(py - r.top)}px`);
+            lit.add(c);
+          } else if (lit.has(c)) unlight(c);
+        });
+      },
     };
     on("pointermove", (e) => {
       const g = (e.target as Element).closest?.(SPOT_GROUPS) ?? null;
       if (g !== group) {
         group?.classList.remove("spot-on");
+        lit.forEach(unlight);
         g?.classList.add("spot-on");
         group = g;
+        items = g ? qsa(SPOT_ITEMS, g) : [];
       }
-      pending = e;
-      if (g && !raf) raf = requestAnimationFrame(paint);
+      if (g) schedule(job);
     }, { passive: true });
-    cleanups.push(() => { cancelAnimationFrame(raf); group?.classList.remove("spot-on"); });
+    cleanups.push(() => { group?.classList.remove("spot-on"); lit.forEach(unlight); });
   }
 
   // ---------- the section background glows softly under the mouse ----------
   if (fx.ambient) {
-    let raf = 0, lastX = 0, lastY = 0, sec: HTMLElement | null = null;
-    const paint = () => {
-      raf = 0;
-      if (!sec) return;
-      const r = sec.getBoundingClientRect();
-      sec.style.setProperty("--sx", `${lastX - r.left}px`);
-      sec.style.setProperty("--sy", `${lastY - r.top}px`);
+    let sec: HTMLElement | null = null, r: DOMRect | null = null;
+    const job: Job = {
+      read: () => { r = sec ? sec.getBoundingClientRect() : null; },
+      write: () => {
+        if (!sec || !r) return;
+        sec.style.setProperty("--amx", `${Math.round(px - r.left)}px`);
+        sec.style.setProperty("--amy", `${Math.round(py - r.top)}px`);
+      },
     };
     on("pointermove", (e) => {
       const s = (e.target as Element).closest?.("section.chap") as HTMLElement | null;
       if (s !== sec) { sec?.classList.remove("amb-on"); s?.classList.add("amb-on"); sec = s; }
-      lastX = e.clientX; lastY = e.clientY;
-      if (s && !raf) raf = requestAnimationFrame(paint);
+      if (s) schedule(job);
     }, { passive: true });
-    cleanups.push(() => { cancelAnimationFrame(raf); sec?.classList.remove("amb-on"); });
+    cleanups.push(() => { sec?.classList.remove("amb-on"); });
   }
 
   // ---------- liquid buttons: the colour pours in from where the mouse came in ----------
@@ -361,18 +400,21 @@ export function startHoverFx(fx: HoverFxFlags) {
       else { visible.delete(el); el.style.transform = ""; }
     }));
     mags.forEach((m) => { m.classList.add("mag"); io.observe(m); });
-    let raf = 0, x = 0, y = 0;
-    const paint = () => {
-      raf = 0;
-      for (const b of visible) {
-        const r = b.getBoundingClientRect();
-        const dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2);
-        const reach = Math.max(r.width, r.height) / 2 + 46;
-        b.style.transform = Math.hypot(dx, dy) < reach ? `translate(${(dx * 0.26).toFixed(1)}px, ${(dy * 0.32).toFixed(1)}px)` : "";
-      }
+    // every button is measured first, then only the ones whose lean changed are written
+    let aims: [HTMLElement, string][] = [];
+    const job: Job = {
+      read: () => {
+        aims = [...visible].map((b) => {
+          const r = b.getBoundingClientRect();
+          const dx = px - (r.left + r.width / 2), dy = py - (r.top + r.height / 2);
+          const reach = Math.max(r.width, r.height) / 2 + 46;
+          return [b, Math.hypot(dx, dy) < reach ? `translate(${(dx * 0.26).toFixed(1)}px, ${(dy * 0.32).toFixed(1)}px)` : ""];
+        });
+      },
+      write: () => { for (const [b, t] of aims) if (b.style.transform !== t) b.style.transform = t; },
     };
-    on("pointermove", (e) => { x = e.clientX; y = e.clientY; if (!raf) raf = requestAnimationFrame(paint); }, { passive: true });
-    cleanups.push(() => { cancelAnimationFrame(raf); io.disconnect(); mags.forEach((m) => (m.style.transform = "")); });
+    on("pointermove", () => { if (visible.size) schedule(job); }, { passive: true });
+    cleanups.push(() => { io.disconnect(); mags.forEach((m) => (m.style.transform = "")); });
   }
 
   // ---------- the cursor ring reacts to what's under it, and says what a click will do ----------

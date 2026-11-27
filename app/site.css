@@ -363,8 +363,9 @@ html[data-skin="playful"] .site .aurora { opacity: .7; background:
 
 /* cursor fx */
 #hack-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 70; }
-#cursor-dot { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); pointer-events: none; z-index: 10000; transform: translate(-99px,-99px); mix-blend-mode: difference; left: 0; top: 0; }
-#cursor-ring { position: fixed; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none; z-index: 9999; transform: translate(-99px,-99px); left: 0; top: 0; }
+/* the dot and ring are their own layers, so moving them never redraws the page; the dot's thin --bg edge keeps it visible on any colour (no blend mode, which made the page under it redraw at every move) */
+#cursor-dot { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bg) 85%, transparent); pointer-events: none; z-index: 10000; transform: translate(-99px,-99px); left: 0; top: 0; will-change: transform; contain: strict; }
+#cursor-ring { position: fixed; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--mint) 60%, transparent); pointer-events: none; z-index: 9999; transform: translate(-99px,-99px); left: 0; top: 0; will-change: transform; }
 @media (hover: none), (pointer: coarse) { #hack-canvas, #cursor-dot, #cursor-ring { display: none; } }
 
 /* ----- shared bits ----- */
@@ -385,7 +386,14 @@ html[data-skin="playful"] .site .aurora { opacity: .7; background:
 @media (max-width: 560px) { .grid3 { grid-template-columns: 1fr; } }
 .card { background: var(--card); border: .5px solid var(--line); border-radius: var(--r-card); overflow: hidden; display: flex; flex-direction: column; position: relative;
   text-decoration: none; transition: transform .2s, box-shadow .2s; }
-.card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at var(--mx,50%) var(--my,50%), color-mix(in srgb, var(--mint) 16%, transparent), transparent 60%);
+/* where the mouse is on a card or section: registered as not inherited, so writing them per frame restyles only that box and its glow, never everything inside it */
+@property --gx { syntax: "*"; inherits: false; }
+@property --gy { syntax: "*"; inherits: false; }
+@property --lit-x { syntax: "*"; inherits: false; }
+@property --lit-y { syntax: "*"; inherits: false; }
+@property --amx { syntax: "*"; inherits: false; }
+@property --amy { syntax: "*"; inherits: false; }
+.card::before { content: ""; position: absolute; inset: 0; --gx: inherit; --gy: inherit; background: radial-gradient(circle at var(--gx,50%) var(--gy,50%), color-mix(in srgb, var(--mint) 16%, transparent), transparent 60%);
   opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 0; }
 /* the whole card is one link; buttons inside it (reactions) sit above that link */
 .card-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
@@ -863,12 +871,12 @@ html[data-skin="ocean"] .site #hero h1 .accent .kc:not(.hot) { color: color-mix(
 /* --- cards: tilt + glare + lit borders (mouse only) --- */
 .note, .wall-note, .hs { position: relative; }
 .site.fx-cardtilt .card::before { z-index: 2; }
-.site.fx-cardtilt :is(.card, .trip, .note, .wall-note, .ph-tile)::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .3s;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, #fff 26%, transparent), color-mix(in srgb, var(--mint) 12%, transparent) 34%, transparent 62%); }
+.site.fx-cardtilt :is(.card, .trip, .note, .wall-note, .ph-tile)::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .3s; --gx: inherit; --gy: inherit;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), color-mix(in srgb, #fff 26%, transparent), color-mix(in srgb, var(--mint) 12%, transparent) 34%, transparent 62%); }
 .site.fx-cardtilt :is(.card, .trip, .note, .wall-note, .ph-tile).tilting::before { opacity: 1; }
 .tilting { transition: box-shadow .25s, border-color .25s !important; box-shadow: 0 26px 50px -20px rgba(0,0,0,.42), var(--glow); z-index: 4; will-change: transform; }
-.site.fx-spotlight :is(.card, .trip, .note, .wall-note, .ph-tile, .hs)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 3;
-  background: radial-gradient(240px circle at var(--bx, -999px) var(--by, -999px), var(--mint), transparent 72%);
+.site.fx-spotlight :is(.card, .trip, .note, .wall-note, .ph-tile, .hs)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 3; --lit-x: inherit; --lit-y: inherit;
+  background: radial-gradient(240px circle at var(--lit-x, -999px) var(--lit-y, -999px), var(--mint), transparent 72%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
   opacity: 0; transition: opacity .35s; }
 .spot-on :is(.card, .trip, .note, .wall-note, .ph-tile, .hs)::after { opacity: 1; }
@@ -890,7 +898,7 @@ html[data-skin="ocean"] .site #hero h1 .accent .kc:not(.hot) { color: color-mix(
 .site.fx-sheets #hero ~ section.chap:not(.alt) { background-color: var(--bg); }
 .ghost { position: absolute; right: -1vw; top: clamp(50px, 9vh, 110px); z-index: 0; font: 800 clamp(120px, 24vw, 370px)/.85 var(--display); letter-spacing: -.04em; white-space: nowrap; color: transparent;
   -webkit-text-stroke: 1.5px color-mix(in srgb, var(--mint-deep) 24%, transparent); pointer-events: none; user-select: none; }
-.site.fx-ambient section.chap::before { content: ""; position: absolute; left: var(--sx, 50%); top: var(--sy, 50%); width: 620px; height: 620px; margin: -310px 0 0 -310px; border-radius: 50%; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .6s;
+.site.fx-ambient section.chap::before { content: ""; position: absolute; left: 0; top: 0; --amx: inherit; --amy: inherit; translate: var(--amx, -999px) var(--amy, -999px); width: 620px; height: 620px; margin: -310px 0 0 -310px; border-radius: 50%; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .6s;
   background: radial-gradient(circle, color-mix(in srgb, var(--mint) 15%, transparent), transparent 66%); }
 .site.fx-ambient section.chap.amb-on::before { opacity: 1; }
 .site.fx-ambient section.chap::after { content: ""; position: absolute; width: 58vw; height: 58vw; max-width: 760px; max-height: 760px; left: -12vw; bottom: -18vw; z-index: 0; pointer-events: none; border-radius: 50%;
