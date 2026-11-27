@@ -8,7 +8,7 @@ import { LIMITS, SIZE_PRESETS, cleanStyle, isCustom, lookOf, mergeStyles } from 
 import { FV_PARTS, fvBoxes, fvLook, fvPlace, type FvBox, type FvPart } from "@/lib/fullView";
 import { pinnedFirst, toSave, type StudioData, type StudioDraft, type StudioSection } from "@/lib/studio";
 import type { PartSize } from "@/lib/partSize";
-import type { PartAttrs } from "@/components/site/cardParts";
+import { stickerParts, type PartAttrs, type PartFn } from "@/components/site/cardParts";
 import { saveStudio, studioComment, studioReset } from "@/app/actions";
 import NoteCard from "@/components/site/NoteCard";
 import WinCard from "@/components/site/WinCard";
@@ -21,6 +21,9 @@ import { comicOptionsFromTitle, comicReadyOptions } from "@/lib/comicItem";
 import { tripContext } from "@/components/site/TripFrame";
 import EntryFull, { fvPresent } from "@/components/site/EntryFull";
 import { StillReacts, Surface, type Typing } from "./Surface";
+import { CardBarProvider } from "@/components/site/BarCtx";
+import StickerBar from "@/components/site/StickerBar";
+import type { FeedEvent } from "@/lib/data";
 import { CARD_KEYS, CardEditor, FullEditor, SEC_NAMES, SectionEditor, TYPED, partName, type Ed } from "./Editors";
 
 type Scope = "card" | "fv" | "sec";
@@ -128,6 +131,14 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const bar = (it: Item, compact: boolean) => (settings.effects.reactions
     ? (a: { bar: PartAttrs; talk: PartAttrs }) => <StillReacts counts={live.reactions[it.id] ?? {}} talk={it.talk} compact={compact} comments={live.comments[it.id] ?? []} owner={owner} attrs={a} />
     : undefined);
+  /** G1's sticker buttons, standing still: the newest comment (or the most-used emoji) is what the LIVE strip shows */
+  const stickers = (it: Item) => (p: PartFn) => {
+    const counts = live.reactions[it.id] ?? {}, shown = (live.comments[it.id] ?? []).filter((c) => !c.hidden);
+    const newest = shown.reduce<(typeof shown)[number] | null>((a, c) => (!a || c.created_at > a.created_at ? c : a), null);
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const feed: FeedEvent[] = newest && it.talk.comments ? [{ k: "talk", name: newest.name, body: newest.body, at: newest.created_at }] : top && top[1] > 0 ? [{ k: "react", e: top[0], at: "" }] : [];
+    return <StickerBar id={it.id} label={it.title} talk={it.talk} parts={stickerParts(p)} reactions={settings.effects.reactions} still={{ counts, comments: shown.length, feed }} />;
+  };
   const trip = tripContext(settings, draft.section);
   /** a trip's number on its pass is its place among what visitors see */
   const tripNo = (it: Item) => Math.max(0, draft.items.filter((x) => x.visible || x.id === it.id).findIndex((x) => x.id === it.id));
@@ -143,7 +154,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     ? <TripCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} trip={trip} href="#" route={false} edit foot={bar(it, true)} />
     : win
     ? <WinCard it={it} l={lookFor(it)} href="#" home={draft.section.nav_label || draft.section.title} slug={draft.section.slug} edit foot={bar(it, true)} />
-    : <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit foot={bar(it, true)} />;
+    : <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit bar={stickers(it)} />;
   const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? (win ? 380 : celled ? 320 : 340), h: p?.h ?? s.h ?? (win ? 480 : celled ? 500 : 440) }; };
   const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions, kind)) : []), [item, card, settings.effects.reactions, kind]);
   const fvZoom = phone ? 1 : Math.min(1, fvWidth / FV_WIDTH);
@@ -478,6 +489,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
   const popTitle = pop ? (pop.scope === "sec" ? "Section settings" : pop.key === "fv" ? "Full view options" : pop.key.startsWith("fvb:") ? `Full view · ${partName(pop.key, card)}` : partName(pop.key, card)) : "";
 
   return (
+    <CardBarProvider value={data.settings.cardBar}>
     <div className={`stu${labels ? "" : " plain"}`} key={draft.section.id}>
       <header className="stu-top">
         <div className="stu-name">
@@ -618,6 +630,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
         <dl className="stu-where">{WHERE.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       </Dialog>
     </div>
+    </CardBarProvider>
   );
 }
 

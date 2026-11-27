@@ -1,5 +1,6 @@
 import SiteGate from "./SiteGate";
 import LaunchScreen from "./LaunchScreen";
+import { CardBarProvider } from "./BarCtx";
 import type { Section } from "@/lib/data";
 import { bannerView, MOODS, type SiteSettings } from "@/lib/settings";
 import Effects from "./Effects";
@@ -91,7 +92,8 @@ export function SiteShell({ settings, sections, onHome, children }:
       {onHome && <DemoMode fx={fx} extras={{ themeSwitch: settings.themeSwitch, showMood: settings.showMood }} />}
       {settings.menu.show && <Nav settings={settings} sections={sections} onHome={onHome} />}
       {onHome && <Rail sections={sections} hero={!settings.heroHidden} />}
-      {children}
+      {/* the sticker buttons on cards follow the dashboard's Card buttons page (lib/cardBar.ts) */}
+      <CardBarProvider value={settings.cardBar}>{children}</CardBarProvider>
       {settings.footer.show && <Footer settings={settings} sections={sections} onHome={onHome} />}
       {/* drawn even when he's hidden: it stays empty then, except on the Mascot page's screens */}
       <Mascot view={{ m: settings.mascot, timezone: settings.timezone }} phoneMenu={phone} />

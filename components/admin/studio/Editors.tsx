@@ -69,7 +69,7 @@ const NOTE_HINTS: Record<string, string> = {
 /** What a part is called on each card. A manual has a Version, not a Date; the labels on the card and in these editors use the card's own words. */
 const NAMES: Record<string, string> = {
   sub: "Subsection", title: "Title", subtitle: "Subtitle", body: "Story", pic: "Pictures", date: "Date", place: "Place", mood: "Mood", status: "Status", tags: "Tags",
-  links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
+  links: "Buttons", poll: "Poll", reacts: "Reaction bar", comments: "Comment box", open: "Full view button", tabs: "Card buttons", "t-react": "React button", "t-talk": "Comment button", "t-share": "Share button", "t-open": "Open button", strip: "Live strip", size: "Size & look", more: "Show, pin, move", quote: "Pull quote",
   fv: "Full view options", gallery: "More pictures", face: "Photo", sticker: "Warning sticker", specs: "Spec sheet", stats: "Stats", bars: "Story bars", art: "Card art",
   band: "Band", code: "Code tag",
   bubble: "Speech bubble", sfx: "Sound effect", record: "Record", award: "Details", map: "Map", days: "Ticked days", streak: "Streak", company: "Company", span: "Dates", chips: "Card chips", reader: "Card reader", sign: "Signature", seal: "Gold seal", owner: "Your name",
@@ -144,7 +144,7 @@ export type Ed = {
 /** Boxes that are the card's own design, with nothing to type: they can only be sized and moved. */
 const DESIGN = ["face", "sticker", "specs", "stats", "bars", "art", "band", "code", "open", "codeview", "sheet", "screen", "brand", "controls", "stub", "spine", "panel", "shot", "record", "chips", "reader", "seal", "owner"];
 /** Boxes whose words are edited somewhere else: the comment box with the reaction bar's switches, the full view's other pictures with the pictures. */
-const ALIAS: Record<string, string> = { comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title", company: "award", span: "award", sign: "award", specs: "award", streak: "days", map: "place" };
+const ALIAS: Record<string, string> = { tabs: "reacts", "t-react": "reacts", "t-talk": "reacts", "t-share": "reacts", "t-open": "reacts", strip: "reacts", comments: "reacts", gallery: "pic", url: "links", board: "body", term: "status", route: "pass", passinfo: "pass", times: "pass", passname: "pass", bubble: "title", company: "award", span: "award", sign: "award", specs: "award", streak: "days", map: "place" };
 
 const Pills = ({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) => (
   <div className="stu-pills">{options.map((o) => <button key={o} type="button" className={o === value ? "on" : ""} onClick={() => onPick(o)}>{o}</button>)}</div>
@@ -322,7 +322,7 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       <div className="fl stu-f">
         <span className="lab">What this card offers beyond its emojis</span>
         <div className="stu-switches">{TALK_FEATURES.map(([key, , label, hint]) => <Sw key={key} label={label} hint={hint} on={it.talk[key]} onChange={(on) => ed.setItem({ talk: { ...it.talk, [key]: on } })} />)}</div>
-        <span className="hint">The emoji bar itself is always there.</span>
+        <span className="hint">On G1&apos;s sticker buttons these show or hide each button; the defaults for every card are on the <a href="/admin/cardbar">Card buttons</a> page.</span>
       </div>
       <div className="fl stu-f">
         <span className="lab">Reactions so far</span>

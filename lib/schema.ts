@@ -133,6 +133,9 @@ export const SCHEMA = [
     PRIMARY KEY (item_id, voter, emoji)
   )`,
   // reactions show up in the admin inbox until marked as seen
+  // shares from a card's Share button: no names, only when, for the card's LIVE strip ("Someone shared this")
+  `CREATE TABLE IF NOT EXISTS shares (id SERIAL PRIMARY KEY, item_id INT NOT NULL REFERENCES items(id) ON DELETE CASCADE, voter TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+  `CREATE INDEX IF NOT EXISTS shares_item_idx ON shares(item_id, created_at DESC)`,
   `ALTER TABLE reactions ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT FALSE`,
   `CREATE INDEX IF NOT EXISTS reactions_recent_idx ON reactions(created_at DESC)`,
   // who reacted, as they typed it (older reactions have no name)
@@ -191,6 +194,10 @@ export const SCHEMA = [
    UPDATE sections SET layout = 'scrapbook' WHERE slug = 'life' AND layout = 'photos' AND EXISTS (SELECT 1 FROM first)`,
   `WITH first AS (INSERT INTO done_once (key) VALUES ('connect-chat') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE sections SET layout = 'chat' WHERE slug = 'connect' AND layout = 'connect' AND EXISTS (SELECT 1 FROM first)`,
+  // 2026-11-28: with G1's new sticker buttons the owner chose the Comment button on all of G1's cards, so their comments are switched on once
+  `WITH first AS (INSERT INTO done_once (key) VALUES ('g1-comments-on') ON CONFLICT DO NOTHING RETURNING key)
+   UPDATE items SET talk = ((CASE WHEN talk LIKE '{%' THEN talk::jsonb ELSE '{}'::jsonb END) || '{"comments": true}'::jsonb)::text
+   WHERE section_id IN (SELECT id FROM sections WHERE slug = 'me') AND EXISTS (SELECT 1 FROM first)`,
   // 2026-11-19: the owner asked for the hero photo back where it hung (it had been dragged up past the top edge in the editor).
   `WITH first AS (INSERT INTO done_once (key) VALUES ('hero-photo-reset') ON CONFLICT DO NOTHING RETURNING key)
    UPDATE settings SET data = (data::jsonb #- '{heroDesign,parts,photo}')::text WHERE data LIKE '{%' AND EXISTS (SELECT 1 FROM first)`,

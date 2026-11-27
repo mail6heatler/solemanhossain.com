@@ -249,6 +249,33 @@ export async function getCommentCountsFor(ids: number[]) {
   return out;
 }
 
+export type FeedEvent = { k: "react" | "talk" | "share"; e?: string; name?: string; body?: string; at: string };
+/**
+ * What a card's LIVE strip types (components/site/StickerBar.tsx): each entry's newest reactions (the emoji only: who reacted is private),
+ * comments (name and words, which are public anyway, and only while the entry's comments are on) and shares, newest first.
+ */
+export async function getFeedFor(ids: number[]) {
+  const out: Record<number, FeedEvent[]> = {};
+  if (!ids.length) return out;
+  const ph = placeholders(ids.length);
+  const rows = await query(
+    `SELECT item_id, 'react' AS k, emoji AS a, '' AS b, created_at FROM (
+       SELECT item_id, emoji, created_at, ROW_NUMBER() OVER (PARTITION BY item_id ORDER BY created_at DESC) AS rn FROM reactions WHERE item_id IN (${ph})) r WHERE rn <= 4
+     UNION ALL
+     SELECT item_id, 'talk', name, LEFT(body, 90), created_at FROM (
+       SELECT c.item_id, c.name, c.body, c.created_at, ROW_NUMBER() OVER (PARTITION BY c.item_id ORDER BY c.created_at DESC) AS rn FROM comments c JOIN items i ON i.id = c.item_id
+       WHERE NOT c.hidden AND c.item_id IN (${ph}) AND ((CASE WHEN i.talk LIKE '{%' THEN i.talk::jsonb ELSE '{}'::jsonb END) ->> 'comments') = 'true') t WHERE rn <= 3
+     UNION ALL
+     SELECT item_id, 'share', '', '', created_at FROM (
+       SELECT item_id, created_at, ROW_NUMBER() OVER (PARTITION BY item_id ORDER BY created_at DESC) AS rn FROM shares WHERE item_id IN (${ph})) s WHERE rn <= 2
+     ORDER BY created_at DESC`, ids);
+  for (const r of rows) {
+    const k = String(r.k) as FeedEvent["k"], id = Number(r.item_id);
+    (out[id] ??= []).push({ k, ...(k === "react" ? { e: String(r.a) } : k === "talk" ? { name: String(r.a), body: String(r.b) } : {}), at: new Date(r.created_at).toISOString() });
+  }
+  return out;
+}
+
 export async function getCommentTotals() {
   const r = await queryOne("SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE NOT seen)::int AS fresh FROM comments");
   return { total: Number(r?.total ?? 0), fresh: Number(r?.fresh ?? 0) };

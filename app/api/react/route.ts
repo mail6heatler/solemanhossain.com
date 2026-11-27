@@ -3,7 +3,7 @@ import { alertOwner } from "@/lib/opsServer";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { query, queryOne } from "@/lib/db";
-import { getCommentCountsFor, getMyReactionsFor, getReactionCountsFor, getSettings } from "@/lib/data";
+import { getCommentCountsFor, getFeedFor, getMyReactionsFor, getReactionCountsFor, getSettings } from "@/lib/data";
 import { REACTION_EMOJIS } from "@/lib/settings";
 
 // Emoji reactions on entries. Each browser (random cookie id, like poll votes) can add each emoji once, and has to
@@ -19,19 +19,19 @@ async function visibleIds(ids: number[]) {
   return rows.map((r) => Number(r.id));
 }
 
-/** GET /api/react?ids=1,2,3 → { items: { "1": { counts, mine, comments } } }   (also ?id=1 → { counts, mine, comments }) */
+/** GET /api/react?ids=1,2,3 → { items: { "1": { counts, mine, comments, feed } } }   (also ?id=1 → { counts, mine, comments, feed }). `feed` is for a card's LIVE strip. */
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const single = sp.get("id");
   const ids = await visibleIds((single ?? sp.get("ids") ?? "").split(",").map(Number));
   const voter = (await cookies()).get("lc_voter")?.value ?? "";
-  const [counts, mine, comments] = await Promise.all([getReactionCountsFor(ids), getMyReactionsFor(ids, voter), getCommentCountsFor(ids)]);
+  const [counts, mine, comments, feed] = await Promise.all([getReactionCountsFor(ids), getMyReactionsFor(ids, voter), getCommentCountsFor(ids), getFeedFor(ids)]);
   const headers = { "Cache-Control": "no-store" };
   if (single !== null) {
     if (!ids.length) return Response.json({ error: "Not found" }, { status: 404 });
-    return Response.json({ counts: counts[ids[0]] ?? {}, mine: mine[ids[0]] ?? [], comments: comments[ids[0]] ?? 0 }, { headers });
+    return Response.json({ counts: counts[ids[0]] ?? {}, mine: mine[ids[0]] ?? [], comments: comments[ids[0]] ?? 0, feed: feed[ids[0]] ?? [] }, { headers });
   }
-  const items = Object.fromEntries(ids.map((id) => [id, { counts: counts[id] ?? {}, mine: mine[id] ?? [], comments: comments[id] ?? 0 }]));
+  const items = Object.fromEntries(ids.map((id) => [id, { counts: counts[id] ?? {}, mine: mine[id] ?? [], comments: comments[id] ?? 0, feed: feed[id] ?? [] }]));
   return Response.json({ items }, { headers });
 }
 

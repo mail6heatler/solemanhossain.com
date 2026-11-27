@@ -19,13 +19,14 @@ import { AwardMore } from "./AwardFrame";
 import { Pencil, ScrapMore } from "./ScrapFrame";
 import ChatWindow from "./ChatWindow";
 import NoteCard from "./NoteCard";
+import StickerBar from "./StickerBar";
 import WinCard from "./WinCard";
 import TripCard from "./TripCard";
 import StudyCard from "./StudyCard";
 import ComicCard from "./ComicCard";
 import AwardCard from "./AwardCard";
 import ScrapCard from "./ScrapCard";
-import { Box, CardLink, LinkButtons, Meta, Mood } from "./cardParts";
+import { Box, CardLink, LinkButtons, Meta, Mood, stickerParts } from "./cardParts";
 export { Mood };
 import { FlyingBrain } from "./comicArt";
 import { lookOf, mergeStyles } from "@/lib/contentStyle";
@@ -373,7 +374,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     return row("notes", (
       <>
         {items.map((it, i) => (
-          <NoteCard key={it.id} it={it} l={lookFor(it)} index={i} factNo={factNo.get(it.id) ?? i + 1} foot={fx.reactions ? (a) => <Reactions id={it.id} compact talk={it.talk} href={href(section, it)} attrs={a} /> : undefined} href={href(section, it)}
+          <NoteCard key={it.id} it={it} l={lookFor(it)} index={i} factNo={factNo.get(it.id) ?? i + 1} bar={(p) => <StickerBar id={it.id} href={href(section, it)} label={it.title} talk={it.talk} parts={stickerParts(p)} reactions={fx.reactions} />} href={href(section, it)}
             owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : face} vt={vt(it.id)} zoom={zoom(it)} confetti={fx.confetti} />
         ))}
       </>

@@ -26,6 +26,9 @@ export function partFn(edit: boolean | undefined, sizes?: PartSizes): PartFn {
   };
 }
 
+/** The sticker buttons' parts (StickerBar.tsx): their names and sizes worked out here, because a function can't be handed to the browser's side. */
+export const stickerParts = (p: PartFn) => Object.fromEntries(["tabs", "t-react", "t-talk", "t-share", "t-open", "strip"].map((k) => [k, p(k)])) as Record<string, PartAttrs>;
+
 /** Makes a whole card clickable while buttons inside it (reactions) stay clickable on their own. */
 export const CardLink = ({ to, label }: { to: string; label: string }) => <a href={to} className="card-link" aria-label={label} />;
 
@@ -50,7 +53,7 @@ export function Meta({ it, showCat = true, hideDate = false, showStatus = false,
  * Fixed-size card contents: anything that doesn't fit scrolls inside the card, with a hint that there's more.
  * `foot` (the reaction bar) stays outside the scrolling part, so it's always visible. `full` stands in for the Full view link in the dashboard.
  */
-export function Box({ children, foot, to, label = "", stub, full, fullAttrs }: { children: React.ReactNode; foot?: React.ReactNode; to?: string; label?: string; stub?: React.ReactNode; full?: React.ReactNode; fullAttrs?: PartAttrs }) {
+export function Box({ children, foot, footClass, to, label = "", stub, full, fullAttrs }: { children: React.ReactNode; foot?: React.ReactNode; footClass?: string; to?: string; label?: string; stub?: React.ReactNode; full?: React.ReactNode; fullAttrs?: PartAttrs }) {
   return (
     <>
       <div className={`scroll-wrap${foot || to || full ? " has-foot" : ""}`}>
@@ -59,7 +62,7 @@ export function Box({ children, foot, to, label = "", stub, full, fullAttrs }: {
         <i className="scroll-line" aria-hidden><b /></i>
       </div>
       {stub}
-      {(foot || to || full) && <div className="card-foot">{foot}{full ?? (to && <FullView to={to} label={label} attrs={fullAttrs} />)}</div>}
+      {(foot || to || full) && <div className={`card-foot${footClass ? ` ${footClass}` : ""}`}>{foot}{full ?? (to && <FullView to={to} label={label} attrs={fullAttrs} />)}</div>}
     </>
   );
 }

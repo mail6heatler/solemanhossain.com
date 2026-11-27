@@ -1,0 +1,89 @@
+/* ===== The sticker buttons at the bottom of a card (2026-11-28, the owner's pick: number 3, the theme's colour, the Ink finish).
+   components/site/StickerBar.tsx draws them, stickerFx.ts moves them, lib/cardBar.ts holds the dashboard's defaults. Every class starts with
+   `stb-`, which nothing else on the site uses (a short name like `.lb` once turned every card black: it's the photo viewer's).
+   Ink is the theme's text colour (outlines, hard shadows, words); the theme's own colour fills Open, the numbers, the send button and the LIVE
+   badge, and colours the icons. Inside .card-foot.stb-foot: the four buttons (.stb) and, under them, the LIVE strip, each a full row. */
+.card-foot.stb-foot { flex-direction: column; align-items: stretch; gap: 8px; padding: 9px 9px 11px; }
+.stb, .stb-strip { position: relative; min-width: 0; }
+/* the manual's HANDLE WITH CARE sticker sat just above the old row of emojis: keep it above the taller buttons and strip */
+.card-foot.stb-foot ~ .mn-warn { bottom: 122px; }
+.stb[data-sz~="w"], .stb-strip[data-sz~="w"] { align-self: flex-start; }
+.stb { z-index: 3; container-type: inline-size; perspective: 700px; }
+.stb-tabs { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; transform-style: preserve-3d; backface-visibility: hidden; }
+
+.stb-t { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; margin: 0; padding: 6px 3px 5px;
+  border: 2px solid var(--fg); border-radius: 11px; background: var(--card); color: var(--fg); box-shadow: 3px 3px 0 var(--fg);
+  font: 700 clamp(10px, 3.3cqi, 12.5px)/1.1 var(--body); text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stb-t[data-sz~="w"] { justify-self: start; }
+.stb-t:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+.stb-ic { position: relative; display: grid; place-items: center; width: 1.25em; height: 1.25em; font-size: clamp(17px, 5.6cqi, 21px); line-height: 1; color: var(--mint-deep); }
+.stb-ic > .ti { display: inline-block; }
+.stb-me { display: inline-block; font-size: .95em; line-height: 1; }
+.stb-w { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* numbers sit on the icon's corner, so a word always has its whole button */
+.stb-n { position: absolute; left: 74%; top: -8px; min-width: 16px; padding: 0 4px; border-radius: 99px; background: var(--mint); color: var(--on-mint); box-shadow: 0 0 0 2px var(--card);
+  font: 800 9.5px/1.5 var(--body); text-align: center; font-variant-numeric: tabular-nums; }
+.stb-react.stb-mine { background: color-mix(in srgb, var(--mint) 28%, var(--card)); }
+.stb-up .stb-react { background: color-mix(in srgb, var(--mint) 14%, var(--card)); }
+.stb-open { background: var(--mint); color: var(--on-mint); }
+.stb-open .stb-ic { color: var(--on-mint); }
+.stb-dots { position: absolute; left: 50%; top: 45%; translate: -50% -50%; display: none; gap: 2px; }
+.stb-typing .stb-dots { display: flex; }
+.stb-dots i { display: block; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+/* words fit any width: beside the icon when there's room, under it in a normal card, icons and numbers only when narrow */
+@container (min-width: 400px) { .stb-t { flex-direction: row; gap: 7px; min-height: 44px; font-size: 13px; } }
+@container (max-width: 250px) { .stb-w { display: none; } .stb-t { min-height: 42px; } }
+
+/* Comment: the back of the four buttons */
+.stb-say { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; gap: 7px; transform-style: preserve-3d; backface-visibility: hidden; }
+.stb-say[hidden] { display: none; }
+.stb-say input { flex: 1; min-width: 0; height: 100%; max-height: 48px; padding: 0 14px; border: 2px solid var(--fg); border-radius: 11px; background: var(--card); color: var(--fg); box-shadow: 3px 3px 0 var(--fg); font: 500 13.5px var(--body); outline: none; }
+.stb-say input::placeholder { color: color-mix(in srgb, var(--fg) 55%, transparent); }
+.stb-send, .stb-x { flex: none; display: grid; place-items: center; height: 42px; border-radius: 11px; cursor: pointer; }
+.stb-send { width: 44px; border: 2px solid var(--fg); background: var(--mint); color: var(--on-mint); box-shadow: 3px 3px 0 var(--fg); font-size: 19px; }
+.stb-send:disabled { opacity: .55; cursor: default; }
+.stb-x { width: 32px; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: var(--card); color: var(--fg); font-size: 15px; }
+
+/* the emojis, up out of the React button as stickers */
+.stb-tray { position: absolute; z-index: 30; left: -2px; bottom: calc(100% + 11px); display: flex; gap: 2px; max-width: calc(100cqw + 4px); padding: 5px 6px; border-radius: 99px;
+  border: 2px solid var(--fg); background: var(--card); box-shadow: 4px 4px 0 var(--fg); }
+.stb-tray.stb-pre { opacity: 0; }
+.stb-tray::after { content: ""; position: absolute; left: 22px; top: 100%; border: 7px solid transparent; border-top-color: var(--fg); }
+.stb-e { position: relative; flex: 0 1 42px; min-width: 30px; display: grid; justify-items: center; gap: 1px; padding: 4px 0 2px; border: 0; border-radius: 14px; background: none; color: var(--fg); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stb-em { display: block; font-size: 25px; line-height: 1.12; filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff); }
+.stb-c { min-height: 12px; font: 700 10px/1.2 var(--body); color: color-mix(in srgb, var(--fg) 62%, transparent); font-variant-numeric: tabular-nums; }
+.stb-e.stb-on { background: color-mix(in srgb, var(--mint) 30%, transparent); }
+.stb-e.stb-on .stb-c { color: var(--fg); }
+.stb-e.stb-top::before { content: "👑"; position: absolute; top: -8px; right: 0; font-size: 11px; line-height: 1; rotate: 14deg; pointer-events: none; }
+.stb-e:focus-visible { outline: 2px solid var(--fg); outline-offset: 1px; }
+.stb-e::after { content: attr(data-name); position: absolute; bottom: calc(100% + 8px); left: 50%; translate: -50% 4px; padding: 2px 7px; border-radius: 99px; background: var(--fg); color: var(--card);
+  font: 700 10.5px/1.3 var(--body); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s, translate .15s; }
+.stb-e:hover::after, .stb-e:focus-visible::after { opacity: 1; translate: -50% 0; }
+
+/* the LIVE strip */
+.stb-strip { z-index: 2; display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border: 2px solid var(--fg); border-radius: 9px; background: var(--card); color: var(--fg);
+  box-shadow: 3px 3px 0 var(--fg); overflow: hidden; font: 500 11.5px/1.2 var(--body); }
+.stb-live { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 4px; background: var(--mint); color: var(--on-mint); font: 800 9.5px/1.4 var(--mono, ui-monospace, monospace); letter-spacing: .08em; }
+.stb-live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #ff4d4f; animation: stb-blink 1.4s ease-in-out infinite; }
+@keyframes stb-blink { 50% { opacity: .25; } }
+.stb-win { position: relative; flex: 1; min-width: 0; height: 100%; overflow: hidden; }
+.stb-line { position: absolute; inset: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.stb-li { flex: none; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; font-size: 10.5px; background: color-mix(in srgb, var(--mint) 35%, var(--card)); }
+.stb-lt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.stb-lt b { font-weight: 700; }
+.stb-caret { display: inline-block; width: 1px; height: 12px; margin-left: 1px; background: currentColor; vertical-align: -2px; }
+/* the blinking dot and the strip rest while the page scrolls, on slow devices and for visitors who turned motion off */
+html.scrolling .stb-live::before, html.lite .stb-live::before { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .stb-live::before { animation: none; } }
+.sleep .stb-live::before { animation-play-state: paused; }
+
+/* things that fly, in one fixed layer in <body> (they carry the card's theme colours with them) */
+.stb-fx { position: fixed; inset: 0; z-index: 9000; overflow: hidden; pointer-events: none; }
+.stb-fx > * { position: absolute; left: 0; top: 0; will-change: transform; }
+.stb-flyemo { font-size: 24px; line-height: 1; }
+.stb-ring { width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--mint); }
+.stb-lab { padding: 4px 9px; border-radius: 8px; background: var(--mint); color: var(--on-mint); border: 2px solid var(--fg); box-shadow: 2px 2px 0 var(--fg); font: 800 12px/1.2 var(--body, system-ui); white-space: nowrap; }
+.stb-bub { max-width: 230px; padding: 7px 12px; border-radius: 14px 14px 14px 4px; background: var(--card); color: var(--fg); border: 2px solid var(--fg); box-shadow: 3px 3px 0 var(--fg); font: 600 12.5px/1.3 var(--body, system-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stb-plane { width: 42px; height: 42px; }
+.stb-plane svg { display: block; width: 100%; height: 100%; filter: drop-shadow(2px 2px 0 var(--fg)); }
+.stb-dot { width: 5px; height: 5px; border-radius: 50%; background: color-mix(in srgb, var(--fg) 45%, transparent); }

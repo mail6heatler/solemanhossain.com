@@ -12,8 +12,9 @@ import { Box, CardLink, LinkButtons, Meta, partFn, type PartAttrs, type PartFn }
  * The homepage row draws it and so does the dashboard's editor, which is why it's a file of its own. With `edit`, each part carries its name
  * (`data-part`) for the editor's labels, nothing on it leads anywhere, and a poll stands still.
  */
-export default function NoteCard({ it, l, index, factNo, foot, href, owner, face, vt, zoom, confetti = false, edit }: {
+export default function NoteCard({ it, l, index, factNo, foot, bar, href, owner, face, vt, zoom, confetti = false, edit }: {
   it: Item; l: Look; index: number; factNo: number; /** the reaction bar, given the size and place of the bar and of the comment box */ foot?: (a: { bar: PartAttrs; talk: PartAttrs }) => React.ReactNode;
+  /** the sticker buttons (StickerBar.tsx), which bring their own Open button; given the card's part function, so each button and the strip can be sized */ bar?: (p: PartFn) => React.ReactNode;
   href: string; owner: string; face: React.ReactNode; vt?: React.CSSProperties; zoom?: React.ReactNode; confetti?: boolean; edit?: boolean;
 }) {
   const p: PartFn = partFn(edit, it.card.parts);
@@ -71,8 +72,8 @@ export default function NoteCard({ it, l, index, factNo, foot, href, owner, face
   return (
     <div className={`note note-${look}${look === "plain" && index === 0 && it.body.length > 280 ? " wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={style}>
       {look === "story" && <div className="sy-bg" aria-hidden {...(m && edit ? { "data-part": "pic", "data-fixed": "" } : {})}>{m && <Cover m={m} className="sy-img" style={vt} />}</div>}
-      <Box foot={foot?.({ bar: p("reacts"), talk: p("comments") })} to={edit ? undefined : href} label={it.title} fullAttrs={p("open")}
-        full={edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
+      <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+        full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
         {!edit && <CardLink to={href} label={it.title} />}
         {inner}
       </Box>
