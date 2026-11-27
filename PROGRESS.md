@@ -18,7 +18,11 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
-## Sticker buttons on G4 · Influences (2026-11-28, live, waiting for keep or undo)
+## Sticker buttons on G5 · Feed (2026-11-28, live, waiting for keep or undo)
+
+- Every comic panel, polls included, gets the sticker buttons and the strip under its ink line; comments on for G5's cards (following the owner's choice). Restore point: tag `before-g5-stickers`. Next: G6 · Growth.
+
+## Sticker buttons on G4 · Influences (2026-11-28, kept)
 
 - The book, TV player, portrait and phone get the sticker buttons and the strip; comments on for G4's cards (following the owner's choice); the phone's hearts start above the taller buttons. Restore point: tag `before-g4-stickers`. Next: G5 · Feed.
 

@@ -147,7 +147,7 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     : wall
     ? <AwardCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} owner={{ fullName: settings.fullName, nickname: settings.nickname, avatar: settings.avatarUrl, initials: settings.initials }} href="#" edit foot={bar(it, true)} />
     : comic
-    ? <ComicCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" edit foot={bar(it, true)} />
+    ? <ComicCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" edit bar={stickers(it)} />
     : shelf
     ? <StudyCard it={it} l={lookFor(it)} index={tripNo(it)} count={draft.items.length} code={draft.section.code} fallback={draft.section.nav_label || draft.section.title} href="#" rail={false} edit bar={stickers(it)} />
     : trips
