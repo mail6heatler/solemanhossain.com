@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Mini Shourobh: bye and hi (2026-11-28, live, waiting for the owner's look)
+
+- The owner felt he can annoy visitors and asked for a fun way to send him away and call him back, controlled from the Mascot page. Preview: https://claude.ai/artifact/1oUD8vJhp78vxLQ2btw7f2. Their picks: the 👋 tab beside him; random exits (rocket, suitcase walk, hole, sparkles, curtain); the peeking head while he's away; random entrances (parachute, pop-up, jump, sparkles); away for the rest of the visit; "Okay… I'll be right here if you need me 🥺" / "Hi again! Missed me? 👋" / "👋 Bye". Every other option from the preview is a setting too. See "Bye and hi" in CLAUDE.md. Restore point: tag `before-mascot-byehi`.
+
 ## Sticker buttons on Connect's pinned cards (2026-11-28, live)
 
 - Every pinned testimonial in Connect's chat window gets the sticker buttons and the LIVE strip, and is taller with them (262px instead of 160) so its quote keeps its room; the Buttons panel switch brings it back to 160. Connect's live editor shows them too. That finishes every section with cards. None are pinned on the live site yet. Restore point: tag `before-connect-stickers`.

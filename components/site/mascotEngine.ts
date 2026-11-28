@@ -26,7 +26,14 @@ type GS = typeof import("gsap").gsap;
 export type MascotCtl = {
   update(m: MascotSettings): void; dressFor(day: string): void; show(): void; ask(k: string): void; fun(k: string): void; trick(k: string): void; bit(k: string): void; moment(k: string): void;
   nap(): void; wake(): void; throwDemo(): void; openTalk(): void; testVoice(): void; stop(): void;
+  /** a visitor says bye (the Mascot page's ▶ Test passes the exit to play) */
+  sayBye(k?: string): void;
 };
+/**
+ * `arrive`: he comes back after a visitor said hi (the entrance to play, "" for the one settings.mascot.bye.enter picks) instead of saying hello.
+ * `onGone`: he has left after a visitor said bye; Mascot.tsx then stops him and draws what stays (mascotPeek.ts).
+ */
+export type MascotOpts = { preview?: boolean; arrive?: string; onGone?: () => void };
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const TIPS = ["Psst. Click me, I can talk!", "Try dragging me. I dare you.", "There is more below, keep going.", "Ask me who I am. 😎", "Tap me three times. I dare you. 🤭"];
@@ -63,7 +70,7 @@ const FEMALE = /(female|samantha|victoria|karen|moira|tessa|zira|susan|hazel|ser
 const stripEmoji = (t: string) => t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{1F1E6}-\u{1F1FF}]/gu, "").replace(/\s+/g, " ").trim();
 type Step = () => unknown;
 
-export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: { preview?: boolean } = {}): MascotCtl {
+export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: MascotOpts = {}): MascotCtl {
   useGsap(g);
   const G = g, html = document.documentElement, preview = !!opts.preview, still = prefersReducedMotion();
   let cfg = view.m, lite = !preview && html.classList.contains("lite"), alive = true;
@@ -93,6 +100,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   setSound(cfg.fun.sounds);
 
   let cur = "", curBit = "", busy = false, away = false, held = false, lastAct = Date.now(), lastBored = 0, duckCool = 0, lastTrick = "", endDone = false;
+  /* a visitor sent him away (`gone`, after his exit) or he's on his way out (`byeing`); `lastPt` is how the last press on him came (a finger shows the 👋 tab first) */
+  let gone = false, byeing = false, lastPt = "mouse";
   let leanBack: ReturnType<GS["delayedCall"]> | null = null;
   const setLive = () => { rig.live = busy || away || held || CV.on; };
   const phone = () => phoneMq.matches;
@@ -485,6 +494,8 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       if (cfg.qa.tour.on && !preview) card("🧭", cfg.qa.tour.q, (el) => send(cfg.qa.tour.q, el, () => convoAsk("tour")));
       if (!preview) card("⬆️", "Take me to the top", (el) => send("Take me to the top", el, () => convoAsk("top")));
       if (cfg.qa.bye.on) card("👋", cfg.qa.bye.q, (el) => send(cfg.qa.bye.q, el, () => convoAsk("bye")));
+      // bye and hi: this one sends him away until the visitor says hi (the Goodbye above is the rocket that parachutes back)
+      if (cfg.bye.on && cfg.bye.chat && !preview) card("🙈", "Bye for now", (el) => send("Bye for now", el, () => closeScene(() => void sayBye())));
     }
     cards.hidden = false;
     if (!still) G.fromTo(cards.querySelectorAll(".mzc-card"), { y: 50, opacity: 0, rotation: (i: number) => (i % 2 ? 14 : -14), scale: 0.8 }, { y: 0, opacity: 1, rotation: 0, scale: 1, duration: 0.55, stagger: 0.06, ease: "back.out(1.9)" });
@@ -606,17 +617,21 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     markGesture(); const now = Date.now(); taps = taps.filter((x) => now - x < 1100); taps.push(now); clearTimeout(tapT); lastAct = now;
     if (CV.on) return;
     if (rig.sleeping) { taps = []; act((r) => wakeRig(r)); return; }
+    // a finger can't point at him, so its first tap shows the 👋 tab (the owner's pick: "shows when someone points at him or taps him once");
+    // a tap while it shows carries on as before (his chat, or a tickle)
+    if (lastPt !== "mouse" && canTab() && !tabOn) { taps = []; showTab(4500); return; }
+    hideTab();
     if (taps.length >= 3 && cfg.fun.tickle && !still) { taps = []; tickleN++; clearTimeout(tickleT); tickleT = window.setTimeout(() => (tickleN = 0), 7000);
       if (tickleN >= 3) { tickleN = 0; act(FUN.grumpy, { heart: "grumpy" }); } else act(FUN.tickle, { heart: "tickle" }); return; }
     tapT = window.setTimeout(() => { if (taps.length && taps.length < 3) openScene(); taps = []; }, 300);
   }
-  on(wrap, "keydown", (e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!CV.on) openScene(); } });
+  on(wrap, "keydown", (e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); hideTab(); if (!CV.on) openScene(); } });
   type Hold = { id?: number; x0: number; y0: number; started: boolean; minX: number; maxX: number; minY: number; bx: number; by: number; cx: number; cy: number; vx: number; vy: number; lt: number; qr?: (v: number) => void };
   let drag: Hold | null = null;
   const newHold = (x0 = 0, y0 = 0, id?: number): Hold => ({ id, x0, y0, started: false, minX: 0, maxX: 0, minY: 0, bx: 0, by: 0, cx: 0, cy: 0, vx: 0, vy: 0, lt: 0 });
   function bounds() { const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), cx = Number(G.getProperty(wrap, "x")), cy = Number(G.getProperty(wrap, "y")); const natL = W.left - L.left - cx, natT = W.top - L.top - cy; return { minX: 6 - natL, maxX: L.width - W.width - 6 - natL, minY: 6 - natT }; }
   function startHold(d: Hold) {
-    d.started = true; held = true; setLive(); lastAct = Date.now(); addHeart("throw"); hideInvite(true);
+    d.started = true; held = true; setLive(); lastAct = Date.now(); addHeart("throw"); hideInvite(true); hideTab();
     leanBack?.kill(); leanBack = null; G.killTweensOf(wrap); stopSleep(rig); busy = false; rig.hush();
     G.set(wrap, { xPercent: 0, yPercent: 0, rotation: 0, scale: 1 }); Object.assign(d, bounds());
     d.bx = clamp(Number(G.getProperty(wrap, "x")), d.minX, d.maxX); d.by = Math.min(Number(G.getProperty(wrap, "y")), 0); d.cx = d.bx; d.cy = d.by; d.vx = 0; d.vy = 0; d.lt = performance.now();
@@ -651,7 +666,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     t.eventCallback("onComplete", () => { busy = false; setLive(); if (Math.abs(Number(G.getProperty(wrap, "x"))) > 4) walkTo(0, () => { placeWrap(true); resume(); }); else { placeWrap(true); resume(); } });
   }
   on(wrap, "pointerdown", (e: PointerEvent) => {
-    if ((e.pointerType === "mouse" && e.button !== 0) || away || CV.on) return; markGesture(); drag = newHold(e.clientX, e.clientY, e.pointerId); try { wrap.setPointerCapture(e.pointerId); } catch {}
+    if ((e.pointerType === "mouse" && e.button !== 0) || away || CV.on) return; markGesture(); lastPt = e.pointerType; drag = newHold(e.clientX, e.clientY, e.pointerId); try { wrap.setPointerCapture(e.pointerId); } catch {}
   });
   on(wrap, "pointermove", (e: PointerEvent) => {
     if (!drag || drag.id !== e.pointerId) return;
@@ -660,7 +675,10 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   });
   on(wrap, "pointerup", (e: PointerEvent) => {
     if (CV.on) { drag = null; return; } if (!drag || drag.id !== e.pointerId) return; const d = drag; drag = null;
-    if (d.started) fall(d, clamp(d.vx, -2600, 2600), clamp(d.vy, -2600, 2600)); else onTap();
+    const vx = clamp(d.vx, -2600, 2600), vy = clamp(d.vy, -2600, 2600);
+    if (!d.started) onTap();
+    else if (cfg.bye.on && cfg.bye.fling && !gone && Math.hypot(vx, vy) > 1500) flingOff(vx, vy); // thrown hard: off the screen, and that's bye
+    else fall(d, vx, vy);
   });
   on(wrap, "pointercancel", () => { if (drag?.started) fall(drag, 0, 0); drag = null; });
   function throwDemo() {
@@ -680,8 +698,10 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   }
   let rocketTl: TL | null = null;
   const NOZZLE = 198 / 260, FEET = 296 / 310;
-  async function rocketBye() {
-    if (!visible() || away || held) return; addHeart("rocket");
+  /** `forGood`: a visitor sent him away (bye and hi): no goodbye line of its own (his was said), no parachute back, and it's called once the rocket is gone */
+  async function rocketBye(forGood?: () => void) {
+    if (!forGood && (!visible() || away || held)) return; addHeart("rocket");
+    if (forGood && (!cfg.fun.rocket || still)) { forGood(); return; }
     const staged = CV.on, byeLine = linesOf("bye")[0] || "Bye! 👋";
     if (!cfg.fun.rocket || still) { if (staged) { await talk([byeLine], ["open"]); closeScene(); } else act((r) => TALK.hello(r, byeLine)); return; }
     drawRocket();
@@ -702,7 +722,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       rig.run((t) => t.to(s, { ...REST, ...CLEAR, rx: 182, ry: 100, duration: 0.3 }));
     } else {
       const t = rig.begin(null, "grin"); t.to(s, { rx: 182, ry: 100, duration: 0.35, ease: "back.out(1.7)" }); const w = G.timeline({ repeat: 3, yoyo: true }); w.to(s, { rx: 195, ry: 113, duration: 0.18 }); t.add(w);
-      t.call(() => rig.say(byeLine, 1700), undefined, 0.15);
+      if (!forGood) t.call(() => rig.say(byeLine, 1700), undefined, 0.15);
     }
     if (!alive) return;
     Object.assign(rocket.style, { width: rw + "px", height: rh + "px", left: left + "px", top: top + "px", display: "block", zIndex: staged ? "4" : "1" });
@@ -726,10 +746,11 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       .addLabel("up")
       .to(rocket, { y: -(top + rh + 80), duration: 3.4, ease: "power1.in", onUpdate() { const n = performance.now(); if (n - lastPuff > 85) { lastPuff = n; puffs(left + rw / 2 + Number(G.getProperty(rocket, "x")) + (Math.random() - 0.5) * 8, base + Number(G.getProperty(rocket, "y")) + 14, 1, 14); } } }, "up")
       .to(rocket, { keyframes: [{ x: -7, rotation: -3, duration: 0.55 }, { x: 7, rotation: 3, duration: 0.9 }, { x: -5, rotation: -2, duration: 0.9 }, { x: 3, rotation: 1, duration: 1.05 }], ease: "sine.inOut" }, "up")
-      .call(() => { rocket.style.display = "none"; })
-      .to({}, { duration: cfg.fun.backAfter }).call(parachuteBack);
+      .call(() => { rocket.style.display = "none"; if (forGood) forGood(); });
+    if (!forGood) R.to({}, { duration: cfg.fun.backAfter }).call(parachuteBack);
   }
-  function parachuteBack() {
+  /** `done`: he's coming back after a visitor said hi (bye and hi): it's called on landing, instead of his own "I'm back" and carrying on */
+  function parachuteBack(done?: () => void) {
     const L = layer.getBoundingClientRect(), s = rig.s; rkFace.setAttribute("opacity", "0"); wrap.classList.remove("on-stage");
     G.set(wrap, { x: 0, y: -(L.height + 40), scale: 1, opacity: 1, rotation: 0, xPercent: 0, yPercent: 0, transformOrigin: "50% -40%" });
     rig.kill(); Object.assign(s, REST, CLEAR, { chute: 1 }); rig.setProp(null); rig.face("grin", "open");
@@ -739,9 +760,165 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
     G.to(wrap, { y: 0, duration: 3.3, ease: "power1.out", onComplete: () => {
       G.killTweensOf(wrap, "rotation"); G.set(wrap, { rotation: 0, transformOrigin: "50% 100%" }); SND.boing();
       const t = rig.run((t) => { t.to(s, { sy: 0.84, sx: 1.12, lg: 0, rg: 0, duration: 0.08 }).to(s, { chute: 0, duration: 0.45, ease: "power2.in" }, "<").to(s, { ...REST, duration: 0.6, ease: "elastic.out(1,.4)" });
-        t.call(() => { rig.say("I'm back! Did you miss me? 😄", 2200); rig.face("grin", "happy"); }); t.to({}, { duration: 1.3 }); t.call(() => rig.face("grin", "open")); });
-      t.eventCallback("onComplete", () => { away = false; busy = false; setLive(); placeWrap(true); resume(); });
+        if (!done) { t.call(() => { rig.say("I'm back! Did you miss me? 😄", 2200); rig.face("grin", "happy"); }); t.to({}, { duration: 1.3 }); t.call(() => rig.face("grin", "open")); } });
+      t.eventCallback("onComplete", () => { if (done) { done(); return; } away = false; busy = false; setLive(); placeWrap(true); resume(); });
     } });
+  }
+
+  /* ---------- bye and hi (2026-11-28, the owner's picks from https://claude.ai/artifact/1oUD8vJhp78vxLQ2btw7f2) ----------
+     A visitor can send him away (settings.mascot.bye): the 👋 tab beside him (shown while a mouse is on him, or after a finger's first
+     tap), throwing him hard off the screen, or "Bye for now" in his chat. He looks sad, says his goodbye line, and leaves one of five
+     ways (random unless the owner chose one). Then `onGone`: Mascot.tsx stops him and draws what stays (mascotPeek.ts) until the
+     visitor says hi, and remembers it for the visit, the device or a few minutes. Saying hi starts him again with `arrive`. */
+  const byeTab = mk("button", "mz-bye");
+  byeTab.type = "button"; byeTab.textContent = cfg.bye.tabText || "👋 Bye"; byeTab.setAttribute("aria-label", "Say bye to Mini Shourobh (he goes away until you say hi)"); byeTab.hidden = true;
+  layer.appendChild(byeTab);
+  let tabOn = false, tabT = 0;
+  const canTab = () => cfg.bye.on && cfg.bye.tab && !preview && visible() && !away && !held && !CV.on && !gone && !byeing;
+  function showTab(ms = 0) {
+    clearTimeout(tabT); if (!canTab()) return;
+    byeTab.hidden = false;
+    const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(), tw = byeTab.offsetWidth || 80, th = byeTab.offsetHeight || 30;
+    const x = isRight ? W.left - L.left - tw + W.width * 0.1 : W.right - L.left - W.width * 0.1;
+    byeTab.style.left = clamp(x, 6, L.width - tw - 6) + "px"; byeTab.style.top = clamp(W.top - L.top + W.height * 0.3, 6, L.height - th - 6) + "px";
+    byeTab.classList.toggle("left", !isRight);
+    if (!tabOn) { tabOn = true; byeTab.classList.remove("on"); void byeTab.offsetWidth; byeTab.classList.add("on"); }
+    if (ms) tabT = window.setTimeout(hideTab, ms);
+  }
+  function hideTab() { clearTimeout(tabT); if (!tabOn) return; tabOn = false; byeTab.classList.remove("on"); tabT = window.setTimeout(() => { if (!tabOn) byeTab.hidden = true; }, 220); }
+  const hideTabSoon = () => { clearTimeout(tabT); tabT = window.setTimeout(hideTab, 650); };
+  on(wrap, "pointerenter", (e: PointerEvent) => { if (e.pointerType === "mouse") showTab(); });
+  on(wrap, "pointerleave", (e: PointerEvent) => { if (e.pointerType === "mouse") hideTabSoon(); });
+  on(byeTab, "pointerenter", () => clearTimeout(tabT));
+  on(byeTab, "pointerleave", (e: PointerEvent) => { if (e.pointerType === "mouse") hideTabSoon(); });
+  on(wrap, "focus", () => { if (wrap.matches(":focus-visible")) showTab(); }); // the keyboard; a tap's focus is handled by onTap
+  on(wrap, "blur", (e: FocusEvent) => { if (e.relatedTarget !== byeTab) hideTabSoon(); });
+  on(byeTab, "blur", (e: FocusEvent) => { if (e.relatedTarget !== wrap) hideTabSoon(); });
+  on(byeTab, "click", (e: MouseEvent) => { e.stopPropagation(); markGesture(); void sayBye(); });
+
+  const EXIT_KEYS = ["rocket", "suitcase", "hole", "sparkle", "curtain"];
+  let lastExit = "";
+  /** where his box is in the layer right now (read only when something starts) */
+  const boxes = () => { const L = layer.getBoundingClientRect(), W = wrap.getBoundingClientRect(); return { L, W, x: W.left - L.left, y: W.top - L.top }; };
+  const waveArm = (t: TL, n = 3) => { const s = rig.s; t.to(s, { rx: 182, ry: 100, duration: 0.3, ease: "back.out(1.7)" }); const w = G.timeline({ repeat: n, yoyo: true }); w.to(s, { rx: 195, ry: 113, duration: 0.16 }); t.add(w); return t; };
+  const EXITS: Record<string, () => Promise<void>> = {
+    rocket: () => new Promise<void>((res) => { void rocketBye(res); }),
+    suitcase: () => new Promise<void>((res) => {
+      const { L, W } = boxes(), toR = isRight, x0 = Number(G.getProperty(wrap, "x")), dx = toR ? L.right - W.left + 24 : -(W.right - L.left + 24);
+      const bag = mk("span", `mz-bag ${toR ? "l" : "r"}`, "🧳"); bag.style.fontSize = Math.round(W.width * 0.3) + "px"; wrap.appendChild(bag);
+      G.fromTo(bag, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" });
+      const t = waveArm(rig.begin(null, "grin"), 3);
+      t.call(() => { rig.setMirror(!toR); walkTo(x0 + dx, () => { bag.remove(); res(); }); });
+    }),
+    hole: () => new Promise<void>((res) => {
+      const { W, x, y } = boxes(), feet = y + W.height * FEET, hw = W.width * 1.15, hh = hw * 0.28, cx = x + W.width / 2, s = rig.s;
+      const hole = mk("i", "mz-hole"); Object.assign(hole.style, { left: cx - hw / 2 + "px", top: feet - hh / 2 + "px", width: hw + "px", height: hh + "px" }); layer.insertBefore(hole, wrap);
+      const dig = () => { for (let i = 0; i < 8; i++) { if (layer.querySelectorAll(".mz-dirt").length > 30) return; const d = mk("i", "mz-dirt"); d.style.left = cx + (Math.random() - 0.5) * hw * 0.7 + "px"; d.style.top = feet + "px"; layer.appendChild(d);
+        G.fromTo(d, { x: 0, y: 0 }, { x: (Math.random() - 0.5) * 90, y: -(30 + Math.random() * 50), duration: 0.35, ease: "power2.out", onComplete: () => { G.to(d, { y: "+=90", opacity: 0, duration: 0.45, ease: "power2.in", onComplete: () => d.remove() }); } }); } };
+      G.timeline({ onComplete: () => { hole.remove(); wrap.style.clipPath = ""; res(); } })
+        .fromTo(hole, { scaleX: 0, scaleY: 0.4 }, { scaleX: 1, scaleY: 1, duration: 0.35, ease: "back.out(2)" })
+        .call(() => { dig(); SND.thud(); rig.run((t) => { t.to(s, { ...REST, ...CLEAR, head: 12, hy: 4, lx: 60, ly: 200, rx: 180, ry: 200, duration: 0.25 }); }); })
+        .to({}, { duration: 0.5 }).call(dig)
+        // he drops in: only his drawing moves, below a clip at his feet, so he really goes down into it
+        .call(() => { wrap.style.clipPath = `inset(-300% -200% ${((1 - FEET) * 100).toFixed(1)}% -200%)`; SND.whoosh(0.6);
+          rig.run((t) => { t.to(s, { y: -18, sy: 1.05, lx: 70, ly: 96, rx: 170, ry: 96, duration: 0.18, ease: "power2.out" }).to(s, { y: 380, rot: -8, duration: 0.55, ease: "power2.in" }); }); })
+        .to({}, { duration: 0.85 })
+        .to(hole, { scaleX: 0, scaleY: 0.3, duration: 0.3, ease: "back.in(2)" })
+        .call(() => puffs(cx, feet, 5, 40));
+    }),
+    sparkle: () => new Promise<void>((res) => {
+      G.set(wrap, { transformOrigin: "50% 55%" });
+      rig.run((t) => { t.to(rig.s, { ...REST, ...CLEAR, lx: 70, ly: 96, rx: 170, ry: 96, duration: 0.2 }); });
+      G.timeline({ onComplete: () => { G.set(wrap, { transformOrigin: "50% 100%" }); res(); } })
+        .to(wrap, { y: "-=18", duration: 0.22, ease: "power2.out" })
+        .call(() => { rig.burst(["✨", "⭐", "💫", "✦"], 120, 160, 12, "", 150); SND.ting(); })
+        .to(wrap, { rotation: 540, scale: 0, duration: 0.6, ease: "back.in(1.7)" })
+        .call(() => { const { W, x, y } = boxes(); puffs(x + W.width / 2, y + W.height / 2, 6, 50); })
+        .to({}, { duration: 0.35 });
+    }),
+    curtain: () => new Promise<void>((res) => {
+      const { W, x, y } = boxes();
+      const c = mk("div", "mz-cur", `<i class="mz-cur-l"></i><i class="mz-cur-r"></i><i class="mz-cur-rod"></i><b class="mz-cur-sign">Be right back</b>`);
+      Object.assign(c.style, { left: x - W.width * 0.16 + "px", top: y - W.height * 0.08 + "px", width: W.width * 1.32 + "px", height: W.height * 1.06 + "px" }); layer.appendChild(c);
+      const [l, r, rod, sign] = Array.from(c.children) as HTMLElement[];
+      waveArm(rig.begin(null, "grin"), 3);
+      G.timeline({ onComplete: () => { c.remove(); res(); } })
+        .set([l, r], { scaleX: 0 }).set(sign, { opacity: 0 })
+        .fromTo(rod, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(2)" })
+        .to({}, { duration: 0.5 })
+        .to([l, r], { scaleX: 1, duration: 0.5, ease: "power2.inOut" })
+        .set(wrap, { opacity: 0 })
+        .fromTo(sign, { rotation: -100, opacity: 1 }, { rotation: 0, duration: 0.9, ease: "elastic.out(1, .4)" })
+        .to(c, { y: -W.height * 0.25, opacity: 0, duration: 0.45, ease: "power2.in" }, "+=0.7");
+    }),
+    fade: () => new Promise<void>((res) => { G.to(wrap, { opacity: 0, duration: 0.3, onComplete: res }); }),
+  };
+  /** a visitor says bye: `k` plays that exit (the Mascot page's ▶ Test); `flung` means he has already flown off the screen */
+  async function sayBye(k?: string, flung = false) {
+    if (gone || byeing || !visible() || (!flung && (held || away))) return;
+    byeing = true; hideTab(); hideInvite(true);
+    if (CV.on) await new Promise<void>((res) => closeScene(res));
+    leanBack?.kill(); leanBack = null; stopSleep(rig); away = true; busy = true; setLive();
+    if (!flung) {
+      G.killTweensOf(wrap);
+      if (popup() && isSunk()) await new Promise<void>((res) => { G.to(wrap, { yPercent: 0, duration: 0.35, ease: "power2.out", onComplete: res }); });
+      rig.run((t) => { t.call(() => rig.face("sad", "open")); t.to(rig.s, { ...REST, ...CLEAR, head: -7, duration: 0.35, ease: "power2.out" }); });
+      rig.say(vary(cfg.bye.byeLine) || "Bye! 👋", 2300);
+      await wait(still ? 1400 : 1900);
+      rig.face("grin", "open");
+      const all = EXIT_KEYS.filter((x) => x !== "rocket" || cfg.fun.rocket), pool = all.filter((x) => x !== lastExit);
+      const kind = still ? "fade" : k && EXITS[k] ? k : cfg.bye.exit !== "random" && EXITS[cfg.bye.exit] ? cfg.bye.exit : pick(pool.length ? pool : all);
+      lastExit = kind;
+      await EXITS[kind]();
+    }
+    if (!alive) return;
+    gone = true; byeing = false; rig.hush(); wrap.style.visibility = "hidden"; home.style.display = "none";
+    if (opts.onGone) opts.onGone(); else window.setTimeout(() => void arrive(""), 1500); // nobody to hand over to: he comes straight back
+  }
+  /** thrown hard: he flies on off the screen, and that's bye */
+  function flingOff(vx: number, vy: number) {
+    held = false; byeing = false; hideTab(); rig.say(vary(["Wheeee! Bye! 👋", "Byeee! 👋", "Whoaaa! See you! 👋"]), 1200); SND.whoosh(0.9);
+    const L = layer.getBoundingClientRect(), n = Math.hypot(vx, vy) || 1, dist = Math.hypot(L.width, L.height) * 1.2;
+    away = true; busy = true; setLive(); G.killTweensOf(wrap);
+    G.to(wrap, { x: `+=${(vx / n) * dist}`, y: `+=${(vy / n) * dist}`, rotation: `+=${vx >= 0 ? 720 : -720}`, duration: 0.9, ease: "power1.out", onComplete: () => void sayBye(undefined, true) });
+  }
+  const ENTER_KEYS = ["parachute", "popup", "jump", "sparkle"];
+  const ENTERS: Record<string, () => Promise<void>> = {
+    parachute: () => new Promise<void>((res) => parachuteBack(res)),
+    popup: () => new Promise<void>((res) => {
+      const s = rig.s; rig.run((t) => { t.to(s, { lx: 70, ly: 96, rx: 170, ry: 96, duration: 0.2 }); });
+      G.fromTo(wrap, { yPercent: 115, x: 0, y: 0, opacity: 1 }, { yPercent: 0, duration: 0.75, ease: "back.out(2.2)", onComplete: () => { SND.boing(); res(); } });
+    }),
+    jump: () => new Promise<void>((res) => {
+      G.set(wrap, { x: 0, y: 0, yPercent: 0, rotation: 0, opacity: 1 });
+      const { L, W } = boxes(), off = isRight ? L.right - W.left + 40 : -(W.right - L.left + 40), s = rig.s;
+      rig.run((t) => { t.to(s, { lx: 70, ly: 96, rx: 170, ry: 96, lg: 14, rg: -14, duration: 0.2 }); });
+      G.set(wrap, { transformOrigin: "50% 55%" });
+      G.timeline({ onComplete: () => { G.set(wrap, { transformOrigin: "50% 100%" }); SND.thud(); G.to(s, { sy: 0.85, sx: 1.12, duration: 0.07, yoyo: true, repeat: 1 }); res(); } })
+        .fromTo(wrap, { x: off }, { x: 0, duration: 0.8, ease: "power1.out" }, 0)
+        .fromTo(wrap, { y: 0 }, { y: -W.height * 0.7, duration: 0.4, ease: "power2.out" }, 0)
+        .to(wrap, { y: 0, duration: 0.42, ease: "bounce.out" }, 0.4)
+        .fromTo(wrap, { rotation: isRight ? -360 : 360 }, { rotation: 0, duration: 0.8, ease: "power1.out" }, 0);
+    }),
+    sparkle: () => new Promise<void>((res) => {
+      G.set(wrap, { x: 0, y: 0, yPercent: 0, opacity: 1, transformOrigin: "50% 55%" });
+      rig.burst(["✨", "⭐", "💫", "✦"], 120, 160, 12, "", 150); SND.ting();
+      G.fromTo(wrap, { scale: 0, rotation: -220 }, { scale: 1, rotation: 0, duration: 0.7, ease: "back.out(1.8)", onComplete: () => { G.set(wrap, { transformOrigin: "50% 100%" }); res(); } });
+    }),
+    fade: () => new Promise<void>((res) => { G.fromTo(wrap, { opacity: 0 }, { opacity: 1, duration: 0.3, onComplete: res }); }),
+  };
+  /** he comes back after a visitor said hi: an entrance, then a wave and the hi line */
+  async function arrive(k: string) {
+    gone = false; byeing = false; away = true; busy = true; setLive();
+    G.killTweensOf(wrap); G.set(wrap, { x: 0, y: 0, xPercent: 0, yPercent: 0, rotation: 0, scale: 1, opacity: 0, transformOrigin: "50% 100%" });
+    wrap.style.visibility = ""; updateVis();
+    rig.kill(); Object.assign(rig.s, REST, CLEAR); rig.setProp(null); rig.face("grin", "open");
+    const kind = still ? "fade" : k && ENTERS[k] ? k : cfg.bye.enter !== "random" && ENTERS[cfg.bye.enter] ? cfg.bye.enter : pick(ENTER_KEYS);
+    await ENTERS[kind]();
+    if (!alive) return;
+    away = false; busy = false; setLive(); placeWrap(true);
+    rig.say(vary(cfg.bye.hiLine) || "Hi again! 👋", 2400);
+    if (!act((r) => { const t = r.begin(null, "grin", "happy"); waveArm(t, 4); t.to(r.s, { ...REST, duration: 0.3 }); return t; })) resume();
   }
 
   /* ---------- noticing the visitor (the real site only) ---------- */
@@ -811,6 +988,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   phoneMq.addEventListener("change", onPhone); offs.push(() => phoneMq.removeEventListener("change", onPhone));
   on(window, "resize", () => {
     if (CV.on) { const T = target(); CV.S = T.S; G.to(wrap, { x: T.x, y: T.y, scale: T.S, duration: 0.3 }); return; }
+    hideTab();
     const was = baseW; placeBase(); if (was === baseW) anchor(); // only the height: a phone's bars moved, he's held steady
     else { rig.setMirror(isRight); rig.wrapDir = isRight ? -1 : 1; wrap.classList.toggle("left", !isRight); home.classList.toggle("left", !isRight); } // only when the width changed
   });
@@ -862,11 +1040,14 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
   const launching = () => document.documentElement.classList.contains("launching");
   let startT = 0;
   const start = () => { startT = window.setTimeout(() => { if (preview) { enterBit("hero", true); return; } const hero = document.getElementById("hero"); const r = hero?.getBoundingClientRect(); if (r && r.bottom > 0 && r.top < innerHeight) enterBit("hero", greetOnce()); else if (!still && !lite) act(TRICKS.wave); }, 900); };
-  if (!preview && launching()) window.addEventListener("lc-launch-done", start, { once: true }); else start();
+  // a visitor said hi (bye and hi): he arrives with an entrance instead of his hello
+  if (opts.arrive !== undefined) { away = true; busy = true; wrap.style.visibility = "hidden"; const k = opts.arrive; window.setTimeout(() => void arrive(k), 80); }
+  else if (!preview && launching()) window.addEventListener("lc-launch-done", start, { once: true }); else start();
 
   return {
     update(m) {
       const before = cfg; cfg = m; rig.cfg = m; rig.setLook(m); paint(); setSound(m.fun.sounds); sizeWrap(); updateVis(); syncTop(); pickVoice();
+      byeTab.textContent = m.bye.tabText || "👋 Bye"; if (!canTab()) hideTab();
       if (before.side !== m.side || before.place !== m.place) { if (!CV.on) { leanBack?.kill(); G.set(wrap, { x: 0 }); placeBase(true); placeWrap(true); } }
       if (before.fun.rocketName !== m.fun.rocketName && !away) drawRocket();
       if (JSON.stringify(before.moments) !== JSON.stringify(m.moments) || before.eidDates.join() !== m.eidDates.join()) setMoment(autoMoment(), false);
@@ -874,6 +1055,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: {
       if (CV.on) dim.style.setProperty("--mzd", String(m.convo.dim / 100));
     },
     ask(k) { openScene(k); },
+    sayBye(k) { void sayBye(k); },
     /** the dashboard's "try a special day": dresses him as he would be on that day ("normal" undoes it until the next change) */
     /** the dashboard's "play one now": a random show, even if shows are off */
     show() { putOnShow(); },

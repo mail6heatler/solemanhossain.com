@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  DEFAULT_MASCOT, MZ_AUTO, MZ_BITS, MZ_BIT_OF_LAYOUT, MZ_GAMES, MZ_GLASSES, MZ_HATS, MZ_JEANS, MZ_LIMITS, MZ_OUTFITS, MZ_OUTFIT_COLORS, MZ_QA, MZ_SHIRTS, MZ_SHOES, MZ_SKINS, MZ_TRICKS,
+  DEFAULT_MASCOT, MZ_AUTO, MZ_BITS, MZ_BIT_OF_LAYOUT, MZ_BYE_AWAY, MZ_BYE_ENTERS, MZ_BYE_EXITS, MZ_BYE_STAY, MZ_GAMES, MZ_GLASSES, MZ_HATS, MZ_JEANS, MZ_LIMITS, MZ_OUTFITS, MZ_OUTFIT_COLORS, MZ_QA, MZ_SHIRTS, MZ_SHOES, MZ_SKINS, MZ_TRICKS,
   type MascotSettings, type MzBit, type MzQa,
 } from "@/lib/mascot";
 import { saveMascot } from "@/app/actions";
@@ -68,6 +68,7 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
   const setFun = (patch: Partial<MascotSettings["fun"]>) => setD((x) => ({ ...x, fun: { ...x.fun, ...patch } }));
   const setQa = (k: MzQa, patch: Partial<MascotSettings["qa"][MzQa]>) => setD((x) => ({ ...x, qa: { ...x.qa, [k]: { ...x.qa[k], ...patch } } }));
   const setCv = (patch: Partial<MascotSettings["convo"]>) => setD((x) => ({ ...x, convo: { ...x.convo, ...patch } }));
+  const setBye = (patch: Partial<MascotSettings["bye"]>) => setD((x) => ({ ...x, bye: { ...x.bye, ...patch } }));
   /* the voices this computer has; a visitor hears the same one if their device has it, otherwise the closest kind */
   const [voices, setVoices] = useState<{ name: string; lang: string }[]>([]);
   useEffect(() => {
@@ -112,6 +113,12 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
               <Row label="🤸 Tricks (the ones switched on under Tricks)" on={d.shows.tricks} onChange={(v) => setShows({ tricks: v })} />
               <Row label="⚽ Games (the ones switched on under Games)" on={d.shows.games} onChange={(v) => setShows({ games: v })} />
               <Row label="☕ The moment that's on now, and once per visit" on={d.shows.moments} onChange={(v) => setShows({ moments: v })} />
+            </Group>
+            <Group title="Bye and hi" hint="A visitor can send him away and call him back (the settings are in Bye and hi on the right). After a bye, tap what stays on a screen, or ▶ Test an entrance, to bring him back. Nothing here is remembered on your screens.">
+              <Row label={<b>👋 Say bye (he leaves the way set on the right)</b>} test={() => play("sayBye")} />
+              {MZ_BYE_EXITS.filter(([k]) => k !== "random").map(([k, l]) => <Row key={k} label={<>Leaves: {l}</>} test={() => play("sayBye", k)} />)}
+              <Row label={<b>🙌 Say hi (he comes back the way set on the right)</b>} test={() => play("sayHi")} />
+              {MZ_BYE_ENTERS.filter(([k]) => k !== "random").map(([k, l]) => <Row key={k} label={<>Comes back: {l}</>} test={() => play("sayHi", k)} />)}
             </Group>
             <Group title="Tricks" hint="He picks from these at random: in his shows, and when someone asks &ldquo;Do a trick!&rdquo; in his chat." open>
               {MZ_TRICKS.map(([k, l]) => <Row key={k} label={l} on={d.tricks[k]} onChange={(v) => set({ tricks: { ...d.tricks, [k]: v } })} test={() => play("trick", k)} />)}
@@ -211,6 +218,28 @@ export default function MascotStudio({ first, timezone, sections }: { first: Mas
               </div>
               <div className="stu-switches">
                 <Sw checked={d.fun.sounds} onChange={(v) => setFun({ sounds: v })}>Little sound effects (only after a visitor taps or types something)</Sw>
+              </div>
+            </Box>
+
+            <Box title="Bye and hi">
+              <Sw checked={d.bye.on} onChange={(v) => setBye({ on: v })}>Visitors can send him away, and call him back</Sw>
+              <div className="hint">Off brings him back for everyone who sent him away.</div>
+              <span className="lab">Ways to say bye</span>
+              <div className="stu-switches">
+                <Sw checked={d.bye.tab} onChange={(v) => setBye({ tab: v })}>👋 A tab beside him: it shows while the mouse is on him, or after one tap on a phone (a second tap opens his chat)</Sw>
+                <Sw checked={d.bye.fling} onChange={(v) => setBye({ fling: v })}>🤾 Throwing him hard off the screen</Sw>
+                <Sw checked={d.bye.chat} onChange={(v) => setBye({ chat: v })}>🙈 &ldquo;Bye for now&rdquo; among the cards in his chat (Goodbye stays the rocket that parachutes back)</Sw>
+              </div>
+              <div className="mzs-sub">
+                <div className="fl"><label>How he leaves</label><Chips list={MZ_BYE_EXITS} value={d.bye.exit} onPick={(v) => setBye({ exit: v })} /><div className="hint">Random never plays the same one twice in a row. The rocket needs the rocket switched on under the screens.</div></div>
+                <div className="fl"><label>While he&apos;s away</label><Chips list={MZ_BYE_AWAY} value={d.bye.away} onPick={(v) => setBye({ away: v })} /><div className="hint">{d.bye.away === "peek" ? "His head peeks up from his corner, blinks, and peeks higher and waves now and then." : d.bye.away === "badge" ? "A small round button with his face, which wobbles now and then." : "A pill that shows only while the footer is on screen (all the time on a page without a footer)."} A press brings him back.</div></div>
+                <div className="fl"><label>How he comes back</label><Chips list={MZ_BYE_ENTERS} value={d.bye.enter} onPick={(v) => setBye({ enter: v })} /></div>
+                <div className="fl"><label>How long he stays away</label><Chips list={MZ_BYE_STAY} value={d.bye.stay} onPick={(v) => setBye({ stay: v })} />
+                  {d.bye.stay === "minutes" && <Slider id="mz-byemin" label="Back by himself after" value={d.bye.minutes} lim={MZ_LIMITS.minutes} unit=" min" onChange={(v) => setBye({ minutes: v })} />}
+                  <div className="hint">While he&apos;s away, the next pages of that visitor&apos;s site load without his animations, so they&apos;re a little lighter.</div></div>
+                <div className="fl"><label htmlFor="mz-byeline">His goodbye line</label><input id="mz-byeline" className="inp" maxLength={300} value={d.bye.byeLine} onChange={(e) => setBye({ byeLine: e.target.value })} /><div className="hint">Put | between versions, and he picks one each time.</div></div>
+                <div className="fl"><label htmlFor="mz-hiline">His hi line, when he comes back</label><input id="mz-hiline" className="inp" maxLength={300} value={d.bye.hiLine} onChange={(e) => setBye({ hiLine: e.target.value })} /></div>
+                <div className="fl"><label htmlFor="mz-tabtext">The tab&apos;s word</label><input id="mz-tabtext" className="inp" maxLength={24} value={d.bye.tabText} onChange={(e) => setBye({ tabText: e.target.value })} placeholder="👋 Bye" /></div>
               </div>
             </Box>
 

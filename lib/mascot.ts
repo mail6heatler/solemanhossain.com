@@ -103,6 +103,8 @@ export type MascotSettings = {
     rocket: boolean; rocketName: string; backAfter: number; notice: { fast: boolean; end: boolean; back: boolean; point: boolean }; hearts: boolean; sounds: boolean;
   };
   moments: { auto: boolean; morning: boolean; night: boolean; rain: boolean; eid: boolean; birthday: string };
+  /** Visitors sending him away and calling him back (2026-11-28, the owner's picks from https://claude.ai/artifact/1oUD8vJhp78vxLQ2btw7f2). */
+  bye: MzBye;
   /** The talking scene (clicking him) and his voice. Speed, pitch and volume are percentages. */
   convo: {
     voice: boolean; voiceName: string; voiceKind: "male" | "female" | "any"; rate: number; pitch: number; volume: number;
@@ -110,7 +112,20 @@ export type MascotSettings = {
   };
 };
 
-export const MZ_LIMITS = { size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30], rate: [60, 160], pitch: [50, 200], volume: [10, 100], dim: [30, 90], scale: [120, 240], inviteEvery: [15, 300], every: [10, 180] } as const;
+/** How a visitor says bye and hi (settings.mascot.bye): the ways to send him away, how he leaves, what stays while he's away, how he comes back. */
+export const MZ_BYE_EXITS = [["random", "Random each time"], ["rocket", "🚀 Rocket up"], ["suitcase", "🧳 Walks off with a suitcase"], ["hole", "🕳️ Digs a hole and drops in"], ["sparkle", "✨ Puff of sparkles"], ["curtain", "🎭 “Be right back” curtain"]] as const;
+export const MZ_BYE_AWAY = [["peek", "👀 Peeking head"], ["badge", "🔘 Round face badge"], ["link", "🔗 Just a footer link"]] as const;
+export const MZ_BYE_ENTERS = [["random", "Random each time"], ["parachute", "🪂 Parachutes in"], ["popup", "⬆️ Pops up from below"], ["jump", "🤸 Jumps in from the side"], ["sparkle", "✨ Appears in sparkles"]] as const;
+export const MZ_BYE_STAY = [["visit", "For the rest of the visit"], ["device", "For good on this device"], ["minutes", "Back by himself after a few minutes"]] as const;
+export type MzByeExit = (typeof MZ_BYE_EXITS)[number][0];
+export type MzByeEnter = (typeof MZ_BYE_ENTERS)[number][0];
+export type MzBye = {
+  on: boolean; tab: boolean; fling: boolean; chat: boolean;
+  exit: MzByeExit; away: (typeof MZ_BYE_AWAY)[number][0]; enter: MzByeEnter; stay: (typeof MZ_BYE_STAY)[number][0]; minutes: number;
+  tabText: string; byeLine: string; hiLine: string;
+};
+
+export const MZ_LIMITS = { minutes: [1, 120], size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30], rate: [60, 160], pitch: [50, 200], volume: [10, 100], dim: [30, 90], scale: [120, 240], inviteEvery: [15, 300], every: [10, 180] } as const;
 
 const allOn = <K extends string>(keys: readonly (readonly [K, ...unknown[]])[]) => Object.fromEntries(keys.map(([k]) => [k, true])) as Record<K, boolean>;
 
@@ -156,6 +171,10 @@ export const DEFAULT_MASCOT: MascotSettings = {
     rocket: true, rocketName: "SHOUROBH ONE", backAfter: 4, notice: { fast: true, end: true, back: true, point: true }, hearts: true, sounds: false,
   },
   moments: { auto: true, morning: true, night: true, rain: false, eid: false, birthday: "" },
+  bye: {
+    on: true, tab: true, fling: false, chat: false, exit: "random", away: "peek", enter: "random", stay: "visit", minutes: 5,
+    tabText: "👋 Bye", byeLine: "Okay… I'll be right here if you need me 🥺", hiLine: "Hi again! Missed me? 👋",
+  },
   convo: {
     voice: true, voiceName: "", voiceKind: "male", rate: 105, pitch: 135, volume: 100,
     mic: false, dim: 72, scale: 180, hello: "Hey there! I'm Mini Shourobh. 😄|Hi hi! Mini Shourobh, at your service. 😄|Oh, a visitor! Hi, I'm Mini Shourobh. 👋",
@@ -217,6 +236,12 @@ export function cleanMascot(raw: unknown): MascotSettings {
       rain: bool(mr.rain, D.moments.rain), eid: bool(mr.eid, D.moments.eid),
       birthday: typeof mr.birthday === "string" && /^\d{4}-\d{2}-\d{2}$/.test(mr.birthday) ? mr.birthday : "",
     },
+    bye: (() => { const b = isObj(r.bye) ? r.bye : {}, B = D.bye; return {
+      on: bool(b.on, B.on), tab: bool(b.tab, B.tab), fling: bool(b.fling, B.fling), chat: bool(b.chat, B.chat),
+      exit: oneOf(b.exit, MZ_BYE_EXITS.map(([k]) => k), B.exit), away: oneOf(b.away, MZ_BYE_AWAY.map(([k]) => k), B.away),
+      enter: oneOf(b.enter, MZ_BYE_ENTERS.map(([k]) => k), B.enter), stay: oneOf(b.stay, MZ_BYE_STAY.map(([k]) => k), B.stay), minutes: num(b.minutes, MZ_LIMITS.minutes, B.minutes),
+      tabText: text(b.tabText, 24, B.tabText).replace(/\n/g, " "), byeLine: text(b.byeLine, 300, B.byeLine).replace(/\n/g, " "), hiLine: text(b.hiLine, 300, B.hiLine).replace(/\n/g, " "),
+    }; })(),
     convo: {
       voice: bool(cr.voice, C.voice), voiceName: text(cr.voiceName, 120, C.voiceName).replace(/\n/g, " "), voiceKind: oneOf(cr.voiceKind, ["male", "female", "any"] as const, C.voiceKind),
       rate: num(cr.rate, MZ_LIMITS.rate, C.rate), pitch: num(cr.pitch, MZ_LIMITS.pitch, C.pitch), volume: num(cr.volume, MZ_LIMITS.volume, C.volume),
