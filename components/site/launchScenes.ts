@@ -29,11 +29,20 @@ function gate({ el, g }: Ctx): Ctl {
   const plane = $(el, ".lg-plane")!, fill = $(el, ".lg-fill")!, pct = $(el, ".lg-pct")!, stat = $(el, ".lg-status")!, date = $(el, ".lg-date");
   if (date) date.textContent = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).toUpperCase();
   let last = "", lastV = -1;
+  // the plane glides toward each new percentage and the line fills behind it, both by transform (they used to jump from step to step
+  // by `left` and `width`, which the owner saw stutter, 2026-11-28); the track's width is measured once, and again if the window changes
+  const track = $(el, ".lg-track")!;
+  let tw = track.offsetWidth;
+  const measure = () => { tw = track.offsetWidth; if (lastV >= 0) g.set(plane, { x: (lastV / 100) * tw }); };
+  window.addEventListener("resize", measure);
+  const qx = g.quickTo(plane, "x", { duration: 0.8, ease: "power2.out" }), qf = g.quickTo(fill, "scaleX", { duration: 0.8, ease: "power2.out" });
   return {
+    kill() { window.removeEventListener("resize", measure); },
     progress(p) {
       const v = Math.round(p * 100);
       if (v === lastV) return; lastV = v;
-      plane.style.left = v + "%"; fill.style.width = v + "%";
+      if (!tw) tw = track.offsetWidth;
+      qx(p * tw); qf(p);
       const s = p < 0.3 ? "CHECK-IN" : p < 0.6 ? "BOARDING" : p < 0.99 ? "FINAL CALL" : "READY";
       pct.textContent = (p < 0.3 ? "Checking in" : p < 0.6 ? "Boarding" : p < 0.99 ? "Final call" : "Ready to board") + " · " + v + "%";
       if (s !== last) { last = s; stat.textContent = s; g.fromTo(stat, { rotationX: -90 }, { rotationX: 0, duration: 0.3 }); }

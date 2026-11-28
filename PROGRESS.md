@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Launch screen, boarding gate: the GATE lettering and a smooth plane (2026-11-28, live)
+
+- The doors' big GATE and number were cut in half behind the pass (laptop) or ran into its bottom (phone): they now sit in the clear space below the pass, meeting at the seam. The progress plane glided in steps (`left` and `width`); it now glides by transform (`quickTo` on x, the line by scaleX) with a little bob. Restore point: tag `before-gate-polish`.
+
 ## Mini Shourobh: locked in a tarot card (2026-11-28, live, waiting for the owner's look)
 
 - The owner asked for throwing him off the screen to become locking him in a tarot card, and the round face badge a mini tarot card, then said "ya" on the preview (https://claude.ai/artifact/1oUD8vJhp78vxLQ2btw7f2, version 2) with "make sure the tarot card pops up immediately after grabbing him". The card pops up the moment he's picked up (no delay). See "Bye and hi" in CLAUDE.md. Restore point: tag `before-mascot-tarot`.
