@@ -10,6 +10,11 @@
 .lch.lch-theme { --la: var(--mint, #7ee8a2); --la-deep: var(--mint-deep, #2f7a52); --la-ink: var(--on-mint, #07130c); }
 html.launching { overflow: hidden; }
 html.launching .lch { display: block; }
+/* a plain cover in the launch screen's own colour from the very first frame, wherever the layer is in the page, so nothing of the site (not even
+   its background) can show before the layer is drawn (the owner saw a flick of the site on slow loads, 2026-11-28). It sits just under the
+   layer and goes as soon as the launch screen's script takes over (launch-run), before the reveal; the head script's safety timer and any
+   failure remove `launching`, and it with it. */
+html.launching:not(.launch-run) body::before { content: ""; position: fixed; inset: 0; z-index: 9989; background: #050706; pointer-events: none; }
 .lch-scenes { position: absolute; inset: 0; }
 .lch-scene { display: none; position: absolute; inset: 0; overflow: hidden; }
 html[data-launch="gate"] .lch-gate, html[data-launch="rocket"] .lch-rocket, html[data-launch="particles"] .lch-particles,

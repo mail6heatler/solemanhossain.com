@@ -78,6 +78,10 @@ export function SiteShell({ settings, sections, onHome, children }:
   const menuLinks = sections.filter((s) => !settings.menu.hidden.includes(s.slug)).map((s) => ({ href: onHome ? `#${s.slug}` : `/#${s.slug}`, label: s.nav_label || s.title, emoji: s.nav_emoji }));
   return (
     <div className={`site ${onHome ? "home " : ""}${bbar ? "has-bbar" : ""} ${LOOKS.filter((k) => fx[k]).map((k) => `fx-${k}`).join(" ")}`} style={style}>
+      {/* the launch screen: shown before the first paint by skinScript when it should play (lib/launch.ts). It comes first in the page, so it's in
+          the first piece the browser reads: further down (it was after the footer, halfway through the page) a slow load drew the site first and
+          showed it for a moment (the owner saw the flick, 2026-11-28). launch.css also covers the page from the first frame until it takes over. */}
+      <LaunchScreen cfg={settings.launch} names={{ nick: settings.nickname || settings.fullName, name: settings.fullName, rocket: settings.mascot.fun.rocketName || "SHOUROBH ONE" }} />
       <Effects
         cursor={fx.cursor} track totop={fx.totop && !settings.mascot.show /* the bottom-right corner is the mascot's while he's on; the footer keeps Back to top */}
         fx={{ autolite: fx.autolite, smooth: fx.smooth, countup: fx.countup, timeline: fx.timeline, sparkles: fx.sparkles, explorer: fx.explorer && onHome, party: fx.party }}
@@ -99,8 +103,6 @@ export function SiteShell({ settings, sections, onHome, children }:
       <Mascot view={{ m: settings.mascot, timezone: settings.timezone }} phoneMenu={phone} />
       {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
-      {/* the launch screen: shown before the first paint by skinScript when it should play (lib/launch.ts) */}
-      <LaunchScreen cfg={settings.launch} names={{ nick: settings.nickname || settings.fullName, name: settings.fullName, rocket: settings.mascot.fun.rocketName || "SHOUROBH ONE" }} />
       {(settings.ops.maintenance.on || settings.ops.private.on) && <SiteGate ops={settings.ops} name={settings.nickname || settings.fullName} />}
       <VisitTracker />
       <OpenInBrowser />

@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## No flick of the site before the launch screen (2026-11-28, live, waiting for the owner's look)
+
+- The owner sometimes saw the site for a moment before the launch screen. The decision was made before the first paint, but the layer itself came after the footer, at byte 215,620 of a 482,710-byte page, so a slow load drew the hero and sections first. Now `LaunchScreen` is the first thing in `.site` (about byte 12,000), and a plain cover in the launch screen's colour (`body::before` while `html.launching` and not yet `launch-run`) shows from the first frame. Restore point: tag `before-launch-cover`.
+
 ## Buttons panel switch, and press-hold-slide reactions on phones (2026-11-28, live, waiting for the owner's look)
 
 - The owner asked for one button to show or hide a card's whole panel (React, Comment, Share, Open, LIVE) on every card now and later, with the card using the freed room, and said "go" on my suggestions: card only (the entry's page keeps its reactions), with switches for a card, a section and every card. Built on the hide choices (`bar`), so the three levels and Size & look come with it. Every card starts showing, so nothing changed on the site until they switch one off. See "Size and look controls" in CLAUDE.md.
