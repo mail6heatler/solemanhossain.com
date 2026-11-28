@@ -4,6 +4,8 @@
  * not his animation code. "visit" lasts for the browser session, "device" until the visitor says hi, "minutes" until a time.
  */
 const KEY = "lc_mz_away";
+/** set too when a visitor locked him in a tarot card: while he's away, the mini card shows (he's inside it) whatever the chosen style */
+const CARD = "lc_mz_card";
 
 export function awayNow(on: boolean): boolean {
   if (!on) return false; // the owner switched bye and hi off: he's back for everyone
@@ -12,21 +14,26 @@ export function awayNow(on: boolean): boolean {
     const v = localStorage.getItem(KEY);
     if (!v) return false;
     if (v === "always" || Number(v) > Date.now()) return true;
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(KEY); localStorage.removeItem(CARD);
   } catch {}
   return false;
 }
 
-export function markAway(stay: string, minutes: number) {
+export function markAway(stay: string, minutes: number, card = false) {
   try {
-    if (stay === "device") localStorage.setItem(KEY, "always");
-    else if (stay === "minutes") localStorage.setItem(KEY, String(Date.now() + minutes * 60000));
-    else sessionStorage.setItem(KEY, "1");
+    const store = stay === "visit" ? sessionStorage : localStorage;
+    store.setItem(KEY, stay === "device" ? "always" : stay === "minutes" ? String(Date.now() + minutes * 60000) : "1");
+    if (card) store.setItem(CARD, "1"); else store.removeItem(CARD);
   } catch {}
 }
 
+/** whether he's away inside a tarot card */
+export function awayCard(): boolean {
+  try { return !!(sessionStorage.getItem(CARD) || localStorage.getItem(CARD)); } catch { return false; }
+}
+
 export function clearAway() {
-  try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch {}
+  try { for (const st of [sessionStorage, localStorage]) { st.removeItem(KEY); st.removeItem(CARD); } } catch {}
 }
 
 /** milliseconds until a "back by himself" time runs out, or -1 when he isn't coming back by himself */

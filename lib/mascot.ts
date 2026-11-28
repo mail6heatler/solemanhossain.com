@@ -114,15 +114,18 @@ export type MascotSettings = {
 
 /** How a visitor says bye and hi (settings.mascot.bye): the ways to send him away, how he leaves, what stays while he's away, how he comes back. */
 export const MZ_BYE_EXITS = [["random", "Random each time"], ["rocket", "🚀 Rocket up"], ["suitcase", "🧳 Walks off with a suitcase"], ["hole", "🕳️ Digs a hole and drops in"], ["sparkle", "✨ Puff of sparkles"], ["curtain", "🎭 “Be right back” curtain"]] as const;
-export const MZ_BYE_AWAY = [["peek", "👀 Peeking head"], ["badge", "🔘 Round face badge"], ["link", "🔗 Just a footer link"]] as const;
+export const MZ_BYE_AWAY = [["peek", "👀 Peeking head"], ["tarot", "🃏 Mini tarot card"], ["link", "🔗 Just a footer link"]] as const;
 export const MZ_BYE_ENTERS = [["random", "Random each time"], ["parachute", "🪂 Parachutes in"], ["popup", "⬆️ Pops up from below"], ["jump", "🤸 Jumps in from the side"], ["sparkle", "✨ Appears in sparkles"]] as const;
 export const MZ_BYE_STAY = [["visit", "For the rest of the visit"], ["device", "For good on this device"], ["minutes", "Back by himself after a few minutes"]] as const;
 export type MzByeExit = (typeof MZ_BYE_EXITS)[number][0];
 export type MzByeEnter = (typeof MZ_BYE_ENTERS)[number][0];
 export type MzBye = {
-  on: boolean; tab: boolean; fling: boolean; chat: boolean;
+  /** `tarot`: as soon as a visitor picks him up a tarot card pops up; dropped on it (or thrown at it) he's sealed inside (it replaced throwing him off the screen, 2026-11-28) */
+  on: boolean; tab: boolean; tarot: boolean; chat: boolean;
   exit: MzByeExit; away: (typeof MZ_BYE_AWAY)[number][0]; enter: MzByeEnter; stay: (typeof MZ_BYE_STAY)[number][0]; minutes: number;
   tabText: string; byeLine: string; hiLine: string;
+  /** the tarot card's words: its title banner, the name above it, and his line once he's locked inside */
+  cardTitle: string; cardName: string; lockedLine: string;
 };
 
 export const MZ_LIMITS = { minutes: [1, 120], size: [70, 140], napAfter: [15, 300], boredAfter: [5, 120], backAfter: [2, 30], rate: [60, 160], pitch: [50, 200], volume: [10, 100], dim: [30, 90], scale: [120, 240], inviteEvery: [15, 300], every: [10, 180] } as const;
@@ -172,8 +175,9 @@ export const DEFAULT_MASCOT: MascotSettings = {
   },
   moments: { auto: true, morning: true, night: true, rain: false, eid: false, birthday: "" },
   bye: {
-    on: true, tab: true, fling: false, chat: false, exit: "random", away: "peek", enter: "random", stay: "visit", minutes: 5,
+    on: true, tab: true, tarot: true, chat: false, exit: "random", away: "peek", enter: "random", stay: "visit", minutes: 5,
     tabText: "👋 Bye", byeLine: "Okay… I'll be right here if you need me 🥺", hiLine: "Hi again! Missed me? 👋",
+    cardTitle: "THE WANDERER", cardName: "Mini Shourobh", lockedLine: "Hey! Let me out! 😱",
   },
   convo: {
     voice: true, voiceName: "", voiceKind: "male", rate: 105, pitch: 135, volume: 100,
@@ -237,10 +241,10 @@ export function cleanMascot(raw: unknown): MascotSettings {
       birthday: typeof mr.birthday === "string" && /^\d{4}-\d{2}-\d{2}$/.test(mr.birthday) ? mr.birthday : "",
     },
     bye: (() => { const b = isObj(r.bye) ? r.bye : {}, B = D.bye; return {
-      on: bool(b.on, B.on), tab: bool(b.tab, B.tab), fling: bool(b.fling, B.fling), chat: bool(b.chat, B.chat),
-      exit: oneOf(b.exit, MZ_BYE_EXITS.map(([k]) => k), B.exit), away: oneOf(b.away, MZ_BYE_AWAY.map(([k]) => k), B.away),
+      on: bool(b.on, B.on), tab: bool(b.tab, B.tab), tarot: bool(b.tarot, B.tarot), chat: bool(b.chat, B.chat),
+      exit: oneOf(b.exit, MZ_BYE_EXITS.map(([k]) => k), B.exit), away: b.away === "badge" ? "tarot" : oneOf(b.away, MZ_BYE_AWAY.map(([k]) => k), B.away), // the round badge became the mini tarot card
       enter: oneOf(b.enter, MZ_BYE_ENTERS.map(([k]) => k), B.enter), stay: oneOf(b.stay, MZ_BYE_STAY.map(([k]) => k), B.stay), minutes: num(b.minutes, MZ_LIMITS.minutes, B.minutes),
-      tabText: text(b.tabText, 24, B.tabText).replace(/\n/g, " "), byeLine: text(b.byeLine, 300, B.byeLine).replace(/\n/g, " "), hiLine: text(b.hiLine, 300, B.hiLine).replace(/\n/g, " "),
+      tabText: text(b.tabText, 24, B.tabText).replace(/\n/g, " "), byeLine: text(b.byeLine, 300, B.byeLine).replace(/\n/g, " "), hiLine: text(b.hiLine, 300, B.hiLine).replace(/\n/g, " "), cardTitle: text(b.cardTitle, 20, B.cardTitle).replace(/\n/g, " "), cardName: text(b.cardName, 24, B.cardName).replace(/\n/g, " "), lockedLine: text(b.lockedLine, 120, B.lockedLine).replace(/\n/g, " "),
     }; })(),
     convo: {
       voice: bool(cr.voice, C.voice), voiceName: text(cr.voiceName, 120, C.voiceName).replace(/\n/g, " "), voiceKind: oneOf(cr.voiceKind, ["male", "female", "any"] as const, C.voiceKind),

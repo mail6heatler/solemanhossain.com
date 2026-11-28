@@ -3,7 +3,9 @@ import { useEffect, useRef } from "react";
 import type { MascotSettings, MascotView } from "@/lib/mascot";
 import type { MascotCtl } from "./mascotEngine";
 import { whenSettled } from "./fx";
-import { awayNow, clearAway, markAway } from "./mascotAway";
+import { awayCard, awayNow, clearAway, markAway } from "./mascotAway";
+
+type Peek = typeof import("./mascotPeek");
 
 /** Messages from the dashboard's Mascot page to its screens (the homepage in an iframe, `/?mz=studio`). */
 export type MzStudioMsg = { type: "lc-mz-draft"; m: MascotSettings } | { type: "lc-mz-cmd"; cmd: string; k?: string };
@@ -34,29 +36,30 @@ export default function Mascot({ view, phoneMenu = "bottom" }: { view: MascotVie
     if (!v.m.show && !studio) return;
     const shown = (m: MascotSettings): MascotSettings => (studio ? { ...m, show: true, phones: true } : m);
     const now = () => shown(last || v.m);
-    let ctl: MascotCtl | null = null, dead = false, last: MascotSettings | null = null, unAway: (() => void) | null = null, starting = false;
+    let ctl: MascotCtl | null = null, dead = false, last: MascotSettings | null = null, unAway: (() => void) | null = null, starting = false, peek: Peek | null = null, inCard = false;
     /** he's here: GSAP and his engine; `arrive` plays an entrance ("" = the one his settings pick) instead of his hello */
     const start = (arrive?: string) => {
       if (starting || ctl || dead) return; starting = true;
-      return Promise.all([import("gsap"), import("./mascotEngine")])
-        .then(([g, e]) => {
-          starting = false;
+      return Promise.all([import("gsap"), import("./mascotEngine"), import("./mascotPeek")])
+        .then(([g, e, p]) => {
+          starting = false; peek = p;
           if (dead || ctl) return;
           ctl = e.startMascot(layer, { ...v, m: now() }, g.gsap, { arrive, onGone: gone });
           if (studio) parent.postMessage({ type: "lc-mz-ready" }, location.origin);
         })
         .catch(() => { starting = false; });
     };
-    /** a visitor sent him away: he's stopped, and only what stays is drawn */
-    const gone = () => {
-      const m = now(); if (!studio) markAway(m.bye.stay, m.bye.minutes);
-      ctl?.stop(); ctl = null; void away();
+    const mount = (p: Peek) => { if (dead || ctl) return; unAway?.(); unAway = p.mountAway(layer, now(), (enter) => hi(enter), inCard); };
+    /** a visitor sent him away (`how` is "card" when he was locked in a tarot card): he's stopped and what stays is drawn in the same
+     * moment, so the card that glided into his corner turns into the mini card without a flicker */
+    const gone = (how?: string) => {
+      const m = now(); inCard = how === "card"; if (!studio) markAway(m.bye.stay, m.bye.minutes, inCard);
+      ctl?.stop(); ctl = null;
+      if (peek) mount(peek); else void away();
     };
-    const away = () => import("./mascotPeek")
-      .then((p) => { if (dead || ctl) return; unAway?.(); unAway = p.mountAway(layer, now(), () => hi()); })
-      .catch(() => {});
+    const away = () => import("./mascotPeek").then((p) => { peek = p; mount(p); }).catch(() => {});
     /** a visitor said hi (or the time ran out): `enter` is an entrance to play, for the Mascot page's ▶ Test */
-    const hi = (enter = "") => { unAway?.(); unAway = null; if (!studio) clearAway(); void start(enter); };
+    const hi = (enter = "") => { unAway?.(); unAway = null; inCard = false; if (!studio) clearAway(); void start(enter); };
     const on = (e: MessageEvent) => {
       const d = e.data as MzStudioMsg; if (e.origin !== location.origin || !d || typeof d !== "object") return;
       if (d.type === "lc-mz-draft") { last = d.m; ctl?.update(shown(d.m)); if (unAway) void away(); return; }
@@ -69,7 +72,7 @@ export default function Mascot({ view, phoneMenu = "bottom" }: { view: MascotVie
     if (studio) addEventListener("message", on);
     // on the site he's third in line once the page has loaded, after the 3D hero and the theme's background; a visitor who sent
     // him away gets only the light peek
-    const begin = () => { if (!studio && awayNow(v.m.bye.on)) void away(); else void start(); };
+    const begin = () => { if (!studio && awayNow(v.m.bye.on)) { inCard = awayCard(); void away(); } else void start(); };
     const t = studio ? window.setTimeout(() => void start(), 50) : 0;
     const cancel = studio ? () => {} : whenSettled(begin, 3);
     return () => { dead = true; clearTimeout(t); cancel(); removeEventListener("message", on); ctl?.stop(); unAway?.(); };

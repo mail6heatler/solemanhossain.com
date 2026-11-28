@@ -17,6 +17,7 @@
  */
 import { MZ_BIT_OF_LAYOUT, MZ_JEANS, MZ_OUTFITS, MZ_OUTFIT_COLORS, MZ_QA, MZ_SHIRTS, autoWear, isEid, mzDay, type MascotSettings, type MascotView, type MzAuto, type MzDay, type MzOutfit, type MzQa, type MzWear } from "@/lib/mascot";
 import { pageY, prefersReducedMotion } from "./fx";
+import { cardHtml, miniCardBox } from "./mascotPeek";
 import {
   BITS, FUN, HAT_OF, IDLE_KEYS, MOMENTS, REST, CLEAR, Rig, SND, TALK, TRICKS, duckRig, fillWords, lookVars, markGesture, pick, rocketSvg, rps, setSound,
   sleepGround, sleepStand, stopSleep, useGsap, vary, wakeRig, type TL,
@@ -28,12 +29,14 @@ export type MascotCtl = {
   nap(): void; wake(): void; throwDemo(): void; openTalk(): void; testVoice(): void; stop(): void;
   /** a visitor says bye (the Mascot page's ▶ Test passes the exit to play) */
   sayBye(k?: string): void;
+  /** the Mascot page's ▶ Test: picked up and locked in a tarot card */
+  lockDemo(): void;
 };
 /**
  * `arrive`: he comes back after a visitor said hi (the entrance to play, "" for the one settings.mascot.bye.enter picks) instead of saying hello.
  * `onGone`: he has left after a visitor said bye; Mascot.tsx then stops him and draws what stays (mascotPeek.ts).
  */
-export type MascotOpts = { preview?: boolean; arrive?: string; onGone?: () => void };
+export type MascotOpts = { preview?: boolean; arrive?: string; onGone?: (how?: string) => void };
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const TIPS = ["Psst. Click me, I can talk!", "Try dragging me. I dare you.", "There is more below, keep going.", "Ask me who I am. 😎", "Tap me three times. I dare you. 🤭"];
@@ -639,11 +642,13 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: M
     const s = rig.s; rig.run((t) => { t.call(() => { rig.setProp(null); rig.face("open", "open"); }); t.to(s, { ...REST, ...CLEAR, lx: 68, ly: 100, rx: 172, ry: 100, brow: 1.3, duration: 0.18 });
       const k = G.timeline({ repeat: -1 }); k.to(s, { lg: 16, rg: -4, ly: 94, ry: 106, duration: 0.16, ease: "sine.inOut" }).to(s, { lg: 4, rg: -16, ly: 106, ry: 94, duration: 0.16, ease: "sine.inOut" }); t.add(k); });
     rig.say(vary(LINES.whoa), 1800); SND.boing();
+    if (d.id !== undefined && canCard()) showCard(); // the tarot card pops up the moment a visitor picks him up (the owner's rule)
   }
   function moveHold(d: Hold, px: number, py: number) {
     const x = clamp(d.bx + (px - d.x0), d.minX, d.maxX), y = clamp(d.by + (py - d.y0), d.minY, 0), now = performance.now(), dt = Math.max(1, now - d.lt);
     d.vx = d.vx * 0.6 + ((x - d.cx) / dt) * 1000 * 0.4; d.vy = d.vy * 0.6 + ((y - d.cy) / dt) * 1000 * 0.4; d.cx = x; d.cy = y; d.lt = now;
     G.set(wrap, { x, y }); d.qr?.(clamp(-d.vx * 0.025, -35, 35));
+    if (tcBig) hoverCard(px, py);
   }
   function fall(b: Hold, vx: number, vy: number) {
     held = false; busy = true; setLive();
@@ -670,17 +675,17 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: M
   });
   on(wrap, "pointermove", (e: PointerEvent) => {
     if (!drag || drag.id !== e.pointerId) return;
-    if (!drag.started) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 7) return; if (!cfg.fun.throw || still) return; startHold(drag); }
+    if (!drag.started) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 7) return; if ((!cfg.fun.throw && !canCard()) || still) return; startHold(drag); }
     moveHold(drag, e.clientX, e.clientY);
   });
   on(wrap, "pointerup", (e: PointerEvent) => {
     if (CV.on) { drag = null; return; } if (!drag || drag.id !== e.pointerId) return; const d = drag; drag = null;
     const vx = clamp(d.vx, -2600, 2600), vy = clamp(d.vy, -2600, 2600);
     if (!d.started) onTap();
-    else if (cfg.bye.on && cfg.bye.fling && !gone && Math.hypot(vx, vy) > 1500) flingOff(vx, vy); // thrown hard: off the screen, and that's bye
-    else fall(d, vx, vy);
+    else if (tcBig && cardHit(e.clientX, e.clientY, vx, vy)) void lockIn(); // dropped on the tarot card, or thrown at it
+    else { hideCard(); fall(d, cfg.fun.throw ? vx : 0, cfg.fun.throw ? vy : 0); }
   });
-  on(wrap, "pointercancel", () => { if (drag?.started) fall(drag, 0, 0); drag = null; });
+  on(wrap, "pointercancel", () => { hideCard(); if (drag?.started) fall(drag, 0, 0); drag = null; });
   function throwDemo() {
     if (!visible() || away || held || still || CV.on) return; const d = newHold(); startHold(d);
     const L = layer.getBoundingClientRect(), dir = isRight ? -1 : 1, tx = clamp(dir * Math.min(220, L.width * 0.35), d.minX, d.maxX), ty = Math.max(d.minY, -L.height * 0.5);
@@ -873,14 +878,109 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: M
     }
     if (!alive) return;
     gone = true; byeing = false; rig.hush(); wrap.style.visibility = "hidden"; home.style.display = "none";
-    if (opts.onGone) opts.onGone(); else window.setTimeout(() => void arrive(""), 1500); // nobody to hand over to: he comes straight back
+    if (opts.onGone) opts.onGone(""); else window.setTimeout(() => void arrive(""), 1500); // nobody to hand over to: he comes straight back
   }
-  /** thrown hard: he flies on off the screen, and that's bye */
-  function flingOff(vx: number, vy: number) {
-    held = false; byeing = false; hideTab(); rig.say(vary(["Wheeee! Bye! 👋", "Byeee! 👋", "Whoaaa! See you! 👋"]), 1200); SND.whoosh(0.9);
-    const L = layer.getBoundingClientRect(), n = Math.hypot(vx, vy) || 1, dist = Math.hypot(L.width, L.height) * 1.2;
-    away = true; busy = true; setLive(); G.killTweensOf(wrap);
-    G.to(wrap, { x: `+=${(vx / n) * dist}`, y: `+=${(vy / n) * dist}`, rotation: `+=${vx >= 0 ? 720 : -720}`, duration: 0.9, ease: "power1.out", onComplete: () => void sayBye(undefined, true) });
+  /* ---------- locked in a tarot card (2026-11-28, the owner's pick; it replaced throwing him off the screen) ----------
+     The moment a visitor picks him up, a tarot card flies in and flips face up ("Drop him here"). Dropped on it, or thrown at it, he
+     spirals into its window in a burst of stars and appears inside with his hands on the glass and his line; a shine sweeps across, a
+     wax seal stamps on, and the card glides into his corner at exactly the mini card's size and tilt (miniCardBox), where Mascot.tsx
+     swaps it for the mini card in the same moment (`onGone("card")`). Dropped anywhere else, the card flips away and he falls as before. */
+  let tcBig: HTMLElement | null = null, tcOver = false;
+  const canCard = () => cfg.bye.on && cfg.bye.tarot && !preview && !gone && !byeing && visible() && !CV.on;
+  const q = (el: Element, s: string) => el.querySelector(s) as HTMLElement;
+  /** stars bursting from a point of the layer (capped like everything he spawns) */
+  function burstAt(x: number, y: number, chars: string[], n: number, spread = 110) {
+    for (let i = 0; i < n; i++) {
+      if (layer.querySelectorAll(".mz-p").length > 34) return;
+      const sp = mk("span", "mz-p mz-tc-spark", chars[i % chars.length]); sp.style.left = x + "px"; sp.style.top = y + "px"; layer.appendChild(sp);
+      const a = (Math.PI * 2 * i) / n + Math.random() * 0.5, d = spread * (0.5 + Math.random() * 0.6);
+      G.fromTo(sp, { xPercent: -50, yPercent: -50, scale: 0.3, opacity: 1 }, { x: Math.cos(a) * d, y: Math.sin(a) * d, scale: 1 + Math.random() * 0.5, rotation: Math.random() * 180, opacity: 0, duration: 0.8 + Math.random() * 0.4, ease: "power2.out", onComplete: () => sp.remove() });
+    }
+  }
+  const inLayer = (el: Element) => { const L = layer.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - L.left + r.width / 2, y: r.top - L.top + r.height / 2, w: r.width, h: r.height, L }; };
+  function showCard() {
+    if (tcBig) return;
+    const c = mk("div", "mz-tc big", cardHtml(cfg, "tc" + Math.random().toString(36).slice(2, 7), { locked: false, hint: true }));
+    layer.appendChild(c); tcBig = c; tcOver = false; SND.ting();
+    const inn = q(c, ".mz-tc-in"), glow = q(c, ".mz-tc-glow"), hint = q(c, ".mz-tc-hint");
+    if (still) { G.set(hint, { opacity: 1 }); return; }
+    G.set(inn, { rotationY: 180 });
+    G.timeline()
+      .fromTo(c, { y: innerHeight * 0.6, rotation: -25, scale: 0.6 }, { y: 0, rotation: 0, scale: 1, duration: 0.42, ease: "back.out(1.6)" })
+      .to(inn, { rotationY: 0, duration: 0.42, ease: "power2.inOut" }, "-=0.12")
+      .call(() => { if (tcBig !== c) return; const w = inLayer(q(c, ".mz-tc-win")); burstAt(w.x, w.y, ["✦", "✧", "⋆"], 8, 70); })
+      .to(hint, { opacity: 1, y: -4, duration: 0.25 });
+    G.to(glow, { opacity: 1, scale: 1.12, duration: 0.7, yoyo: true, repeat: -1, ease: "sine.inOut" });
+  }
+  function hideCard() {
+    const c = tcBig; if (!c) return; tcBig = null;
+    G.killTweensOf(q(c, ".mz-tc-glow"));
+    if (still) { c.remove(); return; }
+    G.timeline({ onComplete: () => c.remove() })
+      .to(q(c, ".mz-tc-in"), { rotationY: 180, duration: 0.3, ease: "power2.in" })
+      .to(c, { y: innerHeight * 0.6, rotation: 20, scale: 0.6, duration: 0.35, ease: "power2.in" }, "-=0.08");
+  }
+  function overCard(x: number, y: number, pad = 28) { if (!tcBig) return false; const r = tcBig.getBoundingClientRect(); return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad; }
+  function hoverCard(x: number, y: number) { const on = overCard(x, y); if (on === tcOver || !tcBig) return; tcOver = on; G.to(tcBig, { scale: on ? 1.08 : 1, duration: 0.2 }); }
+  /** let go over the card, or thrown toward it fast enough */
+  function cardHit(x: number, y: number, vx: number, vy: number) {
+    if (!tcBig) return false;
+    if (overCard(x, y)) return true;
+    const sp = Math.hypot(vx, vy); if (sp < 600) return false;
+    const r = tcBig.getBoundingClientRect(), tx = r.left + r.width / 2 - x, ty = r.top + r.height / 2 - y;
+    return (vx * tx + vy * ty) / (sp * (Math.hypot(tx, ty) || 1)) > 0.82;
+  }
+  function cardSay(c: HTMLElement, text: string, ms: number) {
+    const p = inLayer(c), b = mk("div", "mz-tc-say"); b.textContent = text;
+    b.style.left = p.x + "px"; b.style.top = p.y - p.h / 2 - 10 + "px"; layer.appendChild(b);
+    G.fromTo(b, { xPercent: -50, yPercent: -100, scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2.4)" });
+    G.to(b, { opacity: 0, y: -10, duration: 0.3, delay: ms / 1000, onComplete: () => b.remove() });
+  }
+  async function lockIn() {
+    const c = tcBig; if (!c || gone || byeing) return; tcBig = null;
+    held = false; byeing = true; away = true; busy = true; setLive(); hideTab(); hideInvite(true); leanBack?.kill(); leanBack = null; stopSleep(rig);
+    G.killTweensOf(wrap); G.killTweensOf(c);
+    const win = q(c, ".mz-tc-win"), him = q(c, ".mz-tc-him"), seal = q(c, ".mz-tc-seal"), shine = q(c, ".mz-tc-shine"), glow = q(c, ".mz-tc-glow");
+    G.killTweensOf(glow); G.to(q(c, ".mz-tc-hint"), { opacity: 0, duration: 0.2 }); G.to(c, { scale: 1, duration: 0.2 });
+    rig.hush(); rig.face("open", "open");
+    const w = inLayer(win), L = w.L, W = wrap.getBoundingClientRect();
+    // he's held by a point near the top of his box (transformOrigin 50% 6%), which stays still while he shrinks: aim it so his middle lands in the window
+    const s = 0.18, ox = W.left - L.left + W.width / 2, oy = W.top - L.top + W.height * 0.06, cy = W.top - L.top + W.height / 2;
+    const gx = Number(G.getProperty(wrap, "x")), gy = Number(G.getProperty(wrap, "y"));
+    SND.whoosh(0.7);
+    await new Promise<void>((res) => {
+      G.timeline({ onComplete: res })
+        .to(wrap, { x: gx + (w.x - ox), y: gy + (w.y - oy - (cy - oy) * s), scale: s, rotation: 720, duration: still ? 0.01 : 0.6, ease: "power2.in" }) // whole turns, so he ends upright in the middle
+        .to(wrap, { opacity: 0, duration: 0.12 }, "-=0.12")
+        .call(() => { burstAt(w.x, w.y, ["✦", "✧", "★", "⋆"], 14, 130); SND.pop(); G.fromTo(glow, { opacity: 1, scale: 1.6 }, { opacity: 0.45, scale: 1, duration: 0.6 }); })
+        .fromTo(him, { opacity: 0, scale: 0.2, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: still ? 0.01 : 0.5, ease: "back.out(2)" })
+        .to(q(him, ".mz-tc-hl"), { y: -5, duration: 0.09, yoyo: true, repeat: 5 }, "-=0.1")
+        .to(q(him, ".mz-tc-hr"), { y: -5, duration: 0.09, yoyo: true, repeat: 5 }, "<0.05")
+        .to(c, { x: 3, duration: 0.05, yoyo: true, repeat: 7 }, "<")
+        .call(() => cardSay(c, vary(cfg.bye.lockedLine) || "Let me out! 😱", 1500))
+        .fromTo(shine, { x: 0, xPercent: -130 }, { x: 0, xPercent: 130, duration: 0.7, ease: "power1.inOut" }, "+=0.2") // x: 0, or GSAP would add the CSS resting place to its own
+        .fromTo(seal, { opacity: 0, scale: 2.6, rotation: -40 }, { opacity: 1, scale: 1, rotation: -10, duration: 0.45, ease: "back.out(3)" }, "-=0.3")
+        .call(() => SND.thud())
+        .to(c, { y: "+=4", duration: 0.06, yoyo: true, repeat: 1 })
+        .to({}, { duration: 0.9 });
+    });
+    if (!alive) return;
+    // into his corner at exactly the mini card's size and tilt
+    const box = miniCardBox(cfg, isRight, L.width, L.height), cr = inLayer(c), k = (box.cw / cr.w) * Number(G.getProperty(c, "scale"));
+    await new Promise<void>((res) => { G.to(c, { x: `+=${box.cx - cr.x}`, y: `+=${box.cy - cr.y}`, scale: k, rotation: -6, duration: still ? 0.01 : 0.85, ease: "power3.inOut", onComplete: res }); });
+    if (!alive) return;
+    gone = true; byeing = false; rig.hush(); wrap.style.visibility = "hidden"; home.style.display = "none"; G.set(wrap, { opacity: 1, scale: 1, rotation: 0, transformOrigin: "50% 100%" });
+    if (opts.onGone) opts.onGone("card"); else { c.remove(); window.setTimeout(() => void arrive("card"), 1500); }
+  }
+  /** the Mascot page's ▶ Test: an invisible hand picks him up, the card comes, and he's dropped in */
+  function lockDemo() {
+    if (!visible() || away || held || still || CV.on || gone || byeing || !cfg.bye.on) return;
+    const d = newHold(); startHold(d); showCard();
+    window.setTimeout(() => {
+      const c = tcBig; if (!c || !held) return;
+      const w = inLayer(q(c, ".mz-tc-win")), W = inLayer(wrap);
+      G.to(wrap, { x: `+=${(w.x - W.x) * 0.8}`, y: `+=${(w.y - W.y) * 0.8}`, rotation: 12, duration: 0.7, ease: "power2.inOut", onComplete: () => void lockIn() });
+    }, 1000);
   }
   const ENTER_KEYS = ["parachute", "popup", "jump", "sparkle"];
   const ENTERS: Record<string, () => Promise<void>> = {
@@ -906,6 +1006,16 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: M
       G.fromTo(wrap, { scale: 0, rotation: -220 }, { scale: 1, rotation: 0, duration: 0.7, ease: "back.out(1.8)", onComplete: () => { G.set(wrap, { transformOrigin: "50% 100%" }); res(); } });
     }),
     fade: () => new Promise<void>((res) => { G.fromTo(wrap, { opacity: 0 }, { opacity: 1, duration: 0.3, onComplete: res }); }),
+    /** out of the mini tarot card, which has just burst open in his corner */
+    card: () => new Promise<void>((res) => {
+      G.set(wrap, { x: 0, y: 0, yPercent: 0, opacity: 1, transformOrigin: "50% 60%" });
+      const b = inLayer(wrap), s = rig.s; burstAt(b.x, b.y + b.h * 0.1, ["✦", "✧", "★", "⋆"], 12, 120); SND.pop();
+      rig.run((t) => { t.to(s, { lx: 70, ly: 96, rx: 170, ry: 96, duration: 0.2 }); });
+      G.timeline({ onComplete: () => { G.set(wrap, { transformOrigin: "50% 100%" }); SND.boing(); res(); } })
+        .fromTo(wrap, { scale: 0.25 }, { scale: 1, duration: 0.6, ease: "back.out(1.8)" }, 0)
+        .fromTo(wrap, { y: 0 }, { y: -b.h * 0.5, duration: 0.32, ease: "power2.out" }, 0)
+        .to(wrap, { y: 0, duration: 0.4, ease: "bounce.out" }, 0.32);
+    }),
   };
   /** he comes back after a visitor said hi: an entrance, then a wave and the hi line */
   async function arrive(k: string) {
@@ -1056,6 +1166,7 @@ export function startMascot(layer: HTMLElement, view: MascotView, g: GS, opts: M
     },
     ask(k) { openScene(k); },
     sayBye(k) { void sayBye(k); },
+    lockDemo,
     /** the dashboard's "try a special day": dresses him as he would be on that day ("normal" undoes it until the next change) */
     /** the dashboard's "play one now": a random show, even if shows are off */
     show() { putOnShow(); },
