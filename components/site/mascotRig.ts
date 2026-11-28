@@ -278,6 +278,10 @@ export class Rig {
     this.s = { ...REST, ...CLEAR, lookX: 0, lookY: 0, blink: 1, breath: 0, plX: 0, plY: 0, plR: 0, plO: 0, bx: 0, by: 0, br: 0, ck: 0, nod: 0, bob: 0 };
     this.qx = G.quickTo(this.s, "lookX", { duration: 0.45, ease: "power3" }); this.qy = G.quickTo(this.s, "lookY", { duration: 0.45, ease: "power3" });
     this.bub = document.createElement("div"); this.bub.className = "mz-bub"; this.bub.setAttribute("aria-live", "polite"); layer.appendChild(this.bub);
+    // GSAP reads an element's transform once and folds a CSS `translate` it finds into its own x/y, clearing `translate`. Reading
+    // it here, before moveBub ever sets `translate`, keeps the pop (transform) and the bubble's place (translate) apart; otherwise
+    // the first word's place was counted twice and the bubble sat a screen-width off to the right (2026-11-26 to 28).
+    G.set(this.bub, { x: 0, y: 0 });
     this.face("grin", "open"); this.setProp(null); this.setHat(null); this.setLook(cfg); this.setMirror(!!opts.mirror);
     this.render = this.render.bind(this); G.ticker.add(this.render);
     this.calm(this.still);

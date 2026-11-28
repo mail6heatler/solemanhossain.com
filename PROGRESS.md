@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Mini Shourobh's speech bubbles back on screen (2026-11-28, live, waiting for the owner's look)
+
+- Since the bubble started gliding (2026-11-26) it sat off the screen: GSAP's pop on the first word read the bubble's `translate` (its place, set just before by `placeBub(true)`), folded it into its own `x`/`y` and cleared `translate`; `moveBub` then set `translate` again, so the place counted twice (about 1,140px to the right for his right corner, off the layer). Fix: `G.set(bub, { x: 0, y: 0 })` when the bubble is made, so GSAP's cache exists before any `translate` and it never folds one in. Still saved for 2026-11-29: Connect's pinned cards and one equal card size for every section.
+
 ## Sticker buttons on G7 · Life (2026-11-28, kept: every section G1 to G7 done)
 
 - Every scrapbook page (diary, map scrap, habit tracker, photo pile) gets the sticker buttons and the strip; the punched holes end above them; comments on for G7 (following the owner's choice). Restore point: tag `before-g7-stickers`. Still saved for 2026-11-29: Connect's pinned cards and one equal card size for every section.
