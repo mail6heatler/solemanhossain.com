@@ -29,9 +29,11 @@ const v3 = (n: number) => String(Math.floor(n * 1000) / 1000);
 function put(q: Plan) {
   for (const el of q.shown) {
     if (q.k < 0.999) {
-      el.style.zoom = v3(q.z * q.k); el.style.setProperty("--fz", v3(q.z * q.k));
+      // the row's --fz is the product of the two zooms as written, or rounding leaves it a pixel or two short of the screen's edge
+      const outer = v3(q.z * q.k), back = v3(1 / q.k), row = String(Number(outer) * Number(back));
+      el.style.zoom = outer; el.style.setProperty("--fz", outer);
       for (const c of Array.from(el.children) as HTMLElement[]) if (!c.matches(".eyebrow, .chap-head")) {
-        c.dataset.fzk = ""; c.style.zoom = v3(1 / q.k); c.style.setProperty("--fz", v3(q.z));
+        c.dataset.fzk = ""; c.style.zoom = back; c.style.setProperty("--fz", row);
       }
     } else if (q.z < 0.999) { el.style.zoom = v3(q.z); el.style.setProperty("--fz", v3(q.z)); }
   }
