@@ -1,9 +1,9 @@
 /**
  * The news pop-up (2026-11-28, the owner's "go with all" on https://claude.ai/artifact/6ymLk9wQqJBvkj88CAxevP): after the launch screen has
  * opened onto the site, a pop-up brings a trend, a viral story or news, like an app's offer window. Stored in settings.popnews, cleaned on read
- * and save. The owner writes each story (`manual`, on by default) or switches on `auto`: the latest headlines of the chosen categories from
- * dozens of news sites, with their pictures, renewed every 30 minutes (lib/newsSources.ts); the two are exclusive, turning one on turns the
- * other off. Drawn by components/site/PopNews.tsx and popNewsShow.ts; the dashboard page is
+ * and save. The owner writes each story (`manual`, on by default) and/or switches on `auto`: the latest headlines of the chosen categories
+ * from dozens of news sites, with their pictures, renewed every 30 minutes (lib/newsSources.ts). Each has its own switch; with both on, the
+ * owner's stories come first and the headlines follow (2026-11-28; until then turning one on turned the other off). Drawn by components/site/PopNews.tsx and popNewsShow.ts; the dashboard page is
  * /admin/popnews (components/admin/PopnewsStudio.tsx).
  */
 import type { Media } from "./settings";
@@ -86,10 +86,10 @@ function feedsOf(r: Record<string, unknown>): PopFeed[] {
   return l.length ? l : [...DEFAULT_POPNEWS.feeds];
 }
 
-/** Anything stored or sent becomes complete, safe settings. Only one of `manual` and `auto` can be on (automatic wins if both arrive on). */
+/** Anything stored or sent becomes complete, safe settings. `manual` and `auto` can both be on. */
 export function cleanPopnews(raw: unknown): PopnewsSettings {
   const r = isObj(raw) ? raw : {}, D = DEFAULT_POPNEWS;
-  const auto = bool(r.auto, D.auto), manual = auto ? false : bool(r.manual, D.manual);
+  const auto = bool(r.auto, D.auto), manual = bool(r.manual, D.manual);
   const ids = new Set<string>();
   const stories = (Array.isArray(r.stories) ? r.stories : D.stories).filter(isObj).slice(0, POP_LIMITS.stories).map((s) => {
     let id = text(s.id, 12, "").replace(/[^a-z0-9]/gi, "") || Math.random().toString(36).slice(2, 8);

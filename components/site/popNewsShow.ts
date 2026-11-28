@@ -201,7 +201,7 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
     fitSb();
     if (!box || !m || !it.media) return;
     const url = it.media.url;
-    const ok = (w: number, h: number) => { const ar = fitShape(w, h); if (!ar) return; shape.set(url, ar); box.style.setProperty("--ar", ar.toFixed(3)); if (w < 360) m.classList.add("tiny"); fitSb(); };
+    const ok = (w: number, h: number) => { const ar = fitShape(w, h); if (!ar) return; shape.set(url, ar); box.style.setProperty("--ar", ar.toFixed(3)); m.classList.add("ok"); if (w < 360) m.classList.add("tiny"); fitSb(); };
     const bad = () => { broken.add(url); box.classList.remove("has-m"); box.innerHTML = emo(it); };
     if (m instanceof HTMLImageElement) {
       if (m.complete && m.naturalWidth) ok(m.naturalWidth, m.naturalHeight);

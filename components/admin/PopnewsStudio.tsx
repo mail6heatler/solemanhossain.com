@@ -103,7 +103,8 @@ export default function PopnewsStudio({ first, stats, useBlob, maxVideoMb }: { f
   const feedName = (k: string) => (POP_FEEDS.find(([x]) => x === k) || POP_FEEDS[0])[1];
   const sites = NEWS_SOURCES.filter((s) => d.feeds.includes(s.cat as never)), sitesOn = sites.filter((s) => !d.off.includes(s.id)).length;
   const pickFeed = (k: (typeof POP_FEEDS)[number][0]) => set({ feeds: d.feeds.includes(k) ? (d.feeds.length > 1 ? d.feeds.filter((x) => x !== k) : d.feeds) : POP_FEEDS.map(([x]) => x).filter((x) => x === k || d.feeds.includes(x)) });
-  const status = !d.on ? "Hidden on site" : d.auto ? `Showing automatic headlines: ${d.feeds.map(feedName).join(", ")}, from ${sitesOn} news sites` : d.manual ? `Showing your stories: ${live} on` : "Both sources are off, so nothing shows";
+  const autoNote = `automatic headlines (${d.feeds.map(feedName).join(", ")}, from ${sitesOn} news sites)`;
+  const status = !d.on ? "Hidden on site" : d.manual && d.auto ? `Showing your stories (${live} on), then ${autoNote}` : d.auto ? `Showing ${autoNote}` : d.manual ? `Showing your stories: ${live} on` : "Both sources are off, so nothing shows";
 
   return (
     <div className="stu cs">
@@ -129,9 +130,9 @@ export default function PopnewsStudio({ first, stats, useBlob, maxVideoMb }: { f
             </div>
 
             <Box title="Where the stories come from">
-              <Sw checked={d.manual} onChange={(v) => set(v ? { manual: true, auto: false } : { manual: false })}>✍️ Your own stories: you write each one, and visitors see exactly what you chose</Sw>
-              <Sw checked={d.auto} onChange={(v) => set(v ? { auto: true, manual: false } : { auto: false, manual: true })}>🤖 Automatic headlines: the newest stories from dozens of news sites, with their pictures, renewed every 30 minutes (turning this on turns your own stories off)</Sw>
-              {d.auto && <div className="hint">Your own stories are paused, not deleted: switch them back on any time. Each headline shows its site&apos;s name and picture and opens the full story on that site; you don&apos;t check them first.</div>}
+              <Sw checked={d.manual} onChange={(v) => set({ manual: v })}>✍️ Your own stories: you write each one, and visitors see exactly what you chose</Sw>
+              <Sw checked={d.auto} onChange={(v) => set({ auto: v })}>🤖 Automatic headlines: the newest stories from dozens of news sites, with their pictures, renewed every 30 minutes</Sw>
+              <div className="hint">{d.manual && d.auto ? "Both on: your stories come first, then the automatic headlines, all in the same pop-up." : !d.manual && !d.auto ? "Both off: nothing shows. Switch on one or both." : d.auto ? "Your own stories are off (still saved, not deleted). Switch them on too to show them before the headlines." : "Switch on automatic headlines too to add the latest news after your stories."}{d.auto ? " Each headline shows its site's name and picture and opens the full story on that site; you don't check them first." : ""}</div>
               {d.auto && (
                 <div className="mzs-sub">
                   <div className="fl"><label>Categories (one or more)</label>
@@ -151,7 +152,7 @@ export default function PopnewsStudio({ first, stats, useBlob, maxVideoMb }: { f
             </Box>
 
             <Box title={`Your stories (${d.stories.length})`}>
-              {!d.manual && <div className="hint">These are paused while {d.auto ? "automatic headlines are on" : "your own stories are off"}. You can still edit them and ▶ show one here.</div>}
+              {!d.manual && <div className="hint">These are paused while &ldquo;Your own stories&rdquo; is off. You can still edit them and ▶ show one here.</div>}
               {d.stories.map((s, i) => (
                 <StoryEditor key={s.id} s={s} i={i} n={d.stories.length} stats={stats[s.id]} useBlob={useBlob} maxVideoMb={maxVideoMb}
                   set={(p) => setStory(i, p)} move={(dir) => moveStory(i, dir)} remove={() => setD((x) => ({ ...x, stories: x.stories.filter((_, k) => k !== i) }))} show={() => show({ only: s.id })} />

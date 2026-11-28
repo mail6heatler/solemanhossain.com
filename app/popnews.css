@@ -27,7 +27,13 @@
 .pnw-art .pnw-m { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: contain; display: block; }
 .pnw-art .pnw-m.tiny { object-fit: scale-down; }
 .pnw-art .pnw-bk { position: absolute; inset: -10%; width: 120%; max-width: none; height: 120%; object-fit: cover; filter: blur(22px) saturate(1.25) brightness(.72); pointer-events: none; }
-.pnw-breaking .pnw-art.has-m::before, .pnw-gift .pnw-art.has-m::before, .pnw-paper .pnw-art.has-m::before { content: ""; justify-self: stretch; align-self: start; width: 100%; padding-top: calc(100% / var(--ar)); }
+.pnw-breaking .pnw-art.has-m::before, .pnw-gift .pnw-art.has-m::before, .pnw-paper .pnw-art.has-m::before { content: ""; justify-self: stretch; align-self: start; width: 100%; padding-top: calc((100% - var(--pm) * 2) / var(--ar) + var(--pm) * 2); }
+/* the photo edge (the owner's pick, option 2 of 3): the picture is a print laid on its blurred copy, with a white border and a soft shadow,
+   as big as fits inside the box less a margin of blur (`--pm`), its own shape kept by the browser (both sizes auto, both limits set);
+   a small picture stays its own size rather than blowing up */
+.pnw-art.has-m { --pm: 1.1em; }
+.pnw-art.has-m .pnw-m { inset: 0; margin: auto; width: auto; height: auto; max-width: calc(100% - var(--pm) * 2); max-height: calc(100% - var(--pm) * 2); border-radius: .25em; }
+.pnw-art.has-m .pnw-m.ok { background: #fff; box-shadow: 0 0 0 .35em #fff, 0 1em 2em -.2em rgba(0, 0, 0, .55), 0 .2em .5em rgba(0, 0, 0, .3); }
 html.lite .pnw-art .pnw-bk { display: none; }
 .pnw-emo { font-size: 6em; line-height: 1; filter: drop-shadow(0 .15em .25em rgba(0, 0, 0, .35)); }
 .pnw-tag { display: inline-flex; align-items: center; gap: .4em; padding: .35em .8em; border-radius: 99px; font: 800 1.05em/1 var(--body, system-ui), system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
@@ -71,7 +77,7 @@ html.lite .pnw-art .pnw-bk { display: none; }
 .pnw-story .pnw-art { position: absolute; inset: 0; }
 .pnw-story .pnw-art::after { content: ""; position: absolute; inset: 0; z-index: 2; background: linear-gradient(180deg, rgba(0, 0, 0, .4), transparent 26%, transparent 42%, rgba(0, 0, 0, .85)); }
 /* the picture sits whole between the story's top bar and its writing */
-.pnw-story .pnw-art.has-m .pnw-m { top: 4.6em; bottom: calc(var(--sbh, 18em) + 2em); height: auto; }
+.pnw-story .pnw-art.has-m .pnw-m { top: 4.6em; bottom: calc(var(--sbh, 18em) + 2em); max-height: calc(100% - 6.6em - var(--sbh, 18em) - var(--pm) * 2); }
 .pnw-story .pnw-art.has-m::after { background: linear-gradient(180deg, rgba(0, 0, 0, .45), transparent 5em), linear-gradient(0deg, rgba(0, 0, 0, .7), transparent calc(var(--sbh, 18em) + 2em)); }
 .pnw-bars { position: absolute; z-index: 3; top: .9em; left: .9em; right: .9em; display: flex; gap: .35em; }
 .pnw-bars b { position: relative; flex: 1; height: .32em; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, .35); }

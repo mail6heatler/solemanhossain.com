@@ -26,6 +26,10 @@ function autoItems(c: PopnewsSettings): Promise<PopItem[]> {
   }
   return p;
 }
+/** everything switched on: the owner's stories first, then the automatic headlines */
+async function allItems(c: PopnewsSettings, tz: string): Promise<PopItem[]> {
+  return [...(c.manual ? manualItems(c, tz) : []), ...(c.auto ? await autoItems(c) : [])];
+}
 const sig = (items: PopItem[]) => items.map((i) => `${i.id}:${i.title}`).join("|");
 
 /**
@@ -52,7 +56,7 @@ export default function PopNews({ cfg, timezone, onHome }: { cfg: PopnewsSetting
     };
     const open = async (c: PopnewsSettings, o: { only?: string; look?: string; items?: PopItem[] } = {}) => {
       close?.(); close = null;
-      const items = o.items ?? (o.only ? manualItems(c, timezone, o.only) : c.auto ? await autoItems(c) : c.manual ? manualItems(c, timezone) : []);
+      const items = o.items ?? (o.only ? manualItems(c, timezone, o.only) : await allItems(c, timezone));
       if (dead || !items.length) return false;
       const m = await import("./popNewsShow");
       if (dead) return false;
@@ -94,7 +98,7 @@ export default function PopNews({ cfg, timezone, onHome }: { cfg: PopnewsSetting
         try {
           if (c0.when === "visit" && sessionStorage.getItem("lc_pop")) return;
           if (c0.when === "day" && localStorage.getItem("lc_pop_d") === new Date().toDateString()) return;
-          if (c0.when === "new") { items = c0.auto ? await autoItems(c0) : manualItems(c0, timezone); if (!items.length || localStorage.getItem("lc_pop_v") === sig(items)) return; }
+          if (c0.when === "new") { items = await allItems(c0, timezone); if (!items.length || localStorage.getItem("lc_pop_v") === sig(items)) return; }
         } catch {}
       }
       const shown = await open(c0, { items });
