@@ -272,6 +272,8 @@ export type SiteSettings = {
   launch: LaunchSettings;
   /** The news pop-up after the launch screen (lib/popnews.ts; dashboard page /admin/popnews). */
   popnews: PopnewsSettings;
+  /** The dashboard's left menu in the owner's order: page addresses and "|" for a divider; empty is the usual order (components/admin/SideNav.tsx). */
+  adminNav: string[];
   /** The sticker buttons at the bottom of a card: React, Comment, Share, Open, and the LIVE strip (lib/cardBar.ts; dashboard page /admin/cardbar). */
   cardBar: CardBarSettings;
   /** Settings → backups, security, site status, visitors and tools (lib/ops.ts). */
@@ -332,6 +334,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   mascot: DEFAULT_MASCOT,
   launch: DEFAULT_LAUNCH,
   popnews: DEFAULT_POPNEWS,
+  adminNav: [],
   cardBar: DEFAULT_CARD_BAR,
   ops: DEFAULT_OPS,
   themePics: {},
@@ -364,6 +367,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     mascot: cleanMascot(obj.mascot),
     launch: cleanLaunch(obj.launch),
     popnews: cleanPopnews(obj.popnews),
+    adminNav: cleanAdminNav(obj.adminNav),
     cardBar: cleanCardBar(obj.cardBar),
     ops: cleanOps(obj.ops),
   };
@@ -488,3 +492,8 @@ const LAYOUT_ICONS: Record<string, string> = {
   notes: "user", cards: "tool", strip: "map-2", list: "book", stream: "bolt", timeline: "trending-up", awards: "trophy", photos: "camera", connect: "send", scrapbook: "notebook", chat: "message-circle",
 };
 export const layoutIcon = (l: string) => LAYOUT_ICONS[l] ?? "layout-grid";
+
+/** the dashboard menu's order (components/admin/SideNav.tsx): dashboard addresses and "|" dividers only */
+export function cleanAdminNav(v: unknown): string[] {
+  return (Array.isArray(v) ? v : []).filter((x): x is string => typeof x === "string" && (x === "|" || /^\/admin(\/[a-z0-9-]+)*$/i.test(x))).slice(0, 80);
+}

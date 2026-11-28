@@ -26,7 +26,29 @@
 /* shell */
 /* positioned, so that anything absolutely placed inside it is clipped here: otherwise it sticks out below and the whole document scrolls into white. clip, because a hidden box can still be scrolled */
 .adm-shell { position: relative; display: flex; height: 100vh; overflow: clip; }
-.adm-side { width: 214px; flex-shrink: 0; background: var(--side-bg); padding: 16px 10px; display: flex; flex-direction: column; height: 100%; }
+.adm-side { position: relative; width: var(--side-w, 214px); flex-shrink: 0; background: var(--side-bg); padding: calc(16px * var(--side-z, 1)) calc(10px * var(--side-z, 1)); display: flex; flex-direction: column; height: 100%; }
+/* the owner's width (components/admin/SideNav.tsx, SideSizer): everything in the menu grows or shrinks with it */
+.adm-side > .adm-logo, .adm-side > .adm-nav, .adm-side > .adm-owner { zoom: var(--side-z, 1); }
+.adm-sizer { position: absolute; z-index: 30; top: 0; bottom: 0; right: -7px; width: 14px; cursor: ew-resize; touch-action: none; display: grid; place-items: center; outline: none; }
+.adm-sizer::before { content: ""; position: absolute; top: 0; bottom: 0; left: 6px; width: 2px; border-radius: 2px; background: var(--mint); opacity: 0; transition: opacity .15s; }
+.adm-sizer-knob { position: relative; width: 22px; height: 38px; display: grid; place-items: center; border-radius: 99px; background: var(--mint); color: #10221a; box-shadow: 0 4px 14px rgba(0, 0, 0, .3); opacity: 0; transform: scale(.7); transition: opacity .15s, transform .15s; }
+.adm-sizer:hover::before, .adm-sizer:focus-visible::before, html.adm-resizing .adm-sizer::before { opacity: .7; }
+.adm-sizer:hover .adm-sizer-knob, .adm-sizer:focus-visible .adm-sizer-knob, html.adm-resizing .adm-sizer-knob { opacity: 1; transform: none; }
+html.adm-resizing, html.adm-resizing * { cursor: ew-resize !important; user-select: none !important; }
+html.adm-resizing iframe, html.adm-sorting iframe { pointer-events: none; }
+/* dragging a link to another place in the menu */
+.adm-nav .adm-item { position: relative; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.adm-item .grip { position: absolute; right: 8px; top: 50%; margin-top: -7px; font-size: 13px !important; opacity: 0; transition: opacity .15s; cursor: grab; }
+.adm-item:hover .grip { opacity: .45; }
+.adm-nav.sorting .adm-item:hover .grip { opacity: 0; }
+.adm-item.lifted { opacity: .35; outline: 1.5px dashed currentColor; outline-offset: -2px; }
+.adm-ghost { position: fixed !important; z-index: 1000; left: 0; top: 0; margin: 0 !important; pointer-events: none; transform-origin: 0 0; background: var(--side-bg); color: #f5f2ee; box-shadow: 0 14px 30px rgba(0, 0, 0, .4), 0 0 0 1.5px var(--mint); opacity: .96; }
+.adm-ghost .grip { opacity: .8; }
+html.adm-sorting, html.adm-sorting * { cursor: grabbing !important; user-select: none !important; }
+.adm-navfoot { padding: 6px 4px 2px; }
+.adm-navreset { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: #8a8680; font: 600 11px/1.2 inherit; padding: 5px 8px; border-radius: 99px; cursor: pointer; }
+.adm-navreset:hover { background: rgba(255, 255, 255, .06); color: #e8e5e0; }
+.adm-navnote { display: block; padding: 5px 8px; font-size: 11px; color: var(--mint); }
 .adm-logo { display: flex; align-items: center; gap: 9px; padding: 4px 10px 16px; text-decoration: none; }
 .adm-logo .sq { width: 28px; height: 28px; border-radius: 8px; background: var(--mint); display: flex; align-items: center; justify-content: center; font-family: "Syne"; font-weight: 800; font-size: 12px; color: #1a1a1a; flex-shrink: 0; }
 .adm-logo b { font-family: "Syne"; font-size: 13.5px; color: #f5f2ee; display: block; }
@@ -237,6 +259,9 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 @media (max-width: 760px) {
   .adm-shell { flex-direction: column; height: auto; overflow: visible; }
   .adm-side { width: 100%; height: auto; padding: 12px 10px 8px; }
+  .adm-side > .adm-logo, .adm-side > .adm-nav, .adm-side > .adm-owner { zoom: 1; }
+  .adm-sizer, .adm-item .grip { display: none; }
+  .adm-navfoot { flex-shrink: 0; align-self: center; padding: 0; }
   .adm-logo { padding-bottom: 10px; }
   .adm-nav { display: flex; overflow-x: auto; gap: 4px; padding-bottom: 4px; flex: none; }
   .adm-nav .adm-item { flex-shrink: 0; margin: 0; }

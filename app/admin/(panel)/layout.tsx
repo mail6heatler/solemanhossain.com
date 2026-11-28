@@ -14,9 +14,9 @@ import { housekeeping } from "@/lib/opsServer";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin", robots: { index: false } };
 
-/** The dashboard's theme (adminThemes.css), put on <html> before anything paints, so pages never flash the old colours.
+/** The dashboard's theme (adminThemes.css), and the left menu's width the owner dragged (SideNav.tsx's SideSizer), put on <html> before anything paints, so pages never flash the old colours or jump.
  *  Nothing chosen yet: Glass Aurora (the owner's pick, 2026-11-26). Shell.tsx's palette button changes it. */
-const LOOK_SCRIPT = `(function(){var h=document.documentElement,t="aurora",v=0;try{var s=JSON.parse(localStorage.getItem("lc_admin_look")||"null");if(s&&/^(light|dark|aurora|bento)$/.test(s.t)){t=s.t;v=+s.v||0}}catch(e){}h.setAttribute("data-adm",t);h.setAttribute("data-adm-v",String(v))})()`;
+const LOOK_SCRIPT = `(function(){var h=document.documentElement,t="aurora",v=0;try{var s=JSON.parse(localStorage.getItem("lc_admin_look")||"null");if(s&&/^(light|dark|aurora|bento)$/.test(s.t)){t=s.t;v=+s.v||0}}catch(e){}h.setAttribute("data-adm",t);h.setAttribute("data-adm-v",String(v));try{var w=+localStorage.getItem("lc_admin_side");if(w>=170&&w<=400){h.style.setProperty("--side-w",w+"px");h.style.setProperty("--side-z",(w/214).toFixed(4))}}catch(e){}})()`;
 
 function ago(iso: string) {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
@@ -48,6 +48,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       unread={unread + reactions.fresh + talks.fresh}
       notifs={notifs}
       owner={{ name: settings.fullName, initials: settings.initials, avatar: settings.avatarUrl }}
+      navOrder={settings.adminNav}
     >
       {children}
       <Suspense><Toast /></Suspense>

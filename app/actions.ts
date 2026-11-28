@@ -31,7 +31,7 @@ import {
   checkCurrentPassword, checkLogin, checkTicket, createSession, currentSid, destroySession, hashPassword, isAdmin, makeTicket, requireAdmin,
 } from "@/lib/auth";
 import { cleanStyle } from "@/lib/contentStyle";
-import { BANNER_KINDS, cleanRibbonSize, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
+import { BANNER_KINDS, cleanAdminNav, cleanRibbonSize, EFFECTS, FAN_THEME_KEYS, isSafeUrl, LAYOUTS, MOODS, parseLinks, parseMedia, SELECTABLE, type BannerKind, type Effects, type Skin, type SiteSettings, type Social } from "@/lib/settings";
 
 // ---------- helpers ----------
 const str = (fd: FormData, k: string, max = 20000) => String(fd.get(k) ?? "").trim().slice(0, max);
@@ -310,6 +310,15 @@ export async function savePopnews(raw: unknown): Promise<{ ok: true } | { ok: fa
     refresh();
     return { ok: true };
   } catch (e) { console.error("savePopnews", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
+/** The dashboard's left menu in the owner's order (components/admin/SideNav.tsx); only the dashboard shows it, so nothing public is rebuilt. */
+export async function saveAdminNav(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    await saveSettingsData({ adminNav: cleanAdminNav(raw) }, "Menu order kept");
+    return { ok: true };
+  } catch (e) { console.error("saveAdminNav", e); return { ok: false, error: "That didn't keep." }; }
 }
 
 /**

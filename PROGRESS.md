@@ -18,7 +18,11 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
-## Pop-up news: the photo edge, and both sources at once (2026-11-28, live, waiting for the owner's look)
+## The dashboard's left menu: dragged into any order, made wider or narrower (2026-11-28, live, waiting for the owner's look)
+
+- Hanging banner is back in the bottom group. Any link can be dragged anywhere in the menu (kept for every device; "Usual order" undoes it), and the menu's right edge drags it wider or narrower, its words, icons and logo growing with it. See "The left menu, arranged and sized by the owner" in CLAUDE.md. Restore point: tag `before-admin-menu`.
+
+## Pop-up news: the photo edge, and both sources at once (2026-11-28, live)
 
 - Every picture is now a print with a white border and a soft shadow, laid on its blurred copy (the owner's option 2). "Your own stories" and "Automatic headlines" no longer switch each other off: with both on, the owner's stories come first, then the headlines. Restore point: tag `before-popnews-both`.
 

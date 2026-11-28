@@ -2,6 +2,7 @@
 import { messageAction } from "@/app/actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import SideNav, { DIV, SideSizer, type NavLink } from "./SideNav";
 
 /* the dashboard's themes (app/adminThemes.css): Classic light or dark, Glass Aurora and Bento Bold, each with colour sets */
 type LookT = "light" | "dark" | "aurora" | "bento";
@@ -20,8 +21,8 @@ type NavSection = { id: number; code: string; title: string; nav_label: string; 
 type Notif = { key: string; name: string; body: string; when: string; href: string; icon: string };
 
 
-export default function Shell({ sections, unread, notifs, owner, children }: {
-  sections: NavSection[]; unread: number; notifs: Notif[];
+export default function Shell({ sections, unread, notifs, owner, navOrder, children }: {
+  sections: NavSection[]; unread: number; notifs: Notif[]; navOrder: string[];
   owner: { name: string; initials: string; avatar: string }; children: React.ReactNode;
 }) {
   const path = usePathname();
@@ -77,7 +78,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     return () => mo.disconnect();
   }, []);
 
-  const links = useMemo(() => [
+  const links = useMemo((): NavLink[] => [
     { href: "/admin", label: "Overview", icon: "layout-dashboard" },
     { href: "/admin/menu", label: "Menu bar", icon: "layout-navbar" },
     { href: "/admin/hero", label: "G0 · Hero", icon: "home" },
@@ -95,6 +96,11 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     { href: "/admin/settings", label: "Settings", icon: "settings" },
   ], [sections, unread]);
 
+  // the menu's usual order, in three groups (the owner can drag any link anywhere: SideNav.tsx); Settings stays last, shown there on phones only
+  const def = useMemo(() => {
+    const k = links.slice(0, -1).map((l) => l.href), at = (h: string) => k.indexOf(h);
+    return [...k.slice(0, 1), DIV, ...k.slice(1, at("/admin/inbox") + 1), DIV, ...k.slice(at("/admin/inbox") + 1)];
+  }, [links]);
   const isOn = (href: string) => (href === "/admin" ? path === "/admin" : path === href || path.startsWith(href + "/"));
   const current = links.find((l) => isOn(l.href)) ?? (path.startsWith("/admin/items") ? { label: "Editing entry" } : { label: "Overview" });
   const results = q.trim() ? links.filter((l) => l.label.toLowerCase().includes(q.trim().toLowerCase())) : [];
@@ -129,14 +135,8 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
             <span className="sq">{owner.initials.slice(0, 1) || "✦"}</span>
             <span><b>{owner.name.split(" ")[0] || "My"} admin</b><small>{sections.length} sections</small></span>
           </a>
-          <nav className="adm-nav">
-            {links.slice(0, 1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
-            <div className="adm-divider" />
-            {links.slice(1, -8).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
-            <div className="adm-divider" />
-            {links.slice(-8, -1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}
-            <span className="mobile-only-settings">{links.slice(-1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}</span>
-          </nav>
+          <SideNav links={links} def={def} saved={navOrder} isOn={isOn}
+            tail={<span className="mobile-only-settings">{links.slice(-1).map((l) => <A key={l.href} l={l} on={isOn(l.href)} />)}</span>} />
           <div className="adm-owner">
             <a href="/admin/settings" className={isOn("/admin/settings") ? "on" : ""}>
               <span className="av">{owner.avatar ? <img src={owner.avatar} alt="" /> : owner.initials}</span>
@@ -144,6 +144,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
               <i className="ti ti-settings" />
             </a>
           </div>
+          <SideSizer />
         </aside>
 
         <div className="adm-main">
