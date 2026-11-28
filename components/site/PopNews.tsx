@@ -57,7 +57,7 @@ export default function PopNews({ cfg, timezone, onHome }: { cfg: PopnewsSetting
       const m = await import("./popNewsShow");
       if (dead) return false;
       close = await m.showPop(layer, items, {
-        look: o.look || c.look, where: c.where, paperName: c.paperName, studio,
+        look: o.look || c.look, where: c.where, paperName: c.paperName, studio, slide: o.only ? 0 : c.slide,
         onView: (id) => count(id, "view"), onClick: (id) => count(id, "click"),
         onHush: () => { try { localStorage.setItem("lc_pop_hush", new Date().toDateString()); } catch {} },
         onClose: () => { close = null; },

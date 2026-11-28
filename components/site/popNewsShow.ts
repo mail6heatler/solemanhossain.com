@@ -1,22 +1,27 @@
 /**
  * The news pop-up's looks and motion (lib/popnews.ts; PopNews.tsx decides when). Downloaded only when a pop-up is about to show, with GSAP.
  * Four looks, each building its card and playing its own arrival: Breaking news (a red bar slams in, a LIVE dot pulses, the headline types
- * itself, a ticker runs), Story card (a phone story with progress bars that move on by themselves), Gift box (a box drops in, its lid pops
- * with confetti and the card rises out) and Newspaper (a paper spins in like an old movie and EXTRA! stamps on). Several stories go by
- * with ‹ › (or tapping a story card's sides, or the arrow keys); ✕, Esc, a tap outside and "Don't show again today" close it.
+ * itself, a ticker runs), Story card (a phone story with progress bars), Gift box (a box drops in, its lid pops with confetti and the card
+ * rises out) and Newspaper (a paper spins in like an old movie and EXTRA! stamps on). Several stories slide on by themselves every
+ * `slide` seconds, round and round, a line along the card's top (a story card's bars) filling meanwhile; the slider stops while the mouse
+ * is on the pop-up or a finger is on it (and 4 s after), and ‹ › (or tapping a story card's sides, or the arrow keys) still go by hand.
+ * ✕, Esc, a tap outside and "Don't show again today" close it.
  * Everything that moves is transform or opacity; with reduced motion it simply appears. Classes start with `pnw-`.
  * A picture is never cut, on any screen: it's shown whole (`contain`) over a soft, blurred copy of itself that fills the rest, and its box
  * takes the picture's own shape (`--ar`, measured before the pop-up opens) within limits that keep the card on the screen. A news site's
  * picture is asked for without saying where from (`no-referrer`, as some sites refuse pictures shown elsewhere), and one that doesn't load
  * gives way to the story's emoji on its colour.
  */
+import type { gsap as Gsap } from "gsap";
 import type { PopItem } from "@/lib/popnews";
 
 export type ShowOpts = {
   look: string; where: "middle" | "corner"; paperName: string; studio?: boolean;
+  /** seconds before the next story slides in by itself; 0 for never */
+  slide: number;
   onView(id: string): void; onClick(id: string): void; onHush(): void; onClose(): void;
 };
-type Look = { build(it: PopItem, i: number, n: number, all: PopItem[]): string; enter(el: HTMLElement, it: PopItem, i: number, again: boolean): { progress(p: number): unknown } };
+type Look = { build(it: PopItem, i: number, n: number, all: PopItem[]): string; enter(el: HTMLElement, it: PopItem, i: number, again: boolean): ReturnType<typeof Gsap.timeline> };
 
 const LOOKS = ["breaking", "story", "gift", "paper"];
 const esc = (t: string) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
@@ -71,6 +76,9 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
   layer.className = `pnw-layer on ${o.where}`;
   const dim = $(layer, ".pnw-dim"), hold = $(layer, ".pnw-hold"), hush = $(layer, ".pnw-hush");
   let cur: HTMLElement | null = null, idx = 0, closed = false;
+  // the slider: on with several stories, a number of seconds, and motion allowed; `held` while the mouse or a finger is on the pop-up
+  const sliding = items.length > 1 && o.slide > 0 && !calm, clock = sliding ? '<i class="pnw-prog" aria-hidden="true"></i>' : "";
+  let auto: ReturnType<typeof g.to> | null = null, held = false, letGo = 0;
   const seen = new Set<string>();
 
   /** a typed headline: one text node grows letter by letter, a caret blinks after it */
@@ -95,7 +103,7 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
 
   const L: Record<string, Look> = {
     breaking: {
-      build: (it, i, n, all) => `<div class="pnw-pp pnw-breaking" role="dialog" aria-modal="${o.where === "middle"}" aria-label="${esc(it.title)}">${x}${art(it)}
+      build: (it, i, n, all) => `<div class="pnw-pp pnw-breaking" role="dialog" aria-modal="${o.where === "middle"}" aria-label="${esc(it.title)}">${x}${clock}${art(it)}
         <div class="pnw-bar"><span class="pnw-word">BREAKING</span><span class="pnw-live"><i></i>LIVE</span></div>
         <div class="pnw-body">${it.tag ? `<span class="pnw-tag">${esc(it.tag)}</span>` : ""}<h3 class="pnw-h"></h3>${it.text ? `<p class="pnw-p">${esc(it.text)}</p>` : ""}
         <div class="pnw-foot">${src(it)}${go(it)}</div>${nav(n, i)}</div>
@@ -123,14 +131,11 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
         else tl.fromTo($(el, ".pnw-art"), { scale: 1.15, opacity: 0.4 }, { scale: 1, opacity: 1, duration: 0.5 });
         tl.fromTo(el.querySelectorAll(".pnw-sb > *"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, stagger: 0.07 }, "-=0.3");
         g.to($(el, ".pnw-fire"), { scale: 1.12, rotation: 4, duration: 0.45, yoyo: true, repeat: -1, ease: "sine.inOut" });
-        // this story's bar fills, then the next story comes by itself (the last one stays)
-        const bar = el.querySelectorAll<HTMLElement>(".pnw-bars b i")[i];
-        if (bar && !calm && items.length > 1) g.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 6.5, ease: "none", onComplete: () => { if (idx < items.length - 1) step(1); } });
         return tl;
       },
     },
     gift: {
-      build: (it, i, n) => `<div class="pnw-giftw"><div class="pnw-pp pnw-gift" role="dialog" aria-modal="${o.where === "middle"}" aria-label="${esc(it.title)}">${x}${art(it)}
+      build: (it, i, n) => `<div class="pnw-giftw"><div class="pnw-pp pnw-gift" role="dialog" aria-modal="${o.where === "middle"}" aria-label="${esc(it.title)}">${x}${clock}${art(it)}
         <div class="pnw-body">${it.tag ? `<span class="pnw-tag">${esc(it.tag)}</span>` : ""}<h3 class="pnw-h">${esc(it.title)}</h3>${it.text ? `<p class="pnw-p">${esc(it.text)}</p>` : ""}
         <div class="pnw-foot">${src(it)}${go(it)}</div>${nav(n, i)}</div></div></div>`,
       enter(el, _it, _i, again) {
@@ -153,7 +158,7 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
     paper: {
       build: (it, i, n) => {
         const d = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        return `<div class="pnw-pp pnw-paper" role="dialog" aria-modal="${o.where === "middle"}" aria-label="${esc(it.title)}">${x}
+        return `<div class="pnw-pp pnw-paper" role="dialog" aria-modal="${o.where === "middle"}" aria-label="${esc(it.title)}">${x}${clock}
           <div class="pnw-mast"><b>${esc(o.paperName)}</b><small>${esc(d)}<br>LATE EDITION</small></div>
           <div class="pnw-line"><span>${esc(it.tag || "News")}</span><span>No. ${i + 1}</span></div>
           <h3 class="pnw-h">${esc(it.title)}</h3>
@@ -179,6 +184,7 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
     wirePics(cur, it);
     const tl = lk.enter(cur, it, idx, again);
     if (calm) tl.progress(1);
+    if (sliding) { const el = cur; if (tl.progress() >= 1) tick(el); else tl.eventCallback("onComplete", () => tick(el)); }
     if (!seen.has(it.id + idx)) { seen.add(it.id + idx); o.onView(it.id); }
     cur.querySelectorAll(".pnw-x").forEach((b) => b.addEventListener("click", close));
     cur.querySelectorAll(".pnw-pv").forEach((b) => b.addEventListener("click", () => step(-1)));
@@ -206,8 +212,22 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
       else { m.addEventListener("loadedmetadata", () => ok(m.videoWidth, m.videoHeight), { once: true }); m.addEventListener("error", bad, { once: true }); }
     }
   }
+  /** the slider's clock for the card on screen: its line (a story card's own bar) fills over `slide` seconds, then the next story comes */
+  function tick(el: HTMLElement) {
+    if (closed || el !== cur) return;
+    auto?.kill();
+    const line = look === "story" ? el.querySelectorAll<HTMLElement>(".pnw-bars b i")[idx] : el.querySelector<HTMLElement>(".pnw-prog");
+    auto = g.fromTo(line || {}, { scaleX: 0 }, { scaleX: 1, duration: o.slide, ease: "none", onComplete: () => { auto = null; step(1); } });
+    if (held) auto.pause();
+  }
+  function holdSlider(on: boolean) {
+    if (held === on) return;
+    held = on; layer.classList.toggle("held", on);
+    if (on) auto?.pause(); else auto?.resume();
+  }
   function step(d: number) {
     if (!cur || items.length < 2 || closed) return;
+    auto?.kill(); auto = null;
     g.killTweensOf(cur.querySelectorAll("*"));
     if (look === "gift" || look === "paper" || calm) { draw(idx + d, true); return; }
     g.to(cur, { x: d > 0 ? -30 : 30, opacity: 0, duration: 0.18, onComplete: () => draw(idx + d, true) });
@@ -215,6 +235,7 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
   function close() {
     if (closed) return; closed = true;
     removeEventListener("keydown", key);
+    auto?.kill(); auto = null; clearTimeout(letGo);
     const el = cur; cur = null;
     if (el) g.killTweensOf(el.querySelectorAll("*"));
     g.to([dim, $(layer, ".pnw-after")], { opacity: 0, duration: 0.3 });
@@ -229,6 +250,16 @@ export async function showPop(layer: HTMLElement, items: PopItem[], o: ShowOpts)
   }
   addEventListener("keydown", key);
   dim.addEventListener("click", close);
+  if (sliding) {
+    // a mouse on the pop-up stops the slider until it leaves; a finger stops it, and it starts again 4 s after the finger lifts
+    const on = (e: PointerEvent) => !!(e.target as Element | null)?.closest?.(".pnw-hold > *");
+    hold.addEventListener("pointerover", (e) => { if (e.pointerType === "mouse" && on(e)) holdSlider(true); });
+    hold.addEventListener("pointerout", (e) => { if (e.pointerType === "mouse" && !(e.relatedTarget as Element | null)?.closest?.(".pnw-hold > *")) holdSlider(false); });
+    hold.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse" && on(e)) { clearTimeout(letGo); holdSlider(true); } });
+    const lift = (e: PointerEvent) => { if (e.pointerType !== "mouse" && held) { clearTimeout(letGo); letGo = window.setTimeout(() => holdSlider(false), 4000); } };
+    hold.addEventListener("pointerup", lift);
+    hold.addEventListener("pointercancel", lift);
+  }
   hush.addEventListener("click", () => { o.onHush(); close(); });
 
   if (o.where === "middle") g.fromTo(dim, { opacity: 0 }, { opacity: 1, duration: calm ? 0.01 : 0.4 });

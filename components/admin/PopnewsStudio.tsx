@@ -166,6 +166,8 @@ export default function PopnewsStudio({ first, stats, useBlob, maxVideoMb }: { f
               <Chips list={POP_LOOKS} value={d.look} onPick={(v) => set({ look: v })} />
               <div className="hint">{({ breaking: "A red BREAKING bar slams in, a LIVE dot pulses, the headline types itself and a ticker runs.", story: "A phone-style story with progress bars and a 🔥 badge; it moves on by itself, or tap its sides.", gift: "A box drops in and wobbles, the lid pops with confetti and the news rises out.", paper: "A newspaper spins in like an old movie and an EXTRA! stamp slams on.", random: "One of the four, picked at random each time it shows." } as Record<string, string>)[d.look]}</div>
               <div className="fl"><label>Where it sits</label><Chips list={POP_WHERE} value={d.where} onPick={(v) => set({ where: v })} /><div className="hint">{d.where === "middle" ? "In the middle, with the site dimmed a little behind it." : "Smaller, in the bottom-left corner, with nothing dimmed (Mini Shourobh keeps the other corner)."}</div></div>
+              <Range id="pop-slide" label="With several stories, the next slides in after" value={d.slide} lim={POP_LIMITS.slide} unit=" s" onChange={(v) => set({ slide: v })} />
+              <div className="hint">{d.slide ? "Round and round, with a thin line filling along the top. It stops while the mouse is on the pop-up (and for 4 seconds after a finger touches it on phones); ‹ › still work." : "Off: visitors go through the stories with ‹ › only."}</div>
               {(d.look === "paper" || d.look === "random") && <Txt id="pop-paper" label="The newspaper's name" value={d.paperName} max={40} onChange={(v) => set({ paperName: v })} />}
             </Box>
 

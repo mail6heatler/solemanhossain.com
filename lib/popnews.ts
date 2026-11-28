@@ -40,6 +40,8 @@ export type PopnewsSettings = {
   look: PopLook; where: "middle" | "corner"; when: "visit" | "day" | "new"; pages: "home" | "any"; phones: boolean;
   /** seconds after the site is ready (and the launch screen has opened) */
   wait: number;
+  /** seconds each story stays before the next slides in by itself (0: only by hand) */
+  slide: number;
   stories: PopStory[];
   /** the categories automatic headlines mix (at least one), the news sites switched off (lib/newsSources.ts ids) and how many headlines */
   feeds: PopFeed[]; off: string[]; count: number;
@@ -47,10 +49,10 @@ export type PopnewsSettings = {
   paperName: string;
 };
 
-export const POP_LIMITS = { wait: [1, 30], count: [1, 10], stories: 12 } as const;
+export const POP_LIMITS = { wait: [1, 30], slide: [0, 20], count: [1, 10], stories: 12 } as const;
 
 export const DEFAULT_POPNEWS: PopnewsSettings = {
-  on: true, manual: true, auto: false, look: "breaking", where: "middle", when: "visit", pages: "any", phones: true, wait: 3,
+  on: true, manual: true, auto: false, look: "breaking", where: "middle", when: "visit", pages: "any", phones: true, wait: 3, slide: 7,
   stories: [{
     id: "first", on: true, tag: "🔥 Trending", title: "New: lock Mini Shourobh in a tarot card",
     text: "Pick him up and a tarot card pops up. Drop him in and he's sealed inside, until someone taps him free.",
@@ -102,7 +104,7 @@ export function cleanPopnews(raw: unknown): PopnewsSettings {
   return {
     on: bool(r.on, D.on), manual, auto,
     look: oneOf(r.look, POP_LOOKS.map(([k]) => k), D.look), where: oneOf(r.where, ["middle", "corner"] as const, D.where), when: oneOf(r.when, ["visit", "day", "new"] as const, D.when),
-    pages: oneOf(r.pages, ["home", "any"] as const, D.pages), phones: bool(r.phones, D.phones), wait: num(r.wait, POP_LIMITS.wait, D.wait),
+    pages: oneOf(r.pages, ["home", "any"] as const, D.pages), phones: bool(r.phones, D.phones), wait: num(r.wait, POP_LIMITS.wait, D.wait), slide: num(r.slide, POP_LIMITS.slide, D.slide),
     stories, feeds: feedsOf(r), off: (Array.isArray(r.off) ? r.off : []).filter((x): x is string => typeof x === "string" && /^[a-z0-9-]{1,24}$/.test(x)).slice(0, 80),
     count: num(r.count, POP_LIMITS.count, D.count),
     paperName: text(r.paperName, 40, D.paperName).trim() || D.paperName,
