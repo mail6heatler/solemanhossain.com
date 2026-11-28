@@ -3048,6 +3048,9 @@ html.lite :is(.sb, .sb *) { animation: none !important; }
 .cw-quote { margin: 0; white-space: pre-line; }
 .cw-pin .by { margin-top: 4px; color: var(--muted); font-size: 12px; }
 .cw-pin .card-foot { background: transparent; }
+/* with the sticker buttons and the LIVE strip (about 100px) the card is taller, so its quote keeps its room; the Buttons panel off brings it back to 160px */
+.cw-pin.stb-pin { height: 262px; }
+.cw-pin .card-foot.stb-foot { padding: 8px 10px 10px; }
 
 /* the chat, over its wallpaper */
 .cw-main { position: relative; grid-area: main; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; isolation: isolate; background: color-mix(in srgb, var(--fg) 2.5%, var(--card)); }

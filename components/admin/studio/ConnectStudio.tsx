@@ -9,13 +9,18 @@ import {
 import type { PartSize } from "@/lib/partSize";
 import { saveConnectStudio, type ConnectSave } from "@/app/actions";
 import ChatWindow from "@/components/site/ChatWindow";
+import StickerBar from "@/components/site/StickerBar";
+import { CardBarProvider } from "@/components/site/BarCtx";
+import { Box as CardBox } from "@/components/site/cardParts";
+import type { TalkInfo } from "@/lib/talk";
 import type { ChatNote } from "@/components/site/ChatWall";
 import { UploadField } from "@/components/admin/Widgets";
 import { Surface, type Typing } from "./Surface";
 
 type Draft = ConnectSave;
 type Hist = { list: Draft[]; at: number; saved: Draft; tag: string; time: number };
-export type ConnectPin = { id: number; title: string; body: string; subtitle: string; category: string };
+/** a pinned testimonial as the preview draws it; `bar` is whether its Buttons panel shows (the sticker buttons, standing still) */
+export type ConnectPin = { id: number; title: string; body: string; subtitle: string; category: string; talk: TalkInfo; bar: boolean };
 
 const same = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b);
 const SCREENS: [string, string, number][] = [["computer", "Computer", 1280], ["tablet", "Tablet", 820], ["phone", "Phone", 390]];
@@ -202,10 +207,12 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
     return same(x.connect.parts?.[key], size) ? x : { ...x, connect: { ...x.connect, parts } };
   }, `size-${key}${stroke ? `-${stroke}` : ""}`);
   const pinCards = pins.length ? pins.map((it) => (
-    <div key={it.id} className="cw-pin"><div className="flow">
-      <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
-      <p className="cw-quote">{it.body || it.title}</p><div className="by">{it.subtitle || it.title}</div>
-    </div></div>
+    <div key={it.id} className={`cw-pin${it.bar ? " stb-pin" : ""}`}>
+      <CardBox bare={!it.bar} foot={<StickerBar id={it.id} label={it.title} talk={it.talk} still={{ counts: {}, comments: 0, feed: [] }} />} footClass="stb-foot">
+        <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
+        <p className="cw-quote">{it.body || it.title}</p><div className="by">{it.subtitle || it.title}</div>
+      </CardBox>
+    </div>
   )) : null;
 
   // ---------- controls ----------
@@ -258,8 +265,8 @@ export default function ConnectStudio({ first, settings, notes, pins, useBlob }:
                       <h2 className="stitle" data-part="sec-title">{d.section.title}</h2>
                       {d.section.subtitle && <p className="ssub" data-part="sec-sub">{d.section.subtitle}</p>}
                     </div></div>
-                    <ChatWindow s={s} notes={notes} pins={pinCards} edit motion={d.chatfx} boardOpen={boardPv}
-                      testi={pins.map((it) => ({ id: it.id, title: it.title, body: it.body || it.title, by: it.subtitle, href: "" }))} />
+                    <CardBarProvider value={settings.cardBar}><ChatWindow s={s} notes={notes} pins={pinCards} edit motion={d.chatfx} boardOpen={boardPv}
+                      testi={pins.map((it) => ({ id: it.id, title: it.title, body: it.body || it.title, by: it.subtitle, href: "" }))} /></CardBarProvider>
                   </div>
                 </section>
               </div>

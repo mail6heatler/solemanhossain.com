@@ -10,7 +10,7 @@ import LookControls from "@/components/admin/LookControls";
 import OrderList from "@/components/admin/OrderList";
 import { lookSample } from "@/components/admin/lookSample";
 import { tripContext } from "@/components/site/TripFrame";
-import { isCustom } from "@/lib/contentStyle";
+import { isCustom, mergeStyles } from "@/lib/contentStyle";
 import type { Item } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth";
 import SaveBox from "@/components/admin/SaveBox";
@@ -68,7 +68,7 @@ export default async function SectionAdmin({ params, searchParams }: P) {
       {isChat && (
         <div style={{ marginBottom: 18 }}>
           <ConnectStudio key={`cst-${section.id}`} settings={settings} useBlob={!!process.env.BLOB_READ_WRITE_TOKEN} notes={wall}
-            pins={items.filter((it) => it.visible).map((it) => ({ id: it.id, title: it.title, body: it.body, subtitle: it.subtitle, category: it.category }))}
+            pins={items.filter((it) => it.visible).map((it) => ({ id: it.id, title: it.title, body: it.body, subtitle: it.subtitle, category: it.category, talk: it.talk, bar: mergeStyles(settings.contentStyle, section.style, it.style).hide?.bar !== true }))}
             first={{ connect: settings.connect, socials: settings.socials, connectFormTitle: settings.connectFormTitle, chatfx: settings.effects.chatfx, plane: settings.effects.plane,
               section: { id: section.id, title: section.title, eyebrow: section.eyebrow, eyebrow_emoji: section.eyebrow_emoji, subtitle: section.subtitle, nav_label: section.nav_label, nav_emoji: section.nav_emoji, code: section.code } }} />
           <h2 className="adm-h" style={{ fontSize: 18, marginTop: 26 }}>Testimonials and more settings</h2>

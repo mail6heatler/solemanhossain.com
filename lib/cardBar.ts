@@ -25,4 +25,5 @@ export function cleanCardBar(raw: unknown): CardBarSettings {
 }
 
 /** The layouts whose cards wear the sticker buttons so far; the rest keep the old row of emojis until their turn. */
-export const STICKER_LAYOUTS = ["notes", "windows", "tickets", "study", "comic", "awards", "scrapbook"];
+/** Connect's pinned testimonials (`chat`) joined last (2026-11-28), which finished every section that has cards. */
+export const STICKER_LAYOUTS = ["notes", "windows", "tickets", "study", "comic", "awards", "scrapbook", "chat"];

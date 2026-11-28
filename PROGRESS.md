@@ -18,6 +18,11 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Sticker buttons on Connect's pinned cards (2026-11-28, live)
+
+- Every pinned testimonial in Connect's chat window gets the sticker buttons and the LIVE strip, and is taller with them (262px instead of 160) so its quote keeps its room; the Buttons panel switch brings it back to 160. Connect's live editor shows them too. That finishes every section with cards. None are pinned on the live site yet. Restore point: tag `before-connect-stickers`.
+- The owner removed from the task board (2026-11-28): the tremor scrolling up on phones (waiting), lighter section titles, the site's built-in words and date style, and the status by the photo (Later). Don't bring them up again unless they do.
+
 ## No flick of the site before the launch screen (2026-11-28, live, waiting for the owner's look)
 
 - The owner sometimes saw the site for a moment before the launch screen. The decision was made before the first paint, but the layer itself came after the footer, at byte 215,620 of a 482,710-byte page, so a slow load drew the hero and sections first. Now `LaunchScreen` is the first thing in `.site` (about byte 12,000), and a plain cover in the launch screen's colour (`body::before` while `html.launching` and not yet `launch-run`) shows from the first frame. Restore point: tag `before-launch-cover`.

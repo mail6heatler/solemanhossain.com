@@ -83,9 +83,10 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "chat") {
     const notes = (wall ?? []).slice().reverse().map((m) => ({ id: m.id, name: m.name, body: m.body, day: new Date(m.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), reply: m.wall_reply, hearts: m.hearts }));
     const testi = items.map((it) => ({ id: it.id, title: it.title, body: it.body || it.title, by: it.subtitle, href: href(section, it) }));
-    const pins = items.length > 0 ? items.map((it) => { const l = lookFor(it); return (
-      <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
-        <Box bare={lookFor(it).hide("bar")} foot={foot(it.id)} to={href(section, it)} label={it.title}>
+    // each pinned testimonial wears the sticker buttons like every other card (2026-11-28); with them it's taller (.stb-pin), so its quote keeps room
+    const pins = items.length > 0 ? items.map((it) => { const l = lookFor(it), off = l.hide("bar"); return (
+      <div key={it.id} className={`cw-pin${off ? "" : " stb-pin"}${l.className}`} style={l.style}>
+        <Box bare={off} foot={<StickerBar id={it.id} href={href(section, it)} label={it.title} talk={it.talk} reactions={fx.reactions} />} footClass="stb-foot" label={it.title}>
           <CardLink to={href(section, it)} label={it.title} />
           <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
           <p className="cw-quote">{it.body || it.title}</p>

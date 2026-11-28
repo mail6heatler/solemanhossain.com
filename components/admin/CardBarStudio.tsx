@@ -60,7 +60,7 @@ export default function CardBarStudio({ first, panel: firstPanel, anchor, has }:
 
         <div className="cs-grid">
           <div className="cs-panel">
-            <p className="hint">These are the starting point for every card that has the sticker buttons ({has.join(", ") || "none yet"} so far; the other sections get them one at a time), and for cards you add later. Each card&apos;s own switches (its Reactions &amp; comments box) and the sizes and places you drag in a section&apos;s live editor still win.</p>
+            <p className="hint">These are the starting point for every card in every section ({has.join(", ") || "none yet"}), and for cards you add later. Each card&apos;s own switches (its Reactions &amp; comments box) and the sizes and places you drag in a section&apos;s live editor still win.</p>
             <Box title="The Buttons panel">
               <Sw checked={panel} onChange={setPanel}>Show the Buttons panel on every card: React, Comment, Share, Open and the LIVE strip</Sw>
               <div className="hint">Off, every card shows its writing and pictures in the panel&apos;s room instead, and a click on a card still opens its full page, which keeps its reactions and comments. Nothing is deleted. A section (its Panels button in the live editor) or a single card (its Buttons panel button) can still choose for itself. The same switch is on the <a href="/admin/content">Content sizes</a> page.</div>
