@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_POPNEWS, POP_ARTS, POP_FEEDS, POP_LIMITS, POP_LOOKS, POP_PAGES, POP_WHEN, POP_WHERE, newStory, type PopStory, type PopnewsSettings } from "@/lib/popnews";
 import type { Media } from "@/lib/settings";
+import { NEWS_SOURCES } from "@/lib/newsSources";
 import { savePopnews } from "@/app/actions";
 import type { PopStudioMsg } from "@/components/site/PopNews";
 import { MediaField } from "./Widgets";
@@ -99,7 +100,10 @@ export default function PopnewsStudio({ first, stats, useBlob, maxVideoMb }: { f
     setSaved(d); setNote({ t: "Saved. It's live on your site." }); router.refresh();
   };
   const live = d.stories.filter((s) => s.on && (s.title.trim() || s.media.length)).length;
-  const status = !d.on ? "Hidden on site" : d.auto ? `Showing automatic headlines (${(POP_FEEDS.find(([k]) => k === d.feed) || POP_FEEDS[0])[1]})` : d.manual ? `Showing your stories: ${live} on` : "Both sources are off, so nothing shows";
+  const feedName = (k: string) => (POP_FEEDS.find(([x]) => x === k) || POP_FEEDS[0])[1];
+  const sites = NEWS_SOURCES.filter((s) => d.feeds.includes(s.cat as never)), sitesOn = sites.filter((s) => !d.off.includes(s.id)).length;
+  const pickFeed = (k: (typeof POP_FEEDS)[number][0]) => set({ feeds: d.feeds.includes(k) ? (d.feeds.length > 1 ? d.feeds.filter((x) => x !== k) : d.feeds) : POP_FEEDS.map(([x]) => x).filter((x) => x === k || d.feeds.includes(x)) });
+  const status = !d.on ? "Hidden on site" : d.auto ? `Showing automatic headlines: ${d.feeds.map(feedName).join(", ")}, from ${sitesOn} news sites` : d.manual ? `Showing your stories: ${live} on` : "Both sources are off, so nothing shows";
 
   return (
     <div className="stu cs">
@@ -126,12 +130,21 @@ export default function PopnewsStudio({ first, stats, useBlob, maxVideoMb }: { f
 
             <Box title="Where the stories come from">
               <Sw checked={d.manual} onChange={(v) => set(v ? { manual: true, auto: false } : { manual: false })}>✍️ Your own stories: you write each one, and visitors see exactly what you chose</Sw>
-              <Sw checked={d.auto} onChange={(v) => set(v ? { auto: true, manual: false } : { auto: false, manual: true })}>🤖 Automatic headlines: the latest from a news feed, every hour (turning this on turns your own stories off)</Sw>
-              {d.auto && <div className="hint">Your own stories are paused, not deleted: switch them back on any time. Headlines come from Google News and each links to the full story on its own site; you don&apos;t check them first.</div>}
+              <Sw checked={d.auto} onChange={(v) => set(v ? { auto: true, manual: false } : { auto: false, manual: true })}>🤖 Automatic headlines: the newest stories from dozens of news sites, with their pictures, renewed every 30 minutes (turning this on turns your own stories off)</Sw>
+              {d.auto && <div className="hint">Your own stories are paused, not deleted: switch them back on any time. Each headline shows its site&apos;s name and picture and opens the full story on that site; you don&apos;t check them first.</div>}
               {d.auto && (
                 <div className="mzs-sub">
-                  <div className="fl"><label>Headlines from</label><Chips list={POP_FEEDS} value={d.feed} onPick={(v) => set({ feed: v })} /></div>
-                  <Range id="pop-count" label="How many" value={d.count} lim={POP_LIMITS.count} unit="" onChange={(v) => set({ count: v })} />
+                  <div className="fl"><label>Categories (one or more)</label>
+                    <div className="hst-chips">{POP_FEEDS.map(([k, l]) => <button key={k} type="button" className={`hst-chip${d.feeds.includes(k) ? " on" : ""}`} aria-pressed={d.feeds.includes(k)} onClick={() => pickFeed(k)}>{l}</button>)}</div>
+                    <div className="hint">Several are mixed together, newest first, and the sites take turns so one never fills them all. Only the last day&apos;s stories (two days if there are too few).</div></div>
+                  <Range id="pop-count" label="How many headlines" value={d.count} lim={POP_LIMITS.count} unit="" onChange={(v) => set({ count: v })} />
+                  <div className="fl"><label>News sites ({sitesOn} of {sites.length} on)</label>
+                    {d.feeds.map((cat) => (
+                      <div key={cat} className="pop-sites"><div className="hint"><b>{feedName(cat)}</b></div>
+                        <div className="hst-chips">{NEWS_SOURCES.filter((s) => s.cat === cat).map((s) => { const on = !d.off.includes(s.id); return (
+                          <button key={s.id} type="button" className={`hst-chip${on ? " on" : ""}`} aria-pressed={on} onClick={() => set({ off: on ? [...d.off, s.id] : d.off.filter((x) => x !== s.id) })}>{on ? "✓ " : ""}{s.label || s.name}</button>); })}</div></div>
+                    ))}
+                    <div className="hint">Tap a site to leave it out (or back in). A site that&apos;s down is simply skipped. Pictures come from each story&apos;s own site and are shown whole on every screen.</div></div>
                   {stats.auto && <div className="hint"><i className="ti ti-chart-bar" /> Last 30 days: seen by {stats.auto.views}, a headline tapped {stats.auto.clicks} times.</div>}
                 </div>
               )}

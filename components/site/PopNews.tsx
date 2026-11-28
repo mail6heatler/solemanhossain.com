@@ -14,8 +14,17 @@ function manualItems(c: PopnewsSettings, tz: string, only?: string): PopItem[] {
     .filter((s) => (only ? s.id === only : s.on && (!s.start || s.start <= d) && (!s.end || s.end >= d)) && (s.title.trim() || s.media.length))
     .map((s) => ({ id: s.id, tag: s.tag, title: s.title, text: s.text, media: s.media.find((m) => m.type === "image" || m.type === "video") ?? null, emoji: s.emoji || "📰", art: artOf(s.art), source: s.source, button: s.button || "Read more", link: s.link }));
 }
-async function autoItems(c: PopnewsSettings): Promise<PopItem[]> {
-  try { const r = await fetch(`/api/popnews?feed=${c.feed}&count=${c.count}`); const j = (await r.json()) as { items?: PopItem[] }; return Array.isArray(j.items) ? j.items : []; } catch { return []; }
+/** the automatic headlines for these settings; asked once per page and settings (the server keeps them for 30 minutes) */
+const asked = new Map<string, Promise<PopItem[]>>();
+function autoItems(c: PopnewsSettings): Promise<PopItem[]> {
+  const url = `/api/popnews?feeds=${c.feeds.join(",")}&count=${c.count}${c.off.length ? `&off=${[...c.off].sort().join(",")}` : ""}`;
+  let p = asked.get(url);
+  if (!p) {
+    p = fetch(url).then((r) => r.json()).then((j: { items?: PopItem[] }) => (Array.isArray(j.items) ? j.items : [])).catch(() => []);
+    asked.set(url, p);
+    p.then((l) => { if (!l.length) asked.delete(url); });
+  }
+  return p;
 }
 const sig = (items: PopItem[]) => items.map((i) => `${i.id}:${i.title}`).join("|");
 
@@ -53,6 +62,7 @@ export default function PopNews({ cfg, timezone, onHome }: { cfg: PopnewsSetting
         onHush: () => { try { localStorage.setItem("lc_pop_hush", new Date().toDateString()); } catch {} },
         onClose: () => { close = null; },
       });
+      if (dead) { close(); return false; } // left the page while its first picture was loading
       return true;
     };
 
@@ -92,7 +102,8 @@ export default function PopNews({ cfg, timezone, onHome }: { cfg: PopnewsSetting
     };
     // after the launch screen has opened onto the site, once the page has settled, and then the owner's seconds
     const later = () => { timer = window.setTimeout(() => void go(), (force ? 0.4 : c0.wait) * 1000); };
-    const afterLaunch = () => { if (html.classList.contains("launching")) addEventListener("lc-launch-done", later, { once: true }); else later(); };
+    const already = () => { try { return (c0.when === "visit" && !!sessionStorage.getItem("lc_pop")) || (c0.when === "day" && localStorage.getItem("lc_pop_d") === new Date().toDateString()); } catch { return false; } };
+    const afterLaunch = () => { if (c0.auto && !force && !already()) void autoItems(c0); if (html.classList.contains("launching")) addEventListener("lc-launch-done", later, { once: true }); else later(); };
     const cancel = whenSettled(afterLaunch, 4);
     return () => { dead = true; clearTimeout(timer); cancel(); removeEventListener("lc-launch-done", later); close?.(); };
   }, [key, onHome, timezone]);

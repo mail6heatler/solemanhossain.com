@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## Pop-up news: automatic headlines from about 50 news sites (2026-11-28, live, waiting for the owner's look)
+
+- The automatic headlines now come from about 50 news sites' own feeds (world, technology, science, sports, business, Bangladesh), several categories mixed, the sites taking turns, the same story from two sites shown once, renewed every 30 minutes, each with its site's picture shown whole on every screen and how long ago it was published. Each site has its own switch on the Pop-up news page. See "The news pop-up" in CLAUDE.md. Restore point: tag `before-popnews-sources`.
+
 ## The news pop-up (2026-11-28, live, waiting for the owner's look)
 
 - After the launch screen, a pop-up with the owner's stories (pictures, GIFs, videos uploaded) or, with the switch, automatic headlines; four looks, middle or corner, once per visit, a day or when new, view and tap numbers. Every choice from the picker is a setting. See "The news pop-up" in CLAUDE.md. Restore point: tag `before-popnews`.
