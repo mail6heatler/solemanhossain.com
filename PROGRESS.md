@@ -18,6 +18,10 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 - Adventures on the live site went from 3 entries to 1 on 2026-11-07, between the tickets and the frames going live: Marathon and Somewhere next no longer show, entry pages 6 and 7 say "not found", and Cox's Bazar lost its date. That release changed no stored data and tests only use a throwaway copy, so it looks like a dashboard edit, and Made went from 2 projects to 4 in the same period. The logs available gave no answer. The owner was asked whether it was them and answered "all good", which was taken as yes and they were told so. By the next release they had added new entries, one for each frame.
 
+## The news pop-up (2026-11-28, live, waiting for the owner's look)
+
+- After the launch screen, a pop-up with the owner's stories (pictures, GIFs, videos uploaded) or, with the switch, automatic headlines; four looks, middle or corner, once per visit, a day or when new, view and tap numbers. Every choice from the picker is a setting. See "The news pop-up" in CLAUDE.md. Restore point: tag `before-popnews`.
+
 ## Launch screen, boarding gate: the GATE lettering and a smooth plane (2026-11-28, live)
 
 - Round two (the owner: "still not good"): GATE and its number are one phrase centred exactly on the doors' meeting line, painted across both doors (each door shows its half of the same words, so they slide apart with the doors), in the middle of the clear space below the pass; the plane's bob is gone, so it flies in a straight line. Restore point: tag `before-gate-centre`.

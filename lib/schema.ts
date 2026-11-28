@@ -136,6 +136,8 @@ export const SCHEMA = [
   // shares from a card's Share button: no names, only when, for the card's LIVE strip ("Someone shared this")
   `CREATE TABLE IF NOT EXISTS shares (id SERIAL PRIMARY KEY, item_id INT NOT NULL REFERENCES items(id) ON DELETE CASCADE, voter TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
   `CREATE INDEX IF NOT EXISTS shares_item_idx ON shares(item_id, created_at DESC)`,
+  // the news pop-up's numbers (lib/popnews.ts): how many saw each story and tapped its button, per day; no names, nothing about who
+  `CREATE TABLE IF NOT EXISTS popnews_stats (story TEXT NOT NULL, day DATE NOT NULL DEFAULT CURRENT_DATE, views INT NOT NULL DEFAULT 0, clicks INT NOT NULL DEFAULT 0, PRIMARY KEY (story, day))`,
   `ALTER TABLE reactions ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT FALSE`,
   `CREATE INDEX IF NOT EXISTS reactions_recent_idx ON reactions(created_at DESC)`,
   // who reacted, as they typed it (older reactions have no name)

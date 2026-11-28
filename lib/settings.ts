@@ -5,6 +5,7 @@ import { cleanFooter, cleanMenu, DEFAULT_FOOTER, DEFAULT_MENU, type FooterDesign
 import { cleanStyle, type ContentStyle } from "./contentStyle";
 import { cleanMascot, DEFAULT_MASCOT, type MascotSettings } from "./mascot";
 import { cleanLaunch, DEFAULT_LAUNCH, LAUNCH_KEYS, type LaunchSettings } from "./launch";
+import { cleanPopnews, DEFAULT_POPNEWS, type PopnewsSettings } from "./popnews";
 import { cleanOps, DEFAULT_OPS, type OpsSettings } from "./ops";
 import { cleanCardBar, DEFAULT_CARD_BAR, type CardBarSettings } from "./cardBar";
 
@@ -269,6 +270,8 @@ export type SiteSettings = {
   mascot: MascotSettings;
   /** The launch screen that plays while the site loads (lib/launch.ts; dashboard page /admin/launch). */
   launch: LaunchSettings;
+  /** The news pop-up after the launch screen (lib/popnews.ts; dashboard page /admin/popnews). */
+  popnews: PopnewsSettings;
   /** The sticker buttons at the bottom of a card: React, Comment, Share, Open, and the LIVE strip (lib/cardBar.ts; dashboard page /admin/cardbar). */
   cardBar: CardBarSettings;
   /** Settings → backups, security, site status, visitors and tools (lib/ops.ts). */
@@ -328,6 +331,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   banner: DEFAULT_BANNER,
   mascot: DEFAULT_MASCOT,
   launch: DEFAULT_LAUNCH,
+  popnews: DEFAULT_POPNEWS,
   cardBar: DEFAULT_CARD_BAR,
   ops: DEFAULT_OPS,
   themePics: {},
@@ -359,6 +363,7 @@ export function mergeSettings(raw: unknown): SiteSettings {
     footer: cleanFooter(obj.footer),
     mascot: cleanMascot(obj.mascot),
     launch: cleanLaunch(obj.launch),
+    popnews: cleanPopnews(obj.popnews),
     cardBar: cleanCardBar(obj.cardBar),
     ops: cleanOps(obj.ops),
   };

@@ -87,6 +87,7 @@ export default function Shell({ sections, unread, notifs, owner, children }: {
     { href: "/admin/banner", label: "Hanging banner", icon: "speakerphone" },
     { href: "/admin/mascot", label: "Mascot", icon: "mood-happy" },
     { href: "/admin/launch", label: "Launch screen", icon: "rocket" },
+    { href: "/admin/popnews", label: "Pop-up news", icon: "news" },
     { href: "/admin/cardbar", label: "Card buttons", icon: "cards" },
     { href: "/admin/content", label: "Content sizes", icon: "adjustments" },
     { href: "/admin/appearance", label: "Appearance", icon: "palette" },

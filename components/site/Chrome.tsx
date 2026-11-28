@@ -9,6 +9,7 @@ import Living from "./Living";
 import ThemeFx from "./ThemeFx";
 import HangingBanner from "./HangingBanner";
 import Mascot from "./Mascot";
+import PopNews from "./PopNews";
 import FitScreens from "./FitScreens";
 import { FAN_THEMES, THEME_CREDITS } from "@/lib/themeCredits";
 import { Nav } from "./SiteNav";
@@ -101,6 +102,8 @@ export function SiteShell({ settings, sections, onHome, children }:
       {settings.footer.show && <Footer settings={settings} sections={sections} onHome={onHome} />}
       {/* drawn even when he's hidden: it stays empty then, except on the Mascot page's screens */}
       <Mascot view={{ m: settings.mascot, timezone: settings.timezone }} phoneMenu={phone} />
+      {/* the news pop-up after the launch screen (lib/popnews.ts): it stays empty until its moment */}
+      <PopNews cfg={settings.popnews} timezone={settings.timezone} onHome={onHome} />
       {bbar && <BottomBar sections={sections.filter((s) => !settings.menu.hidden.includes(s.slug))} onHome={onHome} />}
       {(phone === "orb" || phone === "sheet") && <PhoneMenu kind={phone} links={[{ href: onHome ? "#hero" : "/", label: "Home", emoji: "🏠" }, ...menuLinks]} />}
       {(settings.ops.maintenance.on || settings.ops.private.on) && <SiteGate ops={settings.ops} name={settings.nickname || settings.fullName} />}

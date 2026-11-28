@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { alertOwner, binItems, binSection, binWhere, historyPush, ipHash, ipOf, loginBlocked, logLogin, spamVerdict, totpOk, useRecoveryCode, getSecret } from "@/lib/opsServer";
 import { deviceName } from "@/lib/ops";
 import { cleanLaunch } from "@/lib/launch";
+import { cleanPopnews } from "@/lib/popnews";
 import { cleanCardBar } from "@/lib/cardBar";
 import { cleanStudy } from "@/lib/studyItem";
 import { cleanComic } from "@/lib/comicItem";
@@ -299,6 +300,16 @@ export async function saveLaunch(raw: unknown): Promise<{ ok: true } | { ok: fal
     refresh();
     return { ok: true };
   } catch (e) { console.error("saveLaunch", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
+}
+
+/** The news pop-up after the launch screen (lib/popnews.ts): the dashboard's Pop-up news page saves it in one go. */
+export async function savePopnews(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    await saveSettingsData({ popnews: cleanPopnews(raw) });
+    refresh();
+    return { ok: true };
+  } catch (e) { console.error("savePopnews", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
 }
 
 /**
