@@ -89,7 +89,7 @@ export default function WinCard({ it, l, href, home, slug, vt, zoom, confetti = 
           </div>
         </div>
       )}
-      <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+      <Box bare={l.hide("bar")} foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
         full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
         {!edit && <CardLink to={href} label={it.title} />}
         {pic && <div className="pic-box" {...p("pic")}><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt} /><MediaBadges media={it.media} /></div>{zoom}</div>}

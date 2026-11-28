@@ -29,7 +29,7 @@ export default function ScrapCard({ it, l, index, count, fallback, href, vt, zoo
     <div className={`tkt-cell sb-cell${index === 0 ? " first" : ""}${index === count - 1 ? " last" : ""}${l.className}`} style={l.style}>
       <div className={`trip tkt sb on-${v.look}`} style={style}>
         <ScrapFrame view={v} link={edit ? undefined : <a className="tkt-link" href={href} tabIndex={-1} aria-hidden />} pics={pics} zoom={pics.length ? zoom : null} fixedPic={"--pic" in (l.style ?? {})} p={p}>
-          <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+          <Box bare={l.hide("bar")} foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
             full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
             {!edit && <CardLink to={href} label={it.title} />}
             <div className="tb">

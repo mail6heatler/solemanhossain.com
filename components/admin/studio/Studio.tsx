@@ -155,7 +155,12 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     : win
     ? <WinCard it={it} l={lookFor(it)} href="#" home={draft.section.nav_label || draft.section.title} slug={draft.section.slug} edit bar={stickers(it)} />
     : <NoteCard it={it} l={lookFor(it)} index={draft.items.indexOf(it)} factNo={factNo(it)} href="#" owner={owner} face={it.card.face ? <img src={it.card.face} alt="" loading="lazy" /> : faceIcon} edit bar={stickers(it)} />;
-  const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? (win ? 380 : celled ? 320 : 340), h: p?.h ?? s.h ?? (win ? 480 : celled ? 500 : 440) }; };
+  const cardSize = (it: Item) => { const s = mergeStyles(settings.contentStyle, draft.section.style, it.style); const p = s.size && s.size !== "custom" ? SIZE_PRESETS[s.size] : null; return { w: p?.w ?? s.w ?? 340, h: p?.h ?? s.h ?? 440 }; }; // every section's cards start at G1's size (2026-11-28)
+  // the Buttons panel (React, Comment, Share, Open, LIVE): one switch per card and one for the section, stored with the hide choices (contentStyle
+  // hide `bar`); turning it back on where a level above hides it says "show" rather than forgetting, so the button always does what it says
+  const secBarOff = mergeStyles(settings.contentStyle, draft.section.style).hide?.bar === true;
+  const barOff = (it: Item) => mergeStyles(settings.contentStyle, draft.section.style, it.style).hide?.bar === true;
+  const flipBar = (own: Item["style"], off: boolean, aboveOff: boolean) => { const hide = { ...own.hide }; if (off) { if (aboveOff) hide.bar = false; else delete hide.bar; } else hide.bar = true; return cleanStyle({ ...own, hide }); };
   const blocks: FvBox[] = useMemo(() => (item ? fvBoxes(item.fv, fvLook(item.fv, card, item.media.some((m) => m.type !== "audio")).layout, fvPresent(item, settings.effects.reactions, kind)) : []), [item, card, settings.effects.reactions, kind]);
   const fvZoom = phone ? 1 : Math.min(1, fvWidth / FV_WIDTH);
 
@@ -448,6 +453,8 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
     <div className="btns">
       <button type="button" className="b-out b-sm" onClick={(e) => openPop("card", "size", e.currentTarget.getBoundingClientRect())}><i className="ti ti-ruler-2" />Size &amp; look{isCustom(item.style) ? " •" : ""}</button>
       <button type="button" className="b-out b-sm" onClick={(e) => openPop("card", "reacts", e.currentTarget.getBoundingClientRect())}><i className="ti ti-mood-smile" />Reactions</button>
+      <button type="button" className={`b-out b-sm${barOff(item) ? "" : " on"}`} aria-pressed={!barOff(item)} title="React, Comment, Share, Open and the LIVE strip on this card. Hidden, the card's writing and pictures take the room; its full page keeps them."
+        onClick={() => setItem({ style: flipBar(item.style, barOff(item), secBarOff) }, "bar")}><i className={`ti ti-${barOff(item) ? "eye-off" : "layout-bottombar"}`} />Buttons panel: {barOff(item) ? "hidden" : "showing"}</button>
       <button type="button" className="b-out b-sm" onClick={() => setItem({ visible: !item.visible })}><i className={`ti ti-${item.visible ? "eye-off" : "eye"}`} />{item.visible ? "Hide" : "Show"}</button>
       <button type="button" className="adm-iconbtn" aria-label="More for this card" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setMenu({ id: item.id, x: r.left, y: r.bottom + 6 }); }}><i className="ti ti-dots" /></button>
     </div>
@@ -504,6 +511,8 @@ export default function Studio({ data: first, startCard }: { data: StudioData; s
           <label className="switch"><input type="checkbox" checked={labels} onChange={(e) => { setLabels(e.target.checked); try { localStorage.setItem("lc_stu_labels", e.target.checked ? "1" : "0"); } catch {} }} />Labels</label>
           <select className="stu-skin" value={skin} aria-label="Theme the previews wear" title="Theme the previews wear" onChange={(e) => setSkin(e.target.value)}>{LIVE_THEMES.map((t) => <option key={t} value={t}>{SKIN_LABELS[t as Skin] ?? t}</option>)}</select>
           <button type="button" className="b-out b-sm" onClick={(e) => openPop("sec", "title", e.currentTarget.getBoundingClientRect())}><i className="ti ti-settings" />Section settings</button>
+          <button type="button" className={`b-out b-sm${secBarOff ? "" : " on"}`} aria-pressed={!secBarOff} title="The Buttons panel (React, Comment, Share, Open, LIVE) on every card in this section. A card's own choice still wins."
+            onClick={() => setSection({ style: flipBar(draft.section.style, secBarOff, settings.contentStyle.hide?.bar === true) }, "s-bar")}><i className={`ti ti-${secBarOff ? "eye-off" : "layout-bottombar"}`} />Panels: {secBarOff ? "hidden" : "showing"}</button>
           <a href={`/#${draft.section.slug}`} target="_blank" className="b-out b-sm"><i className="ti ti-eye" />View on site</a>
           <button type="button" className="adm-iconbtn" aria-label="Where everything is" title="Where everything is" onClick={() => setDialog("where")}><i className="ti ti-help" /></button>
         </div>

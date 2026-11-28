@@ -20,6 +20,8 @@ const NAMES: Record<string, string> = { "❤️": "Love", "🔥": "Fire", "😂"
 const WORDS = { title: "Who's commenting?", why: "Your name shows next to your comment, and you only have to type it once.", ok: "Post it" };
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
+/** how long a finger rests on React before the emojis come up to be chosen by sliding (shorter than the phone's own long press) */
+const HOLD_MS = 280;
 
 type Line = { ic: string; html: string };
 /** What the LIVE strip says for one event. Who reacted is private, so a reaction is "Someone"; a comment's name and words are public. */
@@ -67,7 +69,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
   const st = useRef({ by: "" as "" | "hover" | "click", openT: 0 as ReturnType<typeof setTimeout> | 0, closeT: 0 as ReturnType<typeof setTimeout> | 0, busy: false, up: false, closing: false,
     cur: null as HTMLElement | null, total: -1, comments: -1, own: [] as Line[], lines: [] as Line[], shown: "", timer: 0 as ReturnType<typeof setTimeout> | 0, typer: 0, seen: false,
     // each card types at its own speed, so two strips that do change together still don't move in step
-    cps: 32 + Math.random() * 12 });
+    cps: 32 + Math.random() * 12, heldAt: 0 });
   st.current.up = tray;
 
   const showReact = reactions && cfg.react && t.react;
@@ -310,6 +312,73 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
     document.addEventListener("keydown", key);
     return () => { document.removeEventListener("pointerdown", away, true); document.removeEventListener("keydown", key); };
   });
+  // ---------- phones: press and hold React, slide onto an emoji, let go to give it (the owner asked, 2026-11-28: "like Facebook") ----------
+  // A quick tap still opens the emojis to tap one. A finger that rests on React for HOLD_MS brings them up; from then on the page stays still
+  // (touchmove's preventDefault, on this one button only, so a swipe that starts anywhere else never waits for a script), the emoji under the
+  // finger rises above it with its name, and letting go on it gives it. Letting go away from the emojis gives nothing; letting go without
+  // moving leaves them up to tap. A finger that moves before the hold is scrolling, and is left alone.
+  const live = useRef({ pick, openTray, closeTray, lively, fx });
+  live.current = { pick, openTray, closeTray, lively, fx };
+  useEffect(() => {
+    const tab = reactTab.current;
+    if (still || !tab) return;
+    const s = st.current;
+    let timer: ReturnType<typeof setTimeout> | 0 = 0, x0 = 0, y0 = 0, holding = false, moved = false, hot: HTMLButtonElement | null = null;
+    const setHot = (b: HTMLButtonElement | null) => {
+      if (b === hot) return;
+      const was = hot; hot = b;
+      if (was) { was.classList.remove("stb-hot", "stb-hot-still"); if (fxP) loadFx().then((f) => f.emojiLeave(was)).catch(() => {}); }
+      if (!b) return;
+      if (live.current.lively()) { b.classList.add("stb-hot"); live.current.fx((f) => f.emojiEnter(b, true)); } else b.classList.add("stb-hot", "stb-hot-still");
+      navigator.vibrate?.(6);
+    };
+    // which emoji's place the finger is over: by where each one sits in the row, not by what's under the finger, because the chosen one rises out
+    // of its place (and would hand the finger to its neighbour). Offsets ignore zoom and movement, so they're scaled by the tray's real width.
+    const slotAt = (x: number, y: number) => {
+      const tr = trayEl.current; if (!tr) return null;
+      const r = tr.getBoundingClientRect(); if (!r.width || y > r.bottom + 28 || y < r.top - 90 || x < r.left - 14 || x > r.right + 14) return null;
+      const k = r.width / (tr.offsetWidth || r.width);
+      let best: HTMLButtonElement | null = null, gap = Infinity;
+      for (const b of Array.from(tr.querySelectorAll<HTMLButtonElement>(".stb-e"))) { const d = Math.abs(x - (r.left + (b.offsetLeft + b.offsetWidth / 2) * k)); if (d < gap) { gap = d; best = b; } }
+      return best;
+    };
+    const end = () => { if (timer) clearTimeout(timer); timer = 0; holding = false; moved = false; setHot(null); tab.classList.remove("stb-hold"); };
+    const start = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { end(); return; }
+      const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; moved = false;
+      if (cfg.motion === "lively") loadFx().catch(() => {});
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { timer = 0; holding = true; s.heldAt = Date.now(); tab.classList.add("stb-hold"); live.current.openTray("click"); navigator.vibrate?.(12); }, HOLD_MS);
+    };
+    const move = (e: TouchEvent) => {
+      const t = e.touches[0]; if (!t) return;
+      if (!holding) { if (timer && Math.hypot(t.clientX - x0, t.clientY - y0) > 10) { clearTimeout(timer); timer = 0; } return; }
+      if (e.cancelable) e.preventDefault();
+      moved = moved || Math.hypot(t.clientX - x0, t.clientY - y0) > 6;
+      setHot(slotAt(t.clientX, t.clientY));
+    };
+    const up = (e: TouchEvent) => {
+      if (!holding) { if (timer) clearTimeout(timer); timer = 0; return; } // a quick tap: its click opens the emojis, as before
+      if (e.cancelable) e.preventDefault(); // no click after a hold
+      s.heldAt = Date.now();
+      const b = hot, emoji = b?.dataset.e, away = moved;
+      end();
+      if (b && emoji) live.current.pick(emoji, b);
+      else if (away) live.current.closeTray();
+    };
+    const menu = (e: Event) => { if (holding || timer) e.preventDefault(); }; // no "copy / share" menu from holding the button
+    tab.addEventListener("touchstart", start, { passive: true });
+    tab.addEventListener("touchmove", move, { passive: false });
+    tab.addEventListener("touchend", up, { passive: false });
+    tab.addEventListener("touchcancel", end);
+    tab.addEventListener("contextmenu", menu);
+    return () => {
+      end();
+      tab.removeEventListener("touchstart", start); tab.removeEventListener("touchmove", move); tab.removeEventListener("touchend", up);
+      tab.removeEventListener("touchcancel", end); tab.removeEventListener("contextmenu", menu);
+    };
+  }, [still, showReact, cfg.motion]);
+
   // the dashboard's Card buttons page: ▶ makes the first card on screen show its emojis coming up
   useEffect(() => {
     if (still) return;
@@ -337,7 +406,7 @@ export default function StickerBar({ id, href, label, talk, parts = {}, reaction
                 aria-label={`React (${total} so far)${myEmoji ? `, you gave ${myEmoji}` : ""}`}
                 onClick={(e) => {
                   stop(e);
-                  if (still) return;
+                  if (still || Date.now() - st.current.heldAt < 600) return; // the click a phone may still send after press, hold and slide
                   if (!tray) { openTray("click"); if (e.detail === 0) setTimeout(() => trayEl.current?.querySelector<HTMLElement>(".stb-e")?.focus(), 30); }
                   else if (st.current.by === "hover") st.current.by = "click";
                   else closeTray();

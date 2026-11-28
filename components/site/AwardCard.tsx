@@ -27,7 +27,7 @@ export default function AwardCard({ it, l, index, count, code, fallback, owner, 
     ? <div className="poll" {...p("poll")}>{it.poll_options.map((o, i) => <button key={i} type="button" className="poll-opt" tabIndex={-1}><span className="lbl"><span>{o}</span></span></button>)}<div className="poll-foot">Tap an option to vote and see results</div></div>
     : <PollCard id={it.id} options={it.poll_options} confetti={confetti} />;
   const body: AwardBody = ({ above, showTitle, showSubtitle, inBody }) => (
-    <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+    <Box bare={l.hide("bar")} foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
       full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       {inBody}

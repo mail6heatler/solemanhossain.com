@@ -41,8 +41,9 @@ export function closeTray(tray: HTMLElement): Promise<void> {
   });
 }
 /** The emoji under the mouse lifts a little and does its own move until the mouse leaves it. */
-export function emojiEnter(btn: HTMLElement) {
-  gsap.to(btn, { y: -6, scale: 1.2, duration: 0.24, ease: "back.out(1.6)", overwrite: "auto" });
+/** `big`: a finger choosing (press, hold and slide on a phone) covers the emoji, so it rises well above the finger, as on Facebook */
+export function emojiEnter(btn: HTMLElement, big = false) {
+  gsap.to(btn, big ? { y: -22, scale: 1.7, duration: 0.22, ease: "back.out(1.8)", overwrite: "auto" } : { y: -6, scale: 1.2, duration: 0.24, ease: "back.out(1.6)", overwrite: "auto" });
   const e = btn.querySelector<HTMLElement>(".stb-em");
   if (e) { stopLoop(e); loops.set(e, move(e, btn.dataset.e ?? "")); }
 }

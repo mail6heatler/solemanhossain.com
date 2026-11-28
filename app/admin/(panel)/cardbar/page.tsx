@@ -11,7 +11,7 @@ export default async function CardBarPage() {
   const first = sections.find((x) => STICKER_LAYOUTS.includes(x.layout)) ?? sections[0];
   return (
     <div className="adm-page hst-page">
-      <CardBarStudio first={s.cardBar} anchor={first?.slug ?? ""} has={sections.filter((x) => STICKER_LAYOUTS.includes(x.layout)).map((x) => `${x.code ? `${x.code} · ` : ""}${x.nav_label || x.title}`)} />
+      <CardBarStudio first={s.cardBar} panel={s.contentStyle.hide?.bar !== true} anchor={first?.slug ?? ""} has={sections.filter((x) => STICKER_LAYOUTS.includes(x.layout)).map((x) => `${x.code ? `${x.code} · ` : ""}${x.nav_label || x.title}`)} />
     </div>
   );
 }

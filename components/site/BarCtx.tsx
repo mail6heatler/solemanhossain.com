@@ -6,8 +6,9 @@ const Ctx = createContext<CardBarSettings>(DEFAULT_CARD_BAR);
 /** The sticker buttons' settings (lib/cardBar.ts) for whatever draws them: StickerBar on the site and its still copy in the live editor. */
 export const useCardBar = () => useContext(Ctx);
 
-/** What the dashboard's Card buttons page sends its screens: the unsaved settings, and a counter that asks the first card on screen to show its emojis. */
-export type CardBarDraftMsg = { type: "lc-bar-draft"; cfg: CardBarSettings; play: number };
+/** What the dashboard's Card buttons page sends its screens: the unsaved settings, a counter that asks the first card on screen to show its emojis,
+ * and its switch for the Buttons panel on every card (false shows every card without it: html.bar-off, stickerbar.css). */
+export type CardBarDraftMsg = { type: "lc-bar-draft"; cfg: CardBarSettings; play: number; panel?: boolean };
 
 /**
  * Gives every card on the page the site's card bar settings (SiteShell wraps the page in it; the live editor wraps its previews).
@@ -22,6 +23,7 @@ export function CardBarProvider({ value, children }: { value: CardBarSettings; c
       const d = e.data as CardBarDraftMsg | undefined;
       if (e.origin !== location.origin || d?.type !== "lc-bar-draft") return;
       setDraft(cleanCardBar(d.cfg));
+      if (typeof d.panel === "boolean") { document.documentElement.classList.toggle("bar-off", !d.panel); window.dispatchEvent(new Event("lc-fit")); }
       if (d.play > played) { if (played) setTimeout(() => window.dispatchEvent(new Event("lc-bar-play")), 60); played = d.play; }
     };
     addEventListener("message", on);

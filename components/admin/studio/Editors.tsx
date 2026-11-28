@@ -9,7 +9,7 @@ import { COMIC_LOOKS, SFX_MAX, comicLookOf, comicPollChoices, comicPollOf, sfxOf
 import { NOTE_LOOKS, TRIP_LOOKS, WIN_LOOKS, noteLookOf, tripLookOf, winLookOf } from "@/lib/cardLook";
 import { MAX_TICKS, TRIP_VEHICLES, type TickLine } from "@/lib/tripPass";
 import { codeFor, tripContext } from "@/components/site/TripFrame";
-import { isCustom, mergeStyles } from "@/lib/contentStyle";
+import { cleanStyle, isCustom, mergeStyles } from "@/lib/contentStyle";
 import { COMMENT_MAX, TALK_FEATURES } from "@/lib/talk";
 import { FV_BGS, FV_COLS, FV_LAYOUTS, FV_OPENS, FV_PARTS, FV_QUOTE_MAX, FV_ROW, FV_ZOOM, fvLook, type FvBox, type FvPart } from "@/lib/fullView";
 import { PART_LIMITS, SIZED_PARTS, cleanPartSize, type PartSize } from "@/lib/partSize";
@@ -319,6 +319,12 @@ function CardFields({ ed, k }: { ed: Ed; k: string }) {
       <LookFields st={it.style} above={mergeStyles(data.settings.contentStyle, draft.section.style)} pic={cover} level="this card" hasText={!!it.body.trim()} onChange={(style) => ed.setItem({ style }, "style")} />
     </>;
     case "reacts": return <>
+      <div className="fl stu-f">
+        <span className="lab">Buttons panel on this card</span>
+        <Seg label="Buttons panel on this card" value={it.style.hide?.bar === true ? "hide" : it.style.hide?.bar === false ? "show" : ""} options={[["", "Default"], ["show", "Show"], ["hide", "Hide"]]}
+          onChange={(v) => { const hide = { ...it.style.hide }; if (v === "") delete hide.bar; else hide.bar = v === "hide"; ed.setItem({ style: cleanStyle({ ...it.style, hide }) }, "style"); }} />
+        <span className="hint">The whole panel: React, Comment, Share, Open and the LIVE strip. Hidden, the card&apos;s writing and pictures take its room, a click on the card still opens its full page, and the full page keeps its reactions and comments. Nothing is deleted. Default follows the section, then <a href="/admin/cardbar">every card</a>.</span>
+      </div>
       <div className="fl stu-f">
         <span className="lab">What this card offers beyond its emojis</span>
         <div className="stu-switches">{TALK_FEATURES.map(([key, , label, hint]) => <Sw key={key} label={label} hint={hint} on={it.talk[key]} onChange={(on) => ed.setItem({ talk: { ...it.talk, [key]: on } })} />)}</div>

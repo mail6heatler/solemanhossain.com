@@ -85,7 +85,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
     const testi = items.map((it) => ({ id: it.id, title: it.title, body: it.body || it.title, by: it.subtitle, href: href(section, it) }));
     const pins = items.length > 0 ? items.map((it) => { const l = lookFor(it); return (
       <div key={it.id} className={`cw-pin${l.className}`} style={l.style}>
-        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+        <Box bare={lookFor(it).hide("bar")} foot={foot(it.id)} to={href(section, it)} label={it.title}>
           <CardLink to={href(section, it)} label={it.title} />
           <span className="cw-pin-lab">⭐ Pinned{it.category ? ` ${it.category.toLowerCase().replace(/s$/, "")}` : ""}</span>
           <p className="cw-quote">{it.body || it.title}</p>
@@ -103,7 +103,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       <>
         {items.map((it) => (
           <div key={it.id} className={`wall-note quote${lookFor(it).className}`} style={lookFor(it).style}>
-            <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+            <Box bare={lookFor(it).hide("bar")} foot={foot(it.id)} to={href(section, it)} label={it.title}>
               <CardLink to={href(section, it)} label={it.title} />
               <p>{it.body || it.title}</p>
               <div className="by">— {it.subtitle || it.title}</div>
@@ -156,7 +156,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
   if (L === "strip") {
     const trips = items.map((it) => { const l = lookFor(it); return (
       <div key={it.id} className={`trip${it.body.trim() ? " with-text" : ""}${l.className}`} style={l.style}>
-        <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+        <Box bare={lookFor(it).hide("bar")} foot={foot(it.id)} to={href(section, it)} label={it.title}>
           <CardLink to={href(section, it)} label={it.title} />
           {!l.hide("pic") && <div className="pic-box"><div className={`ph${it.media[0] ? " has-pic" : ""}`}>{it.media[0] ? <Cover m={it.media[0]} style={vt(it.id)} /> : <i className="ti ti-map-pin" />}<MediaBadges media={it.media} /></div>{zoom(it)}</div>}
           <div className="tb">
@@ -204,7 +204,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                   </div>
                 </div>
               </a>
-              <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
+              {!l.hide("bar") && <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>}
             </div>
           ); })}
         </>
@@ -220,7 +220,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               {it.subtitle && !l.hide("subtitle") && <div className="sub">{it.subtitle}</div>}
               <Meta it={it} showCat={false} hideDate={l.hide("date")} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-              <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
+              {!l.hide("bar") && <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>}
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
               {it.status && <span className="chip line">{it.status}</span>}
@@ -258,7 +258,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               )}
               <LinkButtons it={it} />
               {it.tags.length > 0 && !l.hide("tags") && <div className="tags">{it.tags.map((t) => <span key={t}>{t}</span>)}</div>}
-              <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
+              {!l.hide("bar") && <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>}
             </div>
           </article>
         ); })}
@@ -296,7 +296,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
                   )}
                 </div>
                 <div className={`card stop-card${it.body.trim() || it.type === "poll" ? " with-text" : ""}${pic ? "" : " no-pic"}${l.className}`}>
-                  <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+                  <Box bare={lookFor(it).hide("bar")} foot={foot(it.id)} to={href(section, it)} label={it.title}>
                     <CardLink to={href(section, it)} label={it.title} />
                     {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
                     <div className="card-body">
@@ -334,7 +334,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
             <Meta it={it} hideDate={l.hide("date")} />
             <h3>{it.title}</h3>
             {(it.subtitle || it.body) && !(l.hide("subtitle") && !it.body) && <p>{(!l.hide("subtitle") && it.subtitle) || excerpt(it.body, 180)}</p>}
-            <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
+            {!l.hide("bar") && <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>}
           </div>
         ); })}
       </div>
@@ -358,7 +358,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
               <a href={href(section, it)} className="ph-tile txt">{it.title}</a>
             )}
             <PhotoInfo title={it.title} href={href(section, it)} info={photoInfo(it, l)} />
-            <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>
+            {!l.hide("bar") && <div className="card-foot plain"><R id={it.id} /><FullView to={href(section, it)} label={it.title} /></div>}
           </div>
         ); })}
       </>
@@ -451,7 +451,7 @@ export default function SectionBody({ section, items, settings, wall, grid = fal
       {items.map((it, i) => { const l = lookFor(it); const pic = it.media[0] && !l.hide("pic"); return (
         <div key={it.id} className={`card${tile(i)}${pic ? "" : " no-pic"}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={l.style}>
           {it.pinned && <span className="chip dark pin-badge">★ featured</span>}
-          <Box foot={foot(it.id)} to={href(section, it)} label={it.title}>
+          <Box bare={lookFor(it).hide("bar")} foot={foot(it.id)} to={href(section, it)} label={it.title}>
             <CardLink to={href(section, it)} label={it.title} />
             {pic && <div className="pic-box"><div className="card-media"><Cover m={it.media[0]} className="card-img" style={vt(it.id)} /><MediaBadges media={it.media} /></div>{zoom(it)}</div>}
             <div className="card-body">

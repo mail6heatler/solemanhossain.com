@@ -301,11 +301,20 @@ export async function saveLaunch(raw: unknown): Promise<{ ok: true } | { ok: fal
   } catch (e) { console.error("saveLaunch", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }
 }
 
-/** The sticker buttons on cards (lib/cardBar.ts): the dashboard's Card buttons page saves them in one go. */
-export async function saveCardBar(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+/**
+ * The sticker buttons on cards (lib/cardBar.ts): the dashboard's Card buttons page saves them in one go. `panel` is its switch for the whole
+ * Buttons panel on every card, which is all content's hide `bar` (lib/contentStyle.ts), the same as the Content sizes page's.
+ */
+export async function saveCardBar(raw: unknown, panel?: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
   await requireAdmin();
   try {
-    await saveSettingsData({ cardBar: cleanCardBar(raw) });
+    const patch: Parameters<typeof saveSettingsData>[0] = { cardBar: cleanCardBar(raw) };
+    if (typeof panel === "boolean") {
+      const cs = (await getSettings()).contentStyle, hide = { ...cs.hide };
+      if (panel) delete hide.bar; else hide.bar = true;
+      patch.contentStyle = cleanStyle({ ...cs, hide });
+    }
+    await saveSettingsData(patch);
     refresh();
     return { ok: true };
   } catch (e) { console.error("saveCardBar", e); return { ok: false, error: "That didn't save. Nothing was lost here: try Save again." }; }

@@ -28,7 +28,7 @@ export default function ComicCard({ it, l, index, count, code, fallback, href, s
     : <ComicPoll id={it.id} options={it.poll_options} look={v.look as "scale" | "vs" | "quick" | "slash" | "quad"} word={v.word} confetti={confetti} still={edit} />;
   const says = v.subtitle ? <p className="sub" {...p("subtitle")}>{v.subtitle}</p> : null;
   const body: ComicBody = ({ above, withPoll }) => (
-    <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+    <Box bare={l.hide("bar")} foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
       full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
       {!edit && <CardLink to={href} label={it.title} />}
       <div className="tb">

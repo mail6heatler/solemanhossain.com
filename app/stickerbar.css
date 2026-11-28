@@ -73,6 +73,11 @@
 .stb-e::after { content: attr(data-name); position: absolute; bottom: calc(100% + 8px); left: 50%; translate: -50% 4px; padding: 2px 7px; border-radius: 99px; background: var(--fg); color: var(--card);
   font: 700 10.5px/1.3 var(--body); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s, translate .15s; }
 .stb-e:hover::after, .stb-e:focus-visible::after { opacity: 1; translate: -50% 0; }
+/* a finger choosing (press, hold and slide on a phone, StickerBar): the emoji under it rises with its name; standing still, it only grows */
+.stb-e.stb-hot::after { opacity: 1; translate: -50% 0; }
+.stb-e.stb-hot-still { scale: 1.45; translate: 0 -12px; }
+.stb-react { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.stb-react.stb-hold .stb-face { transform: translate(3px, 3px); transition: transform .07s ease-out; }
 
 /* the LIVE strip */
 .stb-strip { z-index: 2; display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border: 2px solid var(--fg); border-radius: 9px; background: var(--card); color: var(--fg);
@@ -104,3 +109,18 @@ html.scrolling .stb-live::before, html.lite .stb-live::before { animation-play-s
 .stb-plane { width: 42px; height: 42px; }
 .stb-plane svg { display: block; width: 100%; height: 100%; filter: drop-shadow(2px 2px 0 var(--fg)); }
 .stb-dot { width: 5px; height: 5px; border-radius: 50%; background: color-mix(in srgb, var(--fg) 45%, transparent); }
+
+/* ===== The Buttons panel switched off (2026-11-28, the owner asked: one switch for the whole panel on every card, now and later). The card's
+   Size & look "Buttons panel" (contentStyle hide `bar`, at all content, a section or one card) puts .no-bar on the card and Box leaves the foot
+   out, so the writing and pictures take its room. A card that still draws a foot (the older rows) hides it here, what sat just above the
+   buttons comes down to the bottom, and the frames whose foot was their rounded bottom edge round their writing instead. html.bar-off is the
+   Card buttons page's preview of the switch for every card. */
+:is(.no-bar, html.bar-off) .card-foot { display: none; }
+.pn-screen:is(.no-bar *, html.bar-off *) .pn-fly { bottom: 26px; }
+.trip.tkt.sb:is(.no-bar, .no-bar *, html.bar-off *) > .sb-holes { height: calc(100% - 80px); }
+.note-manual .mn-warn:is(.no-bar *, html.bar-off *):not([data-sz~="x"]) { bottom: 16px; }
+.fr-camera:is(.no-bar, .no-bar *, html.bar-off *) .scroll-wrap { margin: 0 10px 10px; border-radius: 0 0 8px 8px; overflow: hidden; }
+.fr-camera:is(.no-bar, .no-bar *, html.bar-off *) .tb { margin: 0; }
+.fr-camera:is(.no-bar, .no-bar *, html.bar-off *) .more-hint { inset-inline: 0; }
+.st-player:is(.no-bar, .no-bar *, html.bar-off *) .scroll-wrap { border-radius: 0 0 min(var(--r-card), 21px) min(var(--r-card), 21px); overflow: hidden; }
+.aw:is(.no-bar, .no-bar *, html.bar-off *) .scroll-wrap { border-radius: 0 0 11px 11px; overflow: hidden; }

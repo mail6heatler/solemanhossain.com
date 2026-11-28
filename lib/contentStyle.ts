@@ -3,7 +3,7 @@
  * and anything left unset falls through to the level above, then to the site's normal design.
  * Everything is limited here, on the server as well as in the sliders, so no setting can bring back cards that outgrow the screen.
  */
-export type HideKey = "pic" | "subtitle" | "tags" | "date";
+export type HideKey = "pic" | "subtitle" | "tags" | "date" | "bar";
 export type ContentStyle = {
   size?: "s" | "m" | "l" | "custom";
   /** card width and height in pixels, for size "custom" */
@@ -27,7 +27,9 @@ export const SIZE_PRESETS = {
   m: { label: "Medium", w: 340, h: 440 },
   l: { label: "Large", w: 420, h: 540 },
 } as const;
-export const HIDE_LABELS: Record<HideKey, string> = { pic: "Picture", subtitle: "Subtitle", tags: "Tags", date: "Date and place" };
+/** `bar` is the buttons panel at the bottom of a card (React, Comment, Share, Open and the LIVE strip, or the older row of emojis): hidden, the card's
+ * writing and pictures take its room. The owner asked for it on every card, now and later (2026-11-28); the entry's own page keeps its reactions. */
+export const HIDE_LABELS: Record<HideKey, string> = { pic: "Picture", subtitle: "Subtitle", tags: "Tags", date: "Date and place", bar: "Buttons panel (React, Comment, Share, Open, LIVE)" };
 
 const num = (v: unknown, [a, b]: readonly [number, number]) => {
   const n = Number(v);
@@ -98,7 +100,7 @@ export function lookOf(s: ContentStyle): Look {
   }
   if (s.text !== undefined) vars["--fs"] = (s.text / 100).toFixed(2);
   if (s.fx !== undefined) { vars["--fx"] = `${s.fx}%`; vars["--fy"] = `${s.fy}%`; }
-  const classes = [h ? "sized" : "", s.fit === "fill" ? "fit-fill" : s.fit === "whole" ? "fit-whole" : ""].filter(Boolean).join(" ");
+  const classes = [h ? "sized" : "", s.fit === "fill" ? "fit-fill" : s.fit === "whole" ? "fit-whole" : "", s.hide?.bar === true ? "no-bar" : ""].filter(Boolean).join(" ");
   return {
     className: classes ? ` ${classes}` : "",
     style: Object.keys(vars).length ? (vars as React.CSSProperties) : undefined,

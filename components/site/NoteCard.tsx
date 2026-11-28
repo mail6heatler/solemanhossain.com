@@ -72,7 +72,7 @@ export default function NoteCard({ it, l, index, factNo, foot, bar, href, owner,
   return (
     <div className={`note note-${look}${look === "plain" && index === 0 && it.body.length > 280 ? " wide" : ""}${it.body.trim() || it.type === "poll" ? " with-text" : ""}${l.className}`} style={style}>
       {look === "story" && <div className="sy-bg" aria-hidden {...(m && edit ? { "data-part": "pic", "data-fixed": "" } : {})}>{m && <Cover m={m} className="sy-img" style={vt} />}</div>}
-      <Box foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
+      <Box bare={l.hide("bar")} foot={bar ? bar(p) : foot?.({ bar: p("reacts"), talk: p("comments") })} footClass={bar ? "stb-foot" : undefined} to={edit || bar ? undefined : href} label={it.title} fullAttrs={p("open")}
         full={bar ? undefined : edit ? <span className="full-view" role="button" {...p("open")}><span>Full view</span><i className="ti ti-arrow-right" aria-hidden /></span> : undefined}>
         {!edit && <CardLink to={href} label={it.title} />}
         {inner}
