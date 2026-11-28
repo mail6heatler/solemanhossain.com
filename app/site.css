@@ -1503,7 +1503,8 @@ html[data-skin="paper"] .site .btn-paper.p-main .paper-face { background: var(--
 /* --- the row reaches both edges of the screen, so cards come from outside it --- */
 /* A row runs the screen's full width. When FitScreens shrinks a section with `zoom`, vw and the gutter shrink with it, so they're divided by
    the shrink (--fz) to land on the screen's edges again; --gz is the gutter in the section's own, shrunk pixels. */
-.site section.chap > .chap-inner { --gz: calc(var(--gutter, 7vw) / var(--fz, 1)); }
+/* the row has its own --fz when FitScreens shrinks a section's heading more than its cards (the row is zoomed back up), so --gz is worked out again there */
+.site section.chap > .chap-inner, .site section.chap > .chap-inner > .side { --gz: calc(var(--gutter, 7vw) / var(--fz, 1)); }
 .side { margin-top: 34px; margin-left: calc(var(--gz, var(--gutter, 7vw)) * -1); width: calc(100vw / var(--fz, 1)); max-width: calc(100vw / var(--fz, 1)); position: relative; }
 .side-stage { display: flex; flex-direction: column; gap: 16px; }
 .side-track.side-track { display: flex; flex-flow: row nowrap; gap: 16px; margin: 0; max-width: none; position: relative; overflow: auto hidden; padding: 6px var(--gz, var(--gutter, 7vw)) 16px; align-items: stretch; scroll-snap-type: none; scroll-padding-inline: var(--gz, var(--gutter, 7vw)); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mint) 60%, transparent) transparent; }
@@ -1554,8 +1555,9 @@ html[data-skin="ocean"] .site.fx-themefx .side[data-mode="slide"] .stagger.live 
 
 /* --- G2: projects as app windows on a desktop (layout "windows", SectionBody + Dock). A window is a .card, so it keeps every card's
    behaviour. Its two bars sit outside the scrolling part. All of it is painted once: nothing here changes per frame --- */
-.win { --pic: .5; --row-h: min(480px, 70vh); }
-@media (max-width: 760px) { .win { --row-h: min(470px, 70svh); } }
+/* every section's cards are G1's size (the owner's rule, 2026-11-28): 340 × 440 on a laptop, the same on phones; FitScreens shrinks them all alike */
+.win { --pic: .5; --row-h: min(440px, 62vh); }
+@media (max-width: 760px) { .win { --row-h: min(440px, 66svh); } }
 .win-head { position: relative; flex: none; border-bottom: .5px solid var(--line); background: color-mix(in srgb, var(--fg) 5%, var(--card)); transition: background .25s; }
 .card.win:is(:hover, :focus-within, .front) .win-head { background: color-mix(in srgb, var(--mint) 22%, var(--card)); }
 .win-chrome { position: absolute; inset: 0; z-index: 1; }
@@ -1592,16 +1594,15 @@ html[data-skin="ocean"] .site.fx-themefx .side[data-mode="slide"] .stagger.live 
 .win-code .blink-cursor { background: var(--mint); }
 /* the row: windows overlap a little and step down and up, and the one in use comes to the front */
 .side-track.win-row { gap: 0; padding-bottom: 34px; }
-.side-track.win-row > .win { isolation: isolate; /* what's inside a window stays inside it, or a window behind would paint over the one in front */ width: var(--cw, clamp(300px, 30vw, 400px)); box-shadow: 0 16px 34px -20px color-mix(in srgb, var(--fg) 55%, transparent); }
+.side-track.win-row > .win { isolation: isolate; /* what's inside a window stays inside it, or a window behind would paint over the one in front */ width: var(--cw, clamp(280px, 27vw, 340px)); box-shadow: 0 16px 34px -20px color-mix(in srgb, var(--fg) 55%, transparent); }
 .side-track.win-row > .win + .win { margin-left: -14px; }
 .side-track.win-row > .win:nth-child(even) { translate: 0 16px; }
 .side-track.win-row > .win:is(:hover, :focus-within, .front) { z-index: 5; }
-.side[data-mode="fit"] .side-track.win-row > .win:not([style*="--cw"]) { flex-grow: 1; max-width: 520px; }
 .card.win.front::after { content: ""; position: absolute; inset: 0; z-index: 6; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--mint); pointer-events: none; animation: win-ring 3.8s ease-out both; }
 @keyframes win-ring { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 @media (max-width: 760px) {
   .side-track.win-row { gap: 12px; padding-bottom: 16px; }
-  .side-track.win-row > .win { width: min(var(--cw, 340px), 84vw); }
+  .side-track.win-row > .win { width: min(var(--cw, 330px), 82vw); }
   .side-track.win-row > .win + .win { margin-left: 0; }
   .side-track.win-row > .win:nth-child(even) { translate: none; }
 }
@@ -1649,8 +1650,8 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 /* --- G3: trips as boarding passes on a route (layout "tickets", SectionBody + TicketRider + vehicles). A ticket is a .trip inside a cell that also
    holds its stretch of the route. The notches are two circles in the page's colour, not a mask: a mask makes the browser do extra work around
    anything that moves inside it, and it would cut off the ticket's shadow too --- */
-.tkt-cell { --pic: .42; --row-h: min(500px, 72vh); position: relative; isolation: isolate; display: flex; flex-direction: column; width: var(--cw, 320px); }
-@media (max-width: 760px) { .tkt-cell { --row-h: min(490px, 72svh); } }
+.tkt-cell { --pic: .42; --row-h: min(440px, 62vh); position: relative; isolation: isolate; display: flex; flex-direction: column; width: var(--cw, 340px); }
+@media (max-width: 760px) { .tkt-cell { --row-h: min(440px, 66svh); } }
 .trip.tkt { flex: none; width: 100%; height: var(--row-h); max-height: var(--row-h); display: flex; flex-direction: column; overflow: visible; box-shadow: 0 14px 26px -14px color-mix(in srgb, var(--fg) 48%, transparent); }
 .tkt-cell.sized > .tkt { height: var(--row-h); }
 .grid3 > .tkt-cell { width: auto; min-width: 0; } /* "See all": each follows its column whatever its own size, or a large one spreads under the next */
@@ -1808,8 +1809,8 @@ html[data-skin="techy"] .site .dock-i { border-radius: 3px; }
 .v-line-e { stroke: var(--card); stroke-width: 1.800; }
 /* the row and its route: each cell draws its own stretch, so the route moves with the row, and it lights up behind the vehicle */
 .side-track.tkt-row { gap: 18px; padding-top: 8px; padding-bottom: 30px; }
-.side-track.tkt-row > .tkt-cell { width: var(--cw, clamp(280px, 25vw, 330px)); }
-@media (max-width: 760px) { .side-track.tkt-row { gap: 14px; } .side-track.tkt-row > .tkt-cell { width: min(var(--cw, 310px), 82vw); } }
+.side-track.tkt-row > .tkt-cell { width: var(--cw, clamp(280px, 27vw, 340px)); }
+@media (max-width: 760px) { .side-track.tkt-row { gap: 14px; } .side-track.tkt-row > .tkt-cell { width: min(var(--cw, 330px), 82vw); } }
 .tkt-stop { position: relative; flex: none; height: 46px; }
 .tkt-stop::before, .tkt-stop::after { content: ""; position: absolute; top: calc(50% - 1.5px); border-top: 3px dashed color-mix(in srgb, var(--fg) 22%, transparent); }
 .tkt-stop::before { left: -9px; right: 50%; }
@@ -1867,7 +1868,7 @@ html.lite :is(.tkt-rider svg, .tkt-art svg, .cam-rec i, .cam-shot::before, .cam-
 .grid3:not(.side-track) > .sty-cell { padding-top: 36px; } /* "See all": room for antennas and picture wires under the shelf above. The homepage's row has .grid3 too */
 .grid3:not(.side-track) > .sty-cell .sty-plank { margin-inline: -8px; }
 @media (max-width: 760px) { .sty-rail::before { left: -7px; right: -7px; } .sty-plank { margin-inline: -7px; } }
-.sty-decor { --row-h: min(500px, 72vh); flex: 0 0 auto; display: flex; flex-direction: column; width: 220px; }
+.sty-decor { --row-h: min(440px, 62vh); flex: 0 0 auto; display: flex; flex-direction: column; width: 220px; }
 @media (max-width: 760px) { .sty-decor { display: none; } } /* a phone shows one object at a time, so nothing looks empty there */
 .sty-decor-row { display: flex; align-items: flex-end; justify-content: center; gap: 22px; height: var(--row-h); }
 .sty-books { display: flex; align-items: flex-end; gap: 2px; }
@@ -2163,7 +2164,7 @@ html.lite .sty-cone, html.lite .bk-fill { display: none; }
 :is(.cm-rider, .cm-dbrain) .fold { fill: none; stroke: var(--bg); stroke-width: 1.8; stroke-linecap: round; }
 .side .tkt-row.stagger.live > :is(.cm-rider, .cm-more) { opacity: 1; animation: none; }
 /* the end of a short row, so it doesn't look unfinished. It isn't an entry, so the row doesn't count it */
-.cm-more { --row-h: min(500px, 72vh); flex: 0 0 auto; display: flex; flex-direction: column; width: 230px; }
+.cm-more { --row-h: min(440px, 62vh); flex: 0 0 auto; display: flex; flex-direction: column; width: 230px; }
 .cm-more-in { flex: none; display: grid; place-items: center; height: var(--row-h); border: 3px dashed color-mix(in srgb, var(--fg) 34%, transparent); border-radius: 7px 11px 6px 12px / 11px 7px 12px 6px; rotate: 1deg; background: radial-gradient(circle, color-mix(in srgb, var(--pop3) 40%, transparent) 1.9px, transparent 2.3px) 0 0 / 10px 10px; }
 .cm-more-in span { padding: 9px 14px; border: 2.5px solid var(--fg); background: var(--mint); color: var(--on-mint); box-shadow: 4px 4px 0 var(--fg); font: 800 19px/1.15 var(--display); text-align: center; rotate: -4deg; }
 @media (max-width: 760px) { .cm-more { display: none; } } /* a phone shows one panel at a time, so nothing looks empty there */
@@ -2678,7 +2679,7 @@ html:is([data-skin="playful"], [data-skin="candy"], [data-skin="forest"], [data-
 .aw-facts dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
 /* the end of a short row */
 .aw-more { position: relative; isolation: isolate; flex: 0 0 auto; width: 230px; padding-top: 52px; }
-.aw-more-in { position: relative; display: grid; place-items: center; height: min(500px, 72vh); padding: 14px; border: 3px dashed color-mix(in srgb, var(--fg) 34%, transparent); border-radius: 10px; color: var(--muted); font: 700 17px/1.2 var(--display); text-align: center; }
+.aw-more-in { position: relative; display: grid; place-items: center; height: min(440px, 62vh); padding: 14px; border: 3px dashed color-mix(in srgb, var(--fg) 34%, transparent); border-radius: 10px; color: var(--muted); font: 700 17px/1.2 var(--display); text-align: center; }
 @media (max-width: 760px) { .aw-more { display: none; } }
 /* the spotlight */
 .aw-rider { display: none; position: absolute; z-index: 7; left: 0; top: 4px; width: 60px; height: 30px; pointer-events: none; transition: transform 1.2s cubic-bezier(.45,0,.2,1) !important; }
@@ -2959,7 +2960,7 @@ html.lite :is(.note-manual, .note-sign, .note-story, .note-fact) * { animation: 
 .sb-rider svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .side .tkt-row.stagger.live > :is(.sb-rider, .sb-more) { opacity: 1; animation: none; }
 /* the end of a short row, so it doesn't look unfinished */
-.sb-more { --row-h: min(500px, 72vh); flex: 0 0 auto; width: 230px; }
+.sb-more { --row-h: min(440px, 62vh); flex: 0 0 auto; width: 230px; }
 .sb-more-in { display: grid; place-items: center; height: var(--row-h); padding: 18px; border: 3px dashed color-mix(in srgb, var(--fg) 30%, transparent); border-radius: 4px 14px 14px 4px; color: var(--muted); font: 700 26px/1.1 "Caveat", "Segoe Print", cursive; text-align: center; rotate: -1deg; }
 @media (max-width: 760px) { .sb-more { display: none; } }
 /* arriving, and the page the pencil reaches */

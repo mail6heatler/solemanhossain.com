@@ -123,7 +123,7 @@ html[data-skin] .adm.dark { color-scheme: dark; }
 .stu-emos .float-emo { font-size: 26px; cursor: pointer; }
 .stu .see-all { cursor: pointer; }
 .stu-one .note, .stu-thumb .note { width: var(--cw, 340px); max-height: var(--row-h); }
-.stu-one .card.win, .stu-thumb .card.win { width: var(--cw, 380px); height: var(--row-h); box-shadow: 0 16px 34px -20px color-mix(in srgb, var(--fg) 55%, transparent); isolation: isolate; }
+.stu-one .card.win, .stu-thumb .card.win { width: var(--cw, 340px); height: var(--row-h); box-shadow: 0 16px 34px -20px color-mix(in srgb, var(--fg) 55%, transparent); isolation: isolate; }
 .stu-cardbox { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
 .stu-corner { position: absolute; z-index: 7; right: -8px; bottom: -8px; width: 24px; height: 24px; padding: 0; border: 0; border-right: 5px solid var(--stu-on); border-bottom: 5px solid var(--stu-on); border-radius: 0 0 11px 0; background: none; cursor: nwse-resize; touch-action: none; }
 .stu .fv { max-width: none; padding: 30px 36px 44px; }

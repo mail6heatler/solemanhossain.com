@@ -343,7 +343,7 @@ details.c[open] > summary .ti-chevron-down { transform: rotate(180deg); }
 .look-preview-col { min-width: 0; position: sticky; top: 74px; }
 .look-preview-lab { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
 .look-preview { border-radius: 14px; background: var(--page-bg); border: .5px dashed var(--input-border); padding: 14px; overflow: auto; max-height: 72vh; }
-.look-preview .tkt-cell { width: var(--cw, 310px); max-width: 100%; }
+.look-preview .tkt-cell { width: var(--cw, 340px); max-width: 100%; }
 .look-preview .tkt-cell .trip { width: 100%; }
 .look-preview .bkl-photo { pointer-events: auto; }
 .look-preview .st-player { margin-top: 40px; }
