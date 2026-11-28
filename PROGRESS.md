@@ -20,6 +20,7 @@ The running log. Read this after `CLAUDE.md`, and update it at the end of every 
 
 ## Launch screen, boarding gate: the GATE lettering and a smooth plane (2026-11-28, live)
 
+- Round two (the owner: "still not good"): GATE and its number are one phrase centred exactly on the doors' meeting line, painted across both doors (each door shows its half of the same words, so they slide apart with the doors), in the middle of the clear space below the pass; the plane's bob is gone, so it flies in a straight line. Restore point: tag `before-gate-centre`.
 - The doors' big GATE and number were cut in half behind the pass (laptop) or ran into its bottom (phone): they now sit in the clear space below the pass, meeting at the seam. The progress plane glided in steps (`left` and `width`); it now glides by transform (`quickTo` on x, the line by scaleX) with a little bob. Restore point: tag `before-gate-polish`.
 
 ## Mini Shourobh: locked in a tarot card (2026-11-28, live, waiting for the owner's look)

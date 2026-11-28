@@ -29,7 +29,8 @@ function Gate({ c, w }: { c: LaunchSettings["gate"]; w: (s: string) => string })
   const board = w(c.board);
   return (
     <div className="lch-scene lch-gate">
-      <div className="lg-door lg-l"><span>GATE</span></div><div className="lg-door lg-r"><span>{w(c.gate)}</span></div>
+      {/* the phrase is painted across both doors, centred on the line where they meet: each door shows its own half of the same words (launch.css) */}
+      <div className="lg-door lg-l"><span>GATE {w(c.gate)}</span></div><div className="lg-door lg-r"><span aria-hidden="true">GATE {w(c.gate)}</span></div>
       <div className="lg-board"><b className="lg-flap">{[...board].map((ch, i) => <span key={i} style={{ ["--i" as string]: i }}>{ch === " " ? " " : ch}</span>)}</b><i className="lg-status">CHECK-IN</i></div>
       <div className="lg-slot" />
       <div className="lg-win"><div className="lg-print"><div className="lg-pass">
