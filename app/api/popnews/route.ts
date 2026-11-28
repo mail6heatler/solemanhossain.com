@@ -9,7 +9,7 @@ import { POP_ARTS, POP_FEEDS, artOf, type PopItem } from "@/lib/popnews";
  */
 const BASE = "hl=en-BD&gl=BD&ceid=BD:en";
 const FEEDS: Record<string, string> = {
-  bd: `https://news.google.com/rss?${BASE}`,
+  bd: `https://news.google.com/rss/headlines/section/topic/NATION?${BASE}`, // Bangladesh's own news (the edition's top stories mix in the world)
   world: `https://news.google.com/rss/headlines/section/topic/WORLD?${BASE}`,
   tech: `https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?${BASE}`,
   sports: `https://news.google.com/rss/headlines/section/topic/SPORTS?${BASE}`,
